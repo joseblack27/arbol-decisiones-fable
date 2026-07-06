@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://cp484rx732700"]
+
+[ext_resource type="Script" uid="uid://cyryibwkti4vv" path="res://escenas/habilidades/muro/pilar.gd" id="1_pilar"]
+[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_dm6l6"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a1bkv"]
+atlas = ExtResource("2_dm6l6")
+region = Rect2(96, 40, 32, 24)
+
+[node name="Pilar" type="Node2D"]
+script = ExtResource("1_pilar")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -12)
+texture = SubResource("AtlasTexture_a1bkv")

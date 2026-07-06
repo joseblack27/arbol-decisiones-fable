@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://nxtblnos5iwa"]
+
+[ext_resource type="Script" path="res://escenas/habilidades/area_efecto/HabilidadAreaEfecto.gd" id="1_hae"]
+
+[node name="HabilidadAreaEfecto" type="Node"]
+script = ExtResource("1_hae")
+desplazamiento_maximo = 200.0
+costo_energia = 30.0
+requiere_direccion = true

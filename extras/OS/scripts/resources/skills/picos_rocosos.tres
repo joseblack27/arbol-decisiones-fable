@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=3 format=3 uid="uid://dm8bip261qqn"]
+
+[ext_resource type="Texture2D" uid="uid://trwq6shh2a0d" path="res://assets/icons/buttons/skills/boton_5.png" id="1_vj2md"]
+[ext_resource type="Script" uid="uid://348ddh6pbn4h" path="res://scripts/resources/skills/SkillData.gd" id="2_rhsv4"]
+
+[resource]
+script = ExtResource("2_rhsv4")
+name = "Picos rocosos"
+icon = ExtResource("1_vj2md")
+level = 1
+description = "Picos de piedra que se despliegan en la zona elegida, causando [color=#905010]{damage1}[/color]"
+cost_energy = 80
+damage_base_min = 20
+damage_base_max = 24
+damage_calculated_min = 80
+damage_calculated_max = 96
+type_launch = 1
+range_meters = 12
+cooldown_seconds = 20.0
+metadata/_custom_type_script = "uid://348ddh6pbn4h"

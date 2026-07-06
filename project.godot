@@ -1,0 +1,51 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="ArbolDecisiones"
+run/main_scene="res://Mundo.tscn"
+config/features=PackedStringArray("4.5")
+config/icon="uid://crulm186ucr"
+
+[autoload]
+
+"SeñalManager"="*res://autoloads/SeñalManager.gd"
+BusEventos="*res://autoloads/BusEventos.gd"
+GestorUI="*res://autoloads/GestorUI.gd"
+Enums="*res://autoloads/Enums.gd"
+Utils="*res://autoloads/Utils.gd"
+GestorEventos="*res://autoloads/GestorEventos.gd"
+FabricaEventos="*res://autoloads/FabricaEventos.gd"
+_mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
+GestorNiveles="*res://autoloads/GestorNiveles.gd"
+GestorPiscinas="*res://autoloads/GestorPiscinas.gd"
+GestorNumerosDano="*res://autoloads/GestorNumerosDano.gd"
+
+[display]
+
+window/size/viewport_width=800
+window/size/viewport_height=480
+window/stretch/mode="viewport"
+window/stretch/aspect="expand"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true

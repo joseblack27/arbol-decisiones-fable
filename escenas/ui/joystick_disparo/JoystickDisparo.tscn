@@ -1,0 +1,15 @@
+[gd_scene load_steps=2 format=3 uid="uid://joystickdisparo01"]
+
+[ext_resource type="Script" path="res://escenas/ui/joystick_disparo/JoystickDisparo.gd" id="1_jdis"]
+
+[node name="JoystickDisparo" type="Control"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -200.0
+offset_right = -10.0
+offset_bottom = -10.0
+mouse_filter = 0
+script = ExtResource("1_jdis")

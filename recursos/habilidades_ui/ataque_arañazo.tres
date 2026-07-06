@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://puj1ekdmnpwn"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_06yym"]
+[ext_resource type="PackedScene" uid="uid://dtw6fvi03aau8" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="1_yi7ba"]
+[ext_resource type="Texture2D" uid="uid://bysnrreqwhpld" path="res://assets/arañazo.png" id="2_q3e76"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_tmkn5"]
+atlas = ExtResource("2_q3e76")
+region = Rect2(64, 0, 32, 32)
+
+[resource]
+script = ExtResource("1_06yym")
+nombre = "Arañazo"
+icono = SubResource("AtlasTexture_tmkn5")
+descripcion = "Golpe simple pero efectivo"
+escena = ExtResource("1_yi7ba")
+nivel = 1
+costo_energia = 10
+dano_base_min = 5
+dano_base_max = 10
+dano_calculado_min = 5
+dano_calculado_max = 10
+tipo_lanzamiento = 1
+alcance_metros = 1
+radio_golpe = 30.0
+enfriamiento = 5.0
+metadata/_custom_type_script = "uid://dm8kor0dij172"

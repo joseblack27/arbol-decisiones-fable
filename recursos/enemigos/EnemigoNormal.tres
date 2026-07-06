@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemigoDatos" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://recursos/enemigos/EnemigoDatos.gd" id="1_ed"]
+
+[resource]
+script = ExtResource("1_ed")
+nombre_tipo = "Normal"
+color = Color(1, 1, 1, 1)
+vida_maxima = 100.0
+velocidad_base = 150.0
+energia_maxima = 80.0
+regeneracion_energia = 10.0
+daño_carga = 25.0
+velocidad_carga = 4.0
+distancia_carga = 300.0
+cooldown_carga = 3.0

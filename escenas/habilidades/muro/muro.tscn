@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://dggfn7ht480ck"]
+
+[ext_resource type="Script" uid="uid://cminfdfxq522x" path="res://escenas/habilidades/muro/muro.gd" id="1_muro"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_hitbox"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_bloqueo"]
+size = Vector2(16, 16)
+
+[node name="Muro" type="Area2D"]
+y_sort_enabled = true
+script = ExtResource("1_muro")
+grupo_objetivo = "enemigos"
+
+[node name="Hitbox" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_hitbox")
+debug_color = Color(0.6, 0.1, 0.1, 0.3)
+
+[node name="Bloqueo" type="StaticBody2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Bloqueo"]
+shape = SubResource("RectangleShape2D_bloqueo")

@@ -1,0 +1,2 @@
+extends Enemigo
+class_name EnemigoRaton

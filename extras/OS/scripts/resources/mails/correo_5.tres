@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="MailData" load_steps=2 format=3 uid="uid://c0u4ggv57eq75"]
+
+[ext_resource type="Script" uid="uid://cdw2i4i4jc7ib" path="res://scripts/resources/mails/MailData.gd" id="1_b4jn3"]
+
+[resource]
+script = ExtResource("1_b4jn3")
+from = "Mary"
+to = "Rikapolo"
+title = "Buscame en la capital"
+message = "Hola aventurero, ven y buscame, para darte un tour por la capital y recibir el paquete de bienvenida"
+date = "2025-12-18"
+metadata/_custom_type_script = "uid://cdw2i4i4jc7ib"

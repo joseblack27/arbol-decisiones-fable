@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=3 format=3 uid="uid://cs2bn745u2syu"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_01o3h"]
+[ext_resource type="Texture2D" uid="uid://dvqynywf41g2d" path="res://assets/iconos/buttons/skills/bola_telarana_32x32.png" id="1_xegfw"]
+
+[resource]
+script = ExtResource("1_01o3h")
+nombre = "Bola de telaraña"
+icono = ExtResource("1_xegfw")
+descripcion = "Escupitajo de una araña"
+metadata/_custom_type_script = "uid://dm8kor0dij172"

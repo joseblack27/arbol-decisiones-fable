@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://21vcn1mtpoit"]
+
+[ext_resource type="Script" uid="uid://cnrwa2kgdn0mo" path="res://escenas/habilidades/muro/HabilidadMuroJugador.gd" id="1_muro"]
+
+[node name="HabilidadMuroJugador" type="Node"]
+script = ExtResource("1_muro")
+cantidad_pilares = 4

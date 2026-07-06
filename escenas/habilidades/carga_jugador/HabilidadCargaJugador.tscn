@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://habilidadcargajugador01"]
+
+[ext_resource type="Script" path="res://escenas/habilidades/carga_jugador/HabilidadCargaJugador.gd" id="1_hcj"]
+
+[node name="HabilidadCargaJugador" type="Node"]
+script = ExtResource("1_hcj")
+costo_energia = 25.0
+requiere_direccion = true

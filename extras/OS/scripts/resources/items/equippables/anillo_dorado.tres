@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://cpr1twxh2fy0l"]
+
+[ext_resource type="Texture2D" uid="uid://rp2x26mj0426" path="res://assets/items/equippables/accesorio_2.png" id="1_qim8g"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_jjp5y"]
+
+[resource]
+script = ExtResource("2_jjp5y")
+name = "Anillo dorado"
+icon = ExtResource("1_qim8g")
+description = "Anillo de hierro dorado"
+type = 3
+type_equippable = 6
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

@@ -1,0 +1,442 @@
+[gd_scene load_steps=17 format=3 uid="uid://6ysewcuhdy8u"]
+
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tikhs"]
+[ext_resource type="Texture2D" uid="uid://cdm8uqar1sxjr" path="res://icon.svg" id="2_2qy46"]
+[ext_resource type="Script" uid="uid://1bad6yheynjl" path="res://escenas/ui/panel_os/paneles/inventario/PanelInventario.gd" id="2_js0jc"]
+[ext_resource type="PackedScene" uid="uid://cp7vpuqjt24rq" path="res://escenas/ui/panel_os/paneles/inventario/SlotItem.tscn" id="3_cdap4"]
+[ext_resource type="Script" uid="uid://mejn6poguw2h" path="res://escenas/ui/panel_os/paneles/inventario/FlujoItems.gd" id="13_kk5td"]
+[ext_resource type="Script" uid="uid://bo4a4iwec5n7o" path="res://escenas/ui/panel_os/paneles/inventario/BotonFiltro.gd" id="19_tf88s"]
+[ext_resource type="PackedScene" uid="uid://c51diq6hqeah1" path="res://escenas/ui/panel_os/paneles/inventario/EquipoSlot.tscn" id="22_c47ir"]
+[ext_resource type="Texture2D" uid="uid://b3uvsh07edb7c" path="res://assets/iconos/slots/slot_8.png" id="23_8tsm6"]
+[ext_resource type="Texture2D" uid="uid://c7dml7cnfiigl" path="res://assets/iconos/slots/slot_7.png" id="24_1tche"]
+[ext_resource type="Texture2D" uid="uid://ddby3umovr8vp" path="res://assets/iconos/slots/slot_0.png" id="25_x5xd4"]
+[ext_resource type="Texture2D" uid="uid://bkl7jerunoya" path="res://assets/iconos/slots/slot_4.png" id="26_hshqp"]
+[ext_resource type="Texture2D" uid="uid://eq5orn555h1d" path="res://assets/iconos/slots/slot_1.png" id="27_s7e8m"]
+[ext_resource type="Texture2D" uid="uid://dxfglusqjwhcr" path="res://assets/iconos/slots/slot_5.png" id="28_7e6tm"]
+[ext_resource type="Texture2D" uid="uid://bedaabet7ahyt" path="res://assets/iconos/slots/slot_2.png" id="29_kuybn"]
+[ext_resource type="Texture2D" uid="uid://b40ww05yttmik" path="res://assets/iconos/slots/slot_3.png" id="30_dmwk7"]
+[ext_resource type="Texture2D" uid="uid://ddyia4fu53xg2" path="res://assets/iconos/slots/slot_6.png" id="31_3wc4y"]
+
+[node name="PanelInventario" type="Control" node_paths=PackedStringArray("slots_equippable")]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_tikhs")
+script = ExtResource("2_js0jc")
+slot_scene = ExtResource("3_cdap4")
+slots_equippable = [NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1/SlotArma"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1/SlotEscudo"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2/SlotCasco"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2/SlotCuello"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3/SlotPecho"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3/SlotAnillo1"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4/SlotPantalon"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4/SlotAnillo2"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5/SlotBotas"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5/SlotCinturon")]
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="PanelItems" type="Panel" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelItems"]
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxItems" type="VBoxContainer" parent="Margin/HBox/PanelItems/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = -1
+
+[node name="TabsFiltro" type="HBoxContainer" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="BotonTodos" type="Button" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro" node_paths=PackedStringArray("flow_items")]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Todos"
+script = ExtResource("19_tf88s")
+filter_type = 1
+flow_items = NodePath("../../MarginContainer/ScrollContainer/FlujoItems")
+
+[node name="BotonEquipables" type="Button" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro" node_paths=PackedStringArray("flow_items")]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Equipos"
+script = ExtResource("19_tf88s")
+filter_type = 3
+flow_items = NodePath("../../MarginContainer/ScrollContainer/FlujoItems")
+
+[node name="BotonConsumibles" type="Button" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro" node_paths=PackedStringArray("flow_items")]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Consumibles"
+script = ExtResource("19_tf88s")
+filter_type = 2
+flow_items = NodePath("../../MarginContainer/ScrollContainer/FlujoItems")
+
+[node name="BotonRecursos" type="Button" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro" node_paths=PackedStringArray("flow_items")]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Recursos"
+script = ExtResource("19_tf88s")
+filter_type = 4
+flow_items = NodePath("../../MarginContainer/ScrollContainer/FlujoItems")
+
+[node name="HSeparator" type="HSeparator" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems"]
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/MarginContainer"]
+layout_mode = 2
+
+[node name="FlujoItems" type="FlowContainer" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+script = ExtResource("13_kk5td")
+
+[node name="Control" type="Control" parent="Margin/HBox"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+
+[node name="PanelEquipamiento" type="Panel" parent="Margin/HBox/Control"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelEquipamiento"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxEquipamiento" type="VBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="HBoxContainer1" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="SlotArma" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("23_8tsm6")
+type_equippable = 8
+
+[node name="SlotEscudo" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("24_1tche")
+type_equippable = 9
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="SlotCasco" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("25_x5xd4")
+type_equippable = 1
+
+[node name="SlotCuello" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("26_hshqp")
+type_equippable = 5
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="SlotPecho" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("27_s7e8m")
+type_equippable = 2
+
+[node name="SlotAnillo1" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("28_7e6tm")
+type_equippable = 6
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="SlotPantalon" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("29_kuybn")
+type_equippable = 3
+
+[node name="SlotAnillo2" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("28_7e6tm")
+type_equippable = 6
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 8
+
+[node name="SlotBotas" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("30_dmwk7")
+type_equippable = 4
+
+[node name="SlotCinturon" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("31_3wc4y")
+type_equippable = 7
+
+[node name="PanelAccionPrincipal" type="PanelContainer" parent="Margin/HBox/Control/PanelEquipamiento"]
+visible = false
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -76.0
+offset_bottom = -38.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Panel" type="Panel" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal/MarginContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="BotonUsar" type="Button" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Usar"
+
+[node name="BotonEquipar" type="Button" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Equipar"
+
+[node name="BotonSoltar" type="Button" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Soltar"
+
+[node name="PanelDetalle" type="Panel" parent="Margin/HBox/Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="VBoxDetalle" type="VBoxContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="NombreItem" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+custom_minimum_size = Vector2(0, 17)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Godot Engine"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+layout_mode = 2
+
+[node name="IconoItem" type="TextureRect" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+texture = ExtResource("2_2qy46")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HSeparator2" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_right = 2
+
+[node name="RejillaInfo" type="GridContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer"]
+layout_mode = 2
+columns = 2
+
+[node name="TypeLabel" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo"]
+layout_mode = 2
+text = "Tipo:"
+
+[node name="ValorTipo" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Recurso"
+
+[node name="QtyLabel" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo"]
+layout_mode = 2
+text = "Cantidad:"
+
+[node name="ValorCantidad" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "1"
+
+[node name="HSeparator3" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+layout_mode = 2
+
+[node name="MarginContainer2" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_right = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer2"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="EtiquetaDescripcion" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer2/VBoxContainer"]
+layout_mode = 2
+text = "Descripción:"
+
+[node name="TextoDescripcion" type="RichTextLabel" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer2/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Godot Engine es un motor de videojuegos gratuito y de código abierto que permite desarrollar juegos en 2D y 3D de forma intuitiva y eficiente. Fue creado por Juan Linietsky y Ariel Manzur, y liberado públicamente el 14 de enero de 2014 bajo licencia MIT"
+
+[node name="HSeparator4" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="BotonAccion" type="Button" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+custom_minimum_size = Vector2(78, 32)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Acción"
+
+[node name="BotonCerrar" type="Button" parent="Margin/HBox/Control/PanelDetalle"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -20.0
+offset_bottom = 20.0
+grow_horizontal = 0
+size_flags_horizontal = 8
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 12
+text = "x"
+
+[node name="PanelAccionPrincipal" type="PanelContainer" parent="Margin/HBox/Control/PanelDetalle"]
+visible = false
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -76.0
+offset_bottom = -38.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Panel" type="Panel" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="BotonUsar" type="Button" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Usar"
+
+[node name="BotonEquipar" type="Button" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Equipar"
+
+[node name="BotonSoltar" type="Button" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Soltar"

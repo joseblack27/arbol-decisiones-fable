@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://abilities/basic_attack/BasicHit.gd" id="1_basichit"]
+[ext_resource type="Script" path="res://core/components/hitbox/HitboxComponent.gd" id="2_hitbox"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_basichit"]
+radius = 30.0
+
+[node name="BasicHit" type="Node2D"]
+script = ExtResource("1_basichit")
+
+[node name="HitboxComponent" type="Area2D" parent="."]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("2_hitbox")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitboxComponent"]
+shape = SubResource("CircleShape2D_basichit")

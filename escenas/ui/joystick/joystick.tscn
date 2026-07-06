@@ -1,0 +1,26 @@
+[gd_scene load_steps=6 format=3 uid="uid://cjw4ul4uo1qyp"]
+
+[ext_resource type="Script" uid="uid://dbpugbs6gbpf1" path="res://escenas/ui/joystick/Joystick.gd" id="1_vk1ea"]
+[ext_resource type="Texture2D" uid="uid://chisa83fx1453" path="res://assets/joystick_base_01.svg" id="2_f2jlm"]
+[ext_resource type="Texture2D" uid="uid://corpnd3h4rk75" path="res://assets/joystick_ball_01.svg" id="3_178j2"]
+[ext_resource type="Script" uid="uid://kwi3eqjf4kyu" path="res://componentes/ComponenteToque.gd" id="4_4vb8f"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_5ri3l"]
+radius = 72.0
+
+[node name="Joystick" type="Area2D"]
+script = ExtResource("1_vk1ea")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_5ri3l")
+
+[node name="Rango" type="Sprite2D" parent="."]
+self_modulate = Color(1, 1, 1, 0.0588235)
+texture = ExtResource("2_f2jlm")
+
+[node name="Palanca" type="Sprite2D" parent="."]
+self_modulate = Color(1, 1, 1, 0.235294)
+texture = ExtResource("3_178j2")
+
+[node name="ComponenteToque" type="Node2D" parent="."]
+script = ExtResource("4_4vb8f")

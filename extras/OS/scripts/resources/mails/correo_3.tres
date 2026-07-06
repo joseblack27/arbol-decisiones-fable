@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="MailData" load_steps=2 format=3 uid="uid://ccsf0hdd5ahpt"]
+
+[ext_resource type="Script" uid="uid://cdw2i4i4jc7ib" path="res://scripts/resources/mails/MailData.gd" id="1_dq2ca"]
+
+[resource]
+script = ExtResource("1_dq2ca")
+from = "Dev Teams"
+to = "Rikapolo"
+title = "Recompensa de bienvenida"
+message = "Hola aventurero, habla con la npc Mary, para que recibas tu paquete de bienvenida"
+date = "2025-12-18"
+metadata/_custom_type_script = "uid://cdw2i4i4jc7ib"

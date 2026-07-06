@@ -1,0 +1,151 @@
+[gd_scene load_steps=7 format=3 uid="uid://devgqv2nmuytk"]
+
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_f6gqp"]
+[ext_resource type="Script" uid="uid://bmxrjwu18xle7" path="res://escenas/ui/panel_os/paneles/eventos/PanelEventos.gd" id="2_eq342"]
+[ext_resource type="PackedScene" uid="uid://djtu2vk7m0bg2" path="res://escenas/ui/panel_os/comunes/evento_opcion_lista_boton/EventoOpcionListaBoton.tscn" id="2_pvkjq"]
+[ext_resource type="Script" uid="uid://dx2fxwrg6sh2u" path="res://escenas/ui/panel_os/paneles/eventos/PanelListaEventos.gd" id="3_5x4ph"]
+[ext_resource type="Script" uid="uid://db24hehjt2llq" path="res://escenas/ui/panel_os/paneles/eventos/PanelDetalleEvento.gd" id="9_63n6q"]
+[ext_resource type="PackedScene" uid="uid://detnq67ilbdn4" path="res://escenas/ui/panel_os/comunes/barra_desplazamiento_v/BarraDesplazamientoV.tscn" id="9_ksqxk"]
+
+[node name="PanelEventos" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_f6gqp")
+script = ExtResource("2_eq342")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="PanelListaEventos" type="Panel" parent="MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(300, 0)
+layout_mode = 2
+script = ExtResource("3_5x4ph")
+event_button_scene = ExtResource("2_pvkjq")
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelListaEventos"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 1
+theme_override_constants/margin_bottom = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelListaEventos/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBoxContainer/PanelListaEventos/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelListaEventos/MarginContainer/HBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelListaEventos/MarginContainer/HBoxContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="BarraDesplazamientoV" parent="MarginContainer/HBoxContainer/PanelListaEventos/MarginContainer/HBoxContainer" node_paths=PackedStringArray("scroll_container") instance=ExtResource("9_ksqxk")]
+layout_mode = 2
+scroll_container = NodePath("../ScrollContainer")
+
+[node name="PanelDetalleEvento" type="Panel" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("9_63n6q")
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelDetalleEvento"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="EtiquetaTitulo" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Titulo"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="EtiquetaSubtitulo" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Subtitulo"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Estado: "
+
+[node name="EtiquetaEstado" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Estado"
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer/VBoxContainer"]
+layout_mode = 2
+text = "Descripción:"
+
+[node name="TextoDescripcionEnriquecido" type="RichTextLabel" parent="MarginContainer/HBoxContainer/PanelDetalleEvento/MarginContainer/VBoxContainer/MarginContainer/VBoxContainer/VBoxContainer"]
+clip_contents = false
+layout_mode = 2
+size_flags_vertical = 3
+text = "Descripcion"
+fit_content = true

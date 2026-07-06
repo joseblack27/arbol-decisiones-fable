@@ -1,0 +1,172 @@
+[gd_scene load_steps=10 format=3 uid="uid://cl33iq5nafsfv"]
+
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://themes/tema.tres" id="1_5rry1"]
+[ext_resource type="Script" uid="uid://cebwdom5ek3nv" path="res://scenes/ui/panels/mails/MailsPanel.gd" id="2_w7qmk"]
+[ext_resource type="Script" uid="uid://cdw2i4i4jc7ib" path="res://scripts/resources/mails/MailData.gd" id="3_t43pk"]
+[ext_resource type="Resource" uid="uid://cnbyys01k7myi" path="res://scripts/resources/mails/correo_1.tres" id="4_481o0"]
+[ext_resource type="Resource" uid="uid://foo3dhvtb6ub" path="res://scripts/resources/mails/correo_2.tres" id="5_sgyx7"]
+[ext_resource type="Resource" uid="uid://ccsf0hdd5ahpt" path="res://scripts/resources/mails/correo_3.tres" id="6_iiea4"]
+[ext_resource type="Resource" uid="uid://5l64yaokkp7q" path="res://scripts/resources/mails/correo_4.tres" id="7_xtcjg"]
+[ext_resource type="Resource" uid="uid://c0u4ggv57eq75" path="res://scripts/resources/mails/correo_5.tres" id="8_yxi8n"]
+[ext_resource type="PackedScene" uid="uid://detnq67ilbdn4" path="res://scenes/ui/commons/scroll_bar_v/ScrollBarV.tscn" id="9_iiea4"]
+
+[node name="MailsPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_5rry1")
+script = ExtResource("2_w7qmk")
+list_mails = Array[ExtResource("3_t43pk")]([ExtResource("4_481o0"), ExtResource("5_sgyx7"), ExtResource("6_iiea4"), ExtResource("7_xtcjg"), ExtResource("8_yxi8n"), ExtResource("4_481o0"), ExtResource("5_sgyx7"), ExtResource("6_iiea4"), ExtResource("7_xtcjg"), ExtResource("8_yxi8n"), ExtResource("4_481o0"), ExtResource("5_sgyx7"), ExtResource("6_iiea4"), ExtResource("7_xtcjg"), ExtResource("8_yxi8n")])
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="MailListPanel" type="Panel" parent="Margin/HBox"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/MailListPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 1
+theme_override_constants/margin_bottom = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/HBox/MailListPanel/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Margin/HBox/MailListPanel/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/MailListPanel/MarginContainer/HBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 2
+
+[node name="MailList" type="VBoxContainer" parent="Margin/HBox/MailListPanel/MarginContainer/HBoxContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="ScrollBarV" parent="Margin/HBox/MailListPanel/MarginContainer/HBoxContainer" node_paths=PackedStringArray("scroll_container") instance=ExtResource("9_iiea4")]
+layout_mode = 2
+scroll_container = NodePath("../ScrollContainer")
+
+[node name="MailDetailsPanel" type="Panel" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/MailDetailsPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="MailView" type="VBoxContainer" parent="Margin/HBox/MailDetailsPanel/MarginContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="MailHeader" type="Label" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Selecciona un correo"
+
+[node name="HSeparator" type="HSeparator" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="MessagesScroll" type="ScrollContainer" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="MessagesVBox" type="VBoxContainer" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll/MessagesVBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll/MessagesVBox/HBoxContainer"]
+layout_mode = 2
+text = "De:"
+
+[node name="FromLabel" type="Label" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll/MessagesVBox/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll/MessagesVBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll/MessagesVBox/HBoxContainer2"]
+layout_mode = 2
+text = "Fecha:"
+
+[node name="DateLabel" type="Label" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll/MessagesVBox/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSeparator" type="HSeparator" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll/MessagesVBox"]
+layout_mode = 2
+
+[node name="MessageText" type="RichTextLabel" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/MarginContainer/MessagesScroll/MessagesVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSeparator2" type="HSeparator" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView"]
+layout_mode = 2
+
+[node name="InputBar" type="HBoxContainer" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView"]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 2
+
+[node name="DeleteButton" type="Button" parent="Margin/HBox/MailDetailsPanel/MarginContainer/MailView/InputBar"]
+custom_minimum_size = Vector2(70, 26)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Borrar"

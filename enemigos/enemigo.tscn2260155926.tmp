@@ -1,0 +1,364 @@
+[gd_scene load_steps=39 format=3 uid="uid://ccjgsrs4sqbn6"]
+
+[ext_resource type="Script" uid="uid://dmntoeg3f84od" path="res://enemigos/Enemigo.gd" id="1_bvf6m"]
+[ext_resource type="Script" uid="uid://wbsyvywo6m8w" path="res://componentes/MaquinaDeEstadosComponente.gd" id="3_c0wer"]
+[ext_resource type="Script" uid="uid://cglc36ces11wn" path="res://componentes/estados_definidos/IdleState.gd" id="4_kqge1"]
+[ext_resource type="Script" uid="uid://c3ln0alcsnvx2" path="res://componentes/estados_definidos/DeambularState.gd" id="5_itdr7"]
+[ext_resource type="Script" uid="uid://cprlisus3dv3b" path="res://componentes/estados_definidos/PersigueState.gd" id="5_ng816"]
+[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
+[ext_resource type="Script" uid="uid://dt6wycixtvjxy" path="res://componentes/DecisionComponente.gd" id="7_0p6eo"]
+[ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="7_ng816"]
+[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
+[ext_resource type="Texture2D" uid="uid://dhdbpiomf5alu" path="res://assets/lobo marron.png" id="10_2yvtj"]
+[ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
+
+[sub_resource type="Animation" id="Animation_gg1r0"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_64njo"]
+resource_name = "caminar_este"
+length = 0.4
+loop_mode = 1
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [11, 12, 13, 14]
+}
+
+[sub_resource type="Animation" id="Animation_er6sw"]
+resource_name = "caminar_norte"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.099999994, 0.19999999, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [6, 7, 8, 9]
+}
+
+[sub_resource type="Animation" id="Animation_1mga7"]
+resource_name = "caminar_oeste"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.099999994, 0.19999999, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [16, 17, 18, 19]
+}
+
+[sub_resource type="Animation" id="Animation_od7qp"]
+resource_name = "caminar_sur"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [1, 2, 3, 4]
+}
+
+[sub_resource type="Animation" id="Animation_psl2x"]
+resource_name = "idle_este"
+length = 0.5
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [10]
+}
+
+[sub_resource type="Animation" id="Animation_2yvtj"]
+resource_name = "idle_norte"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+
+[sub_resource type="Animation" id="Animation_4qigy"]
+resource_name = "idle_oeste"
+length = 0.5
+step = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [15]
+}
+
+[sub_resource type="Animation" id="Animation_ysyd8"]
+resource_name = "idle_sur"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_psl2x"]
+_data = {
+&"RESET": SubResource("Animation_gg1r0"),
+&"caminar_este": SubResource("Animation_64njo"),
+&"caminar_norte": SubResource("Animation_er6sw"),
+&"caminar_oeste": SubResource("Animation_1mga7"),
+&"caminar_sur": SubResource("Animation_od7qp"),
+&"idle_este": SubResource("Animation_psl2x"),
+&"idle_norte": SubResource("Animation_2yvtj"),
+&"idle_oeste": SubResource("Animation_4qigy"),
+&"idle_sur": SubResource("Animation_ysyd8")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ysyd8"]
+animation = &"caminar_sur"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_gg1r0"]
+animation = &"caminar_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_psl2x"]
+animation = &"caminar_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_4qigy"]
+animation = &"caminar_oeste"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_od7qp"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_ysyd8")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_1/node = SubResource("AnimationNodeAnimation_gg1r0")
+blend_point_1/pos = Vector2(0, -1)
+blend_point_2/node = SubResource("AnimationNodeAnimation_psl2x")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_3/node = SubResource("AnimationNodeAnimation_4qigy")
+blend_point_3/pos = Vector2(-1, 0)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_od7qp"]
+animation = &"idle_sur"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_er6sw"]
+animation = &"idle_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_64njo"]
+animation = &"idle_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_1mga7"]
+animation = &"idle_oeste"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_3n3x0"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_od7qp")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_1/node = SubResource("AnimationNodeAnimation_er6sw")
+blend_point_1/pos = Vector2(0, -1)
+blend_point_2/node = SubResource("AnimationNodeAnimation_64njo")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_3/node = SubResource("AnimationNodeAnimation_1mga7")
+blend_point_3/pos = Vector2(-1, 0)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_dhcpq"]
+advance_mode = 2
+advance_condition = &"debeCaminar"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3n3x0"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ysyd8"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_ysyd8"]
+states/CAMINAR/node = SubResource("AnimationNodeBlendSpace2D_od7qp")
+states/CAMINAR/position = Vector2(599, 100)
+states/End/position = Vector2(794, 100)
+states/IDLE/node = SubResource("AnimationNodeBlendSpace2D_3n3x0")
+states/IDLE/position = Vector2(397, 100)
+states/Start/position = Vector2(214, 100)
+transitions = ["IDLE", "CAMINAR", SubResource("AnimationNodeStateMachineTransition_dhcpq"), "CAMINAR", "IDLE", SubResource("AnimationNodeStateMachineTransition_3n3x0"), "Start", "IDLE", SubResource("AnimationNodeStateMachineTransition_ysyd8")]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_itdr7"]
+radius = 200.30228
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
+radius = 26.019224
+
+[node name="Enemigo" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_maquina_de_estados", "componente_movimiento", "componente_vision", "componente_decision")]
+script = ExtResource("1_bvf6m")
+componente_vida = NodePath("VidaComponente")
+componente_maquina_de_estados = NodePath("MaquinaEstadosComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+componente_vision = NodePath("VisionComponente")
+componente_decision = NodePath("DecisionComponente")
+velocidad_base = 80.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_bvf6m")
+
+[node name="MaquinaEstadosComponente" type="Node" parent="." node_paths=PackedStringArray("estado_activo", "etiqueta_estado")]
+script = ExtResource("3_c0wer")
+estado_activo = NodePath("IdleState")
+etiqueta_estado = NodePath("../Label")
+
+[node name="IdleState" type="Node" parent="MaquinaEstadosComponente" node_paths=PackedStringArray("maquina_de_estados", "entidad")]
+script = ExtResource("4_kqge1")
+maquina_de_estados = NodePath("..")
+entidad = NodePath("../..")
+
+[node name="DeambularState" type="Node" parent="MaquinaEstadosComponente" node_paths=PackedStringArray("componente_movimiento", "entidad")]
+script = ExtResource("5_itdr7")
+componente_movimiento = NodePath("../../MovimientoComponente")
+entidad = NodePath("../..")
+
+[node name="PersigueState" type="Node" parent="MaquinaEstadosComponente" node_paths=PackedStringArray("maquina_de_estados", "vision_componente", "componente_movimiento", "entidad")]
+script = ExtResource("5_ng816")
+maquina_de_estados = NodePath("..")
+vision_componente = NodePath("../../VisionComponente")
+componente_movimiento = NodePath("../../MovimientoComponente")
+entidad = NodePath("../..")
+
+[node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador")]
+script = ExtResource("6_itdr7")
+jugador = NodePath("..")
+velocidad_base = 80.0
+
+[node name="AnimacionComponente" type="Node" parent="." node_paths=PackedStringArray("animation_player", "animation_tree", "entidad")]
+script = ExtResource("11_ysyd8")
+animation_player = NodePath("AnimationPlayer")
+animation_tree = NodePath("AnimationTree")
+entidad = NodePath("..")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimacionComponente"]
+root_node = NodePath("../..")
+libraries = {
+&"": SubResource("AnimationLibrary_psl2x")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="AnimacionComponente"]
+root_node = NodePath("../..")
+tree_root = SubResource("AnimationNodeStateMachine_ysyd8")
+anim_player = NodePath("../AnimationPlayer")
+parameters/conditions/debeCaminar = false
+parameters/conditions/debeIdle = false
+parameters/CAMINAR/blend_position = Vector2(-0.46014208, -0.0114068985)
+parameters/IDLE/blend_position = Vector2(-0.2501973, 0.3307985)
+
+[node name="VisionComponente" type="Area2D" parent="."]
+script = ExtResource("7_ng816")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionComponente"]
+visible = false
+shape = SubResource("CircleShape2D_itdr7")
+
+[node name="Polygon2D" type="Polygon2D" parent="VisionComponente"]
+z_index = -1
+color = Color(1, 1, 1, 0.25490198)
+polygon = PackedVector2Array(-1, -201, 63, -187, 125, -158, 161, -116, 192, -58, 199, 0, 195, 47, 175, 101, 142, 143, 98, 177, 53, 195, -1, 201, -57, 193, -104, 173, -145, 141, -175, 101, -193, 55, -203, -2, -195, -57, -176, -102, -145, -141, -99, -176, -50, -194)
+
+[node name="VidaComponente" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("9_2yvtj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
+shape = SubResource("CircleShape2D_ysyd8")
+
+[node name="DecisionComponente" type="Node" parent="." node_paths=PackedStringArray("maquina_de_estados_componente", "vision_componente", "vida_componente", "movimiento_componente", "entidad")]
+script = ExtResource("7_0p6eo")
+maquina_de_estados_componente = NodePath("../MaquinaEstadosComponente")
+vision_componente = NodePath("../VisionComponente")
+vida_componente = NodePath("../VidaComponente")
+movimiento_componente = NodePath("../MovimientoComponente")
+entidad = NodePath("..")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("10_2yvtj")
+hframes = 5
+vframes = 4
+
+[node name="Label" type="Label" parent="."]
+custom_minimum_size = Vector2(100, 0)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -65.0
+offset_right = 20.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1

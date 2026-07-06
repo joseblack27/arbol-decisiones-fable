@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://bw6odx3kp6is1"]
+
+[ext_resource type="Texture2D" uid="uid://depmwv348xt0b" path="res://assets/items/equippables/armadura_2.png" id="1_4pmxt"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_yl8ia"]
+
+[resource]
+script = ExtResource("2_yl8ia")
+name = "Coraza de caballero gris"
+icon = ExtResource("1_4pmxt")
+description = "Coraza básica de armadura de caballero gris"
+type = 3
+type_equippable = 2
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

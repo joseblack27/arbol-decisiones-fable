@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://dljwusuionxbg"]
+
+[ext_resource type="Texture2D" uid="uid://bof7h7d3f8af6" path="res://assets/items/equippables/armadura_1.png" id="1_651v8"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_1sfox"]
+
+[resource]
+script = ExtResource("2_1sfox")
+name = "Casco de caballero gris"
+icon = ExtResource("1_651v8")
+description = "Casco básico de armadura de caballero gris"
+type = 3
+type_equippable = 1
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

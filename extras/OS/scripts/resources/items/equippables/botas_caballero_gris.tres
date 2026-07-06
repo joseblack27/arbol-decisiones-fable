@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://c4qnhswodm41n"]
+
+[ext_resource type="Texture2D" uid="uid://cl7fmmfiyh72j" path="res://assets/items/equippables/armadura_4.png" id="1_us2qt"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_0oujb"]
+
+[resource]
+script = ExtResource("2_0oujb")
+name = "Botas de caballero gris"
+icon = ExtResource("1_us2qt")
+description = "Botas básicas de armadura de caballero gris"
+type = 3
+type_equippable = 4
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

@@ -1,0 +1,59 @@
+[gd_scene load_steps=3 format=3 uid="uid://b1jr5mjskl5dq"]
+
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://themes/tema.tres" id="1_vmcuw"]
+[ext_resource type="Script" uid="uid://ctu1lany17r8v" path="res://scenes/ui/commons/button_list_option/ButtonListOption.gd" id="2_5c7nh"]
+
+[node name="ButtonListOption" type="Button"]
+custom_minimum_size = Vector2(0, 50)
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 8.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+theme = ExtResource("1_vmcuw")
+theme_type_variation = &"ButtonListOption"
+toggle_mode = true
+script = ExtResource("2_5c7nh")
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 2
+theme_override_font_sizes/font_size = 14
+text = "Título"
+clip_text = true
+text_overrun_behavior = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 10
+theme_override_constants/separation = 0
+
+[node name="SubtitleLabel" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Subtítulo"
+clip_text = true
+text_overrun_behavior = 4
+
+[node name="DateLabel" type="Label" parent="MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "2025-12-18"

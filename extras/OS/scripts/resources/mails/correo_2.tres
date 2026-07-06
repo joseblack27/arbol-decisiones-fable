@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="MailData" load_steps=2 format=3 uid="uid://foo3dhvtb6ub"]
+
+[ext_resource type="Script" uid="uid://cdw2i4i4jc7ib" path="res://scripts/resources/mails/MailData.gd" id="1_4w3fi"]
+
+[resource]
+script = ExtResource("1_4w3fi")
+from = "Dev Teams"
+to = "Rikapolo"
+title = "Bienvenido"
+message = "Bienvenido a mi juego"
+date = "2025-12-18"
+metadata/_custom_type_script = "uid://cdw2i4i4jc7ib"

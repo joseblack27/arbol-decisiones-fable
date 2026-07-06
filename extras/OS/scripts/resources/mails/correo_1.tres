@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="MailData" load_steps=2 format=3 uid="uid://cnbyys01k7myi"]
+
+[ext_resource type="Script" uid="uid://cdw2i4i4jc7ib" path="res://scripts/resources/mails/MailData.gd" id="1_oxek1"]
+
+[resource]
+script = ExtResource("1_oxek1")
+from = "Dev Teams"
+to = "Rikapolo"
+title = "Apertura del servidor"
+message = "Hola aventurero, espero que estes listo para la aventura que empezara en unos minutos"
+date = "2025-12-18"
+metadata/_custom_type_script = "uid://cdw2i4i4jc7ib"

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://c55couab68dla"]
+
+[ext_resource type="Texture2D" uid="uid://cbx7lioew84cd" path="res://assets/items/equippables/espada_de_luz_azul.png" id="1_iyotm"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_strfh"]
+
+[resource]
+script = ExtResource("2_strfh")
+name = "Espada de luz azul"
+icon = ExtResource("1_iyotm")
+description = "Poderosa espada de luz que emite una luz azul"
+type = 3
+type_equippable = 8
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

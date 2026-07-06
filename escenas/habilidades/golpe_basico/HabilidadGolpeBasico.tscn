@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://j0em8y0y47g7"]
+
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.gd" id="1_hgb"]
+
+[node name="HabilidadGolpeBasico" type="Node"]
+script = ExtResource("1_hgb")
+costo_energia = 5.0

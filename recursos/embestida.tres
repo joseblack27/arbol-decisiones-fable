@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="AtaqueConfig" load_steps=2 format=3 uid="uid://mewo7657p8yw"]
+
+[ext_resource type="Script" uid="uid://dcj70gcowg3k5" path="res://acciones/AtaqueConfig.gd" id="1_het4y"]
+
+[resource]
+script = ExtResource("1_het4y")
+nombre = "Embestida"
+"daño" = 20.0
+alcance = 80.0
+cooldown = 2.0
+tiempo_animacion = 0.8
+velocidad_proyectil = 300.0
+"radiús_efectos" = 50.0
+metadata/_custom_type_script = "uid://dcj70gcowg3k5"

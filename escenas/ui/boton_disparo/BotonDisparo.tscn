@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://botondisparo001"]
+
+[ext_resource type="Script" path="res://escenas/ui/boton_disparo/BotonDisparo.gd" id="1_bdis"]
+[ext_resource type="Script" uid="uid://kwi3eqjf4kyu" path="res://componentes/ComponenteToque.gd" id="2_tc"]
+
+[node name="BotonDisparo" type="Control"]
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -110.0
+offset_right = -10.0
+offset_bottom = -10.0
+script = ExtResource("1_bdis")
+
+[node name="ComponenteToque" type="Node2D" parent="."]
+script = ExtResource("2_tc")

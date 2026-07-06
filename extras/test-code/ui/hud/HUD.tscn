@@ -1,0 +1,117 @@
+[gd_scene load_steps=7 format=3 uid="uid://hamlqpsp5bw7"]
+
+[ext_resource type="Script" uid="uid://k6qw5r4di436" path="res://ui/hud/HUD.gd" id="1_hud"]
+[ext_resource type="Script" uid="uid://3tbv4l0rfpa4" path="res://ui/controls/joystick/VirtualJoystick.gd" id="2_vj"]
+[ext_resource type="Script" uid="uid://p76i4qqetue5" path="res://ui/controls/ability_button/AbilityButton.gd" id="3_ab"]
+[ext_resource type="Script" uid="uid://bdpowlr8rnp0e" path="res://ui/controls/ability_joystick/AbilityJoystick.gd" id="4_aj"]
+[ext_resource type="Script" uid="uid://brh00k1ulc3p3" path="res://ui/controls/cancel_zone/CancelZone.gd" id="5_cz"]
+[ext_resource type="Script" uid="uid://c874y4y306htc" path="res://ui/controls/cancel_button/CancelButton.gd" id="6_cb"]
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hud")
+
+[node name="TopBar" type="HBoxContainer" parent="."]
+layout_mode = 1
+offset_right = 400.0
+offset_bottom = 48.0
+
+[node name="HealthLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+text = "100 / 100"
+horizontal_alignment = 1
+
+[node name="HealthBar" type="ProgressBar" parent="TopBar"]
+custom_minimum_size = Vector2(200, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+value = 100.0
+
+[node name="StateLabel" type="Label" parent="TopBar"]
+layout_mode = 2
+
+[node name="BottomLayer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -204.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 2
+
+[node name="Left" type="VBoxContainer" parent="BottomLayer"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 2
+
+[node name="CancelButton" type="Control" parent="BottomLayer/Left"]
+custom_minimum_size = Vector2(90, 90)
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("6_cb")
+
+[node name="VirtualJoystick" type="Control" parent="BottomLayer/Left"]
+custom_minimum_size = Vector2(180, 180)
+layout_mode = 2
+size_flags_horizontal = 0
+script = ExtResource("2_vj")
+
+[node name="Right" type="VBoxContainer" parent="BottomLayer"]
+layout_mode = 2
+alignment = 2
+
+[node name="Row1" type="HBoxContainer" parent="BottomLayer/Right"]
+layout_mode = 2
+alignment = 2
+
+[node name="AbilityJoystick_Area" type="Control" parent="BottomLayer/Right/Row1"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+script = ExtResource("4_aj")
+ability_type = 1
+label_text = "AOE"
+idle_color = Color(0.6, 0.2, 0.8, 0.75)
+
+[node name="AbilityJoystick_Charge" type="Control" parent="BottomLayer/Right/Row1"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+script = ExtResource("4_aj")
+ability_type = 2
+label_text = "CHG"
+idle_color = Color(0.9, 0.6, 0.1, 0.75)
+
+[node name="Row2" type="HBoxContainer" parent="BottomLayer/Right"]
+layout_mode = 2
+alignment = 2
+
+[node name="AbilityJoystick_Proj" type="Control" parent="BottomLayer/Right/Row2"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+script = ExtResource("4_aj")
+label_text = "PROJ"
+idle_color = Color(0.2, 0.7, 0.4, 0.75)
+
+[node name="AbilityButton_Basic" type="Control" parent="BottomLayer/Right/Row2"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+script = ExtResource("3_ab")
+
+[node name="CancelZone" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -106.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 106.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("5_cz")

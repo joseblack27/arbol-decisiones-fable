@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://eyd0lniej4po"]
+
+[ext_resource type="Script" uid="uid://cmvtumtuaysdj" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="1_hproy01"]
+
+[node name="HabilidadProyectil" type="Node"]
+script = ExtResource("1_hproy01")
+costo_energia = 10.0
+requiere_direccion = true
+tipo_dano = 1

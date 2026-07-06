@@ -1,0 +1,262 @@
+[gd_scene load_steps=6 format=3 uid="uid://bxthynfs5udhq"]
+
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://themes/tema.tres" id="1_rp7j6"]
+[ext_resource type="Script" uid="uid://dcshss2mjuvn8" path="res://scenes/ui/panels/missions/MissionsPanel.gd" id="2_ofohn"]
+[ext_resource type="Resource" uid="uid://dyveda7lfpgmg" path="res://scripts/resources/missions/mision_1.tres" id="3_pf7ic"]
+[ext_resource type="Script" uid="uid://dkys83tplf2hs" path="res://scripts/resources/missions/MissionData.gd" id="3_whemo"]
+[ext_resource type="PackedScene" uid="uid://detnq67ilbdn4" path="res://scenes/ui/commons/scroll_bar_v/ScrollBarV.tscn" id="5_r2gc2"]
+
+[node name="MissionsPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_rp7j6")
+script = ExtResource("2_ofohn")
+list_mission = Array[ExtResource("3_whemo")]([ExtResource("3_pf7ic"), ExtResource("3_pf7ic"), ExtResource("3_pf7ic"), ExtResource("3_pf7ic"), ExtResource("3_pf7ic")])
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="HBox" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="MissionsListPanel" type="Panel" parent="MarginContainer/HBox"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBox/MissionsListPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 1
+theme_override_constants/margin_bottom = 3
+
+[node name="MissionsListVBox" type="VBoxContainer" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer"]
+layout_mode = 2
+
+[node name="SearchBar" type="LineEdit" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox"]
+visible = false
+layout_mode = 2
+placeholder_text = "Buscar..."
+
+[node name="FilterTabs" type="HBoxContainer" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox"]
+custom_minimum_size = Vector2(0, 26)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="ActiveMissionsButton" type="Button" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox/FilterTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Activas"
+
+[node name="CompletedMissionsButton" type="Button" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox/FilterTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Completadas"
+
+[node name="PendingMissionsButton" type="Button" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox/FilterTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
+text = "Pendientes"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox/HBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 2
+
+[node name="MissionsList" type="VBoxContainer" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox/HBoxContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="ScrollBarV" parent="MarginContainer/HBox/MissionsListPanel/MarginContainer/MissionsListVBox/HBoxContainer" node_paths=PackedStringArray("scroll_container") instance=ExtResource("5_r2gc2")]
+layout_mode = 2
+scroll_container = NodePath("../ScrollContainer")
+
+[node name="MissionDetailPanel" type="Panel" parent="MarginContainer/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBox/MissionDetailPanel"]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="DetailVBox" type="VBoxContainer" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="MissionTitle" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Selecciona una misión"
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 0
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="GridContainer" type="GridContainer" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+columns = 4
+
+[node name="TypeLabel" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Tipo:"
+
+[node name="TypeValue" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Historia"
+
+[node name="LevelLabel" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Nivel:"
+
+[node name="LevelValue" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "5"
+
+[node name="RegionLabel" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Región:"
+
+[node name="RegionValue" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/GridContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Bosque Norte"
+
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="DescriptionLabel" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Descripción"
+
+[node name="DescriptionText" type="RichTextLabel" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+text = "El bosque de Oakhaven está cubierto por una extraña niebla que no desaparece. Los aldeanos temen que sea la maldición de una Dama del Bosque a la que han enfadado. Debes encontrarla y calmarla antes de que la niebla consuma el bosque."
+fit_content = true
+
+[node name="HSeparator3" type="HSeparator" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="ObjectivesLabel" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Objetivos"
+
+[node name="ObjectivesList" type="VBoxContainer" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/ObjectivesList"]
+layout_mode = 2
+text = "• Hablar con el anciano"
+
+[node name="Label2" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/ObjectivesList"]
+layout_mode = 2
+text = "• Encontrar el amuleto"
+
+[node name="Label3" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/ObjectivesList"]
+layout_mode = 2
+text = "• Derrotar al jefe"
+
+[node name="HSeparator4" type="HSeparator" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="RewardsLabel" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+text = "Recompensas"
+
+[node name="RewardsList" type="VBoxContainer" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Label" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/RewardsList"]
+layout_mode = 2
+text = "• 200 XP"
+
+[node name="Label2" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/RewardsList"]
+layout_mode = 2
+text = "• 50 Oro"
+
+[node name="Label3" type="Label" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ScrollContainer/VBoxContainer/RewardsList"]
+layout_mode = 2
+text = "• Arma rara"
+
+[node name="HSeparator5" type="HSeparator" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox"]
+layout_mode = 2
+
+[node name="ButtonBar" type="HBoxContainer" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+
+[node name="TrackButton" type="Button" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ButtonBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Rastrear"
+
+[node name="AbandonButton" type="Button" parent="MarginContainer/HBox/MissionDetailPanel/MarginContainer/DetailVBox/ButtonBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Abandonar"

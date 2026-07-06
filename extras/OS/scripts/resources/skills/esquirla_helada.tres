@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=3 format=3 uid="uid://d3elulj0pqs7d"]
+
+[ext_resource type="Texture2D" uid="uid://bqhacs5obf0h" path="res://assets/icons/buttons/skills/boton_3.png" id="1_xa3nw"]
+[ext_resource type="Script" uid="uid://348ddh6pbn4h" path="res://scripts/resources/skills/SkillData.gd" id="2_2eq24"]
+
+[resource]
+script = ExtResource("2_2eq24")
+name = "Esquirla helada"
+icon = ExtResource("1_xa3nw")
+level = 1
+description = "Esquirla de hielo que se lanza en linea recta, causando [color=#00c4ff]{damage1}[/color]"
+cost_energy = 60
+damage_base_min = 15
+damage_base_max = 20
+damage_calculated_min = 60
+damage_calculated_max = 80
+launch_type = "Proyectil"
+range_meters = 8
+cooldown_seconds = 8.0
+metadata/_custom_type_script = "uid://348ddh6pbn4h"

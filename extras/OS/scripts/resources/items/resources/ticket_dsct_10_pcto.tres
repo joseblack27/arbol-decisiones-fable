@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://cnvn4opgjvvvt"]
+
+[ext_resource type="Texture2D" uid="uid://bgi3tbnfhr11u" path="res://assets/items/resources/ticket_4.png" id="1_djwqx"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_7m3no"]
+
+[resource]
+script = ExtResource("2_7m3no")
+name = "Ticket de 10% de descuento"
+icon = ExtResource("1_djwqx")
+description = "Ticket de descuento al comprar"
+type = 4
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

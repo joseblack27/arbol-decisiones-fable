@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="SkillData" load_steps=3 format=3 uid="uid://c6t4kbl6xo405"]
+
+[ext_resource type="Texture2D" uid="uid://c6fvay3vfypuf" path="res://assets/icons/buttons/skills/boton_1.png" id="1_kau5j"]
+[ext_resource type="Script" uid="uid://348ddh6pbn4h" path="res://scripts/resources/skills/SkillData.gd" id="1_s4kur"]
+
+[resource]
+script = ExtResource("1_s4kur")
+name = "Bola de fuego"
+icon = ExtResource("1_kau5j")
+level = 1
+description = "Bola de fuego que se lanza en linea recta, causando [color=red]{damage1}[/color]"
+cost_energy = 50
+damage_base_min = 10
+damage_base_max = 12
+damage_calculated_min = 40
+damage_calculated_max = 48
+launch_type = "Proyectil"
+range_meters = 10
+cooldown_seconds = 5.0
+metadata/_custom_type_script = "uid://348ddh6pbn4h"

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://c3fglu4x0kisg"]
+
+[ext_resource type="Texture2D" uid="uid://dexe8hju4lb7l" path="res://assets/items/consumables/medicina_pastilla_blanca.png" id="1_drkou"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_6a5qo"]
+
+[resource]
+script = ExtResource("2_6a5qo")
+name = "Pastilla bienestar"
+icon = ExtResource("1_drkou")
+description = "Elimina los efectos de estados"
+type = 2
+can_use = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

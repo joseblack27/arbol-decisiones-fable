@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="EnemigoDatos" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://recursos/enemigos/EnemigoDatos.gd" id="1_ed"]
+
+[resource]
+script = ExtResource("1_ed")
+nombre_tipo = "Tanque"
+color = Color(0.6, 0.3, 1.0, 1)
+vida_maxima = 250.0
+velocidad_base = 80.0
+energia_maxima = 120.0
+regeneracion_energia = 5.0
+daño_carga = 40.0
+velocidad_carga = 3.0
+distancia_carga = 200.0
+cooldown_carga = 5.0

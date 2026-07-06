@@ -1,0 +1,1391 @@
+[gd_scene load_steps=79 format=3 uid="uid://cpgivdrki0ua6"]
+
+[ext_resource type="Script" uid="uid://dmntoeg3f84od" path="res://enemigos/Enemigo.gd" id="1_bvf6m"]
+[ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
+[ext_resource type="Script" uid="uid://wbsyvywo6m8w" path="res://componentes/MaquinaDeEstadosComponente.gd" id="3_c0wer"]
+[ext_resource type="Script" uid="uid://cglc36ces11wn" path="res://componentes/estados_definidos/EstadoIdle.gd" id="4_kqge1"]
+[ext_resource type="Script" uid="uid://c3ln0alcsnvx2" path="res://componentes/estados_definidos/EstadoDeambular.gd" id="5_itdr7"]
+[ext_resource type="Script" uid="uid://cprlisus3dv3b" path="res://componentes/estados_definidos/EstadoPersigue.gd" id="5_ng816"]
+[ext_resource type="Script" uid="uid://dobkwh3h5eyye" path="res://componentes/estados_definidos/EstadoAtacar.gd" id="6_dhcpq"]
+[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
+[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
+[ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="7_ng816"]
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
+[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
+[ext_resource type="Resource" uid="uid://aranazolobo01bt" path="res://arbol_comportamiento/recursos/ArañazoLobo.tres" id="9_a0pfi"]
+[ext_resource type="Texture2D" uid="uid://dhdbpiomf5alu" path="res://assets/lobo marron.png" id="10_2yvtj"]
+[ext_resource type="Resource" uid="uid://bcarga001tres" path="res://arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
+[ext_resource type="Script" uid="uid://s6bybk1yny5k" path="res://componentes/estados_definidos/EstadoHuir.gd" id="11_42jf1"]
+[ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
+[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
+[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
+[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://arbol_comportamiento/composites/Selector.gd" id="14_4qigy"]
+[ext_resource type="Texture2D" uid="uid://bcwr2iejfd47i" path="res://assets/lobo_posicion_ataque.png" id="14_ywip5"]
+[ext_resource type="Script" uid="uid://dpvpdc2iuf45e" path="res://arbol_comportamiento/decoradores/Inversor.gd" id="15_er6sw"]
+[ext_resource type="Script" uid="uid://c7fo6kf2vfmps" path="res://arbol_comportamiento/decoradores/Guardia.gd" id="15_j3sy7"]
+[ext_resource type="Script" uid="uid://ct4bjrtr7d8rn" path="res://arbol_comportamiento/composites/Secuencia.gd" id="15_od7qp"]
+[ext_resource type="Script" uid="uid://dn738h7elp7t4" path="res://arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
+[ext_resource type="Script" uid="uid://ccirrnm6pfnmt" path="res://arbol_comportamiento/utilidades/acciones/AccionCambiarEstado.gd" id="17_64njo"]
+[ext_resource type="Script" uid="uid://ca1qx7dmkknyn" path="res://arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
+[ext_resource type="Script" uid="uid://bypmgglgk2kwl" path="res://arbol_comportamiento/utilidades/condiciones/CondicionDistanciaObjetivo.gd" id="22_a0pfi"]
+[ext_resource type="PackedScene" uid="uid://habilidad_aranazo1" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="26_6jhm3"]
+[ext_resource type="PackedScene" uid="uid://cwna41dn0homy" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
+
+[sub_resource type="Animation" id="Animation_gg1r0"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_c06r7"]
+resource_name = "atacar_mordida_preparacion_este"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("14_ywip5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [6]
+}
+
+[sub_resource type="Animation" id="Animation_42jf1"]
+resource_name = "atacar_mordida_preparacion_norte"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("14_ywip5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+
+[sub_resource type="Animation" id="Animation_ywip5"]
+resource_name = "atacar_mordida_preparacion_oeste"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("14_ywip5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_pgw5g"]
+resource_name = "atacar_mordida_preparacion_sur"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("14_ywip5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [7]
+}
+
+[sub_resource type="Animation" id="Animation_l80u0"]
+resource_name = "atacar_mordida_saltar_este"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("14_ywip5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+
+[sub_resource type="Animation" id="Animation_txjl2"]
+resource_name = "atacar_mordida_saltar_norte"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("14_ywip5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="Animation" id="Animation_6a82t"]
+resource_name = "atacar_mordida_saltar_oeste"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("14_ywip5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_7yb6q"]
+resource_name = "atacar_mordida_saltar_sur"
+length = 0.1
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("14_ywip5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [3]
+}
+
+[sub_resource type="Animation" id="Animation_64njo"]
+resource_name = "caminar_este"
+length = 0.4
+loop_mode = 1
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [11, 12, 13, 14]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_er6sw"]
+resource_name = "caminar_norte"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.099999994, 0.19999999, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [6, 7, 8, 9]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_1mga7"]
+resource_name = "caminar_oeste"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.099999994, 0.19999999, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [16, 17, 18, 19]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_od7qp"]
+resource_name = "caminar_sur"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [1, 2, 3, 4]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_psl2x"]
+resource_name = "idle_este"
+length = 0.5
+step = 0.05
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [10]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_2yvtj"]
+resource_name = "idle_norte"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_4qigy"]
+resource_name = "idle_oeste"
+length = 0.5
+step = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [15]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_ysyd8"]
+resource_name = "idle_sur"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("Sprite2D:texture")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [ExtResource("10_2yvtj")]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("Sprite2D:hframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("Sprite2D:vframes")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0.45821387),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_psl2x"]
+_data = {
+&"RESET": SubResource("Animation_gg1r0"),
+&"atacar_mordida_preparacion_este": SubResource("Animation_c06r7"),
+&"atacar_mordida_preparacion_norte": SubResource("Animation_42jf1"),
+&"atacar_mordida_preparacion_oeste": SubResource("Animation_ywip5"),
+&"atacar_mordida_preparacion_sur": SubResource("Animation_pgw5g"),
+&"atacar_mordida_saltar_este": SubResource("Animation_l80u0"),
+&"atacar_mordida_saltar_norte": SubResource("Animation_txjl2"),
+&"atacar_mordida_saltar_oeste": SubResource("Animation_6a82t"),
+&"atacar_mordida_saltar_sur": SubResource("Animation_7yb6q"),
+&"caminar_este": SubResource("Animation_64njo"),
+&"caminar_norte": SubResource("Animation_er6sw"),
+&"caminar_oeste": SubResource("Animation_1mga7"),
+&"caminar_sur": SubResource("Animation_od7qp"),
+&"idle_este": SubResource("Animation_psl2x"),
+&"idle_norte": SubResource("Animation_2yvtj"),
+&"idle_oeste": SubResource("Animation_4qigy"),
+&"idle_sur": SubResource("Animation_ysyd8")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ysyd8"]
+animation = &"caminar_sur"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_gg1r0"]
+animation = &"caminar_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_psl2x"]
+animation = &"caminar_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_4qigy"]
+animation = &"caminar_oeste"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_od7qp"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_ysyd8")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_1/node = SubResource("AnimationNodeAnimation_gg1r0")
+blend_point_1/pos = Vector2(0, -1)
+blend_point_2/node = SubResource("AnimationNodeAnimation_psl2x")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_3/node = SubResource("AnimationNodeAnimation_4qigy")
+blend_point_3/pos = Vector2(-1, 0)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_od7qp"]
+animation = &"idle_sur"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_er6sw"]
+animation = &"idle_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_64njo"]
+animation = &"idle_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_1mga7"]
+animation = &"idle_oeste"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_3n3x0"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_od7qp")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_1/node = SubResource("AnimationNodeAnimation_er6sw")
+blend_point_1/pos = Vector2(0, -1)
+blend_point_2/node = SubResource("AnimationNodeAnimation_64njo")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_3/node = SubResource("AnimationNodeAnimation_1mga7")
+blend_point_3/pos = Vector2(-1, 0)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_6a82t"]
+animation = &"atacar_mordida_saltar_sur"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_txjl2"]
+animation = &"atacar_mordida_saltar_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_l80u0"]
+animation = &"atacar_mordida_saltar_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_7yb6q"]
+animation = &"atacar_mordida_saltar_oeste"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_42jf1"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_6a82t")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_1/node = SubResource("AnimationNodeAnimation_txjl2")
+blend_point_1/pos = Vector2(0, -1)
+blend_point_2/node = SubResource("AnimationNodeAnimation_l80u0")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_3/node = SubResource("AnimationNodeAnimation_7yb6q")
+blend_point_3/pos = Vector2(-1, 0)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ywip5"]
+animation = &"atacar_mordida_preparacion_sur"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_42jf1"]
+animation = &"atacar_mordida_preparacion_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_c06r7"]
+animation = &"atacar_mordida_preparacion_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_pgw5g"]
+animation = &"atacar_mordida_preparacion_oeste"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_ywip5"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_ywip5")
+blend_point_0/pos = Vector2(0, 1)
+blend_point_1/node = SubResource("AnimationNodeAnimation_42jf1")
+blend_point_1/pos = Vector2(0, -1)
+blend_point_2/node = SubResource("AnimationNodeAnimation_c06r7")
+blend_point_2/pos = Vector2(1, 0)
+blend_point_3/node = SubResource("AnimationNodeAnimation_pgw5g")
+blend_point_3/pos = Vector2(-1, 0)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_dhcpq"]
+advance_mode = 2
+advance_condition = &"debeCaminar"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_3n3x0"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ysyd8"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_42jf1"]
+advance_mode = 2
+advance_condition = &"debeMordidaPrep"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_c06r7"]
+advance_mode = 2
+advance_condition = &"debeMordidaDash"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_pgw5g"]
+advance_mode = 2
+advance_condition = &"debeSalirMordida"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_ysyd8"]
+states/CAMINAR/node = SubResource("AnimationNodeBlendSpace2D_od7qp")
+states/CAMINAR/position = Vector2(599, 100)
+states/End/position = Vector2(794, 100)
+states/IDLE/node = SubResource("AnimationNodeBlendSpace2D_3n3x0")
+states/IDLE/position = Vector2(397, 100)
+states/MORDIDA_DASH/node = SubResource("AnimationNodeBlendSpace2D_42jf1")
+states/MORDIDA_DASH/position = Vector2(214, 577.765)
+states/MORDIDA_PREPARACION/node = SubResource("AnimationNodeBlendSpace2D_ywip5")
+states/MORDIDA_PREPARACION/position = Vector2(599, 577.765)
+states/Start/position = Vector2(214, 100)
+transitions = ["IDLE", "CAMINAR", SubResource("AnimationNodeStateMachineTransition_dhcpq"), "CAMINAR", "IDLE", SubResource("AnimationNodeStateMachineTransition_3n3x0"), "Start", "IDLE", SubResource("AnimationNodeStateMachineTransition_ysyd8"), "IDLE", "MORDIDA_PREPARACION", SubResource("AnimationNodeStateMachineTransition_42jf1"), "MORDIDA_PREPARACION", "MORDIDA_DASH", SubResource("AnimationNodeStateMachineTransition_c06r7"), "MORDIDA_DASH", "IDLE", SubResource("AnimationNodeStateMachineTransition_pgw5g")]
+graph_offset = Vector2(0, -204.80075)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_itdr7"]
+radius = 200.30228
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
+radius = 26.019224
+
+[node name="Enemigo" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_maquina_de_estados", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
+script = ExtResource("1_bvf6m")
+componente_vida = NodePath("VidaComponente")
+componente_maquina_de_estados = NodePath("MaquinaEstadosComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+componente_vision = NodePath("VisionComponente")
+componente_animacion = NodePath("AnimacionComponente")
+memoria = NodePath("ArbolComportamiento/MemoriaBT")
+velocidad_base = 80.0
+
+[node name="EnergiaComponente" type="Node" parent="."]
+script = ExtResource("ec_enemigo")
+energia_maxima = 80.0
+regeneracion_por_segundo = 10.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_bvf6m")
+
+[node name="MaquinaEstadosComponente" type="Node" parent="." node_paths=PackedStringArray("estado_activo", "etiqueta_estado")]
+script = ExtResource("3_c0wer")
+estado_activo = NodePath("EstadoIdle")
+etiqueta_estado = NodePath("../Label")
+
+[node name="EstadoIdle" type="Node" parent="MaquinaEstadosComponente" node_paths=PackedStringArray("maquina_de_estados", "entidad", "memoria")]
+script = ExtResource("4_kqge1")
+maquina_de_estados = NodePath("..")
+entidad = NodePath("../..")
+memoria = NodePath("../../ArbolComportamiento/MemoriaBT")
+
+[node name="EstadoDeambular" type="Node" parent="MaquinaEstadosComponente" node_paths=PackedStringArray("componente_movimiento", "entidad")]
+script = ExtResource("5_itdr7")
+componente_movimiento = NodePath("../../MovimientoComponente")
+entidad = NodePath("../..")
+
+[node name="EstadoPersigue" type="Node" parent="MaquinaEstadosComponente" node_paths=PackedStringArray("maquina_de_estados", "vision_componente", "componente_movimiento", "entidad")]
+script = ExtResource("5_ng816")
+maquina_de_estados = NodePath("..")
+vision_componente = NodePath("../../VisionComponente")
+componente_movimiento = NodePath("../../MovimientoComponente")
+entidad = NodePath("../..")
+
+[node name="EstadoAtacar" type="Node" parent="MaquinaEstadosComponente" node_paths=PackedStringArray("maquina_de_estados", "entidad", "componente_movimiento", "vision_componente", "memoria", "selector_habilidades")]
+script = ExtResource("6_dhcpq")
+maquina_de_estados = NodePath("..")
+entidad = NodePath("../..")
+componente_movimiento = NodePath("../../MovimientoComponente")
+vision_componente = NodePath("../../VisionComponente")
+memoria = NodePath("../../ArbolComportamiento/MemoriaBT")
+selector_habilidades = NodePath("SelectorHabilidades")
+duracion_recuperacion = 3.0
+intervalo_entre_intentos = 1.0
+tiempo_limite_sin_objetivo = 2.0
+metadata/_custom_type_script = "uid://dobkwh3h5eyye"
+
+[node name="SelectorHabilidades" type="Node" parent="MaquinaEstadosComponente/EstadoAtacar"]
+script = ExtResource("7_3n3x0")
+habilidades = Array[ExtResource("8_72jeo")]([ExtResource("9_a0pfi"), ExtResource("10_mjm62")])
+nombre_nodo = "Habilidades"
+
+[node name="EstadoHuir" type="Node" parent="MaquinaEstadosComponente" node_paths=PackedStringArray("maquina_de_estados", "entidad", "componente_movimiento", "vision_componente", "memoria")]
+script = ExtResource("11_42jf1")
+maquina_de_estados = NodePath("..")
+entidad = NodePath("../..")
+componente_movimiento = NodePath("../../MovimientoComponente")
+vision_componente = NodePath("../../VisionComponente")
+memoria = NodePath("../../ArbolComportamiento/MemoriaBT")
+duracion_cooldown = 20.0
+metadata/_custom_type_script = "uid://s6bybk1yny5k"
+
+[node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador")]
+script = ExtResource("6_itdr7")
+jugador = NodePath("..")
+velocidad_base = 80.0
+
+[node name="AnimacionComponente" type="Node" parent="." node_paths=PackedStringArray("animation_player", "animation_tree")]
+script = ExtResource("11_ysyd8")
+animation_player = NodePath("AnimationPlayer")
+animation_tree = NodePath("AnimationTree")
+params_blend_adicionales = Array[String](["parameters/MORDIDA_PREPARACION/blend_position", "parameters/MORDIDA_DASH/blend_position", "parameters/CAMINAR/blend_position", "parameters/IDLE/blend_position"])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimacionComponente"]
+root_node = NodePath("../..")
+libraries = {
+&"": SubResource("AnimationLibrary_psl2x")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="AnimacionComponente"]
+root_node = NodePath("../..")
+tree_root = SubResource("AnimationNodeStateMachine_ysyd8")
+anim_player = NodePath("../AnimationPlayer")
+parameters/conditions/debeCaminar = false
+parameters/conditions/debeIdle = false
+parameters/conditions/debeMordidaDash = false
+parameters/conditions/debeMordidaPrep = false
+parameters/conditions/debeSalirMordida = false
+parameters/CAMINAR/blend_position = Vector2(-0.46014208, -0.0114068985)
+parameters/IDLE/blend_position = Vector2(-0.2501973, 0.3307985)
+parameters/MORDIDA_DASH/blend_position = Vector2(0, 0)
+parameters/MORDIDA_PREPARACION/blend_position = Vector2(0.033135056, 0.16783214)
+
+[node name="VisionComponente" type="Area2D" parent="."]
+script = ExtResource("7_ng816")
+grupos_objetivo = ["jugadores"]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionComponente"]
+visible = false
+shape = SubResource("CircleShape2D_itdr7")
+
+[node name="Polygon2D" type="Polygon2D" parent="VisionComponente"]
+z_index = -1
+color = Color(1, 1, 1, 0.25490198)
+polygon = PackedVector2Array(-1, -201, 63, -187, 125, -158, 161, -116, 192, -58, 199, 0, 195, 47, 175, 101, 142, 143, 98, 177, 53, 195, -1, 201, -57, 193, -104, 173, -145, 141, -175, 101, -193, 55, -203, -2, -195, -57, -176, -102, -145, -141, -99, -176, -50, -194)
+
+[node name="VidaComponente" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("9_2yvtj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
+shape = SubResource("CircleShape2D_ysyd8")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("10_2yvtj")
+hframes = 5
+vframes = 4
+
+[node name="Label" type="Label" parent="."]
+custom_minimum_size = Vector2(100, 0)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -65.0
+offset_right = 20.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ArbolComportamiento" type="Node" parent="."]
+script = ExtResource("12_psl2x")
+agente = NodePath("..")
+ruta_memoria = NodePath("MemoriaBT")
+metadata/_custom_type_script = "uid://csnk67rvkjlua"
+
+[node name="MemoriaBT" type="Node" parent="ArbolComportamiento"]
+script = ExtResource("13_4qigy")
+metadata/_custom_type_script = "uid://c15th4ucm31ke"
+
+[node name="DepuradorBT" type="CanvasLayer" parent="ArbolComportamiento" node_paths=PackedStringArray("arbol")]
+visible = false
+script = ExtResource("18_1mga7")
+arbol = NodePath("..")
+mostrar_memoria = false
+posicion_arbol = Vector2(10, 15)
+ancho_panel_arbol = 500.0
+
+[node name="Selector" type="Node" parent="ArbolComportamiento"]
+script = ExtResource("14_4qigy")
+nombre_nodo = "(Selector) Raiz"
+metadata/_custom_type_script = "uid://d4koe822cisq2"
+
+[node name="SecuenciaHuida" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("15_od7qp")
+nombre_nodo = "(Secuencia) Huir si vida baja"
+metadata/_custom_type_script = "uid://ct4bjrtr7d8rn"
+
+[node name="CondVidaBaja" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
+script = ExtResource("16_er6sw")
+nombre_variable = "vida_baja"
+nombre_nodo = "(Condición) Vida baja"
+metadata/_custom_type_script = "uid://dn738h7elp7t4"
+
+[node name="CondJugadorDetectado" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
+script = ExtResource("16_er6sw")
+nombre_variable = "jugador_detectado"
+nombre_nodo = "(Condición) Jugador detectado"
+metadata/_custom_type_script = "uid://dn738h7elp7t4"
+
+[node name="CondHuidaLibre" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
+script = ExtResource("16_er6sw")
+nombre_variable = "huida_en_cooldown"
+tipo_comparacion = 1
+nombre_nodo = "(Condición) Sin cooldown de huida"
+metadata/_custom_type_script = "uid://dn738h7elp7t4"
+
+[node name="CondNoEstaHuyendo" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
+script = ExtResource("16_er6sw")
+nombre_variable = "esta_huyendo"
+tipo_comparacion = 1
+nombre_nodo = "(Condición) No está huyendo aún"
+metadata/_custom_type_script = "uid://dn738h7elp7t4"
+
+[node name="AccCambiarAHuir" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
+script = ExtResource("17_64njo")
+nuevo_estado = "EstadoHuir"
+nombre_nodo = "(Acción) Cambiar a EstadoHuir"
+metadata/_custom_type_script = "uid://ccirrnm6pfnmt"
+
+[node name="GuardiaEnRecuperacion" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("15_j3sy7")
+nombre_variable = "en_recuperacion"
+tipo_guardia = 1
+nombre_nodo = "(Guardia) Esperar despues de atacar"
+metadata/_custom_type_script = "uid://c7fo6kf2vfmps"
+
+[node name="GuardiaRamaAtaque" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion"]
+script = ExtResource("15_j3sy7")
+nombre_variable = "jugador_detectado"
+nombre_nodo = "(Guardia) Ataque"
+metadata/_custom_type_script = "uid://c7fo6kf2vfmps"
+
+[node name="Secuencia" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaAtaque"]
+script = ExtResource("15_od7qp")
+nombre_nodo = "(Secuencia) Atacar si esta cerca"
+metadata/_custom_type_script = "uid://ct4bjrtr7d8rn"
+
+[node name="CondicionDistanciaObjetivo" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaAtaque/Secuencia"]
+script = ExtResource("22_a0pfi")
+umbral = 200.0
+nombre_nodo = "(Condición) Distancia a objetivo"
+
+[node name="Inversor" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaAtaque/Secuencia"]
+script = ExtResource("15_er6sw")
+nombre_nodo = "(Inversor) Invertir resultado de estado"
+metadata/_custom_type_script = "uid://dpvpdc2iuf45e"
+
+[node name="CondicionMemoriaEstado" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaAtaque/Secuencia/Inversor"]
+script = ExtResource("16_er6sw")
+nombre_variable = "estado_maquina"
+tipo_comparacion = 8
+valor_texto = "EstadoAtacar"
+nombre_nodo = "(Condición) Estado = EstadoAtacar"
+metadata/_custom_type_script = "uid://dn738h7elp7t4"
+
+[node name="AccionCambiarEstado" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaAtaque/Secuencia"]
+script = ExtResource("17_64njo")
+nuevo_estado = "EstadoAtacar"
+nombre_nodo = "(Acción) Cambiar estado"
+metadata/_custom_type_script = "uid://ccirrnm6pfnmt"
+
+[node name="GuardiaRamaPerseguir" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion"]
+script = ExtResource("15_j3sy7")
+nombre_variable = "cooldown_estado"
+nombre_nodo = "(Guardia) Enfriamiento estado"
+metadata/_custom_type_script = "uid://c7fo6kf2vfmps"
+
+[node name="Secuencia" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaPerseguir"]
+script = ExtResource("15_od7qp")
+nombre_nodo = "(Secuencia) Perseguir si esta cerca"
+metadata/_custom_type_script = "uid://ct4bjrtr7d8rn"
+
+[node name="Inversor" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaPerseguir/Secuencia"]
+script = ExtResource("15_er6sw")
+nombre_nodo = "(Inversor) Invertir resultado de estado"
+metadata/_custom_type_script = "uid://dpvpdc2iuf45e"
+
+[node name="CondicionMemoriaEstado" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaPerseguir/Secuencia/Inversor"]
+script = ExtResource("16_er6sw")
+nombre_variable = "estado_maquina"
+tipo_comparacion = 8
+valor_texto = "EstadoPersigue"
+nombre_nodo = "(Condición) Estado = EstadoPersigue"
+metadata/_custom_type_script = "uid://dn738h7elp7t4"
+
+[node name="CondicionMemoriaJugadorDetectado" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaPerseguir/Secuencia"]
+script = ExtResource("16_er6sw")
+nombre_variable = "jugador_detectado"
+nombre_nodo = "(Condición) Jugador detectado"
+metadata/_custom_type_script = "uid://dn738h7elp7t4"
+
+[node name="AccionCambiarEstado" type="Node" parent="ArbolComportamiento/Selector/GuardiaEnRecuperacion/GuardiaRamaPerseguir/Secuencia"]
+script = ExtResource("17_64njo")
+nuevo_estado = "EstadoPersigue"
+nombre_nodo = "(Acción) Cambiar estado"
+metadata/_custom_type_script = "uid://ccirrnm6pfnmt"
+
+[node name="Habilidades" type="Marker2D" parent="."]
+
+[node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("26_6jhm3")]
+
+[node name="HabilidadCarga" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
+duracion_preparacion = 1.0
+multiplicador_velocidad_carga = 10.0
+distancia_maxima_dash = 200.0
+componente_movimiento = NodePath("../../MovimientoComponente")

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="AtaqueConfig" load_steps=2 format=3 uid="uid://7aucecmautpu"]
+
+[ext_resource type="Script" uid="uid://dcj70gcowg3k5" path="res://acciones/AtaqueConfig.gd" id="1_tecfw"]
+
+[resource]
+script = ExtResource("1_tecfw")
+nombre = "Arañazo"
+"daño" = 5.0
+alcance = 40.0
+cooldown = 0.5
+metadata/_custom_type_script = "uid://dcj70gcowg3k5"

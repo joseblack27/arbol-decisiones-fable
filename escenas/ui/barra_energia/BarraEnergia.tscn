@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=3 uid="uid://barraenergia01"]
+
+[ext_resource type="Script" path="res://escenas/ui/barra_energia/BarraEnergia.gd" id="1_be"]
+
+[node name="BarraEnergia" type="Control"]
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -70.0
+offset_top = -30.0
+offset_right = 70.0
+offset_bottom = -20.0
+script = ExtResource("1_be")

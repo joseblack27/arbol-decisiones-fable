@@ -1,0 +1,108 @@
+[gd_resource type="Resource" script_class="MissionData" load_steps=29 format=3 uid="uid://dyveda7lfpgmg"]
+
+[ext_resource type="Script" uid="uid://bqokjnvei8di1" path="res://scripts/resources/missions/MissionObjectiveData.gd" id="1_tfwqt"]
+[ext_resource type="Script" uid="uid://3kwxt4284t00" path="res://scripts/resources/missions/MissionRewardItem.gd" id="2_k3xq4"]
+[ext_resource type="Script" uid="uid://dkys83tplf2hs" path="res://scripts/resources/missions/MissionData.gd" id="2_ls4la"]
+[ext_resource type="Resource" uid="uid://33vmmht8h75w" path="res://scripts/resources/items/equippables/amuleto_de_zafiro.tres" id="3_a1sin"]
+[ext_resource type="Resource" uid="uid://rec36c8ylqlu" path="res://scripts/resources/items/consumables/pocion_roja.tres" id="4_a1sin"]
+[ext_resource type="Script" uid="uid://408dif7jmpgt" path="res://scripts/resources/missions/MissionRewardData.gd" id="4_go4v2"]
+[ext_resource type="Resource" uid="uid://dlcmbmwxkem3b" path="res://scripts/resources/items/consumables/adrenalina.tres" id="4_py8gp"]
+[ext_resource type="Resource" uid="uid://cwqwxxfm1jcjn" path="res://scripts/resources/items/consumables/pocion_azul.tres" id="5_k2l7m"]
+[ext_resource type="Resource" uid="uid://saw7o7sy88t3" path="res://scripts/resources/items/consumables/zanahoria.tres" id="6_hhm4c"]
+[ext_resource type="Resource" uid="uid://20303i4bqldj" path="res://scripts/resources/items/consumables/botiquin.tres" id="7_3okfn"]
+[ext_resource type="Resource" uid="uid://cnvn4opgjvvvt" path="res://scripts/resources/items/resources/ticket_dsct_10_pcto.tres" id="9_jn3xh"]
+[ext_resource type="Resource" uid="uid://cpr1twxh2fy0l" path="res://scripts/resources/items/equippables/anillo_dorado.tres" id="10_fvscs"]
+[ext_resource type="Resource" uid="uid://dvdnjnjgihgjt" path="res://scripts/resources/items/equippables/anillo_de_hierro_esmeralda.tres" id="11_5de1w"]
+[ext_resource type="Resource" uid="uid://b23l7q26roier" path="res://scripts/resources/items/resources/hoja.tres" id="12_jn3xh"]
+
+[sub_resource type="Resource" id="Resource_af2of"]
+script = ExtResource("1_tfwqt")
+id = "1"
+description = "Hablar con el anciano"
+is_completed = true
+metadata/_custom_type_script = "uid://bqokjnvei8di1"
+
+[sub_resource type="Resource" id="Resource_5qvdp"]
+script = ExtResource("1_tfwqt")
+id = "2"
+description = "Encontrar el amuleto"
+metadata/_custom_type_script = "uid://bqokjnvei8di1"
+
+[sub_resource type="Resource" id="Resource_py8gp"]
+script = ExtResource("1_tfwqt")
+id = "3"
+description = "Derrotar al jefe"
+metadata/_custom_type_script = "uid://bqokjnvei8di1"
+
+[sub_resource type="Resource" id="Resource_cojrd"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("4_a1sin")
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_jn3xh"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("4_py8gp")
+amount = 2
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_fvscs"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("5_k2l7m")
+amount = 5
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_5de1w"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("6_hhm4c")
+amount = 3
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_8ppmt"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("7_3okfn")
+amount = 5
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_idya8"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("3_a1sin")
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_o0d47"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("9_jn3xh")
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_i5cl6"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("10_fvscs")
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_kn6yx"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("11_5de1w")
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_pa25a"]
+script = ExtResource("2_k3xq4")
+item = ExtResource("12_jn3xh")
+metadata/_custom_type_script = "uid://3kwxt4284t00"
+
+[sub_resource type="Resource" id="Resource_k2l7m"]
+script = ExtResource("4_go4v2")
+xp = 200
+gold = 50
+items = Array[ExtResource("2_k3xq4")]([SubResource("Resource_cojrd"), SubResource("Resource_jn3xh"), SubResource("Resource_fvscs"), SubResource("Resource_5de1w"), SubResource("Resource_8ppmt"), SubResource("Resource_idya8"), SubResource("Resource_o0d47"), SubResource("Resource_i5cl6"), SubResource("Resource_kn6yx"), SubResource("Resource_pa25a")])
+metadata/_custom_type_script = "uid://408dif7jmpgt"
+
+[resource]
+script = ExtResource("2_ls4la")
+id = "1"
+title = "Misión 01"
+level_required = 5
+region = "Bosque Norte"
+description = "El bosque de Oakhaven está cubierto por una extraña niebla que no desaparece. Los aldeanos temen que sea la maldición de una Dama del Bosque a la que han enfadado. Debes encontrarla y calmarla antes de que la niebla consuma el bosque."
+objectives = Array[ExtResource("1_tfwqt")]([SubResource("Resource_af2of"), SubResource("Resource_5qvdp"), SubResource("Resource_py8gp")])
+rewards = SubResource("Resource_k2l7m")
+status = 2
+metadata/_custom_type_script = "uid://dkys83tplf2hs"

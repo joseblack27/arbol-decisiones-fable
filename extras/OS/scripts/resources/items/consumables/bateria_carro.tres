@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://bln5jpnckemye"]
+
+[ext_resource type="Texture2D" uid="uid://ln3si5flg7sm" path="res://assets/items/resources/bateria_7.png" id="1_8sp6l"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_hjt2j"]
+
+[resource]
+script = ExtResource("2_hjt2j")
+name = "Bateria grande"
+icon = ExtResource("1_8sp6l")
+description = "Objeto que provee una gran cantidad de energía"
+type = 4
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

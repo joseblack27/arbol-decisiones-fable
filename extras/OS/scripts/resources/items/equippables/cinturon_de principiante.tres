@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://n1qjpo3nk71j"]
+
+[ext_resource type="Texture2D" uid="uid://c63wro5u3nyrq" path="res://assets/items/equippables/accesorio_4.png" id="1_ibe5b"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_w6hwk"]
+
+[resource]
+script = ExtResource("2_w6hwk")
+name = "Cinturón de principiante"
+icon = ExtResource("1_ibe5b")
+description = "Cinturon popular entre los principiantes"
+type = 3
+type_equippable = 7
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

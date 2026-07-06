@@ -1,0 +1,164 @@
+[gd_scene load_steps=4 format=3 uid="uid://cl33iq5nafsfv"]
+
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_5rry1"]
+[ext_resource type="Script" uid="uid://mo7uehrlmojg" path="res://escenas/ui/panel_os/paneles/correos/PanelCorreos.gd" id="2_w7qmk"]
+[ext_resource type="PackedScene" uid="uid://detnq67ilbdn4" path="res://escenas/ui/panel_os/comunes/barra_desplazamiento_v/BarraDesplazamientoV.tscn" id="9_iiea4"]
+
+[node name="PanelCorreos" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_5rry1")
+script = ExtResource("2_w7qmk")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="PanelListaCorreos" type="Panel" parent="Margin/HBox"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelListaCorreos"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 1
+theme_override_constants/margin_bottom = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/HBox/PanelListaCorreos/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Margin/HBox/PanelListaCorreos/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelListaCorreos/MarginContainer/HBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 2
+
+[node name="ListaCorreos" type="VBoxContainer" parent="Margin/HBox/PanelListaCorreos/MarginContainer/HBoxContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="BarraDesplazamientoV" parent="Margin/HBox/PanelListaCorreos/MarginContainer/HBoxContainer" node_paths=PackedStringArray("scroll_container") instance=ExtResource("9_iiea4")]
+layout_mode = 2
+scroll_container = NodePath("../ScrollContainer")
+
+[node name="PanelDetallesCorreo" type="Panel" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelDetallesCorreo"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 3
+theme_override_constants/margin_bottom = 3
+
+[node name="VistaCorreo" type="VBoxContainer" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="CabeceraCorreo" type="Label" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Selecciona un correo"
+
+[node name="HSeparator" type="HSeparator" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="ScrollMensajes" type="ScrollContainer" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBoxMensajes" type="VBoxContainer" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+
+[node name="HBoxContainer" type="HBoxContainer" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes/VBoxMensajes"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes/VBoxMensajes/HBoxContainer"]
+layout_mode = 2
+text = "De:"
+
+[node name="EtiquetaDe" type="Label" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes/VBoxMensajes/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes/VBoxMensajes"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes/VBoxMensajes/HBoxContainer2"]
+layout_mode = 2
+text = "Fecha:"
+
+[node name="EtiquetaFecha" type="Label" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes/VBoxMensajes/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="HSeparator" type="HSeparator" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes/VBoxMensajes"]
+layout_mode = 2
+
+[node name="TextoMensaje" type="RichTextLabel" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/MarginContainer/ScrollMensajes/VBoxMensajes"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="HSeparator2" type="HSeparator" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo"]
+layout_mode = 2
+
+[node name="InputBar" type="HBoxContainer" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo"]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 2
+
+[node name="DeleteButton" type="Button" parent="Margin/HBox/PanelDetallesCorreo/MarginContainer/VistaCorreo/InputBar"]
+custom_minimum_size = Vector2(70, 26)
+layout_mode = 2
+size_flags_horizontal = 8

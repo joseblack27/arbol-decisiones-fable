@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://tua225kmlaa3"]
+
+[ext_resource type="Script" uid="uid://cmvtumtuaysdj" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="1_sn3ws"]
+[ext_resource type="PackedScene" uid="uid://dlg17afs717kx" path="res://escenas/habilidades/proyectil/custom/ProyectilBolaTelaraña.tscn" id="2_531o1"]
+
+[node name="HabilidadProyectilBolaTelaraña" type="Node"]
+script = ExtResource("1_sn3ws")
+escena_proyectil = ExtResource("2_531o1")
+nombre_habilidad = "Bola de telaraña"
+duracion_recarga = 5.0
+costo_energia = 40.0
+requiere_direccion = true
+metadata/_custom_type_script = "uid://cmvtumtuaysdj"

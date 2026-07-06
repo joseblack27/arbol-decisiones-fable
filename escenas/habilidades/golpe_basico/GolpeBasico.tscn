@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://bgolpebasic01"]
+
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_basico/GolpeBasico.gd" id="1_golpe01"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_golpe01"]
+radius = 30.0
+
+[node name="GolpeBasico" type="Area2D"]
+monitoring = false
+monitorable = true
+script = ExtResource("1_golpe01")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_golpe01")

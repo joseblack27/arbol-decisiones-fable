@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://dtw6fvi03aau8"]
+
+[ext_resource type="Script" uid="uid://dd3j0531qgsi5" path="res://escenas/habilidades/arañazo/HabilidadArañazo.gd" id="1_aranazo"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/Arañazo.tscn" id="2_aranazo"]
+
+[node name="HabilidadArañazo" type="Node"]
+script = ExtResource("1_aranazo")
+radio_golpe = 15.0
+escena_golpe = ExtResource("2_aranazo")

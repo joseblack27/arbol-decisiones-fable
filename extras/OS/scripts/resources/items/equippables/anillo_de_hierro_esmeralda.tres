@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://dvdnjnjgihgjt"]
+
+[ext_resource type="Texture2D" uid="uid://cflv8r6b5u7fw" path="res://assets/items/equippables/accesorio_3.png" id="1_8erc2"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_s8tjq"]
+
+[resource]
+script = ExtResource("2_s8tjq")
+name = "Anillo de hierro esmeralda"
+icon = ExtResource("1_8erc2")
+description = "Anillo de hierro con esmeralda incrustada"
+type = 3
+type_equippable = 6
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

@@ -1,0 +1,35 @@
+[gd_scene load_steps=2 format=3 uid="uid://cw0wg5y2kycha"]
+
+[ext_resource type="Script" uid="uid://c5wvqk5hsepwj" path="res://scenes/ui/panels/missions/RewardItemView.gd" id="1_5fp8t"]
+
+[node name="RewardItemView" type="Control"]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 48.0
+offset_bottom = 48.0
+script = ExtResource("1_5fp8t")
+
+[node name="Icon" type="TextureRect" parent="."]
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 40.0
+expand_mode = 1
+stretch_mode = 3
+
+[node name="AmountLabel" type="Label" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -14.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 10
+text = "1"
+horizontal_alignment = 2
+vertical_alignment = 2

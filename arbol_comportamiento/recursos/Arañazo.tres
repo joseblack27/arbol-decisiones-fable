@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3 uid="uid://bs65i184d1vi"]
+
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://arbol_comportamiento/recursos/HabilidadBT.gd" id="1_086wa"]
+
+[resource]
+script = ExtResource("1_086wa")
+nombre = "Arañazo"
+prioridad = 2
+rango_maximo = 80.0
+duracion_cooldown = 2.0
+requiere_acercarse = false
+ruta_nodo = NodePath("Habilidades/HabilidadArañazo")
+metadata/_custom_type_script = "uid://fr6tavpigufc"

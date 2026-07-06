@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://cwna41dn0homy"]
+
+[ext_resource type="Script" path="res://escenas/habilidades/carga/HabilidadCarga.gd" id="1_carga01"]
+
+[node name="HabilidadCarga" type="Node"]
+script = ExtResource("1_carga01")

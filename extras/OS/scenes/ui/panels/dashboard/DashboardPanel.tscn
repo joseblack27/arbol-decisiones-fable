@@ -1,0 +1,521 @@
+[gd_scene load_steps=3 format=3 uid="uid://du7udotvweuoo"]
+
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://themes/tema.tres" id="1_t4uwn"]
+[ext_resource type="Script" uid="uid://u44no2fao5og" path="res://scenes/ui/panels/dashboard/DashboardPanel.gd" id="2_bvku3"]
+
+[node name="DashboardPanel" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_t4uwn")
+script = ExtResource("2_bvku3")
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 2
+
+[node name="TitleLabel" type="Label" parent="VBoxContainer"]
+visible = false
+layout_mode = 2
+text = "DASHBOARD"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="StatusPanel" type="Panel" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="Container" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer"]
+layout_mode = 2
+text = "Carateristicas Principales"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Nombre:"
+vertical_alignment = 1
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "Rikapolo"
+vertical_alignment = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Nivel:"
+vertical_alignment = 1
+
+[node name="LevelLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "1"
+vertical_alignment = 1
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Vida:"
+vertical_alignment = 1
+
+[node name="LifeLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "100/100"
+vertical_alignment = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Energia:"
+vertical_alignment = 1
+
+[node name="EnergyLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "100/100"
+vertical_alignment = 1
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Estamina:"
+
+[node name="LifeLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "50"
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Experiencia:"
+
+[node name="LifeLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "0/1000"
+
+[node name="Container2" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer"]
+layout_mode = 2
+text = "Carateristicas Ofensivas"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Daños:"
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "5"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Potencia:"
+
+[node name="EnergyLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "20"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Impacto:"
+
+[node name="EnergyLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "15"
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Aflicción:"
+
+[node name="EnergyLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "20"
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Impulso:"
+
+[node name="EnergyLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "20"
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Probabilidad De Crítico:"
+
+[node name="EnergyLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "20"
+
+[node name="HBoxContainer7" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer7"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Daño Crítico:"
+
+[node name="EnergyLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/StatusPanel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer7"]
+layout_mode = 2
+text = "20"
+
+[node name="Panel" type="Panel" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="Container" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer"]
+layout_mode = 2
+text = "Carateristicas Defensivas"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer5" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Defensa:"
+
+[node name="LevelLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer5"]
+layout_mode = 2
+text = "20"
+
+[node name="HBoxContainer7" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer7"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Tenacidad:"
+
+[node name="LevelLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer7"]
+layout_mode = 2
+text = "20"
+
+[node name="HBoxContainer6" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Fortaleza:"
+
+[node name="LevelLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer6"]
+layout_mode = 2
+text = "20"
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Resistencia Aire:"
+vertical_alignment = 1
+
+[node name="ResWindLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "10"
+vertical_alignment = 1
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Resistencia Agua:"
+vertical_alignment = 1
+
+[node name="ResWaterLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "12"
+vertical_alignment = 1
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Resistencia Fuego:"
+vertical_alignment = 1
+
+[node name="ResFireLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "9"
+vertical_alignment = 1
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Resistencia Tierra:"
+vertical_alignment = 1
+
+[node name="ResEarthLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "15"
+vertical_alignment = 1
+
+[node name="Container2" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer"]
+layout_mode = 2
+text = "Carateristicas Secundarias"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer"]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Daños:"
+
+[node name="NameLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+text = "5"
+
+[node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Defensa:"
+
+[node name="LevelLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer3"]
+layout_mode = 2
+text = "20"
+
+[node name="HBoxContainer4" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Estamina:"
+
+[node name="LifeLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer4"]
+layout_mode = 2
+text = "50"
+
+[node name="HBoxContainer2" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Potencia:"
+
+[node name="EnergyLabel" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/Panel/MarginContainer/ScrollContainer/VBoxContainer/Container2/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer2"]
+layout_mode = 2
+text = "20"
+
+[node name="RecentActivityPanel" type="Panel" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/RecentActivityPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8

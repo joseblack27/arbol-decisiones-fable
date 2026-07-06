@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://csf1xk7k0mq4q"]
+
+[ext_resource type="Texture2D" uid="uid://cif7w36natm6" path="res://assets/items/equippables/escudo_01.png" id="1_5s028"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_lme32"]
+
+[resource]
+script = ExtResource("2_lme32")
+name = "Escudo de noble"
+icon = ExtResource("1_5s028")
+description = "Escudo usado por los caballeros de sangre noble"
+type = 3
+type_equippable = 9
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"

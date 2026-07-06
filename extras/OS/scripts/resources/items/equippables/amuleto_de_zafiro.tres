@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemData" load_steps=3 format=3 uid="uid://33vmmht8h75w"]
+
+[ext_resource type="Texture2D" uid="uid://bbq5srool6xus" path="res://assets/items/equippables/accesorio_1.png" id="1_rflei"]
+[ext_resource type="Script" uid="uid://b6gy1caig17ff" path="res://scripts/resources/items/ItemData.gd" id="2_xdr0v"]
+
+[resource]
+script = ExtResource("2_xdr0v")
+name = "Amuleto zafiro"
+icon = ExtResource("1_rflei")
+description = "Amuleto con gema de zafiro incrustada"
+type = 3
+type_equippable = 5
+can_equip = true
+metadata/_custom_type_script = "uid://b6gy1caig17ff"
