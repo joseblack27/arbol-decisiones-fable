@@ -5,6 +5,23 @@ class_name IndicadorApunte
 ## Escucha señales de apunte por slot (slot_0..slot_3) y dibuja según
 ## el tipo de habilidad equipada en ese slot.
 
+## Color unificado para toda previsualización de apuntado (rango, líneas,
+## marcadores) — todas las habilidades usan el mismo tono rojizo.
+@export var COLOR_APUNTE := Color(0.85, 0.15, 0.15, 1.0)
+## Opacidad del relleno del círculo de rango (la zona grande de apuntado).
+@export_range(0.0, 1.0) var opacidad_area_apunte := 0.08
+## Color y grosor del borde del círculo de rango.
+@export var color_borde_apunte := Color(0.85, 0.15, 0.15, 1.0)
+@export var grosor_borde_apunte := 1.5
+
+## La forma que representa DÓNDE pega de verdad la habilidad (el corredor
+## del proyectil/carga, el círculo del área de efecto, el rectángulo del
+## muro) se rellena siempre igual: rojo puro, bien visible.
+@export var COLOR_AREA_GOLPE := Color(1.0, 0.0, 0.0, 0.8)
+## Color y grosor del borde de la zona de golpe real.
+@export var color_borde_golpe := Color(1.0, 0.0, 0.0, 1.0)
+@export var grosor_borde_golpe := 2.0
+
 var _slot_habilidades: SlotHabilidades = null
 
 var _activo: bool      = false
@@ -74,12 +91,31 @@ func _draw() -> void:
 		"muro":      _draw_muro()
 
 
+## Dibuja el círculo grande de rango: relleno tenue + borde configurables.
+func _dibujar_rango(radio: float) -> void:
+	draw_circle(Vector2.ZERO, radio, Color(COLOR_APUNTE.r, COLOR_APUNTE.g, COLOR_APUNTE.b, opacidad_area_apunte))
+	draw_arc(Vector2.ZERO, radio, 0.0, TAU, 64, color_borde_apunte, grosor_borde_apunte)
+
+
+## Dibuja un polígono cerrado (la zona de golpe real) relleno + con borde.
+func _dibujar_area_golpe_poligono(puntos: PackedVector2Array) -> void:
+	draw_colored_polygon(puntos, COLOR_AREA_GOLPE)
+	var cerrado := puntos.duplicate()
+	cerrado.append(cerrado[0])
+	draw_polyline(cerrado, color_borde_golpe, grosor_borde_golpe)
+
+
+## Dibuja un círculo (la zona de golpe real) relleno + con borde.
+func _dibujar_area_golpe_circulo(centro: Vector2, radio: float) -> void:
+	draw_circle(centro, radio, COLOR_AREA_GOLPE)
+	draw_arc(centro, radio, 0.0, TAU, 48, color_borde_golpe, grosor_borde_golpe)
+
+
 func _draw_proyectil() -> void:
 	var h       := _hab as HabilidadProyectil
 	var alcance := h.alcance_maximo if h else 400.0
-	var c       := Color(0.95, 0.55, 0.10, 1.0)
 
-	draw_arc(Vector2.ZERO, alcance, 0.0, TAU, 64, Color(c.r, c.g, c.b, 0.18), 1.5)
+	_dibujar_rango(alcance)
 	if _dir.length() < 0.05:
 		return
 
@@ -87,47 +123,35 @@ func _draw_proyectil() -> void:
 	var perp := Vector2(-_dir.y, _dir.x)
 	var hw   := 10.0
 
+	# El corredor (esq) es la zona de golpe real del proyectil.
 	var esq := PackedVector2Array([perp * hw, fin + perp * hw, fin - perp * hw, -perp * hw])
-	draw_colored_polygon(esq, Color(c.r, c.g, c.b, 0.18))
-	draw_polyline(PackedVector2Array([esq[0], esq[1], esq[2], esq[3], esq[0]]),
-		Color(c.r, c.g, c.b, 0.75), 2.0)
-	draw_circle(fin, 9.0, c)
-	draw_line(fin, fin - _dir * 18.0 + perp * 12.0, c, 2.5)
-	draw_line(fin, fin - _dir * 18.0 - perp * 12.0, c, 2.5)
-	draw_circle(Vector2.ZERO, 5.0, Color(c.r, c.g, c.b, 0.70))
+	_dibujar_area_golpe_poligono(esq)
 
 
 func _draw_area_efecto() -> void:
 	var h           := _hab as HabilidadAreaEfecto
 	var desplaz_max := h.desplazamiento_maximo if h else 120.0
 	var radio       := h.radio_area            if h else 80.0
-	var c           := Color(0.85, 0.20, 0.85, 1.0)
 
-	draw_arc(Vector2.ZERO, desplaz_max, 0.0, TAU, 64, Color(c.r, c.g, c.b, 0.18), 1.5)
+	_dibujar_rango(desplaz_max)
 
 	var offset := _dir * desplaz_max * _poder
-	draw_dashed_line(Vector2.ZERO, offset, Color(c.r, c.g, c.b, 0.55), 2.0, 10.0)
-	draw_circle(offset, radio, Color(c.r, c.g, c.b, 0.15))
-	draw_arc(offset, radio, 0.0, TAU, 48, c, 2.5)
-	var cs := 9.0
-	draw_line(offset - Vector2(cs, 0), offset + Vector2(cs, 0), c, 2.0)
-	draw_line(offset - Vector2(0, cs), offset + Vector2(0, cs), c, 2.0)
+	# El círculo en "offset" es la zona de golpe real del área de efecto.
+	_dibujar_area_golpe_circulo(offset, radio)
 
 
-## Igual que _draw_area_efecto (círculo de rango + marca en el punto de
-## invocación), pero la marca es un rectángulo girado hacia _dir en vez de
+## Igual que _draw_area_efecto (círculo de rango + zona de golpe en el punto
+## de invocación), pero la zona es un rectángulo girado hacia _dir en vez de
 ## un círculo — mismo footprint que va a tener el muro real: ancho fijo
 ## (grosor de los pilares) por alto según cuántos pilares y qué tan
 ## separados estén.
 func _draw_muro() -> void:
 	var h       := _hab as HabilidadMuroJugador
 	var alcance := h.alcance_maximo if h else 150.0
-	var c       := Color(0.55, 0.50, 0.40, 1.0)
 
-	draw_arc(Vector2.ZERO, alcance, 0.0, TAU, 64, Color(c.r, c.g, c.b, 0.18), 1.5)
+	_dibujar_rango(alcance)
 
 	var offset := _dir * alcance * _poder
-	draw_dashed_line(Vector2.ZERO, offset, Color(c.r, c.g, c.b, 0.55), 2.0, 10.0)
 
 	var cantidad   := h.cantidad_pilares          if h else 3
 	var separacion := h.distancia_entre_pilares   if h else 16.0
@@ -146,18 +170,15 @@ func _draw_muro() -> void:
 	for esquina in esquinas_locales:
 		esquinas.append(offset + esquina.rotated(giro))
 
-	draw_colored_polygon(esquinas, Color(c.r, c.g, c.b, 0.25))
-	esquinas.append(esquinas[0])
-	draw_polyline(esquinas, Color(c.r, c.g, c.b, 0.80), 2.0)
-	draw_circle(Vector2.ZERO, 5.0, Color(c.r, c.g, c.b, 0.70))
+	# El rectángulo (esquinas) es la zona de golpe real del muro.
+	_dibujar_area_golpe_poligono(esquinas)
 
 
 func _draw_carga() -> void:
 	var h         := _hab as HabilidadCargaJugador
 	var distancia := h.distancia_maxima_dash if h else 180.0
-	var c         := Color(0.20, 0.80, 1.00, 1.0)
 
-	draw_arc(Vector2.ZERO, distancia, 0.0, TAU, 64, Color(c.r, c.g, c.b, 0.18), 1.5)
+	_dibujar_rango(distancia)
 	if _dir.length() < 0.05:
 		return
 
@@ -165,11 +186,6 @@ func _draw_carga() -> void:
 	var perp := Vector2(-_dir.y, _dir.x)
 	var hw   := 14.0
 
+	# El corredor (esq) es la zona de golpe real del dash.
 	var esq := PackedVector2Array([perp * hw, fin + perp * hw, fin - perp * hw, -perp * hw])
-	draw_colored_polygon(esq, Color(c.r, c.g, c.b, 0.15))
-	draw_polyline(PackedVector2Array([esq[0], esq[1], esq[2], esq[3], esq[0]]),
-		Color(c.r, c.g, c.b, 0.70), 2.0)
-	draw_circle(fin, 10.0, c)
-	draw_line(fin, fin - _dir * 20.0 + perp * 13.0, c, 2.5)
-	draw_line(fin, fin - _dir * 20.0 - perp * 13.0, c, 2.5)
-	draw_circle(Vector2.ZERO, 5.0, Color(c.r, c.g, c.b, 0.70))
+	_dibujar_area_golpe_poligono(esq)

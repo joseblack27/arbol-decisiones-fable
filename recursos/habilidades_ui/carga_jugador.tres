@@ -1,13 +1,17 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://bnmuhpm1lfsy1"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://bnmuhpm1lfsy1"]
 
-[ext_resource type="Texture2D" uid="uid://d0e27ql1ch7t5" path="res://assets/iconos/buttons/skills/boton_4.png" id="1_ico"]
+[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_ppcqp"]
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="2_scr"]
 [ext_resource type="PackedScene" uid="uid://c57qcnn22ol8c" path="res://escenas/habilidades/carga_jugador/HabilidadCargaJugador.tscn" id="3_esc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_stpio"]
+atlas = ExtResource("2_ppcqp")
+region = Rect2(0, 0, 32, 32)
 
 [resource]
 script = ExtResource("2_scr")
 nombre = "Carga"
-icono = ExtResource("1_ico")
+icono = SubResource("AtlasTexture_stpio")
 descripcion = "Embestida rapida hacia el enemigo causando [color=cyan]{damage1}[/color]"
 escena = ExtResource("3_esc")
 nivel = 1

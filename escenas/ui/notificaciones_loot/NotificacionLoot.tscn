@@ -14,6 +14,7 @@ corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
 [node name="NotificacionLoot" type="PanelContainer"]
+process_mode = 3
 custom_minimum_size = Vector2(220, 32)
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_fondo")

@@ -1,11 +1,11 @@
 [gd_scene load_steps=17 format=3 uid="uid://6ysewcuhdy8u"]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tikhs"]
-[ext_resource type="Texture2D" uid="uid://cdm8uqar1sxjr" path="res://icon.svg" id="2_2qy46"]
-[ext_resource type="Script" uid="uid://1bad6yheynjl" path="res://escenas/ui/panel_os/paneles/inventario/PanelInventario.gd" id="2_js0jc"]
+[ext_resource type="Texture2D" uid="uid://crulm186ucr" path="res://icon.svg" id="2_2qy46"]
+[ext_resource type="Script" uid="uid://dtfy25u18tx3k" path="res://escenas/ui/panel_os/paneles/inventario/PanelInventario.gd" id="2_js0jc"]
 [ext_resource type="PackedScene" uid="uid://cp7vpuqjt24rq" path="res://escenas/ui/panel_os/paneles/inventario/SlotItem.tscn" id="3_cdap4"]
-[ext_resource type="Script" uid="uid://mejn6poguw2h" path="res://escenas/ui/panel_os/paneles/inventario/FlujoItems.gd" id="13_kk5td"]
-[ext_resource type="Script" uid="uid://bo4a4iwec5n7o" path="res://escenas/ui/panel_os/paneles/inventario/BotonFiltro.gd" id="19_tf88s"]
+[ext_resource type="Script" uid="uid://c1e113v5ung2y" path="res://escenas/ui/panel_os/paneles/inventario/FlujoItems.gd" id="13_kk5td"]
+[ext_resource type="Script" uid="uid://bhpvolte3emd1" path="res://escenas/ui/panel_os/paneles/inventario/BotonFiltro.gd" id="19_tf88s"]
 [ext_resource type="PackedScene" uid="uid://c51diq6hqeah1" path="res://escenas/ui/panel_os/paneles/inventario/EquipoSlot.tscn" id="22_c47ir"]
 [ext_resource type="Texture2D" uid="uid://b3uvsh07edb7c" path="res://assets/iconos/slots/slot_8.png" id="23_8tsm6"]
 [ext_resource type="Texture2D" uid="uid://c7dml7cnfiigl" path="res://assets/iconos/slots/slot_7.png" id="24_1tche"]
@@ -277,7 +277,6 @@ layout_mode = 2
 text = "Soltar"
 
 [node name="PanelDetalle" type="Panel" parent="Margin/HBox/Control"]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -354,7 +353,6 @@ layout_mode = 2
 
 [node name="MarginContainer2" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
 layout_mode = 2
-size_flags_vertical = 3
 theme_override_constants/margin_left = 2
 theme_override_constants/margin_right = 2
 
@@ -370,8 +368,18 @@ text = "Descripción:"
 layout_mode = 2
 size_flags_vertical = 3
 text = "Godot Engine es un motor de videojuegos gratuito y de código abierto que permite desarrollar juegos en 2D y 3D de forma intuitiva y eficiente. Fue creado por Juan Linietsky y Ariel Manzur, y liberado públicamente el 14 de enero de 2014 bajo licencia MIT"
+fit_content = true
 
 [node name="HSeparator4" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="VBoxCaracteristicas" type="VBoxContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="HSeparator5" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
 layout_mode = 2
 theme_override_constants/separation = 0
 

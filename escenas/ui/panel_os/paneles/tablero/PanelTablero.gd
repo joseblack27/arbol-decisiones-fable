@@ -51,6 +51,10 @@ func _ready() -> void:
 	# Refresco inmediato al equipar/quitar/reemplazar algo, aunque esta
 	# pestaña ya esté abierta (si no, solo se enteraría al volver a abrirla).
 	BusEventos.equipo_cambiado.connect(_on_equipo_cambiado)
+	# Ídem para la XP: GestorExperiencia es quien de verdad la acumula (ver
+	# Enemigo._on_muerte) — DatosJugador.experiencia es un campo aparte que
+	# nadie más actualiza, por eso el panel nunca la mostraba subir.
+	BusEventos.xp_agregada.connect(_on_xp_agregada)
 
 
 # =============================================================================
@@ -103,6 +107,10 @@ func _on_equipo_cambiado(_equipados: Array[DatosItem]) -> void:
 	_actualizar_defensivas()
 
 
+func _on_xp_agregada(_cantidad: int, _xp_total: int) -> void:
+	_actualizar_principales()
+
+
 func _actualizar_todo() -> void:
 	_actualizar_principales()
 	_actualizar_ofensivas()
@@ -114,7 +122,12 @@ func _actualizar_principales() -> void:
 		_lbl_nombre.text      = _datos_jugador.nombre
 		_lbl_nivel.text       = str(_datos_jugador.nivel)
 		_lbl_estamina.text    = str(int(_datos_jugador.estamina))
-		_lbl_experiencia.text = "%s / %s" % [int(_datos_jugador.experiencia), int(_datos_jugador.experiencia_max)]
+		# GestorExperiencia.xp_total es la única fuente real de XP (la
+		# acumula Enemigo.gd al morir cada mob) — experiencia_max sigue
+		# viniendo de DatosJugador hasta que exista una tabla de niveles.
+		_lbl_experiencia.text = "%s / %s" % [GestorExperiencia.xp_total, int(_datos_jugador.experiencia_max)]
+	else:
+		_lbl_experiencia.text = str(GestorExperiencia.xp_total)
 
 	if _vida_comp:
 		_lbl_vida.text = "%s / %s" % [int(_vida_comp.salud_actual), int(_vida_comp.salud_maxima)]

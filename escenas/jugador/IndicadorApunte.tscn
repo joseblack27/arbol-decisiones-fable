@@ -1,6 +1,15 @@
-[gd_scene load_steps=2 format=3 uid="uid://indicadorapunte01"]
+[gd_scene load_steps=2 format=3 uid="uid://b7ytd2g78calo"]
 
-[ext_resource type="Script" path="res://escenas/jugador/IndicadorApunte.gd" id="1_ia"]
+[ext_resource type="Script" uid="uid://cdot6oc21vxf6" path="res://escenas/jugador/IndicadorApunte.gd" id="1_ia"]
 
 [node name="IndicadorApunte" type="Node2D"]
+z_index = -5
+z_as_relative = false
 script = ExtResource("1_ia")
+COLOR_APUNTE = Color(1, 1, 1, 1)
+opacidad_area_apunte = 0.162
+color_borde_apunte = Color(1, 1, 1, 1)
+grosor_borde_apunte = 1.0
+COLOR_AREA_GOLPE = Color(1, 0, 0, 0.4)
+color_borde_golpe = Color(1, 0, 0, 0.49019608)
+grosor_borde_golpe = 1.0

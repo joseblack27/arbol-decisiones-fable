@@ -86,9 +86,7 @@ color_activo = Color(1, 1, 1, 0.9019608)
 [node name="BarraEnergia" parent="CanvasLayer/Control" instance=ExtResource("8_be")]
 anchors_preset = 0
 
-[node name="PanelNotificacionesLoot" parent="CanvasLayer/Control" instance=ExtResource("17_pnl")]
-layout_mode = 1
-anchors_preset = 0
+[node name="PanelNotificacionesLoot" parent="CanvasLayer" instance=ExtResource("17_pnl")]
 offset_left = 16.0
 offset_top = 60.0
 

@@ -1,13 +1,17 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://d3elulj0pqs7d"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://d3elulj0pqs7d"]
 
-[ext_resource type="Texture2D" uid="uid://bqhacs5obf0h" path="res://assets/iconos/buttons/skills/boton_3.png" id="1_xa3nw"]
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="2_2eq24"]
+[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_gsti0"]
 [ext_resource type="PackedScene" uid="uid://eyd0lniej4po" path="res://escenas/habilidades/proyectil/HabilidadProyectil.tscn" id="3_esc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ibxma"]
+atlas = ExtResource("2_gsti0")
+region = Rect2(192, 0, 32, 32)
 
 [resource]
 script = ExtResource("2_2eq24")
 nombre = "Esquirla helada"
-icono = ExtResource("1_xa3nw")
+icono = SubResource("AtlasTexture_ibxma")
 descripcion = "Esquirla de hielo que se lanza en linea recta, causando [color=#00c4ff]{damage1}[/color]"
 escena = ExtResource("3_esc")
 nivel = 1

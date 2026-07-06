@@ -13,6 +13,29 @@ class_name PanelInventario
 @onready var type_value        := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo/ValorTipo
 @onready var qty_value         := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo/ValorCantidad
 @onready var description_text  := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer2/VBoxContainer/TextoDescripcion
+@onready var vbox_caracteristicas: VBoxContainer = $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/VBoxCaracteristicas
+
+## Orden y etiqueta en español de cada campo de AtributosBase que se muestra
+## en el detalle de un equipable. Solo se listan los bonos que el ítem
+## realmente aporta (valor != 0), sin título — van pegados debajo de la
+## descripción, separados por el HSeparator4 ya existente en la escena.
+const ETIQUETAS_ATRIBUTOS := [
+	["danos", "Daños"],
+	["potencia", "Potencia"],
+	["impacto", "Impacto"],
+	["afliccion", "Aflicción"],
+	["impulso", "Impulso"],
+	["probabilidad_critico", "Prob. Crítico"],
+	["dano_critico", "Daño Crítico"],
+	["defensa", "Defensa"],
+	["tenacidad", "Tenacidad"],
+	["fortaleza", "Fortaleza"],
+	["resistencia_fisica", "Resist. Física"],
+	["resistencia_aire", "Resist. Aire"],
+	["resistencia_agua", "Resist. Agua"],
+	["resistencia_fuego", "Resist. Fuego"],
+	["resistencia_tierra", "Resist. Tierra"],
+]
 @onready var close_button      := $Margin/HBox/Control/PanelDetalle/BotonCerrar
 @onready var detail_panel_margin := $Margin/HBox/Control/PanelDetalle
 
@@ -116,6 +139,7 @@ func _clear_details():
 	type_value.text = "-"
 	qty_value.text = "-"
 	description_text.text = ""
+	_actualizar_caracteristicas(null)
 	use_action_button.disabled = true
 	equip_action_button.disabled = true
 	drop_action_button.disabled = true
@@ -127,12 +151,49 @@ func _update_details(item: SlotItem):
 	type_value.text = item.item_data.type_descripcion
 	qty_value.text = str(item.item_data.quantity)
 	description_text.text = item.item_data.description
+	_actualizar_caracteristicas(item.item_data.bonos)
 	use_action_button.disabled   = not item.can_use
 	equip_action_button.disabled = not item.can_equip
 	drop_action_button.disabled  = not item.can_drop
 	use_action_button.visible   = item.can_use
 	equip_action_button.visible = item.can_equip
 	drop_action_button.visible  = item.can_drop
+
+
+## Pinta, debajo de la descripción, una fila por cada bono != 0 que aporte
+## "bonos" (nombre pegado a la izquierda, valor pegado a la derecha).
+func _actualizar_caracteristicas(bonos: AtributosBase) -> void:
+	# free() inmediato (no queue_free): son nodos recién creados sin señales
+	# ni procesos pendientes, y así la lista queda consistente en el mismo
+	# fotograma en que se cambia de ítem seleccionado.
+	for hijo in vbox_caracteristicas.get_children():
+		hijo.free()
+	if bonos == null:
+		return
+	for par in ETIQUETAS_ATRIBUTOS:
+		var campo: String = par[0]
+		var etiqueta: String = par[1]
+		var valor: float = bonos.get(campo)
+		if valor == 0.0:
+			continue
+		var fila := HBoxContainer.new()
+		var nombre := Label.new()
+		nombre.text = etiqueta
+		nombre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var cantidad := Label.new()
+		cantidad.text = ("+%s" % _formatear_valor(valor)) if valor > 0.0 else _formatear_valor(valor)
+		cantidad.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		fila.add_child(nombre)
+		fila.add_child(cantidad)
+		vbox_caracteristicas.add_child(fila)
+
+
+## Evita el ".0" final en bonos con valor entero (10.0 -> "10"); conserva
+## decimales cuando el bono realmente los tiene (2.5 -> "2.5").
+func _formatear_valor(valor: float) -> String:
+	if valor == floor(valor):
+		return str(int(valor))
+	return str(valor)
 
 func set_active_filter_button(button: Button):
 	all_filter_button.button_pressed = false

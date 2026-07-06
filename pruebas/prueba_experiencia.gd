@@ -6,6 +6,9 @@
 #      GestorExperiencia automáticamente.
 #   3. PanelNotificacionesLoot también reacciona a xp_agregada con una fila
 #      de solo texto ("+N XP"), sin ícono.
+#   4. PanelTablero (la pestaña "Atributos") muestra GestorExperiencia.xp_total
+#      — no el campo suelto DatosJugador.experiencia, que nadie más actualiza
+#      (ese fue el bug: la XP sí se guardaba, pero no se veía en pantalla).
 #   godot --headless --path . --script res://pruebas/prueba_experiencia.gd
 # =============================================================================
 extends SceneTree
@@ -14,6 +17,8 @@ var _fotogramas := 0
 var _gestor: Node
 var _panel: Node
 var _raton: Node
+var _jugador_falso: CharacterBody2D
+var _tablero: Node
 
 
 func _process(_delta: float) -> bool:
@@ -41,6 +46,15 @@ func _montar() -> void:
 	_panel = (load("res://escenas/ui/notificaciones_loot/PanelNotificacionesLoot.tscn") as PackedScene).instantiate()
 	root.add_child(_panel)
 
+	# Jugador mínimo para que PanelTablero._conectar_jugador() lo encuentre
+	# (busca el primer nodo del grupo "jugadores").
+	_jugador_falso = CharacterBody2D.new()
+	_jugador_falso.add_to_group("jugadores")
+	root.add_child(_jugador_falso)
+
+	_tablero = (load("res://escenas/ui/panel_os/paneles/tablero/PanelTablero.tscn") as PackedScene).instantiate()
+	root.add_child(_tablero)
+
 	_gestor.agregar_xp(10)
 
 	_raton = (load("res://enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
@@ -63,11 +77,16 @@ func _informar() -> bool:
 	print("Filas de notificación generadas (esperado 3): %d" % filas)
 	print("Última fila es de XP: ícono oculto=%s texto=%s (esperado '+7 XP')" % [icono_oculto, texto])
 
+	var lbl_experiencia: Label = _tablero.get("_lbl_experiencia")
+	var texto_tablero := lbl_experiencia.text
+	print("Panel de estadísticas muestra la XP real (esperado '22'): %s" % texto_tablero)
+
 	var xp_total: int = _gestor.xp_total
 	var exito: bool = xp_total == 22 \
 		and filas == 3 \
 		and icono_oculto \
-		and texto == "+7 XP"
+		and texto == "+7 XP" \
+		and texto_tablero == "22"
 	print("PRUEBA EXPERIENCIA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true
