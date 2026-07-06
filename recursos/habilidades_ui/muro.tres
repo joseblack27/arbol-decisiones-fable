@@ -18,7 +18,5 @@ nivel = 1
 costo_energia = 35
 dano_base_min = 3
 dano_base_max = 6
-dano_calculado_min = 6
-dano_calculado_max = 15
 alcance_metros = 4
 enfriamiento = 1.0

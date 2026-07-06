@@ -2,19 +2,19 @@
 
 [ext_resource type="Script" uid="uid://cf4rph1eqiupl" path="res://enemigos/EnemigoAraña.gd" id="1_0tb4j"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="2_lgvut"]
-[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="2_qvumm"]
+[ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="2_qvumm"]
 [ext_resource type="Texture2D" uid="uid://c86lvjpjy0hvk" path="res://assets/monster-spider.png" id="3_cilxc"]
 [ext_resource type="Resource" path="res://recursos/items/recursos/hoja_2.tres" id="3_cqeou"]
 [ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="4_33eb0"]
 [ext_resource type="Resource" path="res://recursos/items/recursos/bateria_1.tres" id="4_pltau"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_1.tres" id="5_d42sf"]
+[ext_resource type="Resource" uid="uid://bempq01reqpiw" path="res://recursos/items/equipables/armadura_1.tres" id="5_d42sf"]
 [ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://arbol_comportamiento/ArbolComportamiento.gd" id="5_fslt1"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_2.tres" id="6_hd4e3"]
+[ext_resource type="Resource" uid="uid://ck24etbf1nuk" path="res://recursos/items/equipables/armadura_2.tres" id="6_hd4e3"]
 [ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://arbol_comportamiento/MemoriaBT.gd" id="6_igt8w"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_3.tres" id="7_2p2om"]
+[ext_resource type="Resource" uid="uid://bvr8e3vphuup1" path="res://recursos/items/equipables/armadura_3.tres" id="7_2p2om"]
 [ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="7_atacar"]
 [ext_resource type="Script" uid="uid://7nknx7mjsa07" path="res://arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="8_huir"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_4.tres" id="8_ybncr"]
+[ext_resource type="Resource" uid="uid://d0odx5bfd0f70" path="res://recursos/items/equipables/armadura_4.tres" id="8_ybncr"]
 [ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="9_deamb"]
 [ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="9_perseg"]
 [ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="10_tj55f"]
@@ -632,7 +632,6 @@ transitions = ["Start", "IDLE", SubResource("AnimationNodeStateMachineTransition
 
 [sub_resource type="Resource" id="ef6ga"]
 script = ExtResource("22_araña")
-impacto = 10.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_qvumm"]
 radius = 19.026299

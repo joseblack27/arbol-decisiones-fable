@@ -4,13 +4,18 @@ class_name PanelNotificacionesLoot
 ## ganada (BusEventos.xp_agregada). No es interactuable (todo el árbol tiene
 ## mouse_filter=IGNORE). Sistema de cola: como máximo "max_filas_visibles"
 ## filas están en pantalla a la vez; lo que llega de más espera en _cola y se
-## va mostrando a medida que las filas activas terminan su propio fundido y
-## se eliminan solas.
+## va mostrando a medida que las filas activas terminan su propio fundido.
+##
+## Las filas NUNCA se destruyen: como máximo puede haber max_filas_visibles
+## en juego a la vez, así que se instancian una única vez y se reciclan
+## (pool propio) — instanciar/liberar un PanelContainer+Label por cada aviso
+## se sentía como un tirón notable en Android cada vez que moría un enemigo.
 
 @export var escena_notificacion: PackedScene = preload("res://escenas/ui/notificaciones_loot/NotificacionLoot.tscn")
 @export var max_filas_visibles: int = 5
 
 var _cola: Array[Dictionary] = []
+var _libres: Array[NotificacionLoot] = []
 var _activas := 0
 
 
@@ -41,16 +46,30 @@ func _procesar_cola() -> void:
 
 
 func _mostrar(datos: Dictionary) -> void:
-	var noti := escena_notificacion.instantiate() as NotificacionLoot
-	add_child(noti)
+	var noti := _obtener_notificacion()
 	_activas += 1
-	noti.tree_exited.connect(_on_fila_terminada)
 	if datos.tipo == "item":
 		noti.configurar(datos.item, datos.cantidad)
 	else:
 		noti.configurar_texto(datos.texto)
 
 
-func _on_fila_terminada() -> void:
+## Reutiliza una fila ya creada (pool propio, ver nota de clase); solo
+## instancia una nueva la primera vez que hace falta ese cupo — como mucho
+## se instancian max_filas_visibles filas en toda la partida.
+func _obtener_notificacion() -> NotificacionLoot:
+	if _libres.is_empty():
+		var noti := escena_notificacion.instantiate() as NotificacionLoot
+		add_child(noti)
+		noti.terminada.connect(_on_fila_terminada.bind(noti))
+		return noti
+	var noti: NotificacionLoot = _libres.pop_back()
+	move_child(noti, get_child_count() - 1)
+	return noti
+
+
+func _on_fila_terminada(noti: NotificacionLoot) -> void:
+	noti.hide()
+	_libres.append(noti)
 	_activas -= 1
 	_procesar_cola()

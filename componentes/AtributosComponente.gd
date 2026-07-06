@@ -100,6 +100,17 @@ func calcular_dano_saliente(
 	return maxf(0.0, total)
 
 
+## Igual que calcular_dano_saliente() pero SIN el roll de crítico (ese paso
+## es aleatorio y no tiene sentido en un número mostrado en pantalla, p. ej.
+## la descripción de una habilidad en el panel). Solo bonus plano + potencia.
+func calcular_dano_saliente_vista_previa(dano_base: float) -> float:
+	if not base:
+		return dano_base
+	var total: float = dano_base + base.danos
+	total *= 1.0 + base.potencia / 100.0
+	return maxf(0.0, total)
+
+
 ## Aplica los atributos defensivos de ESTE personaje al daño entrante.
 ## [atacante] es el AtributosComponente de quien inflige el daño (puede ser null).
 ## El Impacto del atacante reduce la Defensa del receptor.

@@ -23,7 +23,11 @@ var _en_dash: bool              = false
 var _direccion_carga: Vector2   = Vector2.RIGHT
 var _distancia_recorrida: float = 0.0
 var _timer_seguridad: float     = 0.0
-var _ya_impacto: bool           = false
+## Enemigos ya golpeados en ESTE dash — evita pegarle varias veces al mismo
+## mob mientras dura el dash, pero permite golpear a varios mobs distintos
+## si el corredor los toca a todos (antes, con un solo booleano "_ya_impacto",
+## el primer golpe cerraba el daño para el resto del dash entero).
+var _objetivos_golpeados: Array[Node] = []
 var _dano_actual: int           = 0  # Calculado al inicio de cada dash
 
 
@@ -58,32 +62,33 @@ func _physics_process(delta: float) -> void:
 	_distancia_recorrida += entidad.global_position.distance_to(pos_antes)
 
 	# ── Daño a enemigos durante el dash ───────────────────────────────────────
-	if not _ya_impacto:
-		var espacio := entidad.get_world_2d().direct_space_state
-		var forma_query := CircleShape2D.new()
-		forma_query.radius = 24.0
-		var query := PhysicsShapeQueryParameters2D.new()
-		query.shape              = forma_query
-		query.transform          = entidad.global_transform
-		query.collision_mask     = 0xFFFFFFFF
-		query.collide_with_bodies = true
-		query.collide_with_areas  = true
-		for r in espacio.intersect_shape(query):
-			var col = r.get("collider")
-			if col == null or col == entidad_dueña:
-				continue
-			var objetivo: Node = col
-			if col is VidaComponente:
-				objetivo = col.get_parent()
-			if objetivo == entidad_dueña:
-				continue
-			if objetivo.has_method("quitar_vida"):
-				_ya_impacto = true
-				var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, float(_dano_actual), tipo_dano)
-				objetivo.quitar_vida(dano_final)
-				BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
-				BusEventos.habilidad_impacto.emit("carga_jugador", objetivo)
-				break
+	# Se consulta cada fotograma (no solo hasta el primer golpe): así el dash
+	# puede golpear a varios enemigos distintos si el corredor los toca a
+	# todos, sin pegarle dos veces al mismo (ver _objetivos_golpeados).
+	var espacio := entidad.get_world_2d().direct_space_state
+	var forma_query := CircleShape2D.new()
+	forma_query.radius = 24.0
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape              = forma_query
+	query.transform          = entidad.global_transform
+	query.collision_mask     = 0xFFFFFFFF
+	query.collide_with_bodies = true
+	query.collide_with_areas  = true
+	for r in espacio.intersect_shape(query):
+		var col = r.get("collider")
+		if col == null or col == entidad_dueña:
+			continue
+		var objetivo: Node = col
+		if col is VidaComponente:
+			objetivo = col.get_parent()
+		if objetivo == entidad_dueña or objetivo in _objetivos_golpeados:
+			continue
+		if objetivo.has_method("quitar_vida"):
+			_objetivos_golpeados.append(objetivo)
+			var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, float(_dano_actual), tipo_dano)
+			objetivo.quitar_vida(dano_final)
+			BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
+			BusEventos.habilidad_impacto.emit("carga_jugador", objetivo)
 
 	# ── Condiciones de fin ────────────────────────────────────────────────────
 	if _distancia_recorrida >= distancia_maxima_dash or entidad.is_on_wall():
@@ -102,7 +107,7 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	_direccion_carga     = direccion if direccion.length() > 0.1 else _ultima_direccion_jugador()
 	_distancia_recorrida = 0.0
 	_timer_seguridad     = 0.0
-	_ya_impacto          = false
+	_objetivos_golpeados.clear()
 	_en_dash             = true
 	_dano_actual         = _calcular_dano(int(daño_carga))
 	_set_excepciones_enemigos(true)

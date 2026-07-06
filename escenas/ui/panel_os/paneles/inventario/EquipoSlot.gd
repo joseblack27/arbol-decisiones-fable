@@ -32,11 +32,18 @@ func _drop_data(_position, data):
 		return
 	var item_anterior := item_data
 	item_data = item
+	# El setter de item_data (heredado de SlotItem) copia can_equip desde el
+	# DatosItem — que para un equipable es SIEMPRE true. Sin esto, un ítem
+	# equipado por arrastre queda con el botón "Equipar" habilitado si volvés
+	# a abrir su detalle; presionarlo entonces lo "reequipa consigo mismo" y
+	# lo duplica en GestorInventario sin sacarlo del slot (ver bug reportado).
+	can_equip = false
 
 	if data is EquipoSlot:
 		# Intercambio directo entre dos slots de equipo: ninguno de los dos
 		# pasa por el inventario general, así que GestorInventario no se toca.
 		data.item_data = item_anterior
+		data.can_equip = false
 		data.update_item()
 	else:
 		# Viene del inventario general: deja de estar "suelto" ahí — si no

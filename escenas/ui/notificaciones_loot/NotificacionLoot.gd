@@ -3,6 +3,14 @@ class_name NotificacionLoot
 ## Una fila de la lista de avisos rápidos (botín obtenido, XP ganada...):
 ## ícono opcional + texto. No interactuable (mouse_filter=IGNORE en toda la
 ## fila) — solo aparece, espera unos segundos y se desvanece sola.
+##
+## No se destruye a sí misma: emite "terminada" y deja que
+## PanelNotificacionesLoot decida qué hacer (lo reutiliza como pool en vez
+## de instanciar/liberar una fila nueva en cada aviso — instanciar un
+## PanelContainer+Label en Android se sentía como un tirón notable cada vez
+## que moría un enemigo).
+
+signal terminada
 
 @export var duracion_visible: float = 2.5
 @export var duracion_fundido: float = 0.4
@@ -27,9 +35,10 @@ func configurar_texto(texto: String) -> void:
 
 
 func _iniciar_fundido() -> void:
+	show()
 	modulate.a = 0.0
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 1.0, 0.2)
 	tween.tween_interval(duracion_visible)
 	tween.tween_property(self, "modulate:a", 0.0, duracion_fundido)
-	tween.tween_callback(queue_free)
+	tween.tween_callback(func() -> void: terminada.emit())

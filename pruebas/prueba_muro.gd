@@ -194,8 +194,9 @@ func _crear_muro_prueba(defensa: float) -> Node:
 ## Verifica que muro.tres (el DatosHabilidad real usado para equiparla desde
 ## el menú, vía SlotHabilidades.equipar) aplica correctamente sus valores —
 ## igual que haría el juego real, no solo los valores por defecto del script.
-## dano_calculado_min/max ahora son un rango real (HabilidadBase._calcular_dano
-## tira un entero al azar entre ambos): solo se puede comprobar que cae dentro.
+## dano_base_min/max es ahora el ÚNICO rango de daño (ya no existe un
+## "dano_calculado" aparte): HabilidadBase._calcular_dano tira un entero al
+## azar entre ambos.
 func _probar_aplicar_datos() -> bool:
 	var otra_habilidad := (load("res://escenas/habilidades/muro/HabilidadMuroJugador.tscn") as PackedScene).instantiate()
 	var datos := load("res://recursos/habilidades_ui/muro.tres") as DatosHabilidad
@@ -204,7 +205,7 @@ func _probar_aplicar_datos() -> bool:
 	var recarga_ok := is_equal_approx(otra_habilidad.get("duracion_recarga"), 1.0)
 	var dano_min: int = otra_habilidad.get("_dano_min")
 	var dano_max: int = otra_habilidad.get("_dano_max")
-	var rango_ok := dano_min == 6 and dano_max == 15
+	var rango_ok := dano_min == 3 and dano_max == 6
 	var alcance_ok := is_equal_approx(otra_habilidad.get("alcance_maximo"), 160.0)
 	print("aplicar_datos(muro.tres) -> costo=%s recarga=%s rangoDaño[%d,%d]=%s alcance=%s" % [
 		costo_ok, recarga_ok, dano_min, dano_max, rango_ok, alcance_ok,

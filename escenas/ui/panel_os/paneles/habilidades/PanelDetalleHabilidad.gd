@@ -22,6 +22,25 @@ func _ready() -> void:
 	_equip_btn.pressed.connect(_abrir_selector)
 	_selector.slot_elegido.connect(_on_slot_elegido)
 	_selector.cancelado.connect(_cerrar_selector)
+	# El daño mostrado depende de los atributos actuales del jugador (bonos
+	# de equipo incluidos) — recalcular cada vez que el equipo cambia, para
+	# que si el panel está abierto no se quede mostrando un número viejo.
+	BusEventos.equipo_cambiado.connect(_on_equipo_cambiado)
+
+
+func _on_equipo_cambiado(_equipados: Array) -> void:
+	if _skill_actual:
+		show_skill(_skill_actual)
+
+
+## Atributos del jugador (bonos de equipo ya aplicados, ver
+## AtributosComponente.recalcular_con_equipo) usados para mostrar el daño
+## real que la habilidad va a infligir, no solo su rango base.
+func _obtener_atributos_jugador() -> AtributosComponente:
+	var jugador := get_tree().get_first_node_in_group("jugadores") as Node
+	if not jugador:
+		return null
+	return jugador.get_node_or_null("AtributosComponente") as AtributosComponente
 
 
 # ── Selector ──────────────────────────────────────────────────────────────────
@@ -59,12 +78,23 @@ func show_skill(skill: DatosHabilidad) -> void:
 	name_label.text  = skill.name
 	level_label.text = "Nivel %d" % skill.level
 
-	var dmg_calc := "%d - %d" % [skill.damage_calculated_min, skill.damage_calculated_max]
+	# "Daño Calculado" = dano_base + los atributos ofensivos ACTUALES del
+	# jugador (bonus plano + potencia; el crítico no entra porque es un roll
+	# aleatorio, no tiene sentido en un número fijo mostrado en pantalla).
+	# Sin AtributosComponente disponible, se muestra el rango base tal cual.
+	var atributos := _obtener_atributos_jugador()
+	var dmg_calc_min := skill.damage_base_min
+	var dmg_calc_max := skill.damage_base_max
+	if atributos:
+		dmg_calc_min = int(atributos.calcular_dano_saliente_vista_previa(skill.damage_base_min))
+		dmg_calc_max = int(atributos.calcular_dano_saliente_vista_previa(skill.damage_base_max))
+	var dmg_calc := "%d - %d" % [dmg_calc_min, dmg_calc_max]
+
 	description_label.text = skill.description.format({"damage1": dmg_calc})
 	cost_label.text = str(skill.cost_energy)
 
 	dmg_base_label.text = "%d - %d" % [skill.damage_base_min, skill.damage_base_max]
-	dmg_calc_label.text = "%d - %d" % [skill.damage_calculated_min, skill.damage_calculated_max]
+	dmg_calc_label.text = dmg_calc
 
 	type_launch_label.text  = Utils.snake_to_pascal(Enums.Skill.TypeLaunch.keys()[skill.type_launch])
 	type_damage_label.text  = Utils.snake_to_pascal(Enums.Skill.TypeDamage.keys()[skill.type_damage])

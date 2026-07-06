@@ -133,6 +133,15 @@ func _on_muerte(_valor: float) -> void:
 		arbol.activo = false
 	if componente_movimiento:
 		componente_movimiento.detener()
+	# El golpe que mata llega desde un callback de física (area_entered /
+	# body_entered de Proyectil, Arañazo, GolpeBasico, AreaEfecto...). Repartir
+	# botín, sumar XP e instanciar filas de notificación en ese mismo stack
+	# se sintió como un tirón notable en Android — se difiere un fotograma
+	# (call_deferred) para que ese trabajo corra fuera del paso de física.
+	call_deferred("_procesar_muerte")
+
+
+func _procesar_muerte() -> void:
 	_otorgar_botin()
 	if xp_otorgada > 0:
 		GestorExperiencia.agregar_xp(xp_otorgada)

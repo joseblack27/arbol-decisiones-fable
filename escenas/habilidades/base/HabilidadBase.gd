@@ -92,8 +92,8 @@ func aplicar_datos(d: DatosHabilidad) -> void:
 	nombre_habilidad = d.nombre
 	costo_energia    = float(d.costo_energia)
 	duracion_recarga = d.enfriamiento
-	_dano_min        = d.dano_calculado_min
-	_dano_max        = d.dano_calculado_max
+	_dano_min        = d.dano_base_min
+	_dano_max        = d.dano_base_max
 
 ## Devuelve un daño entero aleatorio entre _dano_min y _dano_max.
 ## Si no hay rango definido (DatosHabilidad no aplicado), usa el fallback de la subclase.

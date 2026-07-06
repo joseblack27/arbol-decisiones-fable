@@ -7,7 +7,11 @@
 #   2. Lootear algo nuevo después NO resucita el ítem ya equipado.
 #   3. Arrastrar directo a un EquipoSlot (_drop_data) también saca el ítem
 #      de GestorInventario, y devuelve el que estaba puesto antes.
-#   4. Desequipar arrastrando de vuelta al inventario (FlujoItems._drop_data)
+#   4. Presionar "Equipar" sobre un ítem YA equipado (bug: EquipoSlot._drop_data
+#      dejaba can_equip=true tras equipar por arrastre, así que el botón
+#      seguía habilitado y "reequiparlo" lo duplicaba en GestorInventario sin
+#      sacarlo del slot) NO debe duplicarlo ni sacarlo de su slot.
+#   5. Desequipar arrastrando de vuelta al inventario (FlujoItems._drop_data)
 #      lo devuelve a GestorInventario sin duplicarlo.
 # Cada paso queda en su propio fotograma para dar tiempo a que los
 # queue_free() de la reconstrucción de grilla se procesen de verdad antes
@@ -28,6 +32,9 @@ var _en_inventario_tras_equipar := false
 var _veces_armadura_en_gestor := -1
 var _veces_armadura_en_grilla := -1
 var _casco_en_gestor := false
+var _casco_can_equip_tras_drop := true
+var _copias_casco_tras_reequipar := -1
+var _casco_sigue_en_slot := false
 var _armadura_de_vuelta := false
 var _copias_armadura_final := -1
 
@@ -56,9 +63,20 @@ func _process(_delta: float) -> bool:
 		5:
 			_casco_en_gestor = _contar_en_lista(_gestor.items, "Casco de Prueba") > 0
 			print("Casco sigue en GestorInventario tras arrastrarlo al slot (esperado false): %s" % _casco_en_gestor)
+			_casco_can_equip_tras_drop = _panel.equip_slot_helmet.can_equip
+			print("can_equip del slot tras equipar por arrastre (esperado false): %s" % _casco_can_equip_tras_drop)
+			# Presionar "Equipar" sobre el casco YA equipado (mismo camino que
+			# _on_equip_button(), usando el propio EquipoSlot como item_equip).
+			_panel._equip_item(_panel.equip_slot_helmet)
+		6:
+			_copias_casco_tras_reequipar = _contar_en_lista(_gestor.items, "Casco de Prueba")
+			_casco_sigue_en_slot = _panel.equip_slot_helmet.item_data != null \
+				and _panel.equip_slot_helmet.item_data.name == "Casco de Prueba"
+			print("Copias del casco en GestorInventario tras 'reequiparlo' (esperado 0): %d" % _copias_casco_tras_reequipar)
+			print("Casco sigue puesto en su slot tras 'reequiparlo' (esperado true): %s" % _casco_sigue_en_slot)
 			# Desequipar la armadura arrastrándola de vuelta al inventario general.
 			_panel.flow._drop_data(Vector2.ZERO, _panel.equip_slot_body)
-		6:
+		7:
 			_armadura_de_vuelta = _contar_en_lista(_gestor.items, "Armadura de Prueba") > 0
 			_copias_armadura_final = _contar_en_lista(_gestor.items, "Armadura de Prueba")
 			print("Armadura de vuelta en GestorInventario tras desequiparla (esperado true): %s" % _armadura_de_vuelta)
@@ -134,6 +152,9 @@ func _informar() -> bool:
 		and _veces_armadura_en_gestor == 0 \
 		and _veces_armadura_en_grilla == 0 \
 		and not _casco_en_gestor \
+		and not _casco_can_equip_tras_drop \
+		and _copias_casco_tras_reequipar == 0 \
+		and _casco_sigue_en_slot \
 		and _armadura_de_vuelta \
 		and _copias_armadura_final == 1
 	print("PRUEBA INVENTARIO EQUIPAR %s" % ("OK" if exito else "FALLIDA"))

@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://brkcchgxseadn"]
+[gd_scene load_steps=12 format=3 uid="uid://brkcchgxseadn"]
 
 [ext_resource type="PackedScene" uid="uid://ce0idfghf3qmv" path="res://Jugador.tscn" id="1_ubi47"]
 [ext_resource type="Script" path="res://Mundo.gd" id="2_mundo"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://c51cbomf7oq2h" path="res://escenas/ui/boton_os/BotonOS.gd" id="15_bos"]
 [ext_resource type="Script" uid="uid://dpmgf5u2u5w0y" path="res://escenas/ui/ControlJuego.gd" id="16_cj"]
 [ext_resource type="PackedScene" path="res://escenas/ui/notificaciones_loot/PanelNotificacionesLoot.tscn" id="17_pnl"]
+[ext_resource type="PackedScene" path="res://escenas/ui/contador_fps/ContadorFPS.tscn" id="18_fps"]
 
 [node name="Mundo" type="Node2D"]
 y_sort_enabled = true
@@ -84,14 +85,27 @@ color_reposo = Color(1, 1, 1, 0.50980395)
 color_activo = Color(1, 1, 1, 0.9019608)
 
 [node name="BarraEnergia" parent="CanvasLayer/Control" instance=ExtResource("8_be")]
+layout_mode = 1
+anchors_preset = 7
+offset_left = -72.0
+offset_top = -16.0
+offset_right = 72.0
+offset_bottom = -6.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="ZonaCancelacion" parent="CanvasLayer/Control" instance=ExtResource("5_zc")]
 anchors_preset = 0
 
 [node name="PanelNotificacionesLoot" parent="CanvasLayer" instance=ExtResource("17_pnl")]
 offset_left = 16.0
 offset_top = 60.0
 
-[node name="ZonaCancelacion" parent="CanvasLayer/Control" instance=ExtResource("5_zc")]
-anchors_preset = 0
+[node name="ContadorFPS" parent="CanvasLayer" instance=ExtResource("18_fps")]
+offset_left = 20.0
+offset_top = 10.0
+offset_right = 100.0
+offset_bottom = 34.0
 
 [node name="BotonOS" type="Button" parent="CanvasLayer"]
 anchors_preset = 1

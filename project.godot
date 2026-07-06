@@ -12,6 +12,7 @@ config_version=5
 
 config/name="ArbolDecisiones"
 run/main_scene="res://Mundo.tscn"
+run/max_fps=60
 config/features=PackedStringArray("4.5")
 config/icon="uid://crulm186ucr"
 

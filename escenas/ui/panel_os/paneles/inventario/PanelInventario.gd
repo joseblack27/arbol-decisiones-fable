@@ -65,6 +65,12 @@ const ETIQUETAS_ATRIBUTOS := [
 @export var slots_equippable: Array[EquipoSlot]
 
 var item_data_details: SlotItem
+## Loot llegó a GestorInventario mientras este panel no se veía en pantalla
+## (menú cerrado o en otra pestaña) — reconstruir la grilla completa en ese
+## momento no sirve de nada (nadie la está mirando) y en Android se sentía
+## como un tirón cada vez que moría un enemigo. Se posterga hasta que el
+## panel vuelva a ser visible.
+var _grilla_desactualizada := false
 
 func _ready():
 	close_button.pressed.connect(_on_close_button)
@@ -79,13 +85,22 @@ func _ready():
 	set_active_filter_button(all_filter_button)
 	_conectar_slots_equipables()
 	BusEventos.item_agregado.connect(_on_item_agregado)
+	visibility_changed.connect(_on_visibility_changed)
 
 	var main_os = get_tree().get_root().find_child("OsPrincipal", true, false)
 	if main_os:
 		main_os.main_button_close.connect(_on_close_button)
 
 func _on_item_agregado(_item: DatosItem, _cantidad: int) -> void:
-	refrescar()
+	if is_visible_in_tree():
+		refrescar()
+	else:
+		_grilla_desactualizada = true
+
+func _on_visibility_changed() -> void:
+	if is_visible_in_tree() and _grilla_desactualizada:
+		_grilla_desactualizada = false
+		refrescar()
 
 
 ## Reconstruye la grilla de inventario desde GestorInventario.items (la
@@ -95,6 +110,12 @@ func _on_item_agregado(_item: DatosItem, _cantidad: int) -> void:
 func refrescar() -> void:
 	items = GestorInventario.items
 	_load_items_flow()
+	# _load_items_flow() reconstruye la grilla desde cero — las filas nuevas
+	# nacen todas visibles, así que si había un filtro activo (Equipables,
+	# Consumibles...) hay que reaplicarlo o se vería como si se hubiera
+	# ignorado (mostrando todo) cada vez que algo dispara un refresco
+	# (equipar, lootear, desequipar).
+	flow.filter_items(flow.last_filter_type)
 
 func _load_items_flow():
 	_clear_grid(flow)
@@ -237,6 +258,14 @@ func _equip_item(item_equip: SlotItem):
 	if target_slot == null:
 		return
 	var item := item_equip.item_data
+	# Ya está puesto en ESE MISMO slot (p. ej. tras el bug de EquipoSlot._drop_data
+	# que dejaba can_equip=true en ítems equipados por arrastre): no hay nada
+	# que intercambiar. Sin este corte, el bloque de abajo lo trataría como
+	# "el ocupante viejo" y lo devolvería a GestorInventario sin sacarlo del
+	# slot, duplicándolo.
+	if target_slot.item_data == item:
+		_on_close_button()
+		return
 	# El ítem deja de estar "suelto" en el inventario general — si no se saca
 	# de GestorInventario aquí, la próxima vez que la lista se reconstruya
 	# (p. ej. al lootear algo nuevo) reaparecería duplicado, porque seguiría
