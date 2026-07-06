@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3 uid="uid://d0odx5bfd0f70"]
+
+[ext_resource type="Script" uid="uid://j6y1rt5twmvl" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" uid="uid://cl7fmmfiyh72j" path="res://assets/items/equippables/armadura_4.png" id="2_ico"]
+[ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="3_atr"]
+
+[sub_resource type="Resource" id="AtributosBase_bonos"]
+script = ExtResource("3_atr")
+defensa = 15.0
+fortaleza = 5.0
+
+[resource]
+script = ExtResource("1_scr")
+name = "Armadura Real"
+icon = ExtResource("2_ico")
+description = "Coraza ornamentada de la guardia real."
+type = 3
+type_equippable = 4
+can_equip = true
+bonos = SubResource("AtributosBase_bonos")

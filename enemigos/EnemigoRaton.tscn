@@ -1,9 +1,14 @@
-[gd_scene load_steps=43 format=3 uid="uid://b7r15dmdjvgww"]
+[gd_scene load_steps=53 format=3 uid="uid://b7r15dmdjvgww"]
 
 [ext_resource type="Script" uid="uid://ccogg3bvxqeb5" path="res://enemigos/EnemigoRaton.gd" id="1_05pyp"]
+[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="2_ycc48"]
 [ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="3_mov"]
+[ext_resource type="Resource" path="res://recursos/items/consumibles/zanahoria.tres" id="3_w634u"]
+[ext_resource type="Resource" path="res://recursos/items/consumibles/pildora_roja.tres" id="4_i4l2e"]
 [ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="4_vision"]
+[ext_resource type="Resource" uid="uid://b3pcsjiq2chp4" path="res://recursos/items/equipables/escudo.tres" id="5_i4l2e"]
 [ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="5_vida"]
+[ext_resource type="Resource" uid="uid://1cddgcxigg4w" path="res://recursos/items/equipables/espada_luz_azul.tres" id="6_0dg2b"]
 [ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://arbol_comportamiento/ArbolComportamiento.gd" id="6_arbol"]
 [ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://arbol_comportamiento/MemoriaBT.gd" id="7_memoria"]
 [ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://arbol_comportamiento/composites/Selector.gd" id="8_selector"]
@@ -15,7 +20,27 @@
 [ext_resource type="Texture2D" uid="uid://chyl8pqmp0dj4" path="res://assets/raton.png" id="14_05pyp"]
 [ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="14_deamb"]
 [ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="15_wufat"]
-[ext_resource type="Script" path="res://componentes/BarraVidaEnergiaComponente.gd" id="16_barra"]
+[ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="16_barra"]
+
+[sub_resource type="Resource" id="Resource_0dg2b"]
+script = ExtResource("2_ycc48")
+item = ExtResource("3_w634u")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_pdtu5"]
+script = ExtResource("2_ycc48")
+item = ExtResource("4_i4l2e")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_7620f"]
+script = ExtResource("2_ycc48")
+item = ExtResource("5_i4l2e")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_t82ah"]
+script = ExtResource("2_ycc48")
+item = ExtResource("6_0dg2b")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="forma_cuerpo"]
 radius = 12.0
@@ -263,6 +288,7 @@ states/IDLE/position = Vector2(327, 100)
 transitions = ["Start", "IDLE", SubResource("AnimationNodeStateMachineTransition_42fou"), "IDLE", "CAMINAR", SubResource("AnimationNodeStateMachineTransition_g5777"), "CAMINAR", "IDLE", SubResource("AnimationNodeStateMachineTransition_ycc48")]
 
 [node name="EnemigoRaton" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
+motion_mode = 1
 script = ExtResource("1_05pyp")
 componente_vida = NodePath("VidaComponente")
 componente_movimiento = NodePath("MovimientoComponente")
@@ -270,6 +296,7 @@ componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 velocidad_base = 70.0
+tabla_botin = Array[ExtResource("2_ycc48")]([SubResource("Resource_0dg2b"), SubResource("Resource_pdtu5"), SubResource("Resource_7620f"), SubResource("Resource_t82ah")])
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("forma_cuerpo")

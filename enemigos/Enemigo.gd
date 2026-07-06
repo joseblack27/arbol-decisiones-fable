@@ -26,6 +26,17 @@ const CAPA_OBSTACULOS_HABILIDAD := 4
 @export var velocidad_base: float = 150.0
 @export_range(0.0, 1.0, 0.05) var umbral_vida_baja: float = 0.3
 
+## Ítems que este enemigo puede soltar al morir — van directo al inventario
+## del jugador (GestorInventario), nunca quedan tirados en el suelo. Cada
+## entrada tiene su propia probabilidad independiente; puede soltar varias
+## a la vez (o ninguna). Export directo aquí (no en EnemigoDatos) para no
+## depender de tener ese recurso asignado.
+@export var tabla_botin: Array[LootDrop] = []
+
+## Experiencia otorgada al jugador (GestorExperiencia) al morir. Todavía sin
+## tabla de niveles: por ahora solo se acumula.
+@export var xp_otorgada: int = 10
+
 var direccion: Vector2 = Vector2.ZERO
 var esta_atacando: bool = false
 
@@ -122,7 +133,22 @@ func _on_muerte(_valor: float) -> void:
 		arbol.activo = false
 	if componente_movimiento:
 		componente_movimiento.detener()
+	_otorgar_botin()
+	if xp_otorgada > 0:
+		GestorExperiencia.agregar_xp(xp_otorgada)
 	_desvanecer_y_eliminar()
+
+
+## Reparte tabla_botin directo al inventario del jugador (GestorInventario)
+## — nunca queda tirado en el suelo. Cada entrada tira su propia
+## probabilidad de forma independiente, así un mob puede soltar varias
+## cosas a la vez (o ninguna).
+func _otorgar_botin() -> void:
+	for entrada in tabla_botin:
+		if entrada == null or entrada.item == null:
+			continue
+		if randf() <= entrada.probabilidad:
+			GestorInventario.agregar_item(entrada.item)
 
 
 ## Hace desaparecer el cuerpo (queda en idle, se pone negro y luego se

@@ -12,6 +12,70 @@ class_name AtributosComponente
 ## Valores base del personaje. Asignar en el Inspector.
 @export var base: AtributosBase
 
+## Copia congelada de los atributos "de fábrica" (los del Inspector, sin
+## ningún bono de equipo). Se toma UNA vez en _ready() y nunca se toca — es
+## la referencia desde la que se recalcula cada vez que el equipo cambia
+## (para no ir acumulando bonos sobre bonos).
+var _base_sin_equipo: AtributosBase
+
+
+func _ready() -> void:
+	if base:
+		_base_sin_equipo = base.duplicate() as AtributosBase
+
+
+## Recalcula los campos de "base" = atributos de fábrica + la suma de los
+## bonos de todos los ítems actualmente equipados (DatosItem.bonos).
+## Llamarlo cada vez que el equipo cambia (ver BusEventos.equipo_cambiado /
+## GestorEquipo). Importante: MUTA el mismo recurso "base" en su sitio en
+## vez de reemplazarlo por uno nuevo — cualquiera que ya tenga una
+## referencia guardada a él (p. ej. PanelTablero, que la cachea al abrirse)
+## ve los cambios reflejados sin tener que volver a pedirla.
+func recalcular_con_equipo(items_equipados: Array[DatosItem]) -> void:
+	if not _base_sin_equipo or not base:
+		return
+	_copiar_bonos(base, _base_sin_equipo)
+	for item in items_equipados:
+		if item and item.bonos:
+			_sumar_bonos(base, item.bonos)
+
+
+func _copiar_bonos(destino: AtributosBase, origen: AtributosBase) -> void:
+	destino.danos                 = origen.danos
+	destino.potencia               = origen.potencia
+	destino.impacto                = origen.impacto
+	destino.afliccion              = origen.afliccion
+	destino.impulso                = origen.impulso
+	destino.probabilidad_critico    = origen.probabilidad_critico
+	destino.dano_critico            = origen.dano_critico
+	destino.defensa                 = origen.defensa
+	destino.tenacidad               = origen.tenacidad
+	destino.fortaleza               = origen.fortaleza
+	destino.resistencia_fisica      = origen.resistencia_fisica
+	destino.resistencia_aire        = origen.resistencia_aire
+	destino.resistencia_agua        = origen.resistencia_agua
+	destino.resistencia_fuego       = origen.resistencia_fuego
+	destino.resistencia_tierra      = origen.resistencia_tierra
+
+
+func _sumar_bonos(destino: AtributosBase, bonos: AtributosBase) -> void:
+	destino.danos                 += bonos.danos
+	destino.potencia               += bonos.potencia
+	destino.impacto                += bonos.impacto
+	destino.afliccion              += bonos.afliccion
+	destino.impulso                += bonos.impulso
+	destino.probabilidad_critico    += bonos.probabilidad_critico
+	destino.dano_critico            += bonos.dano_critico
+	destino.defensa                 += bonos.defensa
+	destino.tenacidad               += bonos.tenacidad
+	destino.fortaleza               += bonos.fortaleza
+	destino.resistencia_fisica      += bonos.resistencia_fisica
+	destino.resistencia_aire        += bonos.resistencia_aire
+	destino.resistencia_agua        += bonos.resistencia_agua
+	destino.resistencia_fuego       += bonos.resistencia_fuego
+	destino.resistencia_tierra      += bonos.resistencia_tierra
+
+
 # ── API pública ───────────────────────────────────────────────────────────────
 
 ## Aplica los atributos ofensivos de ESTE personaje a [dano_base].

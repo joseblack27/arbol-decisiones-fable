@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://escenas/ui/notificaciones_loot/PanelNotificacionesLoot.gd" id="1_panel"]
+
+[node name="PanelNotificacionesLoot" type="VBoxContainer"]
+mouse_filter = 2
+theme_override_constants/separation = 6
+script = ExtResource("1_panel")

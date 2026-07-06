@@ -42,6 +42,19 @@ signal energia_cambiada(entidad: Node, nueva: float, maxima: float)
 ## Emitida cuando una habilidad es equipada en un slot (entidad, slot_index, habilidad).
 signal habilidad_equipada(entidad: Node, slot_index: int, habilidad: HabilidadBase)
 
+# ── INVENTARIO ────────────────────────────────────────────────────────────────
+## Emitida cuando se añade un ítem al inventario del jugador (ítem, cantidad
+## añadida en esa operación — puede ser una entrada nueva o una suma a una pila).
+signal item_agregado(item: DatosItem, cantidad: int)
+## Emitida cuando cambia el equipo puesto (equipar, quitar o reemplazar
+## cualquier pieza) — trae la lista completa de ítems equipados en ese momento.
+signal equipo_cambiado(equipados: Array[DatosItem])
+
+# ── EXPERIENCIA ───────────────────────────────────────────────────────────────
+## Emitida cuando el jugador gana experiencia (cantidad ganada, xp total
+## acumulada). Sin tabla de niveles todavía: por ahora solo se acumula.
+signal xp_agregada(cantidad: int, xp_total: int)
+
 # ── JUEGO ─────────────────────────────────────────────────────────────────────
 signal juego_pausado()
 signal juego_reanudado()

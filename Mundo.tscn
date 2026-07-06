@@ -9,6 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://dfmy15nixg3h3" path="res://escenas/ui/panel_os/principal/OsPrincipal.tscn" id="14_os"]
 [ext_resource type="Script" uid="uid://c51cbomf7oq2h" path="res://escenas/ui/boton_os/BotonOS.gd" id="15_bos"]
 [ext_resource type="Script" uid="uid://dpmgf5u2u5w0y" path="res://escenas/ui/ControlJuego.gd" id="16_cj"]
+[ext_resource type="PackedScene" path="res://escenas/ui/notificaciones_loot/PanelNotificacionesLoot.tscn" id="17_pnl"]
 
 [node name="Mundo" type="Node2D"]
 y_sort_enabled = true
@@ -84,6 +85,12 @@ color_activo = Color(1, 1, 1, 0.9019608)
 
 [node name="BarraEnergia" parent="CanvasLayer/Control" instance=ExtResource("8_be")]
 anchors_preset = 0
+
+[node name="PanelNotificacionesLoot" parent="CanvasLayer/Control" instance=ExtResource("17_pnl")]
+layout_mode = 1
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 60.0
 
 [node name="ZonaCancelacion" parent="CanvasLayer/Control" instance=ExtResource("5_zc")]
 anchors_preset = 0

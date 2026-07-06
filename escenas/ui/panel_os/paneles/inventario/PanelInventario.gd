@@ -47,18 +47,38 @@ func _ready():
 	close_button.pressed.connect(_on_close_button)
 	action_button.pressed.connect(_on_action_button)
 	equip_action_button.pressed.connect(_on_equip_button)
+	# El inventario real vive en el autoload GestorInventario (persiste entre
+	# aperturas del panel y cambios de nivel); "items" ya no es la fuente de
+	# verdad, solo se usa como vista previa de diseño en el Inspector.
+	items = GestorInventario.items
 	_load_items_flow()
 	_clear_details()
 	set_active_filter_button(all_filter_button)
+	_conectar_slots_equipables()
+	BusEventos.item_agregado.connect(_on_item_agregado)
 
 	var main_os = get_tree().get_root().find_child("OsPrincipal", true, false)
 	if main_os:
 		main_os.main_button_close.connect(_on_close_button)
 
+func _on_item_agregado(_item: DatosItem, _cantidad: int) -> void:
+	refrescar()
+
+
+## Reconstruye la grilla de inventario desde GestorInventario.items (la
+## única fuente de verdad) — llamar siempre que ese autoload cambie por
+## cualquier vía (loot, equipar, desequipar), para que la lista visible
+## nunca se desincronice de lo que realmente hay.
+func refrescar() -> void:
+	items = GestorInventario.items
+	_load_items_flow()
+
 func _load_items_flow():
 	_clear_grid(flow)
 	for data: DatosItem in items:
 		flow._add_item(data)
+
+func _conectar_slots_equipables():
 	equip_slot_weapon.slot_clicked.connect(_on_slot_clicked)
 	equip_slot_shield.slot_clicked.connect(_on_slot_clicked)
 	equip_slot_helmet.slot_clicked.connect(_on_slot_clicked)
@@ -155,14 +175,33 @@ func _equip_item(item_equip: SlotItem):
 				target_slot = item
 	if target_slot == null:
 		return
+	var item := item_equip.item_data
+	# El ítem deja de estar "suelto" en el inventario general — si no se saca
+	# de GestorInventario aquí, la próxima vez que la lista se reconstruya
+	# (p. ej. al lootear algo nuevo) reaparecería duplicado, porque seguiría
+	# en el autoload aunque su slot de la UI ya se haya destruido.
+	GestorInventario.quitar_item(item)
 	if target_slot.item_data != null:
 		var old_item = target_slot.item_data
-		target_slot.item_data = item_equip.item_data
+		target_slot.item_data = item
 		target_slot.can_equip = false
-		item_equip.item_data = old_item
-		item_equip.can_equip = true
+		GestorInventario.agregar_item(old_item)
 	else:
-		target_slot.item_data = item_equip.item_data
+		target_slot.item_data = item
 		target_slot.can_equip = false
-		item_equip.call_deferred("queue_free")
+	refrescar()
+	notificar_equipo_cambiado()
 	_on_close_button()
+
+
+## Avisa (vía GestorEquipo/BusEventos) la lista completa de ítems puestos
+## ahora mismo — quien escuche (típicamente AtributosComponente del jugador)
+## recalcula sus bonos de atributos desde cero con esta lista. Pública:
+## EquipoSlot._drop_data() también la llama (arrastrar directo a un slot de
+## equipo cambia el equipo sin pasar por _equip_item()).
+func notificar_equipo_cambiado() -> void:
+	var equipados: Array[DatosItem] = []
+	for slot: EquipoSlot in slots_equippable:
+		if slot and slot.item_data:
+			equipados.append(slot.item_data)
+	GestorEquipo.actualizar(equipados)

@@ -21,6 +21,7 @@ var direccion: Vector2
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var slot_habilidades: SlotHabilidades = $SlotHabilidades
 @onready var camara: Camera2D = $Camara
+@onready var componente_atributos: AtributosComponente = $AtributosComponente
 
 var _ultima_direccion: Vector2 = Vector2.RIGHT
 
@@ -51,6 +52,17 @@ func _ready():
 	SeñalManager.conectar("slot_2_lanzar",  self, "_on_slot_2_lanzar")
 	SeñalManager.conectar("slot_3_activar", self, "_on_slot_3_activar")
 	SeñalManager.conectar("slot_3_lanzar",  self, "_on_slot_3_lanzar")
+
+	# Los bonos de atributos del equipo (armas, armaduras, anillos…) se
+	# recalculan cada vez que cambia lo que hay puesto — ver
+	# PanelInventario._notificar_equipo_cambiado().
+	if componente_atributos:
+		BusEventos.equipo_cambiado.connect(_on_equipo_cambiado)
+		_on_equipo_cambiado(GestorEquipo.equipados)  # por si ya había algo equipado
+
+
+func _on_equipo_cambiado(equipados: Array[DatosItem]) -> void:
+	componente_atributos.recalcular_con_equipo(equipados)
 
 
 func _joystick_movimiento(_direccion: Vector2):

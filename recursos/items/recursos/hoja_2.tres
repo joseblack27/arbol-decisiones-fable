@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DatosItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" path="res://assets/items/resources/hoja_2.png" id="2_ico"]
+
+[resource]
+script = ExtResource("1_scr")
+name = "Hoja Seca"
+icon = ExtResource("2_ico")
+quantity = 3
+description = "Una hoja seca y quebradiza."
+type = 4
+type_equippable = 0
+can_use = false
+can_equip = false
+can_drop = true

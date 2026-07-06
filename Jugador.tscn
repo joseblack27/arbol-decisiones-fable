@@ -29,6 +29,7 @@ tenacidad = 1.0
 metadata/_custom_type_script = "uid://ddhq5qxvccml7"
 
 [node name="Jugador" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento") groups=["jugadores"]]
+motion_mode = 1
 script = ExtResource("1_omvyu")
 componente_vida = NodePath("VidaComponente")
 componente_movimiento = NodePath("MovimientoComponente")

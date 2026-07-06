@@ -1,13 +1,20 @@
-[gd_scene load_steps=55 format=3 uid="uid://7r1t84krlu7l"]
+[gd_scene load_steps=68 format=3 uid="uid://7r1t84krlu7l"]
 
 [ext_resource type="Script" uid="uid://cf4rph1eqiupl" path="res://enemigos/EnemigoAraña.gd" id="1_0tb4j"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="2_lgvut"]
+[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="2_qvumm"]
 [ext_resource type="Texture2D" uid="uid://c86lvjpjy0hvk" path="res://assets/monster-spider.png" id="3_cilxc"]
+[ext_resource type="Resource" path="res://recursos/items/recursos/hoja_2.tres" id="3_cqeou"]
 [ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="4_33eb0"]
+[ext_resource type="Resource" path="res://recursos/items/recursos/bateria_1.tres" id="4_pltau"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_1.tres" id="5_d42sf"]
 [ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://arbol_comportamiento/ArbolComportamiento.gd" id="5_fslt1"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_2.tres" id="6_hd4e3"]
 [ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://arbol_comportamiento/MemoriaBT.gd" id="6_igt8w"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_3.tres" id="7_2p2om"]
 [ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="7_atacar"]
 [ext_resource type="Script" uid="uid://7nknx7mjsa07" path="res://arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="8_huir"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_4.tres" id="8_ybncr"]
 [ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="9_deamb"]
 [ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="9_perseg"]
 [ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="10_tj55f"]
@@ -26,6 +33,36 @@
 [ext_resource type="PackedScene" uid="uid://dtw6fvi03aau8" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="24_2vgoe"]
 [ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="28_2vgoe"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
+
+[sub_resource type="Resource" id="Resource_vdkck"]
+script = ExtResource("2_qvumm")
+item = ExtResource("3_cqeou")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_d42sf"]
+script = ExtResource("2_qvumm")
+item = ExtResource("4_pltau")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_qvumm"]
+script = ExtResource("2_qvumm")
+item = ExtResource("5_d42sf")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_8ri25"]
+script = ExtResource("2_qvumm")
+item = ExtResource("6_hd4e3")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_xmh4o"]
+script = ExtResource("2_qvumm")
+item = ExtResource("7_2p2om")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_cwwu6"]
+script = ExtResource("2_qvumm")
+item = ExtResource("8_ybncr")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0tb4j"]
 radius = 17.0
@@ -601,6 +638,7 @@ impacto = 10.0
 radius = 19.026299
 
 [node name="EnemigoAraña" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
+motion_mode = 1
 script = ExtResource("1_0tb4j")
 componente_vida = NodePath("VidaComponente")
 componente_movimiento = NodePath("MovimientoComponente")
@@ -608,6 +646,8 @@ componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 velocidad_base = 50.0
+tabla_botin = Array[ExtResource("2_qvumm")]([SubResource("Resource_vdkck"), SubResource("Resource_d42sf"), SubResource("Resource_qvumm"), SubResource("Resource_8ri25"), SubResource("Resource_xmh4o"), SubResource("Resource_cwwu6")])
+xp_otorgada = 50
 metadata/_custom_type_script = "uid://dmntoeg3f84od"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

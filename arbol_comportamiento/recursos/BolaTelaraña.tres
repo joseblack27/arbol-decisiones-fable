@@ -6,7 +6,7 @@
 script = ExtResource("1_btel01")
 nombre = "BolaTelaraña"
 prioridad = 1
-rango_maximo = 400.0
+rango_maximo = 250.0
 duracion_cooldown = 3.0
 ruta_nodo = NodePath("Habilidades/HabilidadProyectilBolaTelaraña")
 metadata/_custom_type_script = "uid://fr6tavpigufc"

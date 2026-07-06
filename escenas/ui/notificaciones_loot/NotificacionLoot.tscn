@@ -1,0 +1,43 @@
+[gd_scene load_steps=3 format=3 uid="uid://b0wjnx6mnnf60"]
+
+[ext_resource type="Script" uid="uid://ch6jy7j443vvq" path="res://escenas/ui/notificaciones_loot/NotificacionLoot.gd" id="1_noti"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fondo"]
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0.05, 0.05, 0.08, 0.65)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="NotificacionLoot" type="PanelContainer"]
+custom_minimum_size = Vector2(220, 32)
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fondo")
+script = ExtResource("1_noti")
+
+[node name="Margen" type="MarginContainer" parent="."]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="HBox" type="HBoxContainer" parent="Margen"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+
+[node name="Icono" type="TextureRect" parent="Margen/HBox"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Texto" type="Label" parent="Margen/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "+1 Ítem"

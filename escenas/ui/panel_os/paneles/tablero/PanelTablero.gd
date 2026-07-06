@@ -48,6 +48,9 @@ var _datos_jugador: DatosJugador      = null
 func _ready() -> void:
 	_conectar_jugador()
 	visibility_changed.connect(_on_visibilidad_cambiada)
+	# Refresco inmediato al equipar/quitar/reemplazar algo, aunque esta
+	# pestaña ya esté abierta (si no, solo se enteraría al volver a abrirla).
+	BusEventos.equipo_cambiado.connect(_on_equipo_cambiado)
 
 
 # =============================================================================
@@ -93,6 +96,11 @@ func _on_vida_cambiada(_valor: float) -> void:
 
 func _on_energia_cambiada(_nueva: float, _maxima: float) -> void:
 	_actualizar_principales()
+
+
+func _on_equipo_cambiado(_equipados: Array[DatosItem]) -> void:
+	_actualizar_ofensivas()
+	_actualizar_defensivas()
 
 
 func _actualizar_todo() -> void:

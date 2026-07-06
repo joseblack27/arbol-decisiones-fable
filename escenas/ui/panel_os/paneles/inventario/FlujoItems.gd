@@ -38,9 +38,22 @@ func _can_drop_data(_at_position, data):
 	return data is EquipoSlot
 
 func _drop_data(_at_position, data):
-	var item_slot = data
-	_add_item(item_slot.item_data)
+	# Desequipar arrastrando de vuelta al inventario general: el ítem vuelve
+	# a GestorInventario (la única fuente de verdad) y se reconstruye la
+	# grilla desde ahí — añadirlo solo localmente (sin tocar el autoload)
+	# haría que desapareciera la próxima vez que la lista se reconstruya
+	# por otra razón (p. ej. lootear algo nuevo).
+	var item_slot: EquipoSlot = data
+	var item: DatosItem = item_slot.item_data
+	if item == null:
+		return
 	item_slot.item_data = null
+	item_slot.update_item()
+	GestorInventario.agregar_item(item)
+	if owner.has_method("refrescar"):
+		owner.refrescar()
+	if owner.has_method("notificar_equipo_cambiado"):
+		owner.notificar_equipo_cambiado()
 	filter_items(last_filter_type)
 
 func _add_item(item_data: DatosItem):

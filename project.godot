@@ -28,6 +28,9 @@ _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 GestorNiveles="*res://autoloads/GestorNiveles.gd"
 GestorPiscinas="*res://autoloads/GestorPiscinas.gd"
 GestorNumerosDano="*res://autoloads/GestorNumerosDano.gd"
+GestorInventario="*res://autoloads/GestorInventario.gd"
+GestorExperiencia="*res://autoloads/GestorExperiencia.gd"
+GestorEquipo="*res://autoloads/GestorEquipo.gd"
 
 [display]
 

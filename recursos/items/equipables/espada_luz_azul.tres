@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3 uid="uid://1cddgcxigg4w"]
+
+[ext_resource type="Script" uid="uid://j6y1rt5twmvl" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" uid="uid://cbx7lioew84cd" path="res://assets/items/equippables/espada_de_luz_azul.png" id="2_ico"]
+[ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="3_atr"]
+
+[sub_resource type="Resource" id="AtributosBase_bonos"]
+script = ExtResource("3_atr")
+danos = 6.0
+potencia = 10.0
+
+[resource]
+script = ExtResource("1_scr")
+name = "Espada de Luz Azul"
+icon = ExtResource("2_ico")
+description = "Una espada que brilla con luz azul."
+type = 3
+type_equippable = 8
+can_equip = true
+bonos = SubResource("AtributosBase_bonos")
