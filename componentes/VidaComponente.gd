@@ -39,6 +39,15 @@ func obtener_vida() -> float:
 func obtener_vida_maxima() -> float:
 	return salud_maxima
 
+## Fija la vida directo a un valor conocido (p. ej. al cargar una partida
+## guardada) — a diferencia de quitar_vida()/agregar_vida(), no dispara la
+## señal "muerte" aunque el valor sea 0 (cargar una partida nunca debería
+## matar a nadie en el acto).
+func restaurar_vida(valor: float) -> void:
+	salud_actual = clampf(valor, 0.0, salud_maxima)
+	cambio_valor_vida.emit(salud_actual)
+
+
 ## Agrega vida al agente. Retorna el exceso de vida (si se sobrepasa el máximo).
 func agregar_vida(cantidad: float) -> float:
 	if cantidad <= 0:

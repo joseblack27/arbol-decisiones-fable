@@ -26,6 +26,14 @@ class_name DatosItem
 ## base de quien lo tenga puesto. Dejar vacío (null) = sin bono.
 @export var bonos: AtributosBase
 
+## Ruta del .tres original del que sale este ítem — GestorInventario SIEMPRE
+## duplica el recurso al guardarlo (ver su comentario), y un Resource
+## duplicado pierde su resource_path; sin este campo, GestorGuardado no
+## tendría forma de saber qué archivo volver a cargar al restaurar la
+## partida. Se completa solo (GestorInventario.agregar_item), no hace falta
+## tocarlo a mano en los .tres.
+@export var id_recurso: String = ""
+
 var type_descripcion: String
 
 const item_description := {

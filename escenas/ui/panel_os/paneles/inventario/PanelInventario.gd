@@ -295,3 +295,31 @@ func notificar_equipo_cambiado() -> void:
 		if slot and slot.item_data:
 			equipados.append(slot.item_data)
 	GestorEquipo.actualizar(equipados)
+
+
+## Llenado directo de los slots de equipo desde una lista plana de ítems
+## (usado por GestorGuardado al cargar una partida) — mismo criterio que
+## _equip_item() para decidir a qué slot va cada uno (por type_equippable;
+## los anillos llenan el primero vacío), pero sin pasar por GestorInventario
+## porque estos ítems nunca estuvieron "sueltos": vienen directo del
+## guardado ya equipados.
+func restaurar_equipo(items_equipados: Array[DatosItem]) -> void:
+	for slot: EquipoSlot in slots_equippable:
+		slot.item_data = null
+		slot.update_item()
+	for item in items_equipados:
+		if item == null:
+			continue
+		var destino: EquipoSlot = null
+		if item.type_equippable == 6:  # RING
+			destino = equip_slot_ring_1 if equip_slot_ring_1.item_data == null else equip_slot_ring_2
+		else:
+			for slot: EquipoSlot in slots_equippable:
+				if slot.type_equippable == item.type_equippable:
+					destino = slot
+		if destino == null:
+			continue
+		destino.item_data = item
+		destino.can_equip = false
+		destino.update_item()
+	notificar_equipo_cambiado()

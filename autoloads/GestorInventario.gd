@@ -32,6 +32,13 @@ func agregar_item(item: DatosItem, cantidad: int = -1) -> void:
 
 	var copia := item.duplicate() as DatosItem
 	copia.quantity = cantidad_real
+	# .duplicate() no conserva resource_path — estampar id_recurso ahora
+	# (mientras "item", el original, todavía lo tiene) es la única ventana
+	# para no perderlo. "item.id_recurso" de respaldo cubre el caso de
+	# GestorGuardado.cargar_partida(), que ya pasa un item recién cargado
+	# desde disco vía load(), con resource_path pero sin necesidad de volver
+	# a resolverlo.
+	copia.id_recurso = item.id_recurso if item.id_recurso != "" else item.resource_path
 	items.append(copia)
 	BusEventos.item_agregado.emit(copia, cantidad_real)
 

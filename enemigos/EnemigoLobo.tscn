@@ -1,17 +1,17 @@
 [gd_scene load_steps=92 format=3 uid="uid://ryqwerc33taa"]
 
 [ext_resource type="Script" uid="uid://d4bn7ylieb3gu" path="res://enemigos/EnemigoLobo.gd" id="1_bvf6m"]
-[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="2_ivj8v"]
+[ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="2_ivj8v"]
 [ext_resource type="Resource" path="res://recursos/items/consumibles/jeringa_adrenalina.tres" id="3_l6bpy"]
 [ext_resource type="Resource" path="res://recursos/items/recursos/ticket_2.tres" id="4_d76rf"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_1.tres" id="5_s57h7"]
+[ext_resource type="Resource" uid="uid://h64hc611crho" path="res://recursos/items/equipables/accesorio_1.tres" id="5_s57h7"]
 [ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_2.tres" id="6_wrpy6"]
+[ext_resource type="Resource" uid="uid://dpcxd3rxudn7t" path="res://recursos/items/equipables/accesorio_2.tres" id="6_wrpy6"]
 [ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_3.tres" id="7_hecjv"]
+[ext_resource type="Resource" uid="uid://c251a1ngx46ck" path="res://recursos/items/equipables/accesorio_3.tres" id="7_hecjv"]
 [ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="7_ng816"]
 [ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_4.tres" id="8_u7a2k"]
+[ext_resource type="Resource" uid="uid://cwsqm88ycevvv" path="res://recursos/items/equipables/accesorio_4.tres" id="8_u7a2k"]
 [ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
 [ext_resource type="Texture2D" uid="uid://dhdbpiomf5alu" path="res://assets/lobo marron.png" id="10_2yvtj"]
 [ext_resource type="Resource" uid="uid://bcarga001tres" path="res://arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
@@ -1162,6 +1162,8 @@ shape = SubResource("CircleShape2D_bvf6m")
 [node name="AgenteNavegacion" type="NavigationAgent2D" parent="."]
 path_desired_distance = 8.0
 target_desired_distance = 16.0
+avoidance_enabled = true
+radius = 20.0
 
 [node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador", "agente_navegacion")]
 script = ExtResource("6_itdr7")

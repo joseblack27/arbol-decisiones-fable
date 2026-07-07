@@ -6,6 +6,8 @@ signal main_button_close
 @onready var color_rect: ColorRect = $ColorRect
 @onready var tabs: TabContainer = $ColorRect/Margin/VBox/TabContainer
 @onready var boton_cerrar: Button = $ColorRect/Margin/VBox/PanelTitulo/HBoxContainer/BotonCerrar
+@onready var boton_guardar: Button = $ColorRect/Margin/VBox/PanelTitulo/HBoxContainer/BotonGuardar
+@onready var boton_cargar: Button = $ColorRect/Margin/VBox/PanelTitulo/HBoxContainer/BotonCargar
 @onready var btn_dashboard: Button = $ColorRect/Margin/VBox/Panel/BarraSuperior/BtnTablero
 @onready var btn_messages: Button = $ColorRect/Margin/VBox/Panel/BarraSuperior/BtnMensajes
 @onready var btn_missions: Button = $ColorRect/Margin/VBox/Panel/BarraSuperior/BtnMisiones
@@ -37,6 +39,8 @@ func _ready():
 	btn_encyclopedia.pressed.connect(_on_btn_encyclopedia)
 	btn_world_log.pressed.connect(_on_btn_world_log)
 	boton_cerrar.pressed.connect(_on_close_button)
+	boton_guardar.pressed.connect(GestorGuardado.guardar_partida)
+	boton_cargar.pressed.connect(GestorGuardado.cargar_partida)
 
 	color_rect.hide()
 	_on_btn_dashboard()

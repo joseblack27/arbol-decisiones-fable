@@ -54,6 +54,16 @@ var _destino: Vector2 = Vector2.ZERO
 var _destino_definido: bool = false
 
 
+func _ready() -> void:
+	# Algunos enemigos (p. ej. Lobo) traen su propio NavigationAgent2D
+	# preconfigurado desde el Inspector (con avoidance_enabled=true ya
+	# puesto) en vez de dejar que _crear_agente_navegacion() cree uno por
+	# defecto — en ese caso hay que conectar la señal acá, porque
+	# _crear_agente_navegacion() nunca se llega a ejecutar.
+	if agente_navegacion:
+		agente_navegacion.velocity_computed.connect(_on_velocity_computed)
+
+
 func _physics_process(delta: float) -> void:
 	match _modo:
 		ModoComando.DIRECCION:
@@ -110,24 +120,48 @@ func _crear_agente_navegacion() -> void:
 	agente_navegacion.target_desired_distance = distancia_destino_agente
 	agente_navegacion.navigation_layers = MASCARA_NAVEGACION
 	jugador.add_child(agente_navegacion)
+	# Con avoidance_enabled=true en el agente (ver .tscn), asignar
+	# agente_navegacion.velocity dispara el cálculo de evasión (RVO) contra
+	# otros agentes/NavigationObstacle2D cercanos; el resultado "seguro" llega
+	# por esta señal — sin conectarla, avoidance_enabled no tiene ningún
+	# efecto real (antes solo estaba el flag puesto, nunca usado).
+	agente_navegacion.velocity_computed.connect(_on_velocity_computed)
 
 
 func _avanzar_hacia_destino(delta: float) -> void:
 	var posicion := jugador.global_position
-	if posicion.distance_to(_destino) <= MARGEN_DESTINO:
-		physics_process(delta, Vector2.ZERO)
-		return
-	var direccion := Vector2.ZERO
-	if agente_navegacion != null and not agente_navegacion.is_navigation_finished():
-		# Siguiente punto de la ruta calculada por la malla de navegación.
-		direccion = posicion.direction_to(agente_navegacion.get_next_path_position())
-	if direccion == Vector2.ZERO:
-		# Sin agente, sin malla en el nivel o ruta vacía (el agente devuelve
-		# nuestra propia posición): línea recta, el comportamiento clásico.
-		direccion = posicion.direction_to(_destino)
-	if "direccion" in jugador:
-		jugador.set("direccion", direccion)  # Para animaciones y habilidades.
-	physics_process(delta, direccion, _velocidad_comandada)
+	var deseada := Vector2.ZERO
+	if posicion.distance_to(_destino) > MARGEN_DESTINO:
+		var direccion := Vector2.ZERO
+		if agente_navegacion != null and not agente_navegacion.is_navigation_finished():
+			# Siguiente punto de la ruta calculada por la malla de navegación.
+			direccion = posicion.direction_to(agente_navegacion.get_next_path_position())
+		if direccion == Vector2.ZERO:
+			# Sin agente, sin malla en el nivel o ruta vacía (el agente devuelve
+			# nuestra propia posición): línea recta, el comportamiento clásico.
+			direccion = posicion.direction_to(_destino)
+		if "direccion" in jugador:
+			jugador.set("direccion", direccion)  # Para animaciones y habilidades.
+		var vel := _velocidad_comandada if _velocidad_comandada > 0.0 else velocidad_base
+		deseada = direccion * vel
+
+	if agente_navegacion != null:
+		# El movimiento real ocurre en _on_velocity_computed (avoidance).
+		agente_navegacion.velocity = deseada
+	else:
+		physics_process(delta, deseada, deseada.length())
+
+
+## Velocidad ya corregida por avoidance (o idéntica a la pedida, si
+## avoidance_enabled está apagado) — mueve el cuerpo directo, sin volver a
+## pasar por physics_process() para no aplicarle la normalización de
+## dirección dos veces.
+func _on_velocity_computed(velocidad_segura: Vector2) -> void:
+	if _contador_inmovilizacion > 0:
+		jugador.velocity = Vector2.ZERO
+	else:
+		jugador.velocity = velocidad_segura
+	jugador.move_and_slide()
 
 
 # --- Lógica de Movimiento ---

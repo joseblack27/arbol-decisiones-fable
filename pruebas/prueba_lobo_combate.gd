@@ -45,6 +45,11 @@ func _process(_delta: float) -> bool:
 
 
 func _montar_escena() -> void:
+	# Las habilidades (p. ej. HabilidadArañazo._ejecutar) instancian su efecto
+	# en current_scene — sin esto, en cuanto el lobo se acerca lo suficiente
+	# para atacar, revienta con "Cannot call method 'add_child' on a null value".
+	current_scene = root
+
 	_lobo = (load("res://enemigos/EnemigoLobo.tscn") as PackedScene).instantiate()
 	root.add_child(_lobo)
 	_lobo.global_position = Vector2(300, 300)

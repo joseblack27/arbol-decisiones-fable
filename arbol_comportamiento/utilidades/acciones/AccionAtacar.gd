@@ -81,9 +81,14 @@ func _on_ejecutar() -> Estado:
 		return Estado.FALLIDO
 
 	# Orientar hacia el objetivo (las habilidades disparan en esta dirección).
+	# "direccion_mirada" (no "direccion"): esta última la pisa cada fotograma
+	# MovimientoComponente con la dirección REAL de la ruta al acercarse
+	# (comandar_destino más abajo), que al rodear un obstáculo puede apuntar
+	# de costado o hacia atrás respecto al jugador — de ahí el parpadeo y el
+	# "caminar de espaldas mirando al jugador" reportado antes de este fix.
 	var direccion := (objetivo.global_position - agente.global_position).normalized()
-	if "direccion" in agente:
-		agente.set("direccion", direccion)
+	if "direccion_mirada" in agente:
+		agente.set("direccion_mirada", direccion)
 
 	# Intentar habilidad cada N segundos.
 	if ahora >= _proximo_intento:
@@ -99,6 +104,16 @@ func _on_ejecutar() -> Estado:
 	else:
 		movimiento.detener()
 	return Estado.EXITOSO
+
+
+## Al salir de esta acción (objetivo perdido, fuera de rango...) hay que
+## soltar la preferencia de mirada — si no, el enemigo se quedaría mirando
+## fijo hacia la última posición del jugador mientras deambula o persigue.
+func _on_salir(estado: Estado) -> void:
+	super._on_salir(estado)
+	var agente := _memoria.obtener("agente") as Node2D
+	if agente and "direccion_mirada" in agente:
+		agente.set("direccion_mirada", Vector2.ZERO)
 
 
 func _on_reiniciar() -> void:

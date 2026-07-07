@@ -38,6 +38,12 @@ const CAPA_OBSTACULOS_HABILIDAD := 4
 @export var xp_otorgada: int = 10
 
 var direccion: Vector2 = Vector2.ZERO
+## Hacia dónde debería apuntar/mirar el enemigo (habilidades, torso) cuando
+## difiere de hacia dónde camina — p. ej. en combate, siempre mirando al
+## jugador aunque el pathfinding lo haga rodear un árbol de costado o hacia
+## atrás. Vector2.ZERO = sin preferencia, usar "direccion" (de movimiento)
+## también para apuntar, como en deambular/perseguir.
+var direccion_mirada: Vector2 = Vector2.ZERO
 var esta_atacando: bool = false
 
 @onready var habilidades: Marker2D = $Habilidades
@@ -78,8 +84,12 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
-	if direccion != Vector2.ZERO and not memoria.obtener("congelar_rotacion", false):
-		habilidades.rotation = direccion.angle()
+	# Apuntar con "direccion_mirada" si hay una preferencia explícita (p. ej.
+	# AccionAtacar mirando al jugador durante el combate); si no, apuntar
+	# hacia donde se está caminando, como antes.
+	var hacia_donde_mirar := direccion_mirada if direccion_mirada != Vector2.ZERO else direccion
+	if hacia_donde_mirar != Vector2.ZERO and not memoria.obtener("congelar_rotacion", false):
+		habilidades.rotation = hacia_donde_mirar.angle()
 
 	var tiempo_cd: float = memoria.obtener("tiempo_cooldown_huida", 0.0)
 	if tiempo_cd > 0.0:
