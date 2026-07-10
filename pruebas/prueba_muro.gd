@@ -80,7 +80,11 @@ func _process(_delta: float) -> bool:
 
 
 func _buscar_muro() -> Node:
-	for hijo in _contenedor.get_children():
+	# Desde que Muro se reutiliza vía GestorPiscinas (pooling), la instancia
+	# real cuelga de su contenedor global, no del de esta prueba — mismo
+	# criterio que ya usa _numeros_activos() más abajo para NumeroDaño.
+	var contenedor_piscina := root.get_node("/root/GestorPiscinas/InstanciasPiscina")
+	for hijo in contenedor_piscina.get_children():
 		if hijo.name.begins_with("Muro"):
 			return hijo
 	return null
@@ -266,9 +270,20 @@ func _montar() -> void:
 
 
 func _informar() -> bool:
-	var muro_destruido := not is_instance_valid(_muro)
+	# Muro real (_muro) sale de la piscina (GestorPiscinas): "destruido" ya
+	# no significa is_instance_valid()==false (nunca se libera de verdad),
+	# sino que volvió a la piscina — oculto e inactivo, ver Muro._al_terminar().
+	# _muro_debil/_muro_fuerte NO pasan por la piscina (_crear_muro_prueba
+	# los instancia directo), así que para ellos sigue valiendo is_instance_valid().
+	var muro_destruido := is_instance_valid(_muro) and not (_muro as CanvasItem).visible
 	_debil_sobrevive = is_instance_valid(_muro_debil)
-	var fuerte_rompio := not is_instance_valid(_muro_fuerte)
+	# _muro_fuerte se instancia a mano (_crear_muro_prueba), sin pasar por
+	# GestorPiscinas.obtener() — Muro._romper() ahora llama a liberar(), que
+	# no hace nada con nodos que la piscina nunca "obtuvo" (guarda contra
+	# doble liberación), así que ni is_instance_valid() ni "visible" detectan
+	# la rotura acá. Ver vida directamente, que sí queda en 0 pase lo que pase.
+	var fuerte_rompio := is_instance_valid(_muro_fuerte) \
+		and is_equal_approx(_muro_fuerte.call("obtener_vida"), 0.0)
 	print("Daño del tick 1 (esperado 10): %.1f" % _dano_tick_1)
 	print("Daño del tick 2 — debe ser IGUAL al del tick 1 (esperado 10): %.1f" % _dano_tick_2)
 	print("Muro destruido al agotar su vida (esperado true): %s" % muro_destruido)

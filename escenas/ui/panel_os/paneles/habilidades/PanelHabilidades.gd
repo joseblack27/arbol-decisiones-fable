@@ -14,7 +14,7 @@ func _on_visibility_changed() -> void:
 		populate()
 
 func _get_slot_habilidades() -> SlotHabilidades:
-	return get_tree().get_first_node_in_group("slot_habilidades") as SlotHabilidades
+	return Utils.slot_habilidades_local()
 
 func populate():
 	for child in skill_list_panel.get_children():

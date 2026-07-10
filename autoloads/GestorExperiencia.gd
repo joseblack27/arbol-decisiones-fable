@@ -1,14 +1,31 @@
 extends Node
-## GestorExperiencia.gd — Autoload: acumula la experiencia (XP) del jugador.
-## Todavía sin tabla de niveles (sin umbrales, sin subir de nivel) — por ahora
-## solo guarda el total y avisa por BusEventos cada vez que sube, para que la
-## UI (o lo que se agregue después) pueda reaccionar.
+## GestorExperiencia (autoload) — FACADE de compatibilidad, Fase 1 del plan
+## de migración a multijugador. El dato real ya NO vive acá: vive en
+## ExperienciaComponente, colgado de cada Jugador. Ver GestorInventario.gd
+## para la explicación completa del patrón (mismo criterio acá, incluido
+## por qué se carga con load() adentro de una función y no con preload/
+## tipado estático a nivel de clase).
 
-var xp_total: int = 0
+var _respaldo = null
+
+
+func _obtener_componente():
+	var jugador := Utils.jugador_local()
+	if jugador:
+		var c = jugador.get_node_or_null("ExperienciaComponente")
+		if c:
+			return c
+	if _respaldo == null:
+		_respaldo = (load("res://componentes/ExperienciaComponente.gd") as GDScript).new()
+	return _respaldo
+
+
+var xp_total: int:
+	get:
+		return _obtener_componente().xp_total
+	set(value):
+		_obtener_componente().xp_total = value
 
 
 func agregar_xp(cantidad: int) -> void:
-	if cantidad <= 0:
-		return
-	xp_total += cantidad
-	BusEventos.xp_agregada.emit(cantidad, xp_total)
+	_obtener_componente().agregar_xp(cantidad)

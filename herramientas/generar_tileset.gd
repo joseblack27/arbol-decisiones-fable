@@ -42,10 +42,10 @@ func _initialize() -> void:
 			datos.set_collision_polygon_points(0, 0, cuadrado)
 
 	DirAccess.make_dir_recursive_absolute("res://niveles")
-	var error := ResourceSaver.save(conjunto, "res://niveles/tileset_mundo.tres")
+	var error := ResourceSaver.save(conjunto, "res://escenas/niveles/tileset_mundo.tres")
 	if error != OK:
 		push_error("No se pudo guardar el TileSet (error %d)." % error)
 		quit(1)
 		return
-	print("TileSet generado: res://niveles/tileset_mundo.tres")
+	print("TileSet generado: res://escenas/niveles/tileset_mundo.tres")
 	quit(0)

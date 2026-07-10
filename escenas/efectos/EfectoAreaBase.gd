@@ -41,7 +41,7 @@ func _terminar() -> void:
 		if is_instance_valid(objetivo):
 			_quitar_efecto(objetivo)
 	_objetivos_actuales.clear()
-	queue_free()
+	_al_terminar()
 
 
 ## Sobreescribir en subclases.
@@ -52,3 +52,22 @@ func _aplicar_efecto(_objetivo: Node) -> void:
 ## Sobreescribir en subclases.
 func _quitar_efecto(_objetivo: Node) -> void:
 	pass
+
+
+## Qué hacer cuando el efecto termina (por duración o porque una subclase lo
+## llama antes de tiempo, p. ej. Muro._romper()). Por defecto se libera de
+## verdad; una subclase pooled (ver GestorPiscinas) puede devolverse a su
+## piscina en cambio.
+func _al_terminar() -> void:
+	queue_free()
+
+
+## Reinicia el temporizador de duración con un valor nuevo — para reutilizar
+## esta instancia desde una piscina en vez de crear una desde cero (el Timer
+## solo se crea una vez, en _ready(), que un nodo pooled nunca vuelve a
+## ejecutar). Ver Muro.configurar().
+func reiniciar_temporizador(duracion_nueva: float) -> void:
+	duracion = duracion_nueva
+	_objetivos_actuales.clear()
+	_timer.wait_time = duracion
+	_timer.start()

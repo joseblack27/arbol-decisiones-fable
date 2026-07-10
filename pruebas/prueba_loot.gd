@@ -68,7 +68,7 @@ func _montar() -> void:
 	_gestor.items.clear()
 
 	# --- Botín real al morir un mob ---
-	var escena := (load("res://enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
+	var escena := (load("res://escenas/enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
 	root.add_child(escena)
 	_raton = escena
 

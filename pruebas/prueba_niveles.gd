@@ -17,18 +17,22 @@ func _process(_delta: float) -> bool:
 	_fotogramas += 1
 	match _fotogramas:
 		1:
-			_mundo = (load("res://Mundo.tscn") as PackedScene).instantiate()
+			_mundo = (load("res://escenas/mundo/Mundo.tscn") as PackedScene).instantiate()
 			root.add_child(_mundo)
 			current_scene = _mundo
-		30:
+		# +150 fotogramas de margen respecto a los checkpoints originales:
+		# Mundo.gd ahora SIEMPRE intenta conectarse a un servidor primero
+		# (ver _conectar_como_cliente) y solo cae al modo local tras ~2s
+		# (120 fotogramas) de espera — el nivel no existe antes de eso.
+		180:
 			_verificar_pradera()
-		60:
+		210:
 			# Pisar el portal a la cueva (tras la gracia de 1 s de la carga).
 			pass
-		90:
+		240:
 			var portal := _nivel().get_node("PortalACueva") as Node2D
 			_jugador().global_position = portal.global_position
-		200:
+		350:
 			return _verificar_cueva_e_informar()
 	return false
 
@@ -40,7 +44,10 @@ func _nivel() -> NivelBase:
 
 
 func _jugador() -> CharacterBody2D:
-	return _mundo.get_node("Jugador")
+	# Desde la migración a multijugador, Mundo.tscn ya no tiene un "Jugador"
+	# fijo: el jugador de un solo jugador se crea en modo local bajo
+	# "Jugadores/local" (ver Mundo.gd, _arrancar_modo_local()).
+	return _mundo.get_node("Jugadores/local")
 
 
 func _verificar_pradera() -> void:

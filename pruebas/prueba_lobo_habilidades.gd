@@ -44,7 +44,7 @@ func _montar_escena() -> void:
 	root.add_child(escena)
 	current_scene = escena
 
-	_lobo = (load("res://enemigos/EnemigoLobo.tscn") as PackedScene).instantiate()
+	_lobo = (load("res://escenas/enemigos/EnemigoLobo.tscn") as PackedScene).instantiate()
 	root.add_child(_lobo)
 	_lobo.global_position = Vector2(300, 300)
 

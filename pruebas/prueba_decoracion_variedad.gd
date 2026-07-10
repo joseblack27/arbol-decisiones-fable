@@ -11,9 +11,9 @@ const DISTANCIA_MINIMA := 60.0
 
 func _initialize() -> void:
 	var fallos := 0
-	fallos += _revisar_nivel("res://niveles/NivelPradera.tscn",
+	fallos += _revisar_nivel("res://escenas/niveles/NivelPradera.tscn",
 		["Arbusto1", "Arbusto2", "Tocon1", "Roca1", "Hongo1", "Arbolito1"])
-	fallos += _revisar_nivel("res://niveles/NivelCueva.tscn", ["Roca1", "Roca2", "Hongo1"])
+	fallos += _revisar_nivel("res://escenas/niveles/NivelCueva.tscn", ["Roca1", "Roca2", "Hongo1"])
 	print("PRUEBA VARIEDAD DECORACION %s" % ("OK" if fallos == 0 else "FALLIDA"))
 	quit(0 if fallos == 0 else 1)
 

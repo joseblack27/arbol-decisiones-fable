@@ -9,8 +9,8 @@ extends SceneTree
 
 func _initialize() -> void:
 	var atlas := Image.load_from_file("res://assets/tilesets/tileset_01.png")
-	_previsualizar(atlas, "res://niveles/NivelPradera.tscn", "res://previsualizacion_pradera.png")
-	_previsualizar(atlas, "res://niveles/NivelCueva.tscn", "res://previsualizacion_cueva.png")
+	_previsualizar(atlas, "res://escenas/niveles/NivelPradera.tscn", "res://herramientas/previsualizacion_pradera.png")
+	_previsualizar(atlas, "res://escenas/niveles/NivelCueva.tscn", "res://herramientas/previsualizacion_cueva.png")
 	quit(0)
 
 

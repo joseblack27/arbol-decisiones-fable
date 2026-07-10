@@ -34,7 +34,11 @@ func iniciar_estado():
 	# areas_detectadas pero NO borró memoria["objetivo"].
 	elif not (objetivo_actual and is_instance_valid(objetivo_actual)):
 		if entidad and "memoria" in entidad:
-			objetivo_actual = entidad.memoria.obtener("objetivo") as Node2D
+			# Validar ANTES de castear: un objetivo liberado (jugador
+			# desconectado en red) revienta el "as" con "Trying to cast a
+			# freed object".
+			var objetivo_raw = entidad.memoria.obtener("objetivo")
+			objetivo_actual = objetivo_raw if is_instance_valid(objetivo_raw) else null
 
 # Sobrescribe el método de procesamiento de estado de la MáquinaDeEstadosComponente.
 func procesar_estado(delta: float):

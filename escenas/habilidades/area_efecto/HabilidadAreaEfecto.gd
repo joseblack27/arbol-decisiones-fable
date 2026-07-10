@@ -20,11 +20,12 @@ func aplicar_datos(d: DatosHabilidad) -> void:
 	desplazamiento_maximo = d.alcance_metros * ESCALA_METROS_PIXEL
 
 func _ejecutar(direccion: Vector2, poder: float) -> void:
-	var efecto := escena_area.instantiate() as AreaEfecto
+	# Reutiliza un área ya creada en vez de instanciar una nueva cada vez
+	# (object pooling: ver GestorPiscinas).
+	var efecto := GestorPiscinas.obtener(escena_area) as AreaEfecto
 	var desplazamiento := Vector2.ZERO
 	if direccion.length() > 0.1:
 		desplazamiento = direccion.normalized() * desplazamiento_maximo * clampf(poder, 0.0, 1.0)
-	entidad_dueña.get_tree().current_scene.add_child(efecto)
 	efecto.global_position = entidad_dueña.global_position + desplazamiento
 	efecto.radio_base      = radio_area
 	efecto.configurar(_calcular_dano(int(daño_area)), entidad_dueña, tipo_dano)

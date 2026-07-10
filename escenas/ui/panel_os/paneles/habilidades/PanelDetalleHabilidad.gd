@@ -37,7 +37,7 @@ func _on_equipo_cambiado(_equipados: Array) -> void:
 ## AtributosComponente.recalcular_con_equipo) usados para mostrar el daño
 ## real que la habilidad va a infligir, no solo su rango base.
 func _obtener_atributos_jugador() -> AtributosComponente:
-	var jugador := get_tree().get_first_node_in_group("jugadores") as Node
+	var jugador := Utils.jugador_local()
 	if not jugador:
 		return null
 	return jugador.get_node_or_null("AtributosComponente") as AtributosComponente
@@ -48,7 +48,7 @@ func _obtener_atributos_jugador() -> AtributosComponente:
 func _abrir_selector() -> void:
 	if not _skill_actual or not _skill_actual.escena:
 		return
-	var slot_habs := get_tree().get_first_node_in_group("slot_habilidades") as SlotHabilidades
+	var slot_habs := Utils.slot_habilidades_local()
 	_selector.setup(_skill_actual, slot_habs)
 	_overlay.visible  = true
 	_selector.visible = true
@@ -60,7 +60,7 @@ func _cerrar_selector() -> void:
 
 
 func _on_slot_elegido(slot_index: int) -> void:
-	var slot_habs := get_tree().get_first_node_in_group("slot_habilidades") as SlotHabilidades
+	var slot_habs := Utils.slot_habilidades_local()
 	if slot_habs and _skill_actual:
 		slot_habs.equipar(slot_index, _skill_actual)
 	_cerrar_selector()

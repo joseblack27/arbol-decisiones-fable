@@ -34,8 +34,11 @@ func _aplicar_tick() -> void:
 		# telaraña); is_instance_valid() lo detecta, "if fuente:" no.
 		var fuente_valida: Node = fuente if is_instance_valid(fuente) else null
 		var dano_final := AtributosComponente.calcular_pipeline(fuente_valida, objetivo, dano_por_tick, tipo_dano)
-		vida.quitar_vida(dano_final)
-		# Se emite SIEMPRE (incluso con fuente_valida = null): el golpe fue
-		# real y debe verse (número flotante vía GestorNumerosDano), aunque
-		# ya no haya quién reclamar el crédito por él.
-		BusEventos.daño_aplicado.emit(objetivo, dano_final, fuente_valida)
+		vida.quitar_vida(dano_final, fuente_valida)
+		# Se emite SIEMPRE en single-player/servidor (incluso con
+		# fuente_valida = null): el golpe fue real y debe verse (número
+		# flotante vía GestorNumerosDano), aunque ya no haya quién reclamar
+		# el crédito por él. En un cliente puro el número real ya lo emite
+		# VidaComponente._recibir_vida_red() — ver Utils.debe_mostrar_dano_local().
+		if Utils.debe_mostrar_dano_local():
+			BusEventos.daño_aplicado.emit(objetivo, dano_final, fuente_valida)

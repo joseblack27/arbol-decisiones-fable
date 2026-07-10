@@ -83,7 +83,10 @@ func activar(_direccion: Vector2 = Vector2.ZERO, _poder: float = 1.0) -> void:
 		push_error("AtaqueMordida.activar(): no se encontró CharacterBody2D en get_parent().get_parent()")
 		return
 	var mem: MemoriaBT = entidad.get("memoria") if "memoria" in entidad else null
-	var objetivo := mem.obtener("objetivo") as Node2D if mem else null
+	# Validar ANTES de castear: un objetivo liberado (jugador desconectado
+	# en red) revienta el "as" con "Trying to cast a freed object".
+	var objetivo_raw = mem.obtener("objetivo") if mem else null
+	var objetivo: Node2D = objetivo_raw if is_instance_valid(objetivo_raw) else null
 	lanzar(entidad, objetivo, mem)
 
 

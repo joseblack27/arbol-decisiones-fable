@@ -23,9 +23,9 @@ func aplicar_datos(d: DatosHabilidad) -> void:
 		radio_golpe = d.radio_golpe
 
 func _ejecutar(direccion: Vector2, _poder: float) -> void:
-	var golpe  := escena_golpe.instantiate() as GolpeBasico
+	# Reutiliza un golpe ya creado en vez de instanciar uno nuevo cada vez
+	# (object pooling: ver GestorPiscinas).
+	var golpe  := GestorPiscinas.obtener(escena_golpe) as GolpeBasico
 	var frente := direccion if direccion.length() > 0.1 else Vector2.RIGHT
-	# add_child primero para que _ready() del golpe se ejecute antes de configurar()
-	entidad_dueña.get_tree().current_scene.add_child(golpe)
 	golpe.global_position = entidad_dueña.global_position + frente * alcance_golpe
 	golpe.configurar(_calcular_dano(int(daño)), radio_golpe, entidad_dueña, duracion_golpe, tipo_dano)

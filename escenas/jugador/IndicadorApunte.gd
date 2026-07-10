@@ -36,7 +36,15 @@ func _ready() -> void:
 
 
 func _conectar() -> void:
-	_slot_habilidades = get_tree().get_first_node_in_group("slot_habilidades") as SlotHabilidades
+	# Hijo directo de Jugador (ver Jugador.tscn): usa el SlotHabilidades del
+	# PROPIO padre, no "el primero del grupo" — con 2+ jugadores en el
+	# árbol (red), ese primero podía ser el de otro jugador, dibujando la
+	# previsualización de apuntado sobre el personaje equivocado.
+	_slot_habilidades = get_parent().get_node_or_null("SlotHabilidades") as SlotHabilidades
+	# El servidor dedicado no tiene UI que registre estas señales — solo
+	# generan ruido ahí (ver mismo corte en Jugador._ready()).
+	if Utils.en_red() and multiplayer.is_server():
+		return
 	# Señales de los 4 slots (UIHabilidad)
 	SeñalManager.conectar("slot_0_apunte",    self, "_on_slot_0_apunte")
 	SeñalManager.conectar("slot_0_cancelar",  self, "_on_borrar")
@@ -61,6 +69,14 @@ func _on_slot_3_apunte(dir: Vector2, poder: float) -> void: _set_apunte(3, dir, 
 
 
 func _set_apunte(slot: int, dir: Vector2, poder: float) -> void:
+	# Las señales slot_N_apunte son un bus GLOBAL (SeñalManager): en red,
+	# el IndicadorApunte de CADA jugador en pantalla las recibe, no solo el
+	# del jugador propio — sin este corte, apuntar con tu habilidad
+	# dibujaría la previsualización sobre todos los personajes a la vez
+	# (mismo motivo que Jugador._joystick_movimiento/_activar_slot).
+	var jugador := get_parent()
+	if Utils.en_red() and "peer_id_dueño" in jugador and jugador.peer_id_dueño != multiplayer.get_unique_id():
+		return
 	_hab    = _slot_habilidades.obtener(slot) if _slot_habilidades else null
 	_tipo   = _hab.tipo_habilidad if _hab else ""
 	_activo = true

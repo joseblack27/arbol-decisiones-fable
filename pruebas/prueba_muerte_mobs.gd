@@ -41,7 +41,7 @@ func _process(_delta: float) -> bool:
 
 
 func _montar() -> void:
-	var escena := (load("res://enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
+	var escena := (load("res://escenas/enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
 	root.add_child(escena)
 	_raton = escena
 	_id_instancia = _raton.get_instance_id()

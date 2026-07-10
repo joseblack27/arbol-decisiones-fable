@@ -38,7 +38,7 @@ func _alfa() -> float:
 
 
 func _montar() -> void:
-	var nivel := (load("res://niveles/NivelPradera.tscn") as PackedScene).instantiate()
+	var nivel := (load("res://escenas/niveles/NivelPradera.tscn") as PackedScene).instantiate()
 	root.add_child(nivel)
 	current_scene = nivel
 	_decor = nivel.get_node("Decoraciones").get_child(0)

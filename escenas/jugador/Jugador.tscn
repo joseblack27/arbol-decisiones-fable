@@ -1,0 +1,88 @@
+[gd_scene load_steps=23 format=3 uid="uid://ce0idfghf3qmv"]
+
+[ext_resource type="Script" uid="uid://dgmateor552fo" path="res://escenas/jugador/Jugador.gd" id="1_omvyu"]
+[ext_resource type="Texture2D" uid="uid://cvpr7ijgvonqi" path="res://assets/conejo.png" id="2_ukil5"]
+[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="3_ukil5"]
+[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="4_ukil5"]
+[ext_resource type="PackedScene" uid="uid://b7ytd2g78calo" path="res://escenas/jugador/IndicadorApunte.tscn" id="8_ia"]
+[ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="12_ec"]
+[ext_resource type="Script" uid="uid://2ua2gml0xwb0" path="res://componentes/SlotHabilidades.gd" id="13_sh"]
+[ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="15_qhgme"]
+[ext_resource type="Script" path="res://componentes/InventarioComponente.gd" id="16_invc"]
+[ext_resource type="Script" path="res://componentes/EquipoComponente.gd" id="17_eqpc"]
+[ext_resource type="Script" path="res://componentes/ExperienciaComponente.gd" id="18_xpc"]
+[ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="16_su64b"]
+[ext_resource type="Resource" uid="uid://c6t4kbl6xo405" path="res://recursos/habilidades_ui/bola_de_fuego.tres" id="20_bf"]
+[ext_resource type="Resource" uid="uid://d3elulj0pqs7d" path="res://recursos/habilidades_ui/esquirla_helada.tres" id="21_eh"]
+[ext_resource type="Resource" uid="uid://dm8bip261qqn" path="res://recursos/habilidades_ui/picos_rocosos.tres" id="22_pr"]
+[ext_resource type="Resource" uid="uid://qwx3tms4pg2x" path="res://recursos/habilidades_ui/golpe_basico.tres" id="23_gb"]
+[ext_resource type="Resource" uid="uid://bnmuhpm1lfsy1" path="res://recursos/habilidades_ui/carga_jugador.tres" id="24_cj"]
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="25_dh"]
+[ext_resource type="Resource" uid="uid://bnfbgtfnwrf54" path="res://recursos/habilidades_ui/muro.tres" id="26_muro"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_8vwo7"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_7st5j"]
+radius = 8.0
+
+[sub_resource type="Resource" id="Resource_81a1h"]
+script = ExtResource("16_su64b")
+regeneracion_vida = 1.0
+regeneracion_energia = 10.0
+metadata/_custom_type_script = "uid://ddhq5qxvccml7"
+
+[node name="Jugador" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento") groups=["jugadores"]]
+motion_mode = 1
+script = ExtResource("1_omvyu")
+componente_vida = NodePath("VidaComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_8vwo7")
+debug_color = Color(0.14086378, 0.637896, 0.30538398, 0.41960785)
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_ukil5")
+hframes = 3
+vframes = 4
+frame = 4
+
+[node name="EnergiaComponente" type="Node" parent="."]
+script = ExtResource("12_ec")
+
+[node name="SlotHabilidades" type="Node" parent="." node_paths=PackedStringArray("jugador")]
+script = ExtResource("13_sh")
+jugador = NodePath("..")
+catalogo = Array[ExtResource("25_dh")]([ExtResource("20_bf"), ExtResource("21_eh"), ExtResource("22_pr"), ExtResource("23_gb"), ExtResource("24_cj"), ExtResource("26_muro")])
+
+[node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador")]
+script = ExtResource("3_ukil5")
+jugador = NodePath("..")
+
+[node name="Camara" type="Camera2D" parent="."]
+position_smoothing_enabled = true
+position_smoothing_speed = 6.0
+
+[node name="VidaComponente" type="Area2D" parent="."]
+script = ExtResource("4_ukil5")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
+shape = SubResource("CircleShape2D_7st5j")
+
+[node name="IndicadorApunte" parent="." instance=ExtResource("8_ia")]
+
+[node name="AtributosComponente" type="Node" parent="."]
+script = ExtResource("15_qhgme")
+base = SubResource("Resource_81a1h")
+metadata/_custom_type_script = "uid://mgcsfgslagtk"
+
+[node name="InventarioComponente" type="Node" parent="."]
+script = ExtResource("16_invc")
+
+[node name="EquipoComponente" type="Node" parent="."]
+script = ExtResource("17_eqpc")
+
+[node name="ExperienciaComponente" type="Node" parent="."]
+script = ExtResource("18_xpc")
+
+[node name="Sync" type="MultiplayerSynchronizer" parent="."]

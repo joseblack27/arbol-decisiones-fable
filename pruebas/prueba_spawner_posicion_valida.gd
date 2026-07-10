@@ -10,7 +10,11 @@ extends SceneTree
 
 var _fotogramas := 0
 var _nivel: Node
-var _spawner: SpawnerMobs
+# Sin tipar como SpawnerMobs: ese script referencia el autoload Utils
+# (en_red()), y el análisis estático del --script de esta prueba lo
+# compilaría antes de que los autoloads existan (mismo artefacto de
+# siempre, ver otras pruebas).
+var _spawner
 var _mapa: RID
 
 
@@ -29,7 +33,7 @@ func _process(_delta: float) -> bool:
 
 
 func _cargar_nivel() -> void:
-	_nivel = (load("res://niveles/NivelPradera.tscn") as PackedScene).instantiate()
+	_nivel = (load("res://escenas/niveles/NivelPradera.tscn") as PackedScene).instantiate()
 	root.add_child(_nivel)
 	current_scene = _nivel
 	_mapa = _nivel.get_node("Enemigos").get_world_2d().navigation_map
@@ -43,8 +47,12 @@ func _montar_spawner() -> void:
 	# de su radio de generación apunte fuera de los límites o hacia huecos.
 	var punto_borde: Vector2 = NavigationServer2D.map_get_closest_point(_mapa, limites.position)
 
-	_spawner = SpawnerMobs.new()
-	_spawner.lista_mobs = [load("res://enemigos/EnemigoRaton.tscn")]
+	_spawner = (load("res://escenas/enemigos/SpawnerMobs.gd") as GDScript).new()
+	# Con _spawner sin tipar, una asignación directa de array literal no
+	# arma un Array[PackedScene] de verdad — Godot rechaza en runtime
+	# guardar un Array genérico en una propiedad @export tipada.
+	var mobs: Array[PackedScene] = [load("res://escenas/enemigos/EnemigoRaton.tscn")]
+	_spawner.lista_mobs = mobs
 	_spawner.maximo_mobs = 10
 	_spawner.cantidad_inicial = 10
 	# Radio deliberadamente enorme: sin la validación, muchos candidatos

@@ -24,7 +24,7 @@
 extends SceneTree
 
 const RUTA_ATLAS := "res://assets/tilesets/colisiones.png"
-const RUTA_SALIDA := "res://niveles/tileset_colisiones.tres"
+const RUTA_SALIDA := "res://escenas/niveles/tileset_colisiones.tres"
 const TAM_CELDA := 8
 ## Máscara de navegación dedicada a esta capa (ver MovimientoComponente.MASCARA_NAVEGACION).
 const MASCARA_NAVEGACION := 2

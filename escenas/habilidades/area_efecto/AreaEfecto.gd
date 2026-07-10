@@ -1,8 +1,7 @@
 class_name AreaEfecto
 extends Area2D
 ## Área temporal que daña todos los VidaComponentes dentro al activarse.
-## Se destruye automáticamente al terminar duracion_efecto.
-## Se crea puramente por código — no necesita escena .tscn.
+## Se reutiliza vía GestorPiscinas en vez de crearse/destruirse cada vez.
 
 @export var radio_base: float       = 80.0
 @export var daño: float             = 30.0
@@ -28,45 +27,32 @@ func configurar(cantidad_daño: float, fuente: Node, tipo: Enums.Skill.TypeDamag
 	entidad_fuente = fuente
 	tipo_dano      = tipo
 	_forma.radius  = radio_base
+	# Reinicio para reutilización desde la piscina (ver GestorPiscinas): esta
+	# instancia puede llegar recién creada o reciclada de una activación anterior.
+	_timer      = 0.0
+	_activado   = false
+	set_deferred("monitorable", true)
 	call_deferred("_aplicar_daño")
+
+## GestorPiscinas.liberar() llama esto justo antes de esconder el nodo: sin
+## esto, un área "en espera" en la piscina seguiría siendo un collider válido
+## para las queries de otros golpes mientras está oculta.
+func _al_liberar_a_piscina() -> void:
+	set_deferred("monitorable", false)
 
 func _aplicar_daño() -> void:
 	_activado = true
-	var espacio := get_world_2d().direct_space_state
-	var query   := PhysicsShapeQueryParameters2D.new()
-	query.shape               = _forma
-	query.transform           = global_transform
-	query.collision_mask      = 0xFFFFFFFF
-	query.collide_with_areas  = true
-	query.collide_with_bodies = true
-	var resultados  := espacio.intersect_shape(query)
-	var ya_dañados: Array = []
-	for r in resultados:
-		var col = r.get("collider")
-		if col is VidaComponente:
-			var entidad = col.get_parent()
-			if entidad == entidad_fuente or entidad in ya_dañados:
-				continue
-			ya_dañados.append(entidad)
-			var dano_final := AtributosComponente.calcular_pipeline(entidad_fuente, entidad, daño, tipo_dano)
-			col.quitar_vida(dano_final)
-			BusEventos.daño_aplicado.emit(entidad, dano_final, entidad_fuente)
-			BusEventos.habilidad_impacto.emit("area_efecto", entidad)
-		elif col.has_method("quitar_vida"):
-			if col == entidad_fuente or col in ya_dañados:
-				continue
-			ya_dañados.append(col)
-			var dano_final := AtributosComponente.calcular_pipeline(entidad_fuente, col, daño, tipo_dano)
-			col.quitar_vida(dano_final)
-			BusEventos.daño_aplicado.emit(col, dano_final, entidad_fuente)
-			BusEventos.habilidad_impacto.emit("area_efecto", col)
+	# respetar_equipo=false: un AoE golpea a TODO lo que pise (salvo a su
+	# fuente), aliados incluidos — comportamiento de siempre, distinto de
+	# Arañazo/GolpeBasico que sí filtran por equipo.
+	Combate.golpear_area(self, _forma, daño, entidad_fuente, tipo_dano, "area_efecto", false)
 
 func _process(delta: float) -> void:
 	if not _activado:
 		return
 	_timer += delta
 	if _timer >= duracion_efecto:
-		queue_free()
+		GestorPiscinas.liberar(self)
 
 func _draw() -> void:
 	if _forma:

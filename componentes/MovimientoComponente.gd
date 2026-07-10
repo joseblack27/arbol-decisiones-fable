@@ -145,7 +145,17 @@ func _avanzar_hacia_destino(delta: float) -> void:
 		var vel := _velocidad_comandada if _velocidad_comandada > 0.0 else velocidad_base
 		deseada = direccion * vel
 
-	if agente_navegacion != null:
+	# En CUALQUIER contexto headless (el servidor dedicado en Docker, y
+	# también las pruebas por --script) el callback de evasión
+	# (velocity_computed) casi no dispara — de cientos de fotogramas, llega
+	# una vez cada varios segundos en vez de cada fotograma, dejando al mob
+	# congelado esperando una velocidad "segura" que nunca llega (bug de
+	# NavigationServer2D en ese contexto, no del juego). Ahí se aplica el
+	# movimiento directo, sin esperar avoidance — perder la evasión entre
+	# mobs es mejor que mobs completamente congelados. (Antes esto solo
+	# cubría al servidor dedicado, y la prueba de la araña —headless sin
+	# red— quedaba en la rama rota: mobs quietos, prueba "inestable".)
+	if agente_navegacion != null and DisplayServer.get_name() != "headless":
 		# El movimiento real ocurre en _on_velocity_computed (avoidance).
 		agente_navegacion.velocity = deseada
 	else:

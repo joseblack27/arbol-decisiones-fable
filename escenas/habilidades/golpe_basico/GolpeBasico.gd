@@ -1,8 +1,7 @@
 class_name GolpeBasico
 extends Area2D
 ## Hitbox de corta duración para golpe cuerpo a cuerpo.
-## Se destruye automáticamente al expirar la duración.
-## Se crea puramente por código — no necesita escena .tscn.
+## Se reutiliza vía GestorPiscinas en vez de crearse/destruirse en cada golpe.
 
 var _daño: float           = 15.0
 var _duracion: float       = 0.15
@@ -30,57 +29,27 @@ func configurar(cantidad_daño: float, radio: float, fuente: Node, duracion: flo
 	_duracion       = duracion
 	_tipo_dano      = tipo
 	_configurado    = true
+	# Reinicio para reutilización desde la piscina (ver GestorPiscinas): esta
+	# instancia puede llegar recién creada o reciclada de un golpe anterior.
+	_timer = 0.0
+	set_deferred("monitorable", true)
 	call_deferred("_aplicar_daño")
 
-func _aplicar_daño() -> void:
-	var espacio := get_world_2d().direct_space_state
-	var query   := PhysicsShapeQueryParameters2D.new()
-	query.shape               = _forma
-	query.transform           = global_transform
-	query.collision_mask      = 0xFFFFFFFF
-	query.collide_with_areas  = true
-	query.collide_with_bodies = true
-	var resultados  := espacio.intersect_shape(query)
-	var ya_dañados: Array = []
-	for r in resultados:
-		var col = r.get("collider")
-		if col is VidaComponente:
-			var entidad = col.get_parent()
-			if entidad == _entidad_fuente or entidad in ya_dañados:
-				continue
-			if _mismo_equipo(_entidad_fuente, entidad):
-				continue
-			ya_dañados.append(entidad)
-			var dano_final := AtributosComponente.calcular_pipeline(_entidad_fuente, entidad, _daño, _tipo_dano)
-			col.quitar_vida(dano_final)
-			BusEventos.daño_aplicado.emit(entidad, dano_final, _entidad_fuente)
-			BusEventos.habilidad_impacto.emit("golpe_basico", entidad)
-		elif col.has_method("quitar_vida"):
-			if col == _entidad_fuente or col in ya_dañados:
-				continue
-			if _mismo_equipo(_entidad_fuente, col):
-				continue
-			ya_dañados.append(col)
-			var dano_final := AtributosComponente.calcular_pipeline(_entidad_fuente, col, _daño, _tipo_dano)
-			col.quitar_vida(dano_final)
-			BusEventos.daño_aplicado.emit(col, dano_final, _entidad_fuente)
-			BusEventos.habilidad_impacto.emit("golpe_basico", col)
+## GestorPiscinas.liberar() llama esto justo antes de esconder el nodo: sin
+## esto, un golpe "en espera" en la piscina seguiría siendo un collider
+## válido para las queries de OTROS golpes/proyectiles mientras está oculto.
+func _al_liberar_a_piscina() -> void:
+	set_deferred("monitorable", false)
 
-static func _mismo_equipo(fuente: Node, objetivo: Node) -> bool:
-	if fuente == null or objetivo == null:
-		return false
-	if fuente.is_in_group("enemigos") and objetivo.is_in_group("enemigos"):
-		return true
-	if fuente.is_in_group("jugadores") and objetivo.is_in_group("jugadores"):
-		return true
-	return false
+func _aplicar_daño() -> void:
+	Combate.golpear_area(self, _forma, _daño, _entidad_fuente, _tipo_dano, "golpe_basico")
 
 func _process(delta: float) -> void:
 	if not _configurado:
 		return
 	_timer += delta
 	if _timer >= _duracion:
-		queue_free()
+		GestorPiscinas.liberar(self)
 
 func _draw() -> void:
 	if _forma:

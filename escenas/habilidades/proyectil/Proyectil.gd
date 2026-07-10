@@ -89,7 +89,7 @@ func _on_area_entrada(area: Area2D) -> void:
 		return
 	if defensor == entidad_fuente:
 		return
-	if _mismo_equipo(entidad_fuente, defensor):
+	if Combate.mismo_equipo(entidad_fuente, defensor):
 		return
 	# Obstáculos rompibles (p. ej. Muro): si el impacto (penetración de
 	# armadura) de quien disparó supera su defensa, lo revienta y el
@@ -103,8 +103,11 @@ func _on_area_entrada(area: Area2D) -> void:
 		return
 	_ya_impacto = true
 	var dano_final := AtributosComponente.calcular_pipeline(entidad_fuente, defensor, daño, tipo_dano)
-	vida.quitar_vida(dano_final)
-	if not es_obstaculo_rompible:
+	if vida is VidaComponente:
+		(vida as VidaComponente).quitar_vida(dano_final, entidad_fuente)
+	else:
+		vida.quitar_vida(dano_final)
+	if not es_obstaculo_rompible and Utils.debe_mostrar_dano_local():
 		BusEventos.daño_aplicado.emit(defensor, dano_final, entidad_fuente)
 	BusEventos.habilidad_impacto.emit("proyectil", defensor)
 	_spawnear_efecto_impacto(defensor)
@@ -115,7 +118,7 @@ func _on_body_entrada(cuerpo: Node2D) -> void:
 		return
 	if cuerpo == entidad_fuente:
 		return
-	if _mismo_equipo(entidad_fuente, cuerpo):
+	if Combate.mismo_equipo(entidad_fuente, cuerpo):
 		return
 	if not cuerpo.has_method("quitar_vida"):
 		return
@@ -124,8 +127,13 @@ func _on_body_entrada(cuerpo: Node2D) -> void:
 		return
 	_ya_impacto = true
 	var dano_final := AtributosComponente.calcular_pipeline(entidad_fuente, cuerpo, daño, tipo_dano)
-	cuerpo.quitar_vida(dano_final)
-	if not es_obstaculo_rompible:
+	# Enemigos/jugadores reenvían el atacante a su VidaComponente; los
+	# quitar_vida() genéricos de un solo argumento (Muro...) no lo llevan.
+	if cuerpo.is_in_group("enemigos") or cuerpo.is_in_group("jugadores"):
+		cuerpo.quitar_vida(dano_final, entidad_fuente)
+	else:
+		cuerpo.quitar_vida(dano_final)
+	if not es_obstaculo_rompible and Utils.debe_mostrar_dano_local():
 		BusEventos.daño_aplicado.emit(cuerpo, dano_final, entidad_fuente)
 	BusEventos.habilidad_impacto.emit("proyectil", cuerpo)
 	_spawnear_efecto_impacto(cuerpo)
@@ -140,17 +148,6 @@ func _obtener_impacto_fuente() -> float:
 	if not atributos or not atributos.base:
 		return 0.0
 	return atributos.base.impacto
-
-## Devuelve true si fuente y objetivo son del mismo equipo (ambos enemigos o ambos jugadores).
-static func _mismo_equipo(fuente: Node, objetivo: Node) -> bool:
-	if fuente == null or objetivo == null:
-		return false
-	if fuente.is_in_group("enemigos") and objetivo.is_in_group("enemigos"):
-		return true
-	if fuente.is_in_group("jugadores") and objetivo.is_in_group("jugadores"):
-		return true
-	return false
-
 
 func _draw() -> void:
 	if not mostrar_debug:

@@ -1,6 +1,6 @@
 extends Node
 ## GestorGuardado (autoload): guarda y carga el progreso del jugador en
-## disco (user://partida.save, formato JSON legible).
+## disco (formato JSON legible).
 ##
 ## Cubre: nivel actual, posición y vida del jugador, inventario, equipo,
 ## habilidades equipadas en los 4 slots y experiencia. NO guarda estados de
@@ -10,12 +10,48 @@ extends Node
 ## Se dispara con F5 (guardar) / F9 (cargar) desde cualquier parte del
 ## juego, o con los botones "Guardar"/"Cargar" del panel OS
 ## (ver OsPrincipal.gd).
+##
+## EN RED el archivo vive EN EL SERVIDOR (decisión de diseño): una partida
+## por jugador en user://partidas/<nombre>.save, identificada por su
+## Jugador.nombre_visible (el nombre lo resuelve el SERVIDOR desde su copia
+## del jugador — nunca se confía en un nombre mandado por el cliente).
+##   - Guardar: el cliente serializa su espejo (fiel: vida/xp/inventario le
+##     llegan replicados del servidor) y manda el JSON al servidor.
+##   - Cargar: el servidor devuelve el JSON; el cliente aplica su espejo
+##     (inventario/equipo/habilidades — se re-sincronizan solos al servidor
+##     por los canales de siempre) y el servidor aplica lo autoritativo
+##     (posición y vida, que replican solas hacia el cliente).
+##   - Al conectar, el cliente pide su partida automáticamente (ver
+##     Mundo._esperar_jugador_propio), y además se autoguarda cada
+##     AUTOGUARDADO_SEGUNDOS.
+## El "nivel_escena" guardado se ignora en red: el mundo es uno solo, el del
+## servidor. Sin red, TODO sigue funcionando exactamente como siempre.
 
 const RUTA_GUARDADO := "user://partida.save"
+const CARPETA_PARTIDAS_RED := "user://partidas"
 const VERSION_GUARDADO := 1
+## Tope del JSON aceptado por el servidor (anti-abuso): una partida legítima
+## pesa ~1-2 KB.
+const _MAX_BYTES_PARTIDA := 65536
+## Cada cuántos segundos un cliente puro guarda solo su progreso.
+const AUTOGUARDADO_SEGUNDOS := 60.0
 
 signal partida_guardada
 signal partida_cargada
+
+var _acumulador_autoguardado := 0.0
+
+
+func _process(delta: float) -> void:
+	# Autoguardado SOLO como cliente puro en red (un jugador conserva su
+	# F5 manual de siempre; el servidor dedicado no tiene "su" jugador).
+	if not (Utils.en_red() and not multiplayer.is_server()):
+		return
+	_acumulador_autoguardado += delta
+	if _acumulador_autoguardado >= AUTOGUARDADO_SEGUNDOS:
+		_acumulador_autoguardado = 0.0
+		if _obtener_jugador() != null:
+			guardar_partida()
 
 
 func _input(event: InputEvent) -> void:
@@ -53,6 +89,13 @@ func guardar_partida() -> void:
 		"habilidades": _serializar_habilidades(),
 	}
 
+	# En red (cliente puro) el archivo vive en el SERVIDOR — mandarle el
+	# JSON allá en vez de escribir localmente.
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_guardar_partida_red", JSON.stringify(datos))
+		partida_guardada.emit()
+		return
+
 	var archivo := FileAccess.open(RUTA_GUARDADO, FileAccess.WRITE)
 	if archivo == null:
 		push_error("GestorGuardado: no se pudo abrir '%s' para escribir (error %d)." % [RUTA_GUARDADO, FileAccess.get_open_error()])
@@ -63,6 +106,12 @@ func guardar_partida() -> void:
 
 
 func cargar_partida() -> void:
+	# En red (cliente puro): la partida está en el servidor — pedirla y
+	# seguir en _recibir_partida_red cuando llegue.
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_pedir_partida_red")
+		return
+
 	if not existe_partida():
 		push_warning("GestorGuardado: no hay ninguna partida guardada.")
 		return
@@ -107,6 +156,8 @@ func _aplicar_datos_partida(datos: Dictionary) -> void:
 	var pos: Array = datos_jugador.get("posicion", [])
 	if pos.size() == 2:
 		jugador.global_position = Vector2(pos[0], pos[1])
+		if jugador.has_method(&"resetear_camara"):
+			jugador.call(&"resetear_camara")
 
 	var vida: VidaComponente = jugador.get_node_or_null("VidaComponente")
 	if vida:
@@ -118,7 +169,7 @@ func _aplicar_datos_partida(datos: Dictionary) -> void:
 	for entrada in datos.get("inventario", []):
 		var item := _cargar_item(entrada)
 		if item:
-			GestorInventario.agregar_item(item, entrada.get("cantidad", 1))
+			GestorInventario.agregar_item(item, entrada.get("cantidad", 1), true)
 
 	_restaurar_equipo(datos.get("equipo", []))
 	_restaurar_habilidades(datos.get("habilidades", []))
@@ -158,7 +209,7 @@ func _restaurar_equipo(entradas: Array) -> void:
 ## solo guarda la referencia que ya trae su "catalogo") — su resource_path es
 ## siempre válido, sin necesitar el mismo truco de id_recurso que los ítems.
 func _serializar_habilidades() -> Array:
-	var slots := get_tree().get_first_node_in_group("slot_habilidades")
+	var slots := Utils.slot_habilidades_local()
 	var lista := []
 	if slots == null:
 		return lista
@@ -169,7 +220,7 @@ func _serializar_habilidades() -> Array:
 
 
 func _restaurar_habilidades(rutas: Array) -> void:
-	var slots := get_tree().get_first_node_in_group("slot_habilidades")
+	var slots := Utils.slot_habilidades_local()
 	if slots == null:
 		return
 	for i in 4:
@@ -181,4 +232,135 @@ func _restaurar_habilidades(rutas: Array) -> void:
 
 
 func _obtener_jugador() -> Node2D:
-	return get_tree().get_first_node_in_group("jugadores") as Node2D
+	return Utils.jugador_local() as Node2D
+
+
+# =============================================================================
+# MODO RED — el archivo vive en el servidor, una partida por jugador
+# =============================================================================
+
+## SERVIDOR: recibe el JSON del cliente y lo escribe en la partida de ESE
+## jugador (identificado por el nombre_visible de su copia autoritativa).
+@rpc("any_peer", "reliable")
+func _guardar_partida_red(texto: String) -> void:
+	if not multiplayer.is_server():
+		return
+	if texto.length() > _MAX_BYTES_PARTIDA:
+		return
+	# Validar que sea JSON de verdad antes de escribirlo (basura fuera).
+	if typeof(JSON.parse_string(texto)) != TYPE_DICTIONARY:
+		return
+	var ruta := _ruta_partida_de_peer(multiplayer.get_remote_sender_id())
+	if ruta == "":
+		return
+	DirAccess.make_dir_recursive_absolute(CARPETA_PARTIDAS_RED)
+	var archivo := FileAccess.open(ruta, FileAccess.WRITE)
+	if archivo == null:
+		push_error("GestorGuardado: no se pudo escribir '%s' (error %d)." % [ruta, FileAccess.get_open_error()])
+		return
+	archivo.store_string(texto)
+	archivo.close()
+
+
+## SERVIDOR: el cliente pide su partida — si existe, se la devuelve.
+@rpc("any_peer", "reliable")
+func _pedir_partida_red() -> void:
+	if not multiplayer.is_server():
+		return
+	var quien := multiplayer.get_remote_sender_id()
+	var ruta := _ruta_partida_de_peer(quien)
+	if ruta == "" or not FileAccess.file_exists(ruta):
+		return  # sin partida guardada: el cliente arranca de cero, sin error.
+	var archivo := FileAccess.open(ruta, FileAccess.READ)
+	if archivo == null:
+		return
+	var texto := archivo.get_as_text()
+	archivo.close()
+	rpc_id(quien, "_recibir_partida_red", texto)
+
+
+## CLIENTE: llegó la partida guardada — aplicar el espejo local (inventario,
+## equipo, habilidades, XP: se re-sincronizan solos al servidor por los
+## canales de siempre) y pedirle al servidor que aplique lo autoritativo
+## (posición y vida — replican de vuelta solas). El nivel guardado se ignora:
+## en red el mundo es uno solo, el del servidor.
+@rpc("authority", "reliable")
+func _recibir_partida_red(texto: String) -> void:
+	var resultado: Variant = JSON.parse_string(texto)
+	if typeof(resultado) != TYPE_DICTIONARY:
+		push_error("GestorGuardado: la partida recibida del servidor está corrupta.")
+		return
+	var datos: Dictionary = resultado
+
+	GestorExperiencia.xp_total = datos.get("xp_total", 0)
+	GestorInventario.items.clear()
+	for entrada in datos.get("inventario", []):
+		var item := _cargar_item(entrada)
+		if item:
+			GestorInventario.agregar_item(item, entrada.get("cantidad", 1), true)
+	_restaurar_equipo(datos.get("equipo", []))
+	_restaurar_habilidades(datos.get("habilidades", []))
+
+	var datos_jugador: Dictionary = datos.get("jugador", {})
+	var pos: Array = datos_jugador.get("posicion", [])
+	var vida: float = datos_jugador.get("vida_actual", 0.0)
+	if pos.size() == 2:
+		var destino := Vector2(pos[0], pos[1])
+		rpc_id(1, "_aplicar_estado_red", destino, vida)
+		# Salto local inmediato (sin lerp): cargar partida es un
+		# teletransporte, como reaparecer — deslizarse por medio mapa hasta
+		# la posición guardada se vería como un fantasma. El servidor aplica
+		# la misma posición con autoridad (RPC de arriba) y la réplica
+		# siguiente coincide con este salto.
+		var jugador := _obtener_jugador()
+		if jugador != null:
+			jugador.global_position = destino
+			if "_posicion_replicada" in jugador:
+				jugador.set("_posicion_replicada", destino)
+			if jugador.has_method(&"resetear_camara"):
+				jugador.call(&"resetear_camara")
+
+	partida_cargada.emit()
+
+
+## SERVIDOR: aplica posición y vida guardadas a la copia autoritativa del
+## jugador que las pidió. La posición replica por el Sync y la vida por
+## restaurar_vida (ver VidaComponente) — el cliente las ve solas.
+@rpc("any_peer", "reliable")
+func _aplicar_estado_red(pos: Vector2, vida: float) -> void:
+	if not multiplayer.is_server():
+		return
+	var jugador := _jugador_de_peer(multiplayer.get_remote_sender_id())
+	if jugador == null:
+		return
+	jugador.global_position = pos
+	var componente := jugador.get_node_or_null("VidaComponente") as VidaComponente
+	if componente:
+		# Nunca cargar un muerto: mínimo 1 de vida.
+		componente.restaurar_vida(maxf(vida, 1.0))
+
+
+## Ruta del archivo de partida de un peer, derivada del nombre_visible de SU
+## copia autoritativa en el servidor (jamás de un dato mandado por el
+## cliente). "" si el jugador no existe o su nombre aún no llegó.
+func _ruta_partida_de_peer(peer_id: int) -> String:
+	var jugador := _jugador_de_peer(peer_id)
+	if jugador == null:
+		return ""
+	var nombre := str(jugador.get("nombre_visible")).strip_edges()
+	if nombre == "":
+		return ""
+	# Solo caracteres seguros para nombre de archivo (a-z, 0-9, _ y -).
+	var limpio := ""
+	for c in nombre.to_lower():
+		var seguro: bool = (c >= "a" and c <= "z") or (c >= "0" and c <= "9") \
+			or c == "_" or c == "-"
+		limpio += c if seguro else "_"
+	return "%s/%s.save" % [CARPETA_PARTIDAS_RED, limpio]
+
+
+func _jugador_de_peer(peer_id: int) -> Node2D:
+	for jugador in get_tree().get_nodes_in_group("jugadores"):
+		if String(jugador.name) == str(peer_id):
+			return jugador as Node2D
+	return null

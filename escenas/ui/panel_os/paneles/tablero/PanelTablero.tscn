@@ -149,6 +149,34 @@ layout_mode = 2
 text = "100/100"
 vertical_alignment = 1
 
+[node name="FilaRegenVida" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/FilaRegenVida"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Regen. vida:"
+vertical_alignment = 1
+
+[node name="ValorRegenVida" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/FilaRegenVida"]
+layout_mode = 2
+text = "-"
+vertical_alignment = 1
+
+[node name="FilaRegenEnergia" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/FilaRegenEnergia"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Regen. energía:"
+vertical_alignment = 1
+
+[node name="ValorRegenEnergia" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/FilaRegenEnergia"]
+layout_mode = 2
+text = "-"
+vertical_alignment = 1
+
 [node name="HBoxContainer5" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
@@ -534,3 +562,25 @@ theme_override_constants/margin_left = 8
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer"]
+layout_mode = 2
+text = "Actividad Reciente"
+horizontal_alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="RegistroActividad" type="RichTextLabel" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+scroll_active = true
+scroll_following = true

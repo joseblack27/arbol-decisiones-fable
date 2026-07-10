@@ -110,8 +110,15 @@ func _physics_process(delta: float) -> void:
 			if objetivo.has_method("quitar_vida"):
 				_ya_impacto = true
 				var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, daño_carga, tipo_dano)
-				objetivo.quitar_vida(dano_final)
-				BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
+				# Enemigos/jugadores reenvían el atacante a su VidaComponente
+				# (para el log de Actividad Reciente en red); los genéricos
+				# (Muro...) mantienen su firma de un solo argumento.
+				if objetivo.is_in_group("enemigos") or objetivo.is_in_group("jugadores"):
+					objetivo.quitar_vida(dano_final, entidad_dueña)
+				else:
+					objetivo.quitar_vida(dano_final)
+				if Utils.debe_mostrar_dano_local():
+					BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
 				BusEventos.habilidad_impacto.emit("carga", objetivo)
 				break
 
@@ -192,4 +199,7 @@ func _set_excepciones_jugador(activar: bool) -> void:
 func _obtener_objetivo() -> Node2D:
 	if not (entidad_dueña and "memoria" in entidad_dueña):
 		return null
-	return entidad_dueña.get("memoria").obtener("objetivo") as Node2D
+	# Validar ANTES de castear: un objetivo liberado (jugador desconectado
+	# en red) revienta el "as" con "Trying to cast a freed object".
+	var objetivo_raw = entidad_dueña.get("memoria").obtener("objetivo")
+	return objetivo_raw if is_instance_valid(objetivo_raw) else null

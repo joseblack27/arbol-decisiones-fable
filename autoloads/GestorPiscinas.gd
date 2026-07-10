@@ -72,7 +72,12 @@ func liberar(nodo: Node) -> void:
 
 	if nodo.has_method(&"_al_liberar_a_piscina"):
 		nodo.call(&"_al_liberar_a_piscina")
-	nodo.process_mode = Node.PROCESS_MODE_DISABLED
+	# Diferido: liberar() suele llegar desde callbacks de física (el impacto
+	# de un proyectil, p. ej.) y apagar process_mode ahí desactiva el
+	# CollisionObject en pleno paso físico — el motor lo prohíbe ("Disabling
+	# a CollisionObject node during a physics callback...") y llenaba el log
+	# del servidor con ese error por cada impacto.
+	nodo.set_deferred("process_mode", Node.PROCESS_MODE_DISABLED)
 	if nodo is CanvasItem:
 		(nodo as CanvasItem).hide()
 

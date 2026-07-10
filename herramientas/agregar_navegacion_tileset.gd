@@ -8,7 +8,7 @@
 # =============================================================================
 extends SceneTree
 
-const RUTA_TILESET := "res://niveles/tileset_juego.tres"
+const RUTA_TILESET := "res://escenas/niveles/tileset_juego.tres"
 
 
 func _initialize() -> void:

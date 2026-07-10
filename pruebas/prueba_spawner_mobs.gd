@@ -10,7 +10,11 @@
 extends SceneTree
 
 var _fotogramas := 0
-var _spawner: SpawnerMobs
+# Sin tipar como SpawnerMobs: ese script referencia el autoload Utils
+# (en_red()), y el análisis estático del --script de esta prueba lo
+# compilaría antes de que los autoloads existan (mismo artefacto de
+# siempre, ver otras pruebas).
+var _spawner
 var _contenedor: Node2D
 var _maximo_observado := 0
 var _genero_inicial := false
@@ -51,8 +55,12 @@ func _montar() -> void:
 	root.add_child(_contenedor)
 	current_scene = _contenedor
 
-	_spawner = SpawnerMobs.new()
-	_spawner.lista_mobs = [load("res://enemigos/EnemigoRaton.tscn")]
+	_spawner = (load("res://escenas/enemigos/SpawnerMobs.gd") as GDScript).new()
+	# Con _spawner sin tipar, una asignación directa de array literal no
+	# arma un Array[PackedScene] de verdad — Godot rechaza en runtime
+	# guardar un Array genérico en una propiedad @export tipada.
+	var mobs: Array[PackedScene] = [load("res://escenas/enemigos/EnemigoRaton.tscn")]
+	_spawner.lista_mobs = mobs
 	_spawner.maximo_mobs = 2
 	_spawner.intervalo_spawn = 0.05
 	_spawner.radio_spawn = 10.0
@@ -65,14 +73,16 @@ func _matar_uno() -> void:
 		func(n: Node) -> bool: return n != _spawner
 	)
 	var mob: Node = candidatos[0]
-	var vida: VidaComponente = mob.get_node("VidaComponente")
+	# Sin tipar como VidaComponente por el mismo motivo de arriba (ese
+	# script también referencia Utils.en_red() ahora).
+	var vida = mob.get_node("VidaComponente")
 	vida.quitar_vida(9999.0)
 
 
 func _informar() -> bool:
 	# Tras matar uno (con desvanecido 0.6s) debería quedar 1 vivo mientras el
 	# muerto se desvanece, y el spawner ya habrá rellenado el hueco liberado.
-	var vivos_ahora := _spawner.cantidad_viva()
+	var vivos_ahora: int = _spawner.cantidad_viva()
 	print("cantidad_viva() tras liberar un hueco y rellenarlo (esperado 2): %d" % vivos_ahora)
 	var exito := _genero_inicial and _maximo_observado <= 2 and vivos_ahora == 2
 	print("PRUEBA SPAWNER MOBS %s" % ("OK" if exito else "FALLIDA"))

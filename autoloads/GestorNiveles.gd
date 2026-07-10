@@ -11,6 +11,11 @@ extends Node
 ## (callback de física) donde no se puede tocar el árbol.
 
 signal nivel_cargado(nivel: NivelBase)
+## Solo en el servidor: un peer confirmó (vía _marcar_listo_red) que terminó
+## de cargar el nivel actual. ServidorDedicado la usa para recién entonces
+## spawnear el Jugador de ese peer — así el cliente carga el mapa completo
+## ANTES de que exista su jugador.
+signal peer_listo(peer_id: int)
 
 ## Segundos tras cargar en los que se ignoran nuevas peticiones
 ## (evita rebotes si el jugador aparece cerca de un portal).
@@ -22,6 +27,21 @@ var _contenedor: Node
 var _jugador: Node2D
 var _cargando := false
 var _gracia := 0.0
+
+# ── Mitigación de la carrera servidor/cliente al cargar nivel ──────────────
+# El cambio de nivel NO está sincronizado por red: cada peer llama cambiar_
+# nivel() por su cuenta (mismo criterio en Mundo.gd/ServidorDedicado.gd para
+# el nivel inicial, y en cada portal). El cliente tarda más en llegar a
+# "nivel cargado" (arrastra el handshake de conexión antes), así que durante
+# esa ventana el servidor ya puede estar mandando RPCs de mobs que en el
+# cliente todavía no existen — la posición se autocorrige sola (unreliable_
+# ordered), pero el EVENTO DE SPAWN de un mob nuevo (SpawnerMobs, vía
+# MultiplayerSpawner) no se reintenta: si llega antes de que el cliente
+# tenga su propio nodo "SpawnerRed", ese mob no aparece nunca para él.
+# _generacion_nivel distingue acks de una carga vieja (nivel ya cambió de
+# nuevo) de los de la carga actual.
+var _generacion_nivel: int = 0
+var _peers_listos: Array[int] = []
 
 ## Overlay de fundido autoconstruido: así el gestor no depende de que
 ## Mundo.tscn tenga un nodo concreto, y funciona igual desde cualquier
@@ -51,6 +71,25 @@ func registrar(contenedor: Node, jugador: Node2D) -> void:
 	_jugador = jugador
 
 
+## En red, el jugador propio recién existe DESPUÉS de conectar (ver
+## Mundo.gd) — el nivel ya está cargado para entonces, así que hay que
+## reposicionarlo "a mano" en vez de esperar al próximo cambiar_nivel().
+func asignar_jugador(jugador: Node2D) -> void:
+	_jugador = jugador
+	var nivel := nivel_actual()
+	if jugador == null or nivel == null:
+		return
+	var punto: Node2D = nivel.punto_aparicion()
+	if punto != null:
+		jugador.global_position = punto.global_position
+		if jugador is CharacterBody2D:
+			(jugador as CharacterBody2D).velocity = Vector2.ZERO
+	if jugador.has_method(&"aplicar_limites_camara"):
+		jugador.call(&"aplicar_limites_camara", nivel.limites_camara())
+	if jugador.has_method(&"resetear_camara"):
+		jugador.call(&"resetear_camara")
+
+
 func nivel_actual() -> NivelBase:
 	if _contenedor == null:
 		return null
@@ -77,6 +116,11 @@ func _cargar(ruta_escena: String) -> void:
 		_cargando = false
 		return
 
+	# Invalida los acks de "cliente listo" de cualquier carga anterior — ver
+	# SpawnerMobs._esperar_clientes_listos().
+	_generacion_nivel += 1
+	_peers_listos.clear()
+
 	# Fundido a negro: el intercambio de escena ocurre con la pantalla
 	# tapada, así que el "pop" de instanciar/reposicionar nunca se ve.
 	await _fundir(1.0)
@@ -101,14 +145,45 @@ func _cargar(ruta_escena: String) -> void:
 				(_jugador as CharacterBody2D).velocity = Vector2.ZERO
 		if _jugador.has_method(&"aplicar_limites_camara"):
 			_jugador.call(&"aplicar_limites_camara", (nivel as NivelBase).limites_camara())
+		if _jugador.has_method(&"resetear_camara"):
+			_jugador.call(&"resetear_camara")
 
 	_gracia = GRACIA_TRAS_CARGA
 	_cargando = false
 	if nivel is NivelBase:
 		nivel_cargado.emit(nivel)
 		print("Nivel cargado: %s" % (nivel as NivelBase).nombre_nivel)
+		if Utils.en_red() and not multiplayer.is_server():
+			rpc_id(1, "_marcar_listo_red", _generacion_nivel)
 
 	await _fundir(0.0)
+
+
+## El cliente avisa acá que ya terminó de cargar su copia del nivel actual.
+## reliable: es un aviso puntual (no un flujo continuo), no puede perderse.
+@rpc("any_peer", "reliable")
+func _marcar_listo_red(generacion: int) -> void:
+	if not multiplayer.is_server():
+		return
+	if generacion != _generacion_nivel:
+		return  # Ack de una carga vieja — el nivel ya cambió de nuevo.
+	var quien := multiplayer.get_remote_sender_id()
+	if not _peers_listos.has(quien):
+		_peers_listos.append(quien)
+		peer_listo.emit(quien)
+
+
+## true si TODOS los peers conectados ya confirmaron que cargaron el nivel
+## actual — o si esto no aplica (sin red, o soy un cliente puro). Lo usa
+## SpawnerMobs para no generar mobs nuevos hasta que sea seguro que el
+## evento de spawn le va a llegar a todo el mundo.
+func todos_los_clientes_listos() -> bool:
+	if not Utils.en_red() or not multiplayer.is_server():
+		return true
+	for peer_id in multiplayer.get_peers():
+		if not _peers_listos.has(peer_id):
+			return false
+	return true
 
 
 ## Anima el velo negro hacia la opacidad objetivo (1.0 = tapado, 0.0 = visible).

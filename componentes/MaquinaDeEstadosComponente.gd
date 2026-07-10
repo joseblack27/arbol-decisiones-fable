@@ -11,6 +11,10 @@ class_name MaquinaDeEstadosComponente
 @export var etiqueta_estado: Label
 
 var estado_actual: String = "Inactivo"
+## Para avisar UNA sola vez si falta el estado activo — procesar_estado corre
+## cada frame físico: sin este corte, el aviso se imprimía 60 veces por
+## segundo POR MOB y llenaba el log del servidor en Docker.
+var _aviso_sin_estado_emitido := false
 
 signal cambio_de_estado(nuevo_estado: String)
 
@@ -29,8 +33,10 @@ func procesar_estado(delta: float):
 	if estado_activo:
 		# Delegar el procesamiento al estado activo.
 		estado_activo.procesar_estado(delta)
-	else:
-		print("ADVERTENCIA: No hay estado activo asignado en la MáquinaDeEstadosComponente.")
+	elif not _aviso_sin_estado_emitido:
+		_aviso_sin_estado_emitido = true
+		push_warning("MaquinaDeEstadosComponente de '%s': sin estado activo asignado." %
+			(get_parent().name if get_parent() else "?"))
 
 
 # --- Gestión de Estado (Lógica de Transición) ---

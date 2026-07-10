@@ -29,7 +29,6 @@ func iniciar_estado():
 	memoria.establecer("cooldown_estado", true)
 	if entidad is CharacterBody2D:
 		entidad.velocity = Vector2.ZERO
-	print("Estado Inactivo iniciado. Tiempo hasta el cambio: %.2f segundos." % tiempo_restante)
 
 # Sobrescribe el método de procesamiento de estado de la MáquinaDeEstadosComponente.
 func procesar_estado(delta: float):

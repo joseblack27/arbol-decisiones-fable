@@ -17,6 +17,22 @@ class_name AtributosBase
 ## Multiplicador adicional aplicado al daño cuando ocurre un crítico, en porcentaje. 50 → el crítico inflige un 50 % más de daño.
 @export var dano_critico: float = 0.0
 
+@export_group("Características de Regeneración")
+## Porcentaje de la vida máxima recuperado en cada tick de regeneración (ver
+## VidaComponente.intervalo_regeneracion) — la parte PORCENTUAL, pensada
+## como base de la entidad (Jugador: 1, ver Jugador.tscn). Default 0 A
+## PROPÓSITO: este recurso también se usa como "bonos" de los ítems
+## equipables — con otro default, cada ítem regalaría regeneración.
+@export var regeneracion_vida: float = 0.0
+## Vida PLANA (puntos fijos) recuperada en cada tick, sumada a la parte
+## porcentual — es lo que normalmente dan los ítems equipables (p. ej. un
+## anillo con +10): total por tick = 1% de la vida máxima + 10.
+@export var regeneracion_vida_plana: float = 0.0
+## Energía plana recuperada en cada tick de regeneración (ver
+## EnergiaComponente.intervalo_regeneracion). Mismo criterio de default 0
+## que regeneracion_vida (base del Jugador: 10).
+@export var regeneracion_energia: float = 0.0
+
 @export_group("Características Defensivas")
 ## Reducción de daño plana que se aplica a cada golpe recibido, antes del porcentaje. Puede ser neutralizada por el Impacto del atacante.
 @export var defensa: float = 0.0

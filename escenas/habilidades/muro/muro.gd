@@ -71,8 +71,14 @@ func configurar(
 	_fuente    = fuente
 	_dano      = dano
 	_defensa   = defensa
-	duracion   = duracion_muro
 	_tipo_dano = tipo
+	# Reinicia duración/objetivos y REarranca el temporizador — a diferencia
+	# de fijar "duracion" directo, esto también sirve para reutilizar el muro
+	# desde la piscina (ver GestorPiscinas): el Timer solo se crea una vez en
+	# _ready(), que un muro reciclado nunca vuelve a ejecutar.
+	reiniciar_temporizador(duracion_muro)
+	set_deferred("monitorable", true)
+	set_deferred("monitoring", true)
 
 	_salud_maxima = maxf(vida_maxima, 1.0)
 	_salud_actual = _salud_maxima
@@ -87,6 +93,13 @@ func configurar(
 	_forma_bloqueo.rotation = dir.angle()
 	(_forma_bloqueo.shape as RectangleShape2D).size = Vector2(radio_pilar * 2.0, span)
 	_bloqueo.set_deferred("collision_layer", CAPA_BLOQUEO if bloquea_enemigos else 0)
+
+	# Los pilares son puro Node2D+Sprite2D (sin colisión propia, ver Pilar.gd)
+	# — no vale la pena poolearlos aparte: se recrean cada vez, pero primero
+	# hay que soltar los de una reutilización anterior desde la piscina.
+	for hijo in get_children():
+		if hijo is Pilar:
+			hijo.queue_free()
 
 	var normal := dir.rotated(PI / 2.0)
 	var offset_max := float(cantidad - 1) * distancia_entre_pilares / 2.0
@@ -130,7 +143,6 @@ func quitar_vida(cantidad: float) -> float:
 ## Devuelve true si el muro se rompió, false si lo absorbió sin más (en ese
 ## caso el daño normal ya lo aplica quien llamó, vía quitar_vida()).
 func recibir_impacto(impacto: float) -> bool:
-	print(impacto, " > ", _defensa)
 	if impacto > _defensa:
 		_romper()
 		return true
@@ -140,7 +152,27 @@ func recibir_impacto(impacto: float) -> bool:
 func _romper() -> void:
 	_salud_actual = 0.0
 	muerte.emit(0.0)
-	queue_free()
+	_al_terminar()
+
+
+## Sobreescribe EfectoAreaBase._al_terminar(): en vez de liberar de verdad,
+## el muro vuelve a su piscina (ver GestorPiscinas) — llega acá tanto por
+## duración agotada (_terminar(), heredado) como por romperse en combate
+## (_romper(), arriba).
+func _al_terminar() -> void:
+	GestorPiscinas.liberar(self)
+
+
+## GestorPiscinas.liberar() llama esto justo antes de esconder el nodo: sin
+## esto, un muro "en espera" en la piscina seguiría bloqueando/detectando
+## golpes mientras está oculto, y sus pilares viejos quedarían colgados.
+func _al_liberar_a_piscina() -> void:
+	set_deferred("monitorable", false)
+	set_deferred("monitoring", false)
+	_bloqueo.set_deferred("collision_layer", 0)
+	for hijo in get_children():
+		if hijo is Pilar:
+			hijo.queue_free()
 
 
 ## EfectoAreaBase la llama al entrar alguien del grupo objetivo — tanto a
@@ -164,5 +196,6 @@ func _danar(objetivo: Node) -> void:
 	if not vida_obj:
 		return
 	var dano_final := AtributosComponente.calcular_pipeline(_fuente, objetivo, _dano, _tipo_dano)
-	vida_obj.quitar_vida(dano_final)
-	BusEventos.daño_aplicado.emit(objetivo, dano_final, _fuente)
+	vida_obj.quitar_vida(dano_final, _fuente)
+	if Utils.debe_mostrar_dano_local():
+		BusEventos.daño_aplicado.emit(objetivo, dano_final, _fuente)

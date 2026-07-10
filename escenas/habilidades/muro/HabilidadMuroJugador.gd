@@ -55,8 +55,9 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 	var distancia := alcance_maximo * clampf(poder, 0.2, 1.0)
 	var centro: Vector2 = (entidad_dueña as Node2D).global_position + dir * distancia
 
-	var muro := escena_muro.instantiate() as Muro
-	entidad_dueña.get_tree().current_scene.add_child(muro)
+	# Reutiliza un muro ya creado en vez de instanciar uno nuevo cada vez
+	# (object pooling: ver GestorPiscinas).
+	var muro := GestorPiscinas.obtener(escena_muro) as Muro
 	muro.global_position = centro
 	# Un solo valor de daño, fijo mientras dure el muro: se calcula UNA vez
 	# aquí (puede variar por el rango de DatosHabilidad) y se repite igual

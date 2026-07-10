@@ -10,7 +10,10 @@ extends SceneTree
 var _fotogramas := 0
 var _fuente: Node2D
 var _objetivo: CharacterBody2D
-var _vida_objetivo: VidaComponente
+# Sin tipar como VidaComponente: ahora referencia el autoload Utils
+# (en_red()), y tiparlo estáticamente aquí forzaría compilarlo antes de que
+# los autoloads existan (mismo artefacto de --script de siempre).
+var _vida_objetivo
 # Sin tipar como EfectoDoT: ese script ahora referencia BusEventos, y
 # tiparlo estáticamente aquí forzaría compilarlo antes de que los
 # autoloads existan (mismo artefacto de --script de siempre).
@@ -57,7 +60,7 @@ func _montar() -> void:
 	_objetivo = CharacterBody2D.new()
 	_objetivo.add_to_group(&"jugadores")
 	root.add_child(_objetivo)
-	_vida_objetivo = (load("res://componentes/VidaComponente.gd") as GDScript).new() as VidaComponente
+	_vida_objetivo = (load("res://componentes/VidaComponente.gd") as GDScript).new()
 	_vida_objetivo.name = "VidaComponente"
 	_objetivo.add_child(_vida_objetivo)
 
@@ -72,7 +75,7 @@ func _montar() -> void:
 
 
 func _informar() -> bool:
-	var vida_despues := _vida_objetivo.obtener_vida()
+	var vida_despues: float = _vida_objetivo.obtener_vida()
 	var aplico_dano := is_equal_approx(_vida_antes - vida_despues, 7.0)
 	var aparecio_numero := _numeros_activos() > _numeros_activos_antes
 	print("Vida antes/después del tick con fuente liberada: %.0f -> %.0f" % [_vida_antes, vida_despues])

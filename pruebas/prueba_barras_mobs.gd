@@ -36,9 +36,9 @@ func _process(_delta: float) -> bool:
 
 
 func _montar() -> void:
-	_lobo = (load("res://enemigos/EnemigoLobo.tscn") as PackedScene).instantiate()
+	_lobo = (load("res://escenas/enemigos/EnemigoLobo.tscn") as PackedScene).instantiate()
 	root.add_child(_lobo)
-	_raton = (load("res://enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
+	_raton = (load("res://escenas/enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
 	root.add_child(_raton)
 
 	_barra_lobo = _lobo.get_node("BarraVidaEnergia")

@@ -50,7 +50,7 @@ func _montar_escena() -> void:
 	# para atacar, revienta con "Cannot call method 'add_child' on a null value".
 	current_scene = root
 
-	_lobo = (load("res://enemigos/EnemigoLobo.tscn") as PackedScene).instantiate()
+	_lobo = (load("res://escenas/enemigos/EnemigoLobo.tscn") as PackedScene).instantiate()
 	root.add_child(_lobo)
 	_lobo.global_position = Vector2(300, 300)
 

@@ -57,8 +57,11 @@ func iniciar_estado() -> void:
 	memoria.establecer("habilidad_lanzada", false)
 
 	# Calcular dirección inicial: opuesta al jugador.
-	var objetivo := memoria.obtener("objetivo") as Node2D
-	if objetivo and is_instance_valid(objetivo):
+	# Validar ANTES de castear: un objetivo liberado (jugador desconectado
+	# en red) revienta el "as" con "Trying to cast a freed object".
+	var objetivo_raw = memoria.obtener("objetivo")
+	var objetivo: Node2D = objetivo_raw if is_instance_valid(objetivo_raw) else null
+	if objetivo:
 		_direccion_huida = (entidad.global_position - objetivo.global_position).normalized()
 	else:
 		# Sin objetivo conocido: dirección aleatoria.
@@ -71,8 +74,11 @@ func procesar_estado(delta: float) -> void:
 	_tiempo_huyendo += delta
 
 	# Actualizar dirección dinámicamente mientras el jugador sea visible.
-	var objetivo := memoria.obtener("objetivo") as Node2D
-	if objetivo and is_instance_valid(objetivo):
+	# Validar ANTES de castear: un objetivo liberado (jugador desconectado
+	# en red) revienta el "as" con "Trying to cast a freed object".
+	var objetivo_raw = memoria.obtener("objetivo")
+	var objetivo: Node2D = objetivo_raw if is_instance_valid(objetivo_raw) else null
+	if objetivo:
 		_direccion_huida = (entidad.global_position - objetivo.global_position).normalized()
 
 	# Aplicar movimiento con velocidad aumentada.

@@ -18,6 +18,13 @@ signal jugador_reaparecio(posicion: Vector2)
 # ── COMBATE ──────────────────────────────────────────────────────────────────
 ## Emitida cuando una entidad aplica daño a otra (objetivo, cantidad, fuente).
 signal daño_aplicado(objetivo: Node, cantidad: float, fuente: Node)
+## Solo en clientes puros: daño real replicado desde el servidor, con el
+## nombre del atacante YA resuelto como texto — incluso si el nodo atacante
+## no existe en este peer (mob invisible: se deriva de la ruta que mandó el
+## servidor y se marca "[invisible]"). El log de Actividad Reciente usa esta
+## señal en red; daño_aplicado sigue siendo la señal general (números de
+## daño, etc.), pero su "fuente: Node" es null cuando el nodo no está acá.
+signal daño_replicado(objetivo: Node, cantidad: float, nombre_fuente: String)
 ## Emitida cuando una entidad recibe daño (objetivo, cantidad).
 signal daño_recibido(objetivo: Node, cantidad: float)
 ## Emitida cuando cualquier entidad muere.

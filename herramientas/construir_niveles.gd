@@ -47,8 +47,8 @@ func _initialize() -> void:
 		return
 	_conjunto_terreno = _construir_tileset_terreno(textura)
 	_conjunto_decoracion = _construir_tileset_decoracion(textura)
-	_guardar_recurso(_conjunto_terreno, "res://niveles/tileset_juego.tres")
-	_guardar_recurso(_conjunto_decoracion, "res://niveles/tileset_decoracion.tres")
+	_guardar_recurso(_conjunto_terreno, "res://escenas/niveles/tileset_juego.tres")
+	_guardar_recurso(_conjunto_decoracion, "res://escenas/niveles/tileset_decoracion.tres")
 	_construir_pradera()
 	_construir_cueva()
 	print("Niveles pintados y guardados.")
@@ -141,16 +141,16 @@ func _construir_pradera() -> void:
 		decoracion.set_cell(celda, 0, ARBOL[0])
 
 	_guardar_nivel(
-		"res://niveles/NivelPradera.tscn", "NivelPradera", "Pradera",
+		"res://escenas/niveles/NivelPradera.tscn", "NivelPradera", "Pradera",
 		[suelo, decoracion],
 		Vector2(-800, 0),
 		[
-			["res://enemigos/EnemigoLobo.tscn", Vector2(500, 240)],
-			["res://enemigos/EnemigoAraña.tscn", Vector2(100, -440)],
-			["res://enemigos/EnemigoRaton.tscn", Vector2(-500, 400)],
-			["res://enemigos/EnemigoRaton.tscn", Vector2(-200, -300)],
+			["res://escenas/enemigos/EnemigoLobo.tscn", Vector2(500, 240)],
+			["res://escenas/enemigos/EnemigoAraña.tscn", Vector2(100, -440)],
+			["res://escenas/enemigos/EnemigoRaton.tscn", Vector2(-500, 400)],
+			["res://escenas/enemigos/EnemigoRaton.tscn", Vector2(-200, -300)],
 		],
-		[["PortalACueva", Vector2(1080, 0), "res://niveles/NivelCueva.tscn", "→ Cueva"]],
+		[["PortalACueva", Vector2(1080, 0), "res://escenas/niveles/NivelCueva.tscn", "→ Cueva"]],
 	)
 
 
@@ -174,15 +174,15 @@ func _construir_cueva() -> void:
 	_mancha(suelo, Vector2i(8, 8), 5, AGUA_OSCURA)
 
 	_guardar_nivel(
-		"res://niveles/NivelCueva.tscn", "NivelCueva", "Cueva",
+		"res://escenas/niveles/NivelCueva.tscn", "NivelCueva", "Cueva",
 		[suelo],
 		Vector2(680, 0),
 		[
-			["res://enemigos/EnemigoLobo.tscn", Vector2(-400, -240)],
-			["res://enemigos/EnemigoLobo.tscn", Vector2(-360, 300)],
-			["res://enemigos/EnemigoAraña.tscn", Vector2(120, -200)],
+			["res://escenas/enemigos/EnemigoLobo.tscn", Vector2(-400, -240)],
+			["res://escenas/enemigos/EnemigoLobo.tscn", Vector2(-360, 300)],
+			["res://escenas/enemigos/EnemigoAraña.tscn", Vector2(120, -200)],
 		],
-		[["PortalAPradera", Vector2(-720, 0), "res://niveles/NivelPradera.tscn", "→ Pradera"]],
+		[["PortalAPradera", Vector2(-720, 0), "res://escenas/niveles/NivelPradera.tscn", "→ Pradera"]],
 	)
 
 
@@ -234,7 +234,7 @@ func _guardar_nivel(
 ) -> void:
 	var raiz := Node2D.new()
 	raiz.name = nombre_nodo
-	raiz.set_script(load("res://niveles/NivelBase.gd"))
+	raiz.set_script(load("res://escenas/niveles/NivelBase.gd"))
 	raiz.set("nombre_nivel", nombre_nivel)
 
 	for capa in capas:
@@ -258,7 +258,7 @@ func _guardar_nivel(
 		enemigo.owner = raiz
 
 	for datos in portales:
-		var portal := (load("res://niveles/PortalNivel.tscn") as PackedScene).instantiate()
+		var portal := (load("res://escenas/niveles/PortalNivel.tscn") as PackedScene).instantiate()
 		portal.name = datos[0]
 		portal.position = datos[1]
 		portal.set("ruta_nivel_destino", datos[2])

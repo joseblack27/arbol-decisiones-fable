@@ -86,8 +86,15 @@ func _physics_process(delta: float) -> void:
 		if objetivo.has_method("quitar_vida"):
 			_objetivos_golpeados.append(objetivo)
 			var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, float(_dano_actual), tipo_dano)
-			objetivo.quitar_vida(dano_final)
-			BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
+			# Enemigos/jugadores reenvían el atacante a su VidaComponente
+			# (para el log de Actividad Reciente en red); los genéricos
+			# (Muro...) mantienen su firma de un solo argumento.
+			if objetivo.is_in_group("enemigos") or objetivo.is_in_group("jugadores"):
+				objetivo.quitar_vida(dano_final, entidad_dueña)
+			else:
+				objetivo.quitar_vida(dano_final)
+			if Utils.debe_mostrar_dano_local():
+				BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
 			BusEventos.habilidad_impacto.emit("carga_jugador", objetivo)
 
 	# ── Condiciones de fin ────────────────────────────────────────────────────

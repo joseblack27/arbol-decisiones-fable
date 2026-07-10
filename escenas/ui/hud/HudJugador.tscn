@@ -1,0 +1,88 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://escenas/ui/hud/HudJugador.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fondo"]
+bg_color = Color(0, 0, 0, 0.45)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vida_fondo"]
+bg_color = Color(0.15, 0.15, 0.15, 0.9)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vida_relleno"]
+bg_color = Color(0.78, 0.16, 0.16, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[node name="HudJugador" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 12.0
+offset_top = 62.0
+offset_right = 232.0
+offset_bottom = 142.0
+mouse_filter = 2
+script = ExtResource("1_hud")
+
+[node name="Fondo" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_fondo")
+
+[node name="VBox" type="VBoxContainer" parent="Fondo"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Nombre" type="Label" parent="Fondo/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Jugador"
+
+[node name="BarraVida" type="ProgressBar" parent="Fondo/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_vida_fondo")
+theme_override_styles/fill = SubResource("StyleBoxFlat_vida_relleno")
+max_value = 100.0
+value = 100.0
+show_percentage = false
+
+[node name="TextoVida" type="Label" parent="Fondo/VBox/BarraVida"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_font_sizes/font_size = 12
+text = "100 / 100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TextoXp" type="Label" parent="Fondo/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(1, 0.9, 0.45, 1)
+text = "XP  0"

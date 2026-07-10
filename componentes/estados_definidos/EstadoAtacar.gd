@@ -71,7 +71,11 @@ func _on_memoria_variable_cambiada(nombre: String, anterior, _nuevo) -> void:
 
 
 func iniciar_estado() -> void:
-	_objetivo_actual = memoria.obtener("objetivo")
+	# Validar ANTES de asignar a la variable tipada (Node2D): un objetivo
+	# liberado (jugador desconectado en red) revienta la asignación con
+	# "Trying to assign invalid previously freed instance".
+	var objetivo_raw = memoria.obtener("objetivo")
+	_objetivo_actual = objetivo_raw if is_instance_valid(objetivo_raw) else null
 	_tiempo_hasta_intento = 0.0
 	_tiempo_sin_objetivo  = 0.0
 	_en_recuperacion      = false

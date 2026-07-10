@@ -1,0 +1,28 @@
+[gd_scene load_steps=4 format=3 uid="uid://vwdfflyout3b"]
+
+[ext_resource type="Script" uid="uid://bmby5s4uv2g80" path="res://escenas/niveles/PortalNivel.gd" id="1_portal"]
+[ext_resource type="Texture2D" uid="uid://chisa83fx1453" path="res://assets/joystick_base_01.svg" id="2_aro"]
+
+[sub_resource type="CircleShape2D" id="forma_portal"]
+radius = 30.0
+
+[node name="PortalNivel" type="Area2D"]
+collision_layer = 0
+script = ExtResource("1_portal")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("forma_portal")
+
+[node name="Aro" type="Sprite2D" parent="."]
+modulate = Color(0.4, 0.9, 1, 0.85)
+position = Vector2(-9.536743e-07, 1.0066562e-06)
+scale = Vector2(0.44444445, 0.44444445)
+texture = ExtResource("2_aro")
+
+[node name="Etiqueta" type="Label" parent="."]
+offset_left = -40.0
+offset_top = -70.0
+offset_right = 40.0
+offset_bottom = -47.0
+text = "Portal"
+horizontal_alignment = 1

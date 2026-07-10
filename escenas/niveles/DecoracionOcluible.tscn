@@ -1,0 +1,38 @@
+[gd_scene load_steps=6 format=3 uid="uid://dx7oab6yttt00"]
+
+[ext_resource type="Script" uid="uid://bkxidp0dfsf0r" path="res://escenas/niveles/DecoracionOcluible.gd" id="1_decor"]
+[ext_resource type="Texture2D" uid="uid://b6kva54sk7tqj" path="res://assets/tilesets/tileset_01.png" id="2_atlas"]
+
+[sub_resource type="AtlasTexture" id="textura_arbol"]
+atlas = ExtResource("2_atlas")
+region = Rect2(928, 896, 96, 128)
+
+[sub_resource type="RectangleShape2D" id="forma_base"]
+resource_local_to_scene = true
+size = Vector2(44, 20)
+
+[sub_resource type="RectangleShape2D" id="forma_silueta"]
+resource_local_to_scene = true
+size = Vector2(96, 128)
+
+[node name="DecoracionOcluible" type="StaticBody2D" node_paths=PackedStringArray("sprite", "area_oclusion")]
+texture_filter = 1
+collision_mask = 0
+script = ExtResource("1_decor")
+sprite = NodePath("Sprite2D")
+area_oclusion = NodePath("AreaOclusion")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -64)
+texture = SubResource("textura_arbol")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -10)
+shape = SubResource("forma_base")
+
+[node name="AreaOclusion" type="Area2D" parent="."]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaOclusion"]
+position = Vector2(0, -64)
+shape = SubResource("forma_silueta")

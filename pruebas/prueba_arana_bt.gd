@@ -64,7 +64,7 @@ func _montar_escena() -> void:
 	root.add_child(escena)
 	current_scene = escena
 
-	_arana = (load("res://enemigos/EnemigoAraña.tscn") as PackedScene).instantiate()
+	_arana = (load("res://escenas/enemigos/EnemigoAraña.tscn") as PackedScene).instantiate()
 	root.add_child(_arana)
 	_arana.global_position = Vector2(300, 300)
 

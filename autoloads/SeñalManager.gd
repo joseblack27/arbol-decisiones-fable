@@ -68,11 +68,24 @@ func emitir(nombre: String, id: String, args: Array = []):
 			printerr("Número de argumentos incorrectos para la señal '%s'" % nombre)
 			return
 
+		# Este bus es global (dura toda la partida) y sus suscriptores suelen
+		# ser nodos con ciclo de vida propio (p. ej. un Jugador que se
+		# desconecta en red) — si alguno se libera sin llamar a
+		# desconectar(), quedaba como referencia colgante: llamar a
+		# has_method()/callv() sobre un Object ya liberado revienta con
+		# "Nonexistent function/base 'null instance'". is_instance_valid()
+		# filtra esos casos, y de paso los limpia del registro.
+		var muertos := []
 		for suscriptor in registros[nombre].suscriptores:
+			if not is_instance_valid(suscriptor):
+				muertos.append(suscriptor)
+				continue
 			var metodo = registros[nombre].suscriptores[suscriptor]
 			if suscriptor.has_method(metodo):
 				suscriptor.callv(metodo, args)
 			else:
 				printerr("Suscriptor '%s' no tiene el metodo '%s'" % [suscriptor, metodo])
+		for suscriptor in muertos:
+			registros[nombre].suscriptores.erase(suscriptor)
 	else:
 		printerr("Señal '%s' no registrada" % nombre)

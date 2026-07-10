@@ -58,7 +58,7 @@ func _montar() -> void:
 	# cambiar_nivel real ni fundidos que complicarían la prueba).
 	var contenedor := Node2D.new()
 	root.add_child(contenedor)
-	var nivel := (load("res://niveles/NivelPradera.tscn") as PackedScene).instantiate()
+	var nivel := (load("res://escenas/niveles/NivelPradera.tscn") as PackedScene).instantiate()
 	contenedor.add_child(nivel)
 
 	_jugador = CharacterBody2D.new()

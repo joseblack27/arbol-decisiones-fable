@@ -110,11 +110,19 @@ func _ready() -> void:
 
 # ── Slot ──────────────────────────────────────────────────────────────────────
 
-func _conectar_slot() -> void:
-	_slot_habilidades = get_tree().get_first_node_in_group("slot_habilidades") as SlotHabilidades
+## En red, el jugador propio recién existe cuando la conexión termina de
+## resolverse (puede tardar varios fotogramas) — un solo intento diferido
+## podía correr ANTES de que apareciera, dejando el botón sin habilidad
+## para siempre. Reintenta hasta encontrarlo (o rendirse tras ~5s).
+func _conectar_slot(intentos: int = 0) -> void:
+	_slot_habilidades = Utils.slot_habilidades_local()
 	if _slot_habilidades:
 		_slot_habilidades.slot_cambiado.connect(_on_slot_cambiado)
-	_actualizar_desde_habilidad()
+		_actualizar_desde_habilidad()
+		return
+	if intentos > 300:
+		return
+	get_tree().create_timer(1.0 / 60.0).timeout.connect(_conectar_slot.bind(intentos + 1))
 
 
 func _actualizar_desde_habilidad() -> void:

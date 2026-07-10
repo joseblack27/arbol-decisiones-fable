@@ -53,7 +53,10 @@ func _montar() -> void:
 	atributos.base = base
 	_jugador.add_child(atributos)
 
-	var movimiento := MovimientoComponente.new()
+	# Sin tipar como MovimientoComponente ni usar su class_name directo: ese
+	# script ahora referencia Utils (autoload) — mismo motivo que
+	# SlotHabilidades más arriba, ver GestorInventario.gd.
+	var movimiento = (load("res://componentes/MovimientoComponente.gd") as GDScript).new()
 	movimiento.name = "MovimientoComponente"
 	movimiento.jugador = _jugador
 	movimiento.velocidad_base = 400.0
@@ -69,14 +72,14 @@ func _montar() -> void:
 	_jugador.add_child(_habilidad)
 
 	# Dos ratones en fila, sobre el corredor del dash (dirección derecha).
-	_raton_1 = (load("res://enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
+	_raton_1 = (load("res://escenas/enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
 	contenedor.add_child(_raton_1)
 	_raton_1.global_position = Vector2(30, 0)
 	var sin_botin_1: Array[LootDrop] = []
 	_raton_1.tabla_botin = sin_botin_1
 	_raton_1.xp_otorgada = 0
 
-	_raton_2 = (load("res://enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
+	_raton_2 = (load("res://escenas/enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
 	contenedor.add_child(_raton_2)
 	_raton_2.global_position = Vector2(70, 0)
 	var sin_botin_2: Array[LootDrop] = []

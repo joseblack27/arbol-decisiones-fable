@@ -15,10 +15,13 @@ func _process(_delta: float) -> bool:
 	_fotogramas += 1
 	match _fotogramas:
 		1:
-			_mundo = (load("res://Mundo.tscn") as PackedScene).instantiate()
+			_mundo = (load("res://escenas/mundo/Mundo.tscn") as PackedScene).instantiate()
 			root.add_child(_mundo)
 			current_scene = _mundo
-		40:
+		# +150 fotogramas de margen: Mundo.gd ahora SIEMPRE intenta conectarse
+		# a un servidor primero y solo cae al modo local tras ~2s (120
+		# fotogramas) de espera — el jugador/nivel no existen antes de eso.
+		190:
 			_limites_pradera = _leer_limites()
 			var nivel := _nivel()
 			var esperado := nivel.limites_camara()
@@ -27,10 +30,10 @@ func _process(_delta: float) -> bool:
 				print("PRUEBA LIMITES CAMARA FALLIDA (no coincide con limites_camara())")
 				quit(1)
 				return true
-		100:
+		250:
 			var portal := _nivel().get_node("PortalACueva") as Node2D
 			_jugador().global_position = portal.global_position
-		220:
+		370:
 			return _informar()
 	return false
 
@@ -60,4 +63,7 @@ func _nivel() -> NivelBase:
 
 
 func _jugador() -> CharacterBody2D:
-	return _mundo.get_node("Jugador")
+	# Desde la migración a multijugador, Mundo.tscn ya no tiene un "Jugador"
+	# fijo: el jugador de un solo jugador se crea en modo local bajo
+	# "Jugadores/local" (ver Mundo.gd, _arrancar_modo_local()).
+	return _mundo.get_node("Jugadores/local")

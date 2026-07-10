@@ -1,0 +1,7 @@
+.git/
+.godot/
+addons/
+*.import
+export_presets.cfg
+*.apk
+*.rar

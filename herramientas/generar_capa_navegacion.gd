@@ -19,10 +19,10 @@
 extends SceneTree
 
 const NIVELES: Array[String] = [
-	"res://niveles/NivelPradera.tscn",
-	"res://niveles/NivelCueva.tscn",
+	"res://escenas/niveles/NivelPradera.tscn",
+	"res://escenas/niveles/NivelCueva.tscn",
 ]
-const RUTA_TILESET_NAV := "res://niveles/tileset_colisiones.tres"
+const RUTA_TILESET_NAV := "res://escenas/niveles/tileset_colisiones.tres"
 
 
 func _initialize() -> void:

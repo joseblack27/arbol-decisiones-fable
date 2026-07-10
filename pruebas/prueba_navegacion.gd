@@ -48,7 +48,7 @@ func _informar() -> bool:
 
 
 func _montar() -> void:
-	var nivel := (load("res://niveles/NivelPradera.tscn") as PackedScene).instantiate()
+	var nivel := (load("res://escenas/niveles/NivelPradera.tscn") as PackedScene).instantiate()
 	root.add_child(nivel)
 	current_scene = nivel
 	_lobo = nivel.get_node("Enemigos/EnemigoLobo")

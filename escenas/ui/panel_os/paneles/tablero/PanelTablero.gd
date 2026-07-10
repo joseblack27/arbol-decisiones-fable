@@ -18,6 +18,8 @@ const _DEFENS := _P_PANEL  + "/Container/VBoxContainer/MarginContainer/VBoxConta
 @onready var _lbl_energia    : Label = get_node(_PRIN + "/HBoxContainer2/EnergyLabel")
 @onready var _lbl_estamina   : Label = get_node(_PRIN + "/HBoxContainer5/LifeLabel")
 @onready var _lbl_experiencia: Label = get_node(_PRIN + "/HBoxContainer6/LifeLabel")
+@onready var _lbl_regen_vida    : Label = get_node(_PRIN + "/FilaRegenVida/ValorRegenVida")
+@onready var _lbl_regen_energia : Label = get_node(_PRIN + "/FilaRegenEnergia/ValorRegenEnergia")
 
 # ── Características Ofensivas ─────────────────────────────────────────────────
 @onready var _lbl_danos        : Label = get_node(_OFENS + "/HBoxContainer/EtiquetaNombre")
@@ -38,6 +40,13 @@ const _DEFENS := _P_PANEL  + "/Container/VBoxContainer/MarginContainer/VBoxConta
 @onready var _lbl_res_fuego  : Label = get_node(_DEFENS + "/HBoxContainer3/ResFireLabel")
 @onready var _lbl_res_tierra : Label = get_node(_DEFENS + "/HBoxContainer4/ResEarthLabel")
 
+# ── Actividad reciente (log de daño) ─────────────────────────────────────────
+@onready var _registro_actividad: RichTextLabel = get_node(
+	"VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer/RegistroActividad")
+## Tope de líneas del registro para que no crezca sin límite en partidas largas.
+const _MAX_LINEAS_REGISTRO := 200
+var _lineas_registro: int = 0
+
 # ── Referencias a componentes del jugador ─────────────────────────────────────
 var _vida_comp    : VidaComponente    = null
 var _energia_comp : EnergiaComponente = null
@@ -55,6 +64,16 @@ func _ready() -> void:
 	# Enemigo._on_muerte) — DatosJugador.experiencia es un campo aparte que
 	# nadie más actualiza, por eso el panel nunca la mostraba subir.
 	BusEventos.xp_agregada.connect(_on_xp_agregada)
+	# Log de daño en "Actividad Reciente": para rastrear el "daño fantasma"
+	# (el jugador pierde vida sin ver quién lo golpeó). Se registra TODO
+	# daño que reciba un jugador, incluso con el panel cerrado — al abrirlo
+	# se ve el historial completo.
+	BusEventos.daño_aplicado.connect(_on_dano_registrado)
+	# En cliente puro el daño real llega por daño_replicado, que trae el
+	# nombre del atacante YA resuelto como texto — incluso si su nodo no
+	# existe en este peer ("EnemigoAraña@5 [invisible]" en vez de "???").
+	# _on_dano_registrado se salta esos casos para no duplicar la línea.
+	BusEventos.daño_replicado.connect(_on_dano_replicado)
 
 
 # =============================================================================
@@ -111,6 +130,39 @@ func _on_xp_agregada(_cantidad: int, _xp_total: int) -> void:
 	_actualizar_principales()
 
 
+## Escribe "A hizo X daño a B" en el registro de Actividad Reciente cada vez
+## que un JUGADOR recibe daño. A y B son los nombres de nodo de las escenas
+## involucradas; si la fuente no se conoce (p. ej. en un cliente puro, donde
+## el daño real llega replicado desde el servidor sin atacante — ver
+## VidaComponente._recibir_vida_red, que emite fuente=null), se registra
+## "???": justo la firma del "daño fantasma" que se busca rastrear.
+func _on_dano_registrado(objetivo: Node, cantidad: float, fuente: Node) -> void:
+	# En cliente puro esta misma línea llega (mejor) por daño_replicado —
+	# con el nombre del atacante aunque su nodo no exista en este peer.
+	if Utils.en_red() and not multiplayer.is_server():
+		return
+	# Utils.nombre_visible: para jugadores usa el nombre replicado (el de
+	# nodo es el peer id, un número pelado); para mobs cae al nombre de nodo.
+	var nombre_fuente: String = Utils.nombre_visible(fuente) if is_instance_valid(fuente) else "???"
+	_registrar_linea(objetivo, cantidad, nombre_fuente)
+
+
+func _on_dano_replicado(objetivo: Node, cantidad: float, nombre_fuente: String) -> void:
+	_registrar_linea(objetivo, cantidad, nombre_fuente)
+
+
+func _registrar_linea(objetivo: Node, cantidad: float, nombre_fuente: String) -> void:
+	if objetivo == null or not is_instance_valid(objetivo) or not objetivo.is_in_group("jugadores"):
+		return
+	var nombre_objetivo: String = Utils.nombre_visible(objetivo)
+	if _lineas_registro >= _MAX_LINEAS_REGISTRO:
+		_registro_actividad.remove_paragraph(0)
+	else:
+		_lineas_registro += 1
+	_registro_actividad.append_text(
+		"%s hizo %d daño a %s\n" % [nombre_fuente, int(cantidad), nombre_objetivo])
+
+
 func _actualizar_todo() -> void:
 	_actualizar_principales()
 	_actualizar_ofensivas()
@@ -134,6 +186,19 @@ func _actualizar_principales() -> void:
 
 	if _energia_comp:
 		_lbl_energia.text = "%s / %s" % [int(_energia_comp.obtener_energia()), int(_energia_comp.obtener_energia_maxima())]
+
+	_actualizar_regeneracion()
+
+
+## Solo el número final por tick — la cantidad ya resuelta la calculan los
+## propios componentes (VidaComponente/EnergiaComponente._cantidad_regen,
+## que leen el atributo con los bonos de equipo incluidos), así el panel
+## nunca puede mostrar un número distinto del que de verdad se aplica.
+func _actualizar_regeneracion() -> void:
+	if _vida_comp:
+		_lbl_regen_vida.text = str(int(_vida_comp._cantidad_regen()))
+	if _energia_comp:
+		_lbl_regen_energia.text = str(int(_energia_comp._cantidad_regen()))
 
 
 func _actualizar_ofensivas() -> void:

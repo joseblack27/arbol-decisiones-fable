@@ -57,7 +57,7 @@ func _montar() -> void:
 
 	_gestor.agregar_xp(10)
 
-	_raton = (load("res://enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
+	_raton = (load("res://escenas/enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()
 	root.add_child(_raton)
 	_raton.xp_otorgada = 7
 	# Aislar esta prueba de cualquier botín que ya tenga configurado el ratón

@@ -15,7 +15,7 @@ var _se_movio := false
 func _process(_delta: float) -> bool:
 	_fotogramas += 1
 	if _fotogramas == 1:
-		var escena := load("res://enemigos/EnemigoLobo.tscn") as PackedScene
+		var escena := load("res://escenas/enemigos/EnemigoLobo.tscn") as PackedScene
 		_lobo = escena.instantiate()
 		root.add_child(_lobo)
 		_lobo.global_position = Vector2(300, 300)

@@ -73,6 +73,16 @@ func obtener_recarga_restante() -> float:
 func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	if not puede_usarse():
 		return
+	if _debe_pedirle_al_servidor():
+		# Fase 3 del plan de multijugador: el servidor es quien de verdad
+		# corre _ejecutar() con autoridad (el daño real, vía
+		# VidaComponente.quitar_vida, está gateado a "solo servidor") para
+		# que dos clientes no calculen resultados de combate distintos por
+		# su cuenta. PERO no cortar acá: seguir abajo y llamar _ejecutar()
+		# también en este cliente es predicción visual pura — el golpe se
+		# ve y se anima al instante en vez de esperar la ida y vuelta de
+		# red, sin aplicar daño de verdad (VidaComponente ya lo bloquea).
+		rpc_id(1, "_activar_red", direccion, poder)
 	if costo_energia > 0.0:
 		var energia := entidad_dueña.get_node_or_null("EnergiaComponente") as EnergiaComponente
 		if energia and not energia.consumir(costo_energia):
@@ -81,6 +91,61 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	_iniciar_recarga()
 	habilidad_activada.emit(self)
 	BusEventos.habilidad_usada.emit(entidad_dueña, tipo_habilidad)
+	# Avisar a los DEMÁS clientes (espectadores, y toda habilidad de
+	# enemigos — _debe_pedirle_al_servidor() siempre da false para mobs,
+	# así que esta rama es la única que corre para ellos) para que también
+	# vean el efecto. Solo tiene sentido si esto corrió con autoridad real
+	# (el servidor, o un solo jugador sin red no necesita avisarle a nadie).
+	if Utils.en_red() and multiplayer.is_server():
+		rpc("_reproducir_visual_red", direccion, poder)
+
+
+## true si esto corre en red, la dueña es un jugador con identidad de peer
+## (ver Jugador.peer_id_dueño), y YO NO SOY el servidor. Sin multiplayer
+## activo (juego de un jugador, o habilidades de enemigos sin peer_id_dueño)
+## siempre da false — cero cambio de comportamiento en esos casos.
+func _debe_pedirle_al_servidor() -> bool:
+	if not Utils.en_red():
+		return false
+	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
+		return false
+	var dueño: int = entidad_dueña.peer_id_dueño
+	return dueño >= 0 and not multiplayer.is_server()
+
+
+## El servidor recibe acá la intención de activar del cliente dueño de esta
+## habilidad. "any_peer" = cualquiera puede llamarlo, pero se verifica que
+## el remitente sea el dueño real antes de aceptarlo (autoridad real, mismo
+## criterio que Jugador._pedir_mover_red()).
+@rpc("any_peer", "reliable")
+func _activar_red(direccion: Vector2, poder: float) -> void:
+	if not multiplayer.is_server():
+		return
+	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
+		return
+	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+		return
+	# Un muerto no lanza habilidades — el cliente ya lo bloquea en su UI
+	# (Jugador._activar_slot), pero la autoridad real vive acá.
+	if ("_muerto" in entidad_dueña) and entidad_dueña.get("_muerto"):
+		return
+	activar(direccion, poder)
+
+
+## El servidor le avisa a TODOS los clientes que reproduzcan el efecto
+## visual de esta habilidad — el cliente dueño (si lo hay) ya lo mostró
+## solo con predicción (ver activar()), así que se salta acá para no
+## duplicar el golpe/animación. Nunca aplica daño de verdad: eso lo decide
+## únicamente VidaComponente.quitar_vida(), gateado a "solo servidor".
+## reliable: es UN paquete por activación (no un flujo continuo como la
+## posición) — si se pierde, el jugador recibe el golpe "de la nada", sin
+## ninguna animación (reportado con el lobo).
+@rpc("authority", "reliable")
+func _reproducir_visual_red(direccion: Vector2, poder: float) -> void:
+	if is_instance_valid(entidad_dueña) and ("peer_id_dueño" in entidad_dueña) \
+			and entidad_dueña.peer_id_dueño == multiplayer.get_unique_id():
+		return
+	_ejecutar(direccion, poder)
 
 # ── Internos — sobreescribir en subclases ─────────────────────────────────────
 

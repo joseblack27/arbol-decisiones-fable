@@ -1,0 +1,16 @@
+services:
+  servidor:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    ports:
+      - "8920:8920/udp"
+    restart: unless-stopped
+    # Persistencia de las partidas guardadas (el user:// del proyecto dentro
+    # del contenedor): sin este volumen, cada rebuild/recreate del contenedor
+    # borraría el progreso guardado de todos los jugadores.
+    volumes:
+      - datos_partidas:/root/.local/share/godot/app_userdata/ArbolDecisiones
+
+volumes:
+  datos_partidas:

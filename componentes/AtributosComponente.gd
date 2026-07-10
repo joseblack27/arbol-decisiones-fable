@@ -48,6 +48,9 @@ func _copiar_bonos(destino: AtributosBase, origen: AtributosBase) -> void:
 	destino.impulso                = origen.impulso
 	destino.probabilidad_critico    = origen.probabilidad_critico
 	destino.dano_critico            = origen.dano_critico
+	destino.regeneracion_vida       = origen.regeneracion_vida
+	destino.regeneracion_vida_plana = origen.regeneracion_vida_plana
+	destino.regeneracion_energia    = origen.regeneracion_energia
 	destino.defensa                 = origen.defensa
 	destino.tenacidad               = origen.tenacidad
 	destino.fortaleza               = origen.fortaleza
@@ -66,6 +69,9 @@ func _sumar_bonos(destino: AtributosBase, bonos: AtributosBase) -> void:
 	destino.impulso                += bonos.impulso
 	destino.probabilidad_critico    += bonos.probabilidad_critico
 	destino.dano_critico            += bonos.dano_critico
+	destino.regeneracion_vida       += bonos.regeneracion_vida
+	destino.regeneracion_vida_plana += bonos.regeneracion_vida_plana
+	destino.regeneracion_energia    += bonos.regeneracion_energia
 	destino.defensa                 += bonos.defensa
 	destino.tenacidad               += bonos.tenacidad
 	destino.fortaleza               += bonos.fortaleza
