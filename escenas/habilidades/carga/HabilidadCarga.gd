@@ -19,7 +19,7 @@ signal carga_terminada()
 @export var duracion_preparacion: float          = 0.5
 
 @export_group("Dash")
-@export var daño_carga: float                    = 25.0
+@export var dano_carga: float                    = 25.0
 @export var multiplicador_velocidad_carga: float = 4.0
 ## Distancia máxima que puede recorrer el dash antes de terminar.
 @export var distancia_maxima_dash: float         = 300.0
@@ -79,6 +79,15 @@ func _physics_process(delta: float) -> void:
 	var entidad := entidad_dueña as CharacterBody2D
 	if not entidad:
 		return
+	# Un muerto no sigue embistiendo: este bucle mueve el cuerpo DIRECTO
+	# (ver comentario de la clase), sin pasar por MovimientoComponente —
+	# _on_muerte() apagando el árbol de comportamiento no lo frena, porque
+	# ya no tickea por ahí una vez activado. Sin este corte, un mob que
+	# muere a mitad de carga seguía deslizándose con la animación de
+	# muerte puesta (reportado con el Caballero Esqueleto).
+	if "_muerto" in entidad_dueña and entidad_dueña.get("_muerto"):
+		_terminar_carga()
+		return
 
 	# ── Aplicar movimiento ────────────────────────────────────────────────────
 	var vel       := multiplicador_velocidad_carga * componente_movimiento.velocidad_base
@@ -109,7 +118,7 @@ func _physics_process(delta: float) -> void:
 				continue
 			if objetivo.has_method("quitar_vida"):
 				_ya_impacto = true
-				var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, daño_carga, tipo_dano)
+				var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, dano_carga, tipo_dano)
 				# Enemigos/jugadores reenvían el atacante a su VidaComponente
 				# (para el log de Actividad Reciente en red); los genéricos
 				# (Muro...) mantienen su firma de un solo argumento.

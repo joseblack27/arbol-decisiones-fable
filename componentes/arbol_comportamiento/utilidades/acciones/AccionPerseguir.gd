@@ -26,6 +26,11 @@ extends Accion
 @export var distancia_abandono: float = 500.0
 ## Segundos persiguiendo la última posición conocida sin visión antes de rendirse.
 @export var tiempo_maximo_sin_vision: float = 4.0
+## Multiplicador sobre componente_movimiento.velocidad_base SOLO mientras
+## persigue (no afecta deambular/atacar/huir). 1.0 = sin cambio, el valor de
+## siempre. Usado por Caballero Esqueleto (1.20) para perseguir más rápido
+## que su velocidad base sin tocar velocidad_base en sí.
+@export var multiplicador_velocidad: float = 1.0
 
 var _ultima_vision: float = 0.0
 
@@ -40,6 +45,13 @@ func _on_ejecutar() -> Estado:
 	if not agente or not movimiento:
 		return Estado.FALLIDO
 	if not is_instance_valid(objetivo_raw):
+		return Estado.FALLIDO
+	# Mismo criterio que AccionAtacar: un jugador muerto sigue siendo un
+	# nodo válido (reaparece, no se libera) — sin esto, un mob perseguía el
+	# cadáver indefinidamente en vez de abandonar.
+	if "_muerto" in objetivo_raw and objetivo_raw.get("_muerto"):
+		_memoria.establecer("objetivo", null)
+		_memoria.establecer("jugador_detectado", false)
 		return Estado.FALLIDO
 	var objetivo := objetivo_raw as Node2D
 
@@ -61,7 +73,7 @@ func _on_ejecutar() -> Estado:
 		return Estado.EXITOSO
 
 	# Con NavigationAgent2D asignado, rodea obstáculos; sin él, línea recta.
-	movimiento.comandar_destino(objetivo.global_position)
+	movimiento.comandar_destino(objetivo.global_position, movimiento.velocidad_base * multiplicador_velocidad)
 	return Estado.EXITOSO
 
 

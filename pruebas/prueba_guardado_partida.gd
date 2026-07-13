@@ -23,6 +23,7 @@ var _gestor_inv: Node
 var _gestor_xp: Node
 var _gestor_equipo: Node
 var _gestor_guardado: Node
+var _gestor_barra: Node
 var _pocion: DatosItem
 var _casco: DatosItem
 var _datos_muro: DatosHabilidad
@@ -49,6 +50,7 @@ func _montar() -> void:
 	_gestor_xp = root.get_node("/root/GestorExperiencia")
 	_gestor_equipo = root.get_node("/root/GestorEquipo")
 	_gestor_guardado = root.get_node("/root/GestorGuardado")
+	_gestor_barra = root.get_node("/root/GestorBarraRapida")
 	_gestor_inv.items.clear()
 	_gestor_xp.xp_total = 0
 	_gestor_equipo.equipados.clear()
@@ -94,6 +96,14 @@ func _montar() -> void:
 
 	_gestor_xp.agregar_xp(30)
 	_gestor_inv.agregar_item(_pocion, 3)
+	# GestorInventario duplica el recurso al agregarlo (estampando id_recurso
+	# en la copia, no en "_pocion" original) — la barra rápida necesita esa
+	# instancia real para poder guardarse/restaurarse, igual que haría un
+	# drag-and-drop real desde el inventario.
+	for i: DatosItem in _gestor_inv.items:
+		if i.name == _pocion.name:
+			_gestor_barra.asignar(0, i)
+			break
 	if _casco:
 		var slot_casco := _buscar_slot_de(_panel.flow, _casco)
 		if slot_casco == null:
@@ -113,6 +123,7 @@ func _montar() -> void:
 
 
 func _mutar_estado_en_memoria() -> void:
+	_gestor_barra.limpiar(0)
 	_jugador.global_position = Vector2.ZERO
 	_vida.restaurar_vida(1.0)
 	_gestor_xp.xp_total = 0
@@ -188,6 +199,8 @@ func _informar() -> bool:
 	var instancia_habilidad = _slots_habilidades.obtener(0)
 	var instancia_ok: bool = instancia_habilidad != null and instancia_habilidad.tipo_habilidad == "muro"
 
+	var barra_ok: bool = _gestor_barra.casillas[0] != null and _gestor_barra.casillas[0].name == _pocion.name
+
 	print("Posición restaurada (111,222): %s" % pos_ok)
 	print("Vida restaurada (65.0): %s" % vida_ok)
 	print("XP restaurada (30): %s" % xp_ok)
@@ -196,9 +209,10 @@ func _informar() -> bool:
 	print("Atributos recalculados tras restaurar equipo: %s" % atributos_ok)
 	print("Habilidad 'Muro' restaurada en slot 0 (datos): %s" % habilidad_ok)
 	print("Habilidad 'Muro' restaurada en slot 0 (instancia real): %s" % instancia_ok)
+	print("Barra rápida restaurada en casilla 0: %s" % barra_ok)
 
 	var exito := pos_ok and vida_ok and xp_ok and pocion_ok and casco_ok and atributos_ok \
-		and habilidad_ok and instancia_ok
+		and habilidad_ok and instancia_ok and barra_ok
 	print("PRUEBA GUARDADO PARTIDA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

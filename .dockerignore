@@ -1,6 +1,11 @@
 .git/
 .godot/
-addons/
+# Solo el addon del editor (MCP de depuración local) queda fuera de la
+# imagen — godot-sqlite SÍ tiene que viajar: es la extensión nativa que usa
+# GestorGuardado.gd en el servidor real (Fase 2 del plan de escalado a
+# MMO). Antes esto excluía TODA la carpeta addons/, lo que hubiera dejado
+# el servidor sin SQLite (y sin arrancar) en el próximo build de Docker.
+addons/godot_ai/
 *.import
 export_presets.cfg
 *.apk

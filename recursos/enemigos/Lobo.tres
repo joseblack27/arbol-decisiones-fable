@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="EnemigoDatos" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://recursos/enemigos/EnemigoDatos.gd" id="1_ed"]
+
+[resource]
+script = ExtResource("1_ed")
+nombre_tipo = "Lobo"
+vida_maxima = 100.0
+velocidad_base = 80.0
+energia_maxima = 100.0
+regeneracion_energia = 10.0

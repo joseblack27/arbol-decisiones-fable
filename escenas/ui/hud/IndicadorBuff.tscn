@@ -1,0 +1,48 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://escenas/ui/hud/IndicadorBuff.gd" id="1_ib"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_barra_tiempo_fondo"]
+bg_color = Color(0, 0, 0, 0)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_barra_tiempo_relleno"]
+bg_color = Color(0, 0, 0, 0.6)
+
+[node name="IndicadorBuff" type="Control"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 28.0
+offset_bottom = 28.0
+mouse_filter = 2
+script = ExtResource("1_ib")
+
+[node name="Icono" type="TextureRect" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BarraTiempo" type="ProgressBar" parent="."]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_barra_tiempo_fondo")
+theme_override_styles/fill = SubResource("StyleBoxFlat_barra_tiempo_relleno")
+max_value = 1.0
+step = 0.0
+value = 1.0
+fill_mode = 3
+show_percentage = false

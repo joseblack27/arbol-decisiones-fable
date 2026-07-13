@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://escenas/ui/hud/BarraBuffs.gd" id="1_bb"]
+
+[node name="BarraBuffs" type="HBoxContainer"]
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 28.0
+offset_bottom = 28.0
+mouse_filter = 2
+theme_override_constants/separation = 6
+script = ExtResource("1_bb")

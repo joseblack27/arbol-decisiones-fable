@@ -31,14 +31,70 @@ const PUERTO_JUEGO := 8920
 
 ## Nombre para mostrar del jugador de ESTA máquina (el nombre de usuario del
 ## sistema operativo; "Jugador" si no se puede leer). Cero configuración: en
-## red viaja al servidor vía Jugador._registrar_nombre_red y se replica a
+## red viaja al servidor vía Jugador._registrar_identidad_red y se replica a
 ## todos los peers como Jugador.nombre_visible.
+##
+## OJO: esto es SOLO estético — puede repetirse entre jugadores distintos
+## sin ningún problema ("Jose" y "Jose" está bien). Para identidad real
+## (la clave con la que el servidor guarda la partida de cada uno) usar
+## id_jugador_local(), NUNCA esto — ver esa función para el porqué.
 func nombre_jugador_local() -> String:
 	for variable in ["USERNAME", "USER"]:  # Windows / Linux-Mac
 		var nombre := OS.get_environment(variable).strip_edges()
 		if nombre != "":
 			return nombre.substr(0, 24)
 	return "Jugador"
+
+
+const _RUTA_ID_JUGADOR := "user://id_jugador.txt"
+
+## Identidad ÚNICA y persistente de ESTE jugador en ESTA instalación: un
+## UUID generado una sola vez (la primera vez que el juego corre acá) y
+## guardado en disco. Fase 0 del plan de escalado a MMO: antes esto era
+## nombre_jugador_local() (el nombre de usuario de Windows) — con pocos
+## jugadores de prueba nunca importó, pero con desconocidos reales es casi
+## seguro que dos compartan un nombre de usuario común ("Usuario", "Admin",
+## "PC", el nombre por defecto de muchas instalaciones de Windows), y como
+## el servidor usa esa clave para el archivo de guardado (ver
+## GestorGuardado._ruta_partida_de_peer), dos jugadores distintos terminaban
+## compartiendo — y pisándose — la misma partida sin enterarse.
+##
+## Este UUID viaja al servidor junto con el nombre (Jugador._registrar_
+## identidad_red) pero NUNCA se muestra en pantalla — es un identificador
+## interno, no una cuenta con contraseña: no evita que alguien mande el UUID
+## de otro a propósito (eso requeriría autenticación real, fuera de alcance
+## acá), pero sí elimina las colisiones ACCIDENTALES, que eran el problema
+## real a esta escala.
+func id_jugador_local() -> String:
+	if FileAccess.file_exists(_RUTA_ID_JUGADOR):
+		var archivo := FileAccess.open(_RUTA_ID_JUGADOR, FileAccess.READ)
+		var id := archivo.get_as_text().strip_edges()
+		archivo.close()
+		if id != "":
+			return id
+	var nuevo := _generar_uuid()
+	var archivo := FileAccess.open(_RUTA_ID_JUGADOR, FileAccess.WRITE)
+	if archivo:
+		archivo.store_string(nuevo)
+		archivo.close()
+	return nuevo
+
+
+## UUID v4-like: 128 bits al azar formateados como 8-4-4-4-12 en hex. No
+## necesita ser criptográficamente perfecto (no es un secreto ni una
+## contraseña) — solo tener suficiente entropía para que dos instalaciones
+## distintas jamás generen el mismo por casualidad.
+func _generar_uuid() -> String:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	var bytes := PackedByteArray()
+	for _i in 16:
+		bytes.append(rng.randi() % 256)
+	var hex := bytes.hex_encode()
+	return "%s-%s-%s-%s-%s" % [
+		hex.substr(0, 8), hex.substr(8, 4), hex.substr(12, 4),
+		hex.substr(16, 4), hex.substr(20, 12),
+	]
 
 
 ## Nombre legible de cualquier entidad para logs/UI: usa nombre_visible si

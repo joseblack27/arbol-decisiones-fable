@@ -59,8 +59,12 @@ signal equipo_cambiado(equipados: Array[DatosItem])
 
 # ── EXPERIENCIA ───────────────────────────────────────────────────────────────
 ## Emitida cuando el jugador gana experiencia (cantidad ganada, xp total
-## acumulada). Sin tabla de niveles todavía: por ahora solo se acumula.
+## acumulada).
 signal xp_agregada(cantidad: int, xp_total: int)
+## Emitida cuando el jugador sube de nivel (ver TablaNiveles/
+## ExperienciaComponente). Si una ganancia grande de XP cruza varios
+## niveles de una vez, se emite una vez por nivel alcanzado.
+signal nivel_subido(nivel_nuevo: int)
 
 # ── JUEGO ─────────────────────────────────────────────────────────────────────
 signal juego_pausado()

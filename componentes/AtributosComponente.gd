@@ -40,6 +40,22 @@ func recalcular_con_equipo(items_equipados: Array[DatosItem]) -> void:
 			_sumar_bonos(base, item.bonos)
 
 
+## Aplica un crecimiento PERMANENTE (p. ej. al subir de nivel — ver
+## ExperienciaComponente._aplicar_crecimiento_nivel) a la línea de base "de
+## fábrica" — NO alcanza con tocar "base" directo: recalcular_con_equipo()
+## SOBREESCRIBE base entero desde _base_sin_equipo cada vez que el equipo
+## cambia, así que un bono aplicado solo a "base" desaparecía en cuanto se
+## equipaba/desequipaba algo — incluido el propio flujo de carga de
+## partida, que restaura el equipo justo después de la XP (bug reportado:
+## "al cargar la partida las estadísticas no se reflejan en el daño").
+## Tocar ambos a la vez da efecto inmediato Y sobrevive al próximo recálculo.
+func agregar_crecimiento_permanente(danos_extra: float = 0.0) -> void:
+	if _base_sin_equipo:
+		_base_sin_equipo.danos += danos_extra
+	if base:
+		base.danos += danos_extra
+
+
 func _copiar_bonos(destino: AtributosBase, origen: AtributosBase) -> void:
 	destino.danos                 = origen.danos
 	destino.potencia               = origen.potencia

@@ -83,11 +83,18 @@ func _ready() -> void:
 func _configurar_spawner_red() -> void:
 	var spawner := MultiplayerSpawner.new()
 	spawner.name = "SpawnerRed"
+	# add_child() PRIMERO: spawn_path se resuelve con get_node_or_null() contra
+	# un NodePath absoluto — si spawner todavía no está dentro del árbol de
+	# escena, esa resolución falla ("Can't use get_node() with absolute paths
+	# from outside the active scene tree") y spawn_path queda mal configurado.
+	# Con el spawner replicador roto, cada mob que este spawner genera existe
+	# en el servidor (puede golpear) pero nunca se replica a los clientes —
+	# el mob invisible reportado en juego real.
+	add_child(spawner)
 	spawner.spawn_path = _contenedor.get_path()
 	for escena in lista_mobs:
 		if escena:
 			spawner.add_spawnable_scene(escena.resource_path)
-	add_child(spawner)
 
 
 ## true si acá corresponde generar/decidir mobs de verdad: sin multiplayer
@@ -133,12 +140,36 @@ func _esperar_clientes_listos() -> void:
 ## El nivel ya tiene su propio fundido a negro, así que esta espera no se
 ## nota en pantalla. Si no hay malla configurada (p. ej. una prueba aislada
 ## sin nivel), no hay nada que esperar.
+##
+## OJO: map_get_iteration_id() != 0 NO basta — en un nivel grande (miles de
+## celdas) el motor hace VARIAS pasadas de sincronización: la primera deja
+## iteration_id en 1 pero solo cubre una fracción del mapa (verificado: en
+## Pradera, iteration_id=1 se mantiene 7 físicas seguidas antes de saltar a
+## 2, la sincronización real y completa). Con la espera vieja (cortar en el
+## primer != 0), _punto_de_generacion_valido() consultaba un mapa a medio
+## hornear: TODOS los candidatos aleatorios devolvían Vector2.ZERO como
+## "no encontrado" y el spawner caía siempre al mismo fallback (su propia
+## posición) — los mobs generados aparecían todos amontonados en el mismo
+## punto en vez de repartidos por radio_spawn.
+const _FRAMES_ESTABILIDAD_MALLA := 3
+
 func _esperar_malla_lista() -> void:
 	var mapa := get_world_2d().navigation_map
 	var intentos := 0
 	while NavigationServer2D.map_get_iteration_id(mapa) == 0 and intentos < 60:
 		await get_tree().physics_frame
 		intentos += 1
+	var anterior := NavigationServer2D.map_get_iteration_id(mapa)
+	var estable := 0
+	while estable < _FRAMES_ESTABILIDAD_MALLA and intentos < 90:
+		await get_tree().physics_frame
+		intentos += 1
+		var actual := NavigationServer2D.map_get_iteration_id(mapa)
+		if actual == anterior:
+			estable += 1
+		else:
+			estable = 0
+			anterior = actual
 
 
 func _process(delta: float) -> void:
@@ -185,6 +216,16 @@ func _generar_uno() -> void:
 	# de verdad (muerte, o el nivel entero desapareciendo), sin necesitar
 	# ninguna señal propia de Enemigo.
 	mob.tree_exiting.connect(_al_salir_mob.bind(mob), CONNECT_ONE_SHOT)
+
+	# Insurance contra el "mob invisible" (SpawnerRed en teoría lo replica
+	# solo con add_child, pero en juego real a veces no le llega a un peer
+	# YA conectado — no solo a los que llegan tarde, ver _al_peer_listo).
+	# Reusa la MISMA función de resincronización, pero en broadcast a TODOS
+	# los conectados apenas se genera, no solo al reconectar: idempotente
+	# (_recibir_mobs_existentes se salta si el nodo ya llegó por la vía
+	# normal), así que no duplica nada para quien sí lo recibió bien.
+	if Utils.en_red() and multiplayer.is_server():
+		rpc("_recibir_mobs_existentes", [[escena.resource_path, String(mob.name), punto]])
 
 
 ## Busca un punto dentro de radio_spawn que esté sobre la malla de
@@ -240,10 +281,20 @@ func _al_salir_mob(mob: Node) -> void:
 ## del MultiplayerSpawner se le perdió mientras cargaba, ver _ready).
 func _al_peer_listo(peer_id: int) -> void:
 	var datos: Array = []
+	var nombres_omitidos: Array = []
 	for mob in _vivos:
 		if not is_instance_valid(mob) or not (mob is Node2D):
+			# Diagnóstico permanente (mob invisible reportado en juego real,
+			# sin poder reproducirlo en pruebas locales): si esto aparece en
+			# el log de Docker justo cuando alguien se conecta, confirma que
+			# un mob murió/se liberó ENTRE que se generó y que el peer
+			# terminó de cargar — nunca llega a resincronizarse porque ya
+			# no está en _vivos con datos válidos en ese instante.
+			nombres_omitidos.append(str(mob.name) if is_instance_valid(mob) else "<liberado>")
 			continue
 		datos.append([mob.scene_file_path, String(mob.name), (mob as Node2D).global_position])
+	print("[RESYNC] peer=%d spawner=%s mobs_reenviados=%d omitidos=%s" % [
+		peer_id, name, datos.size(), str(nombres_omitidos)])
 	if datos.is_empty():
 		return
 	rpc_id(peer_id, "_recibir_mobs_existentes", datos)

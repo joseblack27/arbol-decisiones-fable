@@ -64,3 +64,57 @@ func tiene_item(nombre: String) -> bool:
 		if i.name == nombre:
 			return true
 	return false
+
+
+## Usa un ítem consumible: aplica su efecto y saca UNA unidad del stack
+## (el ítem entero si quantity ya era 1). La quita local siempre — mismo
+## nivel de confianza que equipar (ver PanelInventario._equip_item, tampoco
+## pasa por RPC). El efecto de curación SÍ es server-autoritativo (mismo
+## motivo que VidaComponente.quitar_vida/agregar_vida): sin eso, un cliente
+## podría curarse local mintiéndole el HP a los demás.
+func usar_item(item: DatosItem) -> void:
+	if item == null or not item.can_use:
+		return
+	_quitar_una_unidad(item)
+	if item.curacion > 0.0:
+		_pedir_curacion(item.curacion)
+
+
+## Siempre decrementa quantity de verdad (nunca la deja "atascada" en 1)
+## para que cualquiera que solo tenga una referencia al ítem — como una
+## casilla de la barra rápida de consumibles, que lo saca de "items" al
+## soltarlo ahí — pueda saber si se agotó mirando item.quantity <= 0, sin
+## depender de si sigue en esta lista o no. items.erase() es un no-op
+## inofensivo si el ítem no está acá (ya vive en una casilla rápida).
+func _quitar_una_unidad(item: DatosItem) -> void:
+	item.quantity -= 1
+	if item.quantity <= 0:
+		items.erase(item)
+
+
+func _pedir_curacion(cantidad: float) -> void:
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_pedir_curacion_red", cantidad)
+		return
+	_curar_local(cantidad)
+
+
+func _curar_local(cantidad: float) -> void:
+	var vida := get_parent().get_node_or_null("VidaComponente") as VidaComponente
+	if vida:
+		vida.agregar_vida(cantidad)
+
+
+## SERVIDOR: el dueño de este inventario pide curarse (poción, botiquín...)
+## — se verifica que quien llama sea de verdad el dueño (mismo criterio que
+## HabilidadBase._activar_red) antes de aplicar la curación real.
+@rpc("any_peer", "reliable")
+func _pedir_curacion_red(cantidad: float) -> void:
+	if not multiplayer.is_server():
+		return
+	var jugador := get_parent()
+	if not jugador or not ("peer_id_dueño" in jugador):
+		return
+	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+		return
+	_curar_local(cantidad)

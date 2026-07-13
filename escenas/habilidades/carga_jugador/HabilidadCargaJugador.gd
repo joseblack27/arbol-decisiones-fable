@@ -9,7 +9,7 @@ signal carga_terminada()
 
 @export_group("Dash")
 ## Sobreescrito por DatosHabilidad.aplicar_datos() al equipar.
-var daño_carga: float            = 20.0
+var dano_carga: float            = 20.0
 var distancia_maxima_dash: float = 180.0
 ## Sin equivalente en DatosHabilidad — configurable manualmente.
 @export var multiplicador_velocidad_carga: float = 5.0
@@ -116,7 +116,7 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	_timer_seguridad     = 0.0
 	_objetivos_golpeados.clear()
 	_en_dash             = true
-	_dano_actual         = _calcular_dano(int(daño_carga))
+	_dano_actual         = _calcular_dano(int(dano_carga))
 	_set_excepciones_enemigos(true)
 	carga_iniciada.emit(_direccion_carga)
 

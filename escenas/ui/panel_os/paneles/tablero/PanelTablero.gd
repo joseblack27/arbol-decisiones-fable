@@ -81,10 +81,16 @@ func _ready() -> void:
 # =============================================================================
 
 func _conectar_jugador() -> void:
-	var jugadores := get_tree().get_nodes_in_group("jugadores")
-	if jugadores.is_empty():
+	# Utils.jugador_local(), NO get_nodes_in_group("jugadores")[0]: con más
+	# de un jugador en escena (multijugador real), "el primero" del grupo
+	# podía ser el de OTRO jugador — este panel entonces mostraba y
+	# cacheaba (_atributos = atrib_comp.base) los atributos de alguien más,
+	# así que equipar/desequipar tu propio equipo nunca se reflejaba acá
+	# (bug reportado: "al desequipar un equipo no se actualizan los
+	# atributos").
+	var jugador := Utils.jugador_local()
+	if jugador == null:
 		return
-	var jugador: Node = jugadores[0]
 
 	_vida_comp    = jugador.get_node_or_null("VidaComponente") as VidaComponente
 	_energia_comp = jugador.get_node_or_null("EnergiaComponente") as EnergiaComponente
@@ -170,16 +176,16 @@ func _actualizar_todo() -> void:
 
 
 func _actualizar_principales() -> void:
+	# GestorExperiencia.nivel/xp_total son la única fuente real (ver
+	# TablaNiveles) — DatosJugador.nivel/experiencia_max eran campos fijos
+	# que nunca cambiaban en juego, ya no se usan para esto.
+	_lbl_nivel.text = str(GestorExperiencia.nivel)
+	var progreso := TablaNiveles.progreso_en_nivel(GestorExperiencia.xp_total, GestorExperiencia.nivel)
+	_lbl_experiencia.text = "%d / %d" % [progreso.x, progreso.y] if progreso.y > 0 \
+		else "MAX"
 	if _datos_jugador:
-		_lbl_nombre.text      = _datos_jugador.nombre
-		_lbl_nivel.text       = str(_datos_jugador.nivel)
-		_lbl_estamina.text    = str(int(_datos_jugador.estamina))
-		# GestorExperiencia.xp_total es la única fuente real de XP (la
-		# acumula Enemigo.gd al morir cada mob) — experiencia_max sigue
-		# viniendo de DatosJugador hasta que exista una tabla de niveles.
-		_lbl_experiencia.text = "%s / %s" % [GestorExperiencia.xp_total, int(_datos_jugador.experiencia_max)]
-	else:
-		_lbl_experiencia.text = str(GestorExperiencia.xp_total)
+		_lbl_nombre.text   = _datos_jugador.nombre
+		_lbl_estamina.text = str(int(_datos_jugador.estamina))
 
 	if _vida_comp:
 		_lbl_vida.text = "%s / %s" % [int(_vida_comp.salud_actual), int(_vida_comp.salud_maxima)]

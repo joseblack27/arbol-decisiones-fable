@@ -15,7 +15,8 @@ icono = SubResource("AtlasTexture_mhui3")
 descripcion = "Golpe directo al enemigo mas cercano causando [color=orange]{damage1}[/color]"
 escena = ExtResource("3_esc")
 nivel = 1
-costo_energia = 20
+costo_energia = 3
 dano_base_min = 5
 dano_base_max = 8
+radio_golpe = 50.0
 enfriamiento = 1.0

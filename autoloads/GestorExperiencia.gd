@@ -24,7 +24,17 @@ var xp_total: int:
 	get:
 		return _obtener_componente().xp_total
 	set(value):
-		_obtener_componente().xp_total = value
+		# restaurar_xp() (no una asignación directa): re-sincroniza el nivel
+		# derivado y su crecimiento acumulado (vida_maxima/energia_maxima/
+		# daños) — necesario al cargar una partida guardada, ver
+		# GestorGuardado y la nota en ExperienciaComponente.restaurar_xp().
+		_obtener_componente().restaurar_xp(value)
+
+
+## Nivel actual del jugador — derivado de xp_total, ver TablaNiveles.
+var nivel: int:
+	get:
+		return _obtener_componente().nivel
 
 
 func agregar_xp(cantidad: int) -> void:

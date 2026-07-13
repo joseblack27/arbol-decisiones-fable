@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/escudo/HabilidadEscudo.gd" id="1_escudo"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_iconos"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_escudo_buff"]
+atlas = ExtResource("2_iconos")
+region = Rect2(32, 160, 32, 32)
+
+[node name="HabilidadEscudo" type="Node"]
+script = ExtResource("1_escudo")
+costo_energia = 20.0
+requiere_direccion = false
+duracion_recarga = 8.0
+duracion_escudo = 3.0
+reduccion = 1.0
+icono_buff = SubResource("AtlasTexture_escudo_buff")

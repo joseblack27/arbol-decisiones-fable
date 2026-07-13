@@ -42,6 +42,7 @@ const ETIQUETAS_ATRIBUTOS := [
 @onready var action_button     := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/BotonAccion
 @onready var main_action_panel: PanelContainer = $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal
 @onready var use_action_button   := $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonUsar
+@onready var barra_rapida_button := $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonBarraRapida
 @onready var equip_action_button := $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonEquipar
 @onready var drop_action_button  := $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonSoltar
 
@@ -62,6 +63,17 @@ const ETIQUETAS_ATRIBUTOS := [
 @onready var equip_slot_boots:   EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5/SlotBotas
 @onready var equip_slot_belt:    EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5/SlotCinturon
 
+## Fila vertical de casillas rápidas dentro del inventario (misma fuente de
+## verdad que la barra flotante del HUD, ver GestorBarraRapida/
+## SlotConsumibleRapido) — usar_al_tocar=false en su escena: un toque acá
+## solo abre el detalle de siempre, no usa el ítem directo.
+@onready var quick_slots_inventario: Array[SlotConsumibleRapido] = [
+	$Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox/Slot0,
+	$Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox/Slot1,
+	$Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox/Slot2,
+	$Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox/Slot3,
+]
+
 @export var slots_equippable: Array[EquipoSlot]
 
 var item_data_details: SlotItem
@@ -76,6 +88,9 @@ func _ready():
 	close_button.pressed.connect(_on_close_button)
 	action_button.pressed.connect(_on_action_button)
 	equip_action_button.pressed.connect(_on_equip_button)
+	use_action_button.pressed.connect(_on_use_button)
+	barra_rapida_button.pressed.connect(_on_barra_rapida_button)
+	drop_action_button.pressed.connect(_on_drop_button)
 	# El inventario real vive en el autoload GestorInventario (persiste entre
 	# aperturas del panel y cambios de nivel); "items" ya no es la fuente de
 	# verdad, solo se usa como vista previa de diseño en el Inspector.
@@ -84,8 +99,20 @@ func _ready():
 	_clear_details()
 	set_active_filter_button(all_filter_button)
 	_conectar_slots_equipables()
+	for slot in quick_slots_inventario:
+		slot.slot_clicked.connect(_on_slot_clicked)
 	BusEventos.item_agregado.connect(_on_item_agregado)
 	visibility_changed.connect(_on_visibility_changed)
+	# GestorInventario.agregar_item(..., silencioso=true) — el modo que usa
+	# GestorGuardado para restaurar una partida guardada — a propósito NO
+	# emite item_agregado (esos ítems ya eran tuyos, no son botín nuevo; ver
+	# el comentario de agregar_item). Pero eso significa que este panel
+	# nunca se enteraba de que el inventario se acababa de llenar: si ya
+	# estaba en escena antes de que llegara la partida (o el jugador la
+	# abría antes de matar el primer mob), se quedaba mostrando la grilla
+	# vacía con la que arrancó, hasta el primer item_agregado real (matar
+	# un mob) — reportado como "el inventario no carga al inicio".
+	GestorGuardado.partida_cargada.connect(refrescar)
 
 	var main_os = get_tree().get_root().find_child("OsPrincipal", true, false)
 	if main_os:
@@ -134,9 +161,14 @@ func _conectar_slots_equipables():
 	equip_slot_boots.slot_clicked.connect(_on_slot_clicked)
 	equip_slot_belt.slot_clicked.connect(_on_slot_clicked)
 
-func _on_slot_clicked(item_data: SlotItem):
-	if item_data:
-		_update_details(item_data)
+func _on_slot_clicked(slot: SlotItem):
+	# "slot" es el NODO del slot — siempre válido, aunque esté vacío (no
+	# confundir con su propiedad interna slot.item_data, el DatosItem que
+	# de verdad contiene). Sin este chequeo, clickear un EquipoSlot vacío
+	# llamaba _update_details() igual, que revienta leyendo
+	# slot.item_data.name sobre un DatosItem nulo.
+	if slot and slot.item_data:
+		_update_details(slot)
 		main_action_panel.hide()
 		detail_panel_margin.show()
 
@@ -150,6 +182,59 @@ func _on_action_button():
 func _on_equip_button():
 	_equip_item(item_data_details)
 
+func _on_use_button():
+	var item := item_data_details.item_data
+	GestorInventario.usar_item(item)
+	# El ítem usado puede seguir referenciado en alguna casilla rápida (ver
+	# SlotConsumibleRapido: asignar ahí ya NO lo saca del inventario) — sin
+	# esto, esa casilla se quedaba mostrando la cantidad vieja, o un ítem ya
+	# agotado, hasta el próximo cambio que la refrescara por otra vía.
+	for indice in GestorBarraRapida.CANTIDAD_CASILLAS:
+		if GestorBarraRapida.casillas[indice] == item:
+			if item.quantity <= 0:
+				GestorBarraRapida.limpiar(indice)
+			else:
+				GestorBarraRapida.refrescar(indice)
+	refrescar()
+	_on_close_button()
+
+
+## Botón "Soltar" del detalle — nunca estaba conectado a nada (bug: no
+## hacía absolutamente nada al presionarlo). Para un ítem EQUIPADO
+## (item_data_details es un EquipoSlot), significa desequiparlo: mismo
+## efecto que arrastrarlo de vuelta a la grilla general (ver
+## FlujoItems._drop_data), pero disponible con un solo toque.
+func _on_drop_button():
+	var slot := item_data_details
+	if slot is EquipoSlot:
+		var equipo_slot := slot as EquipoSlot
+		var item := equipo_slot.item_data
+		if item != null:
+			equipo_slot.item_data = null
+			equipo_slot.update_item()
+			GestorInventario.agregar_item(item)
+			refrescar()
+			notificar_equipo_cambiado()
+	_on_close_button()
+
+
+## Alternativa a arrastrar el ítem a mano hasta una casilla rápida (más
+## directo en pantallas táctiles): lo manda a la primera casilla libre de
+## GestorBarraRapida — se refleja solo tanto en la fila de este panel como
+## en la barra flotante del HUD (ver SlotConsumibleRapido). Solo guarda una
+## REFERENCIA: el ítem sigue estando en el inventario general también, la
+## casilla es un atajo, no lo saca de ahí. Si las 4 están ocupadas, no hace
+## nada — el jugador tiene que soltar/reemplazar una a mano primero.
+func _on_barra_rapida_button():
+	var item := item_data_details.item_data
+	if item == null:
+		return
+	var indice := GestorBarraRapida.primer_indice_vacio()
+	if indice < 0:
+		return
+	GestorBarraRapida.asignar(indice, item)
+	_on_close_button()
+
 func _clear_grid(_grid):
 	for child in _grid.get_children():
 		child.queue_free()
@@ -162,6 +247,7 @@ func _clear_details():
 	description_text.text = ""
 	_actualizar_caracteristicas(null)
 	use_action_button.disabled = true
+	barra_rapida_button.disabled = true
 	equip_action_button.disabled = true
 	drop_action_button.disabled = true
 
@@ -172,41 +258,52 @@ func _update_details(item: SlotItem):
 	type_value.text = item.item_data.type_descripcion
 	qty_value.text = str(item.item_data.quantity)
 	description_text.text = item.item_data.description
-	_actualizar_caracteristicas(item.item_data.bonos)
+	_actualizar_caracteristicas(item.item_data)
 	use_action_button.disabled   = not item.can_use
+	barra_rapida_button.disabled = not item.can_use
 	equip_action_button.disabled = not item.can_equip
 	drop_action_button.disabled  = not item.can_drop
 	use_action_button.visible   = item.can_use
+	barra_rapida_button.visible = item.can_use
 	equip_action_button.visible = item.can_equip
 	drop_action_button.visible  = item.can_drop
 
 
-## Pinta, debajo de la descripción, una fila por cada bono != 0 que aporte
-## "bonos" (nombre pegado a la izquierda, valor pegado a la derecha).
-func _actualizar_caracteristicas(bonos: AtributosBase) -> void:
+## Pinta, debajo de la descripción, una fila por cada característica != 0
+## del ítem: primero "Vida" si es un consumible con curacion (ver
+## DatosItem.curacion), después cada bono de equipo != 0 (nombre pegado a
+## la izquierda, valor pegado a la derecha).
+func _actualizar_caracteristicas(item: DatosItem) -> void:
 	# free() inmediato (no queue_free): son nodos recién creados sin señales
 	# ni procesos pendientes, y así la lista queda consistente en el mismo
 	# fotograma en que se cambia de ítem seleccionado.
 	for hijo in vbox_caracteristicas.get_children():
 		hijo.free()
-	if bonos == null:
+	if item == null:
 		return
-	for par in ETIQUETAS_ATRIBUTOS:
-		var campo: String = par[0]
-		var etiqueta: String = par[1]
-		var valor: float = bonos.get(campo)
-		if valor == 0.0:
-			continue
-		var fila := HBoxContainer.new()
-		var nombre := Label.new()
-		nombre.text = etiqueta
-		nombre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var cantidad := Label.new()
-		cantidad.text = ("+%s" % _formatear_valor(valor)) if valor > 0.0 else _formatear_valor(valor)
-		cantidad.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-		fila.add_child(nombre)
-		fila.add_child(cantidad)
-		vbox_caracteristicas.add_child(fila)
+	if item.curacion > 0.0:
+		_agregar_fila_caracteristica("Vida", item.curacion)
+	if item.bonos != null:
+		for par in ETIQUETAS_ATRIBUTOS:
+			var campo: String = par[0]
+			var etiqueta: String = par[1]
+			var valor: float = item.bonos.get(campo)
+			if valor == 0.0:
+				continue
+			_agregar_fila_caracteristica(etiqueta, valor)
+
+
+func _agregar_fila_caracteristica(etiqueta: String, valor: float) -> void:
+	var fila := HBoxContainer.new()
+	var nombre := Label.new()
+	nombre.text = etiqueta
+	nombre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var cantidad := Label.new()
+	cantidad.text = ("+%s" % _formatear_valor(valor)) if valor > 0.0 else _formatear_valor(valor)
+	cantidad.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	fila.add_child(nombre)
+	fila.add_child(cantidad)
+	vbox_caracteristicas.add_child(fila)
 
 
 ## Evita el ".0" final en bonos con valor entero (10.0 -> "10"); conserva

@@ -6,9 +6,10 @@
 #      GestorExperiencia automáticamente.
 #   3. PanelNotificacionesLoot también reacciona a xp_agregada con una fila
 #      de solo texto ("+N XP"), sin ícono.
-#   4. PanelTablero (la pestaña "Atributos") muestra GestorExperiencia.xp_total
-#      — no el campo suelto DatosJugador.experiencia, que nadie más actualiza
-#      (ese fue el bug: la XP sí se guardaba, pero no se veía en pantalla).
+#   4. PanelTablero (la pestaña "Atributos") muestra el progreso DENTRO del
+#      nivel actual ("X / Y", ver TablaNiveles) — no el campo suelto
+#      DatosJugador.experiencia_max (fijo, nunca se movía) ni el acumulado
+#      total a secas.
 #   godot --headless --path . --script res://pruebas/prueba_experiencia.gd
 # =============================================================================
 extends SceneTree
@@ -79,14 +80,16 @@ func _informar() -> bool:
 
 	var lbl_experiencia: Label = _tablero.get("_lbl_experiencia")
 	var texto_tablero := lbl_experiencia.text
-	print("Panel de estadísticas muestra la XP real (esperado '22'): %s" % texto_tablero)
+	# Nivel 1 pide 100 XP para el nivel 2 (ver TablaNiveles) — con 22 XP
+	# acumulada, sigue en nivel 1, progreso "22 / 100".
+	print("Panel de estadísticas muestra el progreso del nivel (esperado '22 / 100'): %s" % texto_tablero)
 
 	var xp_total: int = _gestor.xp_total
 	var exito: bool = xp_total == 22 \
 		and filas == 3 \
 		and icono_oculto \
 		and texto == "+7 XP" \
-		and texto_tablero == "22"
+		and texto_tablero == "22 / 100"
 	print("PRUEBA EXPERIENCIA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

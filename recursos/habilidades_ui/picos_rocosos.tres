@@ -11,7 +11,7 @@ icono = ExtResource("1_vj2md")
 descripcion = "Picos de piedra que se despliegan en la zona elegida, causando [color=#905010]{damage1}[/color]"
 escena = ExtResource("3_esc")
 nivel = 1
-costo_energia = 60
+costo_energia = 30
 dano_base_min = 20
 dano_base_max = 24
 tipo_lanzamiento = 1

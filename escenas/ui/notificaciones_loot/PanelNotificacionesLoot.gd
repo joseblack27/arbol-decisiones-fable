@@ -23,6 +23,9 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	BusEventos.item_agregado.connect(_on_item_agregado)
 	BusEventos.xp_agregada.connect(_on_xp_agregada)
+	# nivel_subido NO pasa por acá a propósito: el aviso de nivel es un
+	# cartel aparte, centrado arriba y más grande — ver AvisoNivel.gd. Este
+	# panel queda solo para ítems/XP, sin tocar su comportamiento.
 
 
 func _on_item_agregado(item: DatosItem, cantidad: int) -> void:

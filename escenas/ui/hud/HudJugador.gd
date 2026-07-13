@@ -1,7 +1,9 @@
 extends Control
-## HUD del jugador propio (esquina superior izquierda): nombre, barra de
-## vida con números y XP acumulada. Reemplaza al viejo panel de debug que
-## colgaba del Jugador (label "Vida:" + botones de prueba).
+## HUD del jugador propio: nombre, barra de vida, barra de energía y barra
+## de XP (amarilla, progreso DENTRO del nivel actual — ver TablaNiveles).
+## Reemplaza al viejo panel de debug que colgaba del Jugador (label "Vida:"
+## + botones de prueba), y a la vieja BarraEnergia suelta en la zona del
+## joystick (ver Mundo.tscn) — ahora la energía vive acá, junto a vida.
 ##
 ## Vive en Mundo.tscn (solo clientes — el servidor dedicado usa otra escena)
 ## y se engancha solo al jugador PROPIO: en red el jugador aparece tarde
@@ -11,10 +13,14 @@ extends Control
 @onready var _nombre: Label = %Nombre
 @onready var _barra_vida: ProgressBar = %BarraVida
 @onready var _texto_vida: Label = %TextoVida
+@onready var _barra_energia: ProgressBar = %BarraEnergia
+@onready var _texto_energia: Label = %TextoEnergia
+@onready var _barra_xp: ProgressBar = %BarraXp
 @onready var _texto_xp: Label = %TextoXp
 
 var _jugador: Node2D = null
 var _vida: VidaComponente = null
+var _energia: EnergiaComponente = null
 var _acumulador := 0.0
 
 
@@ -46,6 +52,9 @@ func _conectar_jugador() -> void:
 	_vida = jugador.get_node_or_null("VidaComponente") as VidaComponente
 	if _vida:
 		_vida.cambio_valor_vida.connect(_on_vida)
+	_energia = jugador.get_node_or_null("EnergiaComponente") as EnergiaComponente
+	if _energia:
+		_energia.energia_cambiada.connect(_on_energia)
 	visible = true
 	_refrescar_todo()
 
@@ -56,6 +65,8 @@ func _refrescar_todo() -> void:
 	_nombre.text = Utils.nombre_visible(_jugador)
 	if _vida:
 		_on_vida(_vida.obtener_vida())
+	if _energia:
+		_on_energia(_energia.obtener_energia(), _energia.obtener_energia_maxima())
 	_on_xp(0, 0)
 
 
@@ -69,5 +80,20 @@ func _on_vida(_valor: float) -> void:
 	_texto_vida.text = "%d / %d" % [int(actual), int(maxima)]
 
 
+func _on_energia(nueva: float, maxima: float) -> void:
+	_barra_energia.max_value = maxima
+	_barra_energia.value = nueva
+	_texto_energia.text = "%d / %d" % [int(nueva), int(maxima)]
+
+
 func _on_xp(_cantidad: int, _xp_total: int) -> void:
-	_texto_xp.text = "XP  %d" % GestorExperiencia.xp_total
+	var nivel := GestorExperiencia.nivel
+	var progreso := TablaNiveles.progreso_en_nivel(GestorExperiencia.xp_total, nivel)
+	if progreso.y > 0:
+		_barra_xp.max_value = progreso.y
+		_barra_xp.value = progreso.x
+		_texto_xp.text = "Nv %d · XP %d/%d" % [nivel, progreso.x, progreso.y]
+	else:
+		_barra_xp.max_value = 1
+		_barra_xp.value = 1
+		_texto_xp.text = "Nv %d · XP MAX" % nivel

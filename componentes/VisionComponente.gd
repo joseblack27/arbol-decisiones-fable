@@ -39,6 +39,12 @@ var areas_detectadas: Dictionary[String, Area2D]:
 
 var _timer_los: float = 0.0
 
+## Cada cuánto se poda _areas_en_rango buscando objetivos que dejaron de ser
+## "monitorable" sin que el motor de física avisara con area_exited (ver
+## _podar_invalidos). No hace falta que sea tan reactivo como la LoS.
+const _INTERVALO_PODA := 0.5
+var _timer_poda: float = 0.0
+
 
 func _ready() -> void:
 	area_entered.connect(_on_area_entered)
@@ -46,15 +52,19 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	if not requiere_linea_vision or _areas_en_rango.is_empty():
-		return
-	_timer_los += delta
-	if _timer_los < intervalo_verificacion:
-		return
-	_timer_los = 0.0
-	_verificar_los_todos()
-	if debug_rayos:
-		queue_redraw()
+	if requiere_linea_vision and not _areas_en_rango.is_empty():
+		_timer_los += delta
+		if _timer_los >= intervalo_verificacion:
+			_timer_los = 0.0
+			_verificar_los_todos()
+			if debug_rayos:
+				queue_redraw()
+
+	if not _areas_en_rango.is_empty():
+		_timer_poda += delta
+		if _timer_poda >= _INTERVALO_PODA:
+			_timer_poda = 0.0
+			_podar_invalidos()
 
 
 func _draw() -> void:
@@ -107,6 +117,29 @@ func _on_area_exited(area: Area2D) -> void:
 	var key := _clave(area)
 	_areas_en_rango.erase(key)
 	_desregistrar_con_los(area)
+
+
+## Poda objetivos que dejaron de ser "detectables" sin que el motor de
+## física llegara a avisar con area_exited — pasa cuando un VidaComponente
+## se pone monitorable=false MIENTRAS sigue físicamente solapado (p. ej. un
+## jugador que muere pegado al mob que lo mató: se queda quieto ahí hasta
+## reaparecer, y Godot no dispara area_exited solo por apagar monitorable
+## sin mover el cuerpo — confirmado con una prueba puntual). Sin esto, la
+## entrada quedaba pegada en _areas_en_rango para siempre, y el "si ya está
+## registrada, salir" de _on_area_entered bloqueaba cualquier redetección
+## futura aunque el jugador reapareciera y volviera a acercarse de verdad
+## (reportado: "los mobs que me matan, cuando me acerco de nuevo no me
+## detectan").
+func _podar_invalidos() -> void:
+	for key in _areas_en_rango.keys():
+		var area := _areas_en_rango.get(key) as Area2D
+		if is_instance_valid(area) and area.monitorable:
+			continue
+		_areas_en_rango.erase(key)
+		if is_instance_valid(area):
+			_desregistrar_con_los(area)
+		else:
+			_areas_con_los.erase(key)
 
 
 # =============================================================================

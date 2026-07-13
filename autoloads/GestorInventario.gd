@@ -52,3 +52,7 @@ func quitar_item(item: DatosItem) -> void:
 
 func tiene_item(nombre: String) -> bool:
 	return _obtener_componente().tiene_item(nombre)
+
+
+func usar_item(item: DatosItem) -> void:
+	_obtener_componente().usar_item(item)

@@ -1,5 +1,6 @@
-[gd_scene load_steps=92 format=3 uid="uid://ryqwerc33taa"]
+[gd_scene load_steps=93 format=3 uid="uid://ryqwerc33taa"]
 
+[ext_resource type="Resource" path="res://recursos/enemigos/Lobo.tres" id="0_datos"]
 [ext_resource type="Script" uid="uid://d4bn7ylieb3gu" path="res://escenas/enemigos/EnemigoLobo.gd" id="1_bvf6m"]
 [ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="2_ivj8v"]
 [ext_resource type="Resource" path="res://recursos/items/consumibles/jeringa_adrenalina.tres" id="3_l6bpy"]
@@ -1138,7 +1139,6 @@ radius = 26.019224
 [sub_resource type="Resource" id="Resource_s57h7"]
 script = ExtResource("34_iuxaj")
 regeneracion_vida = 1.0
-regeneracion_energia = 10.0
 resistencia_fisica = 10.0
 metadata/_custom_type_script = "uid://ddhq5qxvccml7"
 
@@ -1150,13 +1150,12 @@ componente_movimiento = NodePath("MovimientoComponente")
 componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
-velocidad_base = 80.0
+datos = ExtResource("0_datos")
 tabla_botin = Array[ExtResource("2_ivj8v")]([SubResource("Resource_iuxaj"), SubResource("Resource_wrpy6"), SubResource("Resource_hu05i"), SubResource("Resource_385uh"), SubResource("Resource_ua77i"), SubResource("Resource_wmgm4")])
 xp_otorgada = 25
 
 [node name="EnergiaComponente" type="Node" parent="."]
 script = ExtResource("ec_enemigo")
-regeneracion_por_tick = 10.0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_bvf6m")
@@ -1170,7 +1169,6 @@ radius = 20.0
 [node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador", "agente_navegacion")]
 script = ExtResource("6_itdr7")
 jugador = NodePath("..")
-velocidad_base = 80.0
 agente_navegacion = NodePath("../AgenteNavegacion")
 
 [node name="AnimacionComponente" type="Node" parent="." node_paths=PackedStringArray("animation_player", "animation_tree")]

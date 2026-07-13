@@ -17,9 +17,3 @@ class_name EnemigoDatos
 @export_group("Energía")
 @export var energia_maxima: float         = 80.0
 @export var regeneracion_energia: float   = 10.0
-
-@export_group("Habilidad Carga")
-@export var daño_carga: float             = 25.0
-@export var velocidad_carga: float        = 4.0   # multiplicador
-@export var distancia_carga: float        = 300.0
-@export var cooldown_carga: float         = 3.0

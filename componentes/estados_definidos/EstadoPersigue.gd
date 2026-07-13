@@ -13,6 +13,12 @@ class_name EstadoPersigue
 @export var componente_movimiento: MovimientoComponente # Componente que aplica el movimiento físico
 @export var entidad: Node2D # La entidad que está en estado (el enemigo)
 
+## Multiplicador sobre componente_movimiento.velocidad_base SOLO mientras
+## persigue (no afecta deambular/huir). 1.0 = sin cambio, el valor de
+## siempre. Usado por Caballero Esqueleto (1.20) para perseguir más rápido
+## que su velocidad base sin tocar velocidad_base en sí.
+@export var multiplicador_velocidad: float = 1.0
+
 # Variables de estado interno
 var objetivo_actual: Node2D = null
 var tiempo_de_perdida_objetivo: float = 0.0
@@ -49,7 +55,7 @@ func procesar_estado(delta: float):
 		tiempo_de_perdida_objetivo = 0.0
 
 		var vector_destino: Vector2 = objetivo_actual.global_position - entidad.global_position
-		var movimiento_calculado: Vector2 = vector_destino.normalized() * componente_movimiento.velocidad_base
+		var movimiento_calculado: Vector2 = vector_destino.normalized() * componente_movimiento.velocidad_base * multiplicador_velocidad
 
 		entidad.direccion = vector_destino.normalized()
 
@@ -68,7 +74,7 @@ func procesar_estado(delta: float):
 		if objetivo_actual and is_instance_valid(objetivo_actual):
 			var dir := (objetivo_actual.global_position - entidad.global_position).normalized()
 			entidad.direccion = dir
-			componente_movimiento.physics_process(delta, dir * componente_movimiento.velocidad_base)
+			componente_movimiento.physics_process(delta, dir * componente_movimiento.velocidad_base * multiplicador_velocidad)
 		else:
 			componente_movimiento.physics_process(delta, Vector2.ZERO)
 		if tiempo_de_perdida_objetivo > intervalo_objetivo_perdido:

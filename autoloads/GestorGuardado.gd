@@ -11,10 +11,19 @@ extends Node
 ## juego, o con los botones "Guardar"/"Cargar" del panel OS
 ## (ver OsPrincipal.gd).
 ##
-## EN RED el archivo vive EN EL SERVIDOR (decisión de diseño): una partida
-## por jugador en user://partidas/<nombre>.save, identificada por su
-## Jugador.nombre_visible (el nombre lo resuelve el SERVIDOR desde su copia
-## del jugador — nunca se confía en un nombre mandado por el cliente).
+## EN RED el progreso vive EN EL SERVIDOR (decisión de diseño), en una base
+## SQLite real (user://partidas.db, addons/godot-sqlite — Fase 2 del plan de
+## escalado a MMO: reemplaza el archivo-por-jugador anterior, que no daba
+## pie a nada más que guardar/cargar — sin transacciones seguras, sin poder
+## consultar "¿quién tiene más XP?" ni construir herramientas de moderación
+## más adelante). Cada fila se identifica por Jugador.id_unico (un UUID
+## persistente por instalación, NUNCA el nombre para mostrar — ver
+## Utils.id_jugador_local() para el porqué; lo resuelve el SERVIDOR desde su
+## copia del jugador, nunca se confía en un dato mandado directo por el
+## cliente). El PAYLOAD sigue siendo el mismo JSON de siempre — cambia DÓNDE
+## se guarda, no el protocolo cliente↔servidor ni el modo un jugador
+## (RUTA_GUARDADO, sin tocar: sigue en archivo plano, sin necesidad real de
+## una base de datos ahí — no hay concurrencia que proteger).
 ##   - Guardar: el cliente serializa su espejo (fiel: vida/xp/inventario le
 ##     llegan replicados del servidor) y manda el JSON al servidor.
 ##   - Cargar: el servidor devuelve el JSON; el cliente aplica su espejo
@@ -28,7 +37,8 @@ extends Node
 ## servidor. Sin red, TODO sigue funcionando exactamente como siempre.
 
 const RUTA_GUARDADO := "user://partida.save"
-const CARPETA_PARTIDAS_RED := "user://partidas"
+## Base SQLite del progreso EN RED — un solo archivo, todas las partidas.
+const RUTA_BD_RED := "user://partidas.db"
 const VERSION_GUARDADO := 1
 ## Tope del JSON aceptado por el servidor (anti-abuso): una partida legítima
 ## pesa ~1-2 KB.
@@ -40,6 +50,10 @@ signal partida_guardada
 signal partida_cargada
 
 var _acumulador_autoguardado := 0.0
+## Conexión SQLite única, abierta perezosamente y reutilizada — el
+## servidor corre en un solo hilo (el bucle principal de Godot), así que no
+## hace falta pool de conexiones ni nada más elaborado.
+var _bd: SQLite = null
 
 
 func _process(delta: float) -> void:
@@ -87,6 +101,7 @@ func guardar_partida() -> void:
 		"inventario": _serializar_items(GestorInventario.items),
 		"equipo": _serializar_items(GestorEquipo.equipados),
 		"habilidades": _serializar_habilidades(),
+		"barra_rapida": _serializar_barra_rapida(),
 	}
 
 	# En red (cliente puro) el archivo vive en el SERVIDOR — mandarle el
@@ -173,6 +188,7 @@ func _aplicar_datos_partida(datos: Dictionary) -> void:
 
 	_restaurar_equipo(datos.get("equipo", []))
 	_restaurar_habilidades(datos.get("habilidades", []))
+	_restaurar_barra_rapida(datos.get("barra_rapida", []))
 
 	partida_cargada.emit()
 
@@ -190,7 +206,23 @@ func _cargar_item(entrada: Dictionary) -> DatosItem:
 	var ruta: String = entrada.get("id_recurso", "")
 	if ruta == "" or not ResourceLoader.exists(ruta):
 		return null
-	return load(ruta) as DatosItem
+	var item := load(ruta) as DatosItem
+	# Estampar id_recurso (bug reportado: espada equipada tras cargar
+	# partida mostraba 18-20 de daño en la habilidad pero solo pegaba
+	# 10-12 de verdad). load() trae el .tres ORIGINAL tal cual está en
+	# disco — su id_recurso viene vacío, porque ese campo normalmente solo
+	# se estampa en copias duplicadas en tiempo de ejecución (ver
+	# InventarioComponente.agregar_item), nunca en el recurso de fábrica.
+	# EquipoComponente._sincronizar_equipo_red() manda item.id_recurso al
+	# SERVIDOR para que sepa qué tiene puesto cada jugador (ver ese
+	# archivo) — con id_recurso vacío, el servidor descartaba la espada en
+	# silencio y calculaba el daño real SIN el bono del arma, mientras el
+	# cliente (que trabaja con el objeto en mano, sin pasar por red) sí lo
+	# aplicaba bien en la vista previa. De ahí el número más alto en la UI
+	# que en el golpe de verdad.
+	if item and item.id_recurso == "":
+		item.id_recurso = ruta
+	return item
 
 
 func _restaurar_equipo(entradas: Array) -> void:
@@ -203,6 +235,33 @@ func _restaurar_equipo(entradas: Array) -> void:
 		if item:
 			items.append(item)
 	panel.call("restaurar_equipo", items)
+
+
+## Guarda solo la referencia al recurso (id_recurso) de cada una de las 4
+## casillas de la barra rápida — "" si está vacía. Al restaurar, se busca el
+## ítem YA restaurado en GestorInventario.items con ese id_recurso (ver
+## _restaurar_barra_rapida) en vez de cargar una copia nueva y desconectada:
+## así la cantidad que muestra la barra sigue siendo la misma referencia que
+## ve el inventario general, sin desincronizarse.
+func _serializar_barra_rapida() -> Array:
+	var lista := []
+	for item: DatosItem in GestorBarraRapida.casillas:
+		lista.append(item.id_recurso if item and item.id_recurso != "" else "")
+	return lista
+
+
+func _restaurar_barra_rapida(rutas: Array) -> void:
+	for i in GestorBarraRapida.CANTIDAD_CASILLAS:
+		var ruta: String = rutas[i] if i < rutas.size() else ""
+		var item := _buscar_item_por_recurso(ruta) if ruta != "" else null
+		GestorBarraRapida.asignar(i, item)
+
+
+func _buscar_item_por_recurso(ruta: String) -> DatosItem:
+	for item: DatosItem in GestorInventario.items:
+		if item and item.id_recurso == ruta:
+			return item
+	return null
 
 
 ## A diferencia de DatosItem, un DatosHabilidad NUNCA se duplica (SlotHabilidades
@@ -236,46 +295,81 @@ func _obtener_jugador() -> Node2D:
 
 
 # =============================================================================
-# MODO RED — el archivo vive en el servidor, una partida por jugador
+# MODO RED — SQLite real en el servidor (Fase 2), una fila por jugador
 # =============================================================================
 
-## SERVIDOR: recibe el JSON del cliente y lo escribe en la partida de ESE
-## jugador (identificado por el nombre_visible de su copia autoritativa).
+## Conexión abierta y con la tabla lista, creándola la primera vez que hace
+## falta. Solo tiene sentido llamarla del lado del SERVIDOR.
+func _bd_red() -> SQLite:
+	if _bd == null:
+		_bd = SQLite.new()
+		_bd.path = RUTA_BD_RED
+		_bd.open_db()
+		# nombre_visible es columna aparte (no solo dentro del JSON) a
+		# propósito: permite construir a futuro herramientas de admin/
+		# consulta ("¿quién es este UUID?") sin tener que parsear el JSON de
+		# cada fila — el beneficio real de pasar a una base de datos.
+		_bd.query("""
+			CREATE TABLE IF NOT EXISTS partidas (
+				id_unico TEXT PRIMARY KEY,
+				nombre_visible TEXT,
+				datos_json TEXT NOT NULL,
+				actualizado TEXT NOT NULL
+			);
+		""")
+	return _bd
+
+
+## SERVIDOR: recibe el JSON del cliente y lo guarda (INSERT u UPDATE según
+## corresponda) en la fila de ESE jugador, identificado por su id_unico —
+## nunca por un dato mandado directo por el cliente.
 @rpc("any_peer", "reliable")
 func _guardar_partida_red(texto: String) -> void:
 	if not multiplayer.is_server():
 		return
 	if texto.length() > _MAX_BYTES_PARTIDA:
 		return
-	# Validar que sea JSON de verdad antes de escribirlo (basura fuera).
+	# Validar que sea JSON de verdad antes de guardarlo (basura fuera).
 	if typeof(JSON.parse_string(texto)) != TYPE_DICTIONARY:
 		return
-	var ruta := _ruta_partida_de_peer(multiplayer.get_remote_sender_id())
-	if ruta == "":
+	var jugador := _jugador_de_peer(multiplayer.get_remote_sender_id())
+	var id := _id_unico_limpio(jugador)
+	if id == "":
 		return
-	DirAccess.make_dir_recursive_absolute(CARPETA_PARTIDAS_RED)
-	var archivo := FileAccess.open(ruta, FileAccess.WRITE)
-	if archivo == null:
-		push_error("GestorGuardado: no se pudo escribir '%s' (error %d)." % [ruta, FileAccess.get_open_error()])
-		return
-	archivo.store_string(texto)
-	archivo.close()
+	var nombre := Utils.nombre_visible(jugador)
+	# query_with_bindings: los valores viajan como parámetros, nunca
+	# concatenados al SQL — evita cualquier inyección aunque nombre_visible
+	# venga en última instancia del cliente (ver Jugador._registrar_
+	# identidad_red). ON CONFLICT: upsert en una sola sentencia, atómico.
+	_bd_red().query_with_bindings(
+		"""
+		INSERT INTO partidas (id_unico, nombre_visible, datos_json, actualizado)
+		VALUES (?, ?, ?, ?)
+		ON CONFLICT(id_unico) DO UPDATE SET
+			nombre_visible = excluded.nombre_visible,
+			datos_json = excluded.datos_json,
+			actualizado = excluded.actualizado;
+		""",
+		[id, nombre, texto, Time.get_datetime_string_from_system(true)]
+	)
 
 
-## SERVIDOR: el cliente pide su partida — si existe, se la devuelve.
+## SERVIDOR: el cliente pide su partida — si existe una fila para su
+## id_unico, se la devuelve.
 @rpc("any_peer", "reliable")
 func _pedir_partida_red() -> void:
 	if not multiplayer.is_server():
 		return
 	var quien := multiplayer.get_remote_sender_id()
-	var ruta := _ruta_partida_de_peer(quien)
-	if ruta == "" or not FileAccess.file_exists(ruta):
-		return  # sin partida guardada: el cliente arranca de cero, sin error.
-	var archivo := FileAccess.open(ruta, FileAccess.READ)
-	if archivo == null:
+	var jugador := _jugador_de_peer(quien)
+	var id := _id_unico_limpio(jugador)
+	if id == "":
 		return
-	var texto := archivo.get_as_text()
-	archivo.close()
+	var bd := _bd_red()
+	bd.query_with_bindings("SELECT datos_json FROM partidas WHERE id_unico = ?;", [id])
+	if bd.query_result.is_empty():
+		return  # sin partida guardada: el cliente arranca de cero, sin error.
+	var texto: String = bd.query_result[0]["datos_json"]
 	rpc_id(quien, "_recibir_partida_red", texto)
 
 
@@ -300,13 +394,14 @@ func _recibir_partida_red(texto: String) -> void:
 			GestorInventario.agregar_item(item, entrada.get("cantidad", 1), true)
 	_restaurar_equipo(datos.get("equipo", []))
 	_restaurar_habilidades(datos.get("habilidades", []))
+	_restaurar_barra_rapida(datos.get("barra_rapida", []))
 
 	var datos_jugador: Dictionary = datos.get("jugador", {})
 	var pos: Array = datos_jugador.get("posicion", [])
 	var vida: float = datos_jugador.get("vida_actual", 0.0)
 	if pos.size() == 2:
 		var destino := Vector2(pos[0], pos[1])
-		rpc_id(1, "_aplicar_estado_red", destino, vida)
+		rpc_id(1, "_aplicar_estado_red", destino, vida, datos.get("xp_total", 0))
 		# Salto local inmediato (sin lerp): cargar partida es un
 		# teletransporte, como reaparecer — deslizarse por medio mapa hasta
 		# la posición guardada se vería como un fantasma. El servidor aplica
@@ -326,37 +421,60 @@ func _recibir_partida_red(texto: String) -> void:
 ## SERVIDOR: aplica posición y vida guardadas a la copia autoritativa del
 ## jugador que las pidió. La posición replica por el Sync y la vida por
 ## restaurar_vida (ver VidaComponente) — el cliente las ve solas.
+##
+## xp_total también viaja acá (no solo al cliente, vía GestorExperiencia más
+## arriba): ExperienciaComponente.restaurar_xp() vuelve a aplicar el
+## crecimiento de CADA nivel ya alcanzado (vida_maxima/energia_maxima/
+## atributos, ver ExperienciaComponente._aplicar_crecimiento_nivel), y eso
+## es autoritativo — vive en el SERVIDOR, no en el cliente. Sin esto, el
+## servidor reconstruía al jugador reconectado con las estadísticas de
+## nivel 1 (vida_maxima=100 siempre) mientras el cliente mostraba su nivel
+## real: cualquier curación se topaba con un salud_maxima falso y no
+## aplicaba nada (reportado: "me comí 5 zanahorias y la vida no subía").
+## Se restaura ANTES de vida a propósito: el crecimiento por nivel también
+## cura de paso (ver _aplicar_crecimiento_nivel), y restaurar_vida() de
+## abajo pisa ese valor con el real guardado, ya con el salud_maxima
+## correcto.
 @rpc("any_peer", "reliable")
-func _aplicar_estado_red(pos: Vector2, vida: float) -> void:
+func _aplicar_estado_red(pos: Vector2, vida: float, xp_total: int = 0) -> void:
 	if not multiplayer.is_server():
 		return
 	var jugador := _jugador_de_peer(multiplayer.get_remote_sender_id())
 	if jugador == null:
 		return
 	jugador.global_position = pos
+	var experiencia := jugador.get_node_or_null("ExperienciaComponente")
+	if experiencia:
+		experiencia.restaurar_xp(xp_total)
 	var componente := jugador.get_node_or_null("VidaComponente") as VidaComponente
 	if componente:
 		# Nunca cargar un muerto: mínimo 1 de vida.
 		componente.restaurar_vida(maxf(vida, 1.0))
 
 
-## Ruta del archivo de partida de un peer, derivada del nombre_visible de SU
-## copia autoritativa en el servidor (jamás de un dato mandado por el
-## cliente). "" si el jugador no existe o su nombre aún no llegó.
-func _ruta_partida_de_peer(peer_id: int) -> String:
-	var jugador := _jugador_de_peer(peer_id)
+## Clave real de una fila en la tabla "partidas", derivada de id_unico
+## (Fase 0 del plan de escalado a MMO: NUNCA de nombre_visible — el nombre
+## de Windows se repite entre jugadores distintos: "Usuario", "Admin",
+## "PC"... y dos jugadores con el mismo nombre terminaban compartiendo, sin
+## saberlo, la misma partida guardada. id_unico es un UUID que cada cliente
+## genera y guarda una sola vez en su propio disco, ver Utils.
+## id_jugador_local()). Siempre de SU copia autoritativa en el servidor,
+## jamás de un dato leído directo de un paquete de red. "" si el jugador no
+## existe o su identidad aún no llegó (ventana muy corta justo al conectar).
+func _id_unico_limpio(jugador: Node) -> String:
 	if jugador == null:
 		return ""
-	var nombre := str(jugador.get("nombre_visible")).strip_edges()
-	if nombre == "":
+	var id := str(jugador.get("id_unico")).strip_edges()
+	if id == "":
 		return ""
-	# Solo caracteres seguros para nombre de archivo (a-z, 0-9, _ y -).
+	# Solo caracteres seguros (a-z, 0-9, _ y -) — el UUID ya solo trae eso,
+	# pero no vale la pena confiar ciegamente en un valor de origen cliente.
 	var limpio := ""
-	for c in nombre.to_lower():
+	for c in id.to_lower():
 		var seguro: bool = (c >= "a" and c <= "z") or (c >= "0" and c <= "9") \
 			or c == "_" or c == "-"
 		limpio += c if seguro else "_"
-	return "%s/%s.save" % [CARPETA_PARTIDAS_RED, limpio]
+	return limpio
 
 
 func _jugador_de_peer(peer_id: int) -> Node2D:

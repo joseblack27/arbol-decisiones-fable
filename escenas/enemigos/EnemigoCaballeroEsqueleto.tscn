@@ -1,0 +1,454 @@
+[gd_scene load_steps=59 format=3 uid="uid://d1042g45vblt7"]
+
+[ext_resource type="Resource" uid="uid://cbkkggbjn6q82" path="res://recursos/enemigos/CaballeroEsqueleto.tres" id="0_datos"]
+[ext_resource type="Script" uid="uid://clnx7q65b85bh" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.gd" id="0_script_caballero"]
+[ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="3_3v04n"]
+[ext_resource type="Resource" path="res://recursos/items/consumibles/pildora_roja.tres" id="4_0wona"]
+[ext_resource type="Resource" uid="uid://vmrsskb13j2w" path="res://recursos/items/consumibles/zanahoria.tres" id="5_rjqlh"]
+[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
+[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
+[ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="7_ng816"]
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
+[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
+[ext_resource type="Resource" uid="uid://cricr6prjvmev" path="res://componentes/arbol_comportamiento/recursos/ArañazoLobo.tres" id="9_a0pfi"]
+[ext_resource type="Resource" uid="uid://bcarga001tres" path="res://componentes/arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
+[ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
+[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
+[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
+[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="14_4qigy"]
+[ext_resource type="Script" uid="uid://ca1qx7dmkknyn" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
+[ext_resource type="Texture2D" uid="uid://cgo4ablx73def" path="res://assets/skeleton-removebg-preview.png" id="18_qwpms"]
+[ext_resource type="PackedScene" uid="uid://dtw6fvi03aau8" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="26_6jhm3"]
+[ext_resource type="PackedScene" uid="uid://cwna41dn0homy" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
+[ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
+[ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
+[ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
+[ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
+[ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
+[ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
+[ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
+
+[sub_resource type="Resource" id="Resource_qwpms"]
+script = ExtResource("3_3v04n")
+item = ExtResource("4_0wona")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_i4fs3"]
+script = ExtResource("3_3v04n")
+item = ExtResource("5_rjqlh")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
+
+[sub_resource type="Animation" id="Animation_i4fs3"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="Animation" id="Animation_25upl"]
+resource_name = "caminar_este"
+loop_mode = 1
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5, 0.75),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [6, 7, 8, 7]
+}
+
+[sub_resource type="Animation" id="Animation_lgdnl"]
+resource_name = "caminar_norte"
+loop_mode = 1
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5, 0.75),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [9, 10, 11, 10]
+}
+
+[sub_resource type="Animation" id="Animation_yd712"]
+resource_name = "caminar_oeste"
+loop_mode = 1
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5, 0.75),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [3, 4, 5, 4]
+}
+
+[sub_resource type="Animation" id="Animation_qwpms"]
+resource_name = "caminar_sur"
+loop_mode = 1
+step = 0.25
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.25, 0.5, 0.75),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 1]
+}
+
+[sub_resource type="Animation" id="Animation_gaque"]
+resource_name = "idle_este"
+length = 0.5
+loop_mode = 1
+step = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [7]
+}
+
+[sub_resource type="Animation" id="Animation_qargp"]
+resource_name = "idle_norte"
+length = 0.5
+loop_mode = 1
+step = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [10]
+}
+
+[sub_resource type="Animation" id="Animation_4pvjj"]
+resource_name = "idle_oeste"
+length = 0.5
+loop_mode = 1
+step = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [4]
+}
+
+[sub_resource type="Animation" id="Animation_ys3pw"]
+resource_name = "idle_sur"
+length = 0.5
+loop_mode = 1
+step = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_yd712"]
+_data = {
+&"RESET": SubResource("Animation_i4fs3"),
+&"caminar_este": SubResource("Animation_25upl"),
+&"caminar_norte": SubResource("Animation_lgdnl"),
+&"caminar_oeste": SubResource("Animation_yd712"),
+&"caminar_sur": SubResource("Animation_qwpms"),
+&"idle_este": SubResource("Animation_gaque"),
+&"idle_norte": SubResource("Animation_qargp"),
+&"idle_oeste": SubResource("Animation_4pvjj"),
+&"idle_sur": SubResource("Animation_ys3pw")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_qwpms"]
+animation = &"caminar_oeste"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_i4fs3"]
+animation = &"caminar_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_yd712"]
+animation = &"caminar_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_25upl"]
+animation = &"caminar_sur"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_lgdnl"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_qwpms")
+blend_point_0/pos = Vector2(-1, 0)
+blend_point_1/node = SubResource("AnimationNodeAnimation_i4fs3")
+blend_point_1/pos = Vector2(1, 0)
+blend_point_2/node = SubResource("AnimationNodeAnimation_yd712")
+blend_point_2/pos = Vector2(0, -1)
+blend_point_3/node = SubResource("AnimationNodeAnimation_25upl")
+blend_point_3/pos = Vector2(0, 1)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_lgdnl"]
+animation = &"idle_oeste"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_qargp"]
+animation = &"idle_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_gaque"]
+animation = &"idle_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_4pvjj"]
+animation = &"idle_sur"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ys3pw"]
+animation = &"idle_oeste"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_qargp"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_lgdnl")
+blend_point_0/pos = Vector2(-1, 0)
+blend_point_1/node = SubResource("AnimationNodeAnimation_qargp")
+blend_point_1/pos = Vector2(1, 0)
+blend_point_2/node = SubResource("AnimationNodeAnimation_gaque")
+blend_point_2/pos = Vector2(0, -1)
+blend_point_3/node = SubResource("AnimationNodeAnimation_4pvjj")
+blend_point_3/pos = Vector2(0, 1)
+blend_point_4/node = SubResource("AnimationNodeAnimation_ys3pw")
+blend_point_4/pos = Vector2(-1, 0)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_gaque"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_4pvjj"]
+advance_mode = 2
+advance_condition = &"debeCaminar"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_ys3pw"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_61xkk"]
+states/CAMINAR/node = SubResource("AnimationNodeBlendSpace2D_lgdnl")
+states/CAMINAR/position = Vector2(542, 100)
+states/IDLE/node = SubResource("AnimationNodeBlendSpace2D_qargp")
+states/IDLE/position = Vector2(352, 100)
+transitions = ["Start", "IDLE", SubResource("AnimationNodeStateMachineTransition_gaque"), "IDLE", "CAMINAR", SubResource("AnimationNodeStateMachineTransition_4pvjj"), "CAMINAR", "IDLE", SubResource("AnimationNodeStateMachineTransition_ys3pw")]
+graph_offset = Vector2(-45.419453, 0)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_itdr7"]
+radius = 200.30228
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
+radius = 26.019224
+
+[sub_resource type="Resource" id="Resource_atributos"]
+script = ExtResource("34_iuxaj")
+regeneracion_vida = 1.0
+regeneracion_energia = 5.0
+resistencia_fisica = 10.0
+metadata/_custom_type_script = "uid://ddhq5qxvccml7"
+
+[node name="EnemigoCaballeroEsqueleto" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
+motion_mode = 1
+script = ExtResource("0_script_caballero")
+componente_vida = NodePath("VidaComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+componente_vision = NodePath("VisionComponente")
+componente_animacion = NodePath("AnimacionComponente")
+memoria = NodePath("ArbolComportamiento/MemoriaBT")
+datos = ExtResource("0_datos")
+tabla_botin = Array[ExtResource("3_3v04n")]([SubResource("Resource_qwpms"), SubResource("Resource_i4fs3")])
+xp_otorgada = 100
+
+[node name="EnergiaComponente" type="Node" parent="."]
+script = ExtResource("ec_enemigo")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_bvf6m")
+
+[node name="AgenteNavegacion" type="NavigationAgent2D" parent="."]
+path_desired_distance = 8.0
+target_desired_distance = 16.0
+avoidance_enabled = true
+radius = 20.0
+
+[node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador", "agente_navegacion")]
+script = ExtResource("6_itdr7")
+jugador = NodePath("..")
+agente_navegacion = NodePath("../AgenteNavegacion")
+
+[node name="AnimacionComponente" type="Node" parent="." node_paths=PackedStringArray("animation_player", "animation_tree")]
+script = ExtResource("11_ysyd8")
+animation_player = NodePath("AnimationPlayer")
+animation_tree = NodePath("AnimationTree")
+params_blend_adicionales = Array[String](["parameters/CAMINAR/blend_position", "parameters/IDLE/blend_position"])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimacionComponente"]
+root_node = NodePath("../..")
+libraries = {
+&"": SubResource("AnimationLibrary_yd712")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="AnimacionComponente"]
+root_node = NodePath("../..")
+tree_root = SubResource("AnimationNodeStateMachine_61xkk")
+anim_player = NodePath("../AnimationPlayer")
+parameters/conditions/debeCaminar = false
+parameters/conditions/debeIdle = false
+parameters/CAMINAR/blend_position = Vector2(0, 0)
+parameters/IDLE/blend_position = Vector2(0, 0)
+
+[node name="VisionComponente" type="Area2D" parent="."]
+script = ExtResource("7_ng816")
+requiere_linea_vision = true
+intervalo_verificacion = 0.2
+grupos_objetivo = Array[String](["jugadores"])
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionComponente"]
+visible = false
+shape = SubResource("CircleShape2D_itdr7")
+
+[node name="Polygon2D" type="Polygon2D" parent="VisionComponente"]
+visible = false
+z_index = -1
+color = Color(1, 1, 1, 0.25490198)
+polygon = PackedVector2Array(-1, -201, 63, -187, 125, -158, 161, -116, 192, -58, 199, 0, 195, 47, 175, 101, 142, 143, 98, 177, 53, 195, -1, 201, -57, 193, -104, 173, -145, 141, -175, 101, -193, 55, -203, -2, -195, -57, -176, -102, -145, -141, -99, -176, -50, -194)
+
+[node name="VidaComponente" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("9_2yvtj")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
+shape = SubResource("CircleShape2D_ysyd8")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("18_qwpms")
+hframes = 3
+vframes = 4
+frame = 1
+region_enabled = true
+region_rect = Rect2(0, 0, 96, 192)
+
+[node name="BarraVidaEnergia" type="Node2D" parent="."]
+position = Vector2(0, -50)
+script = ExtResource("barra_vida_energia")
+
+[node name="Label" type="Label" parent="."]
+custom_minimum_size = Vector2(100, 0)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -20.0
+offset_top = -65.0
+offset_right = 20.0
+offset_bottom = -42.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ArbolComportamiento" type="Node" parent="."]
+script = ExtResource("12_psl2x")
+agente = NodePath("..")
+ruta_memoria = NodePath("MemoriaBT")
+metadata/_custom_type_script = "uid://csnk67rvkjlua"
+
+[node name="MemoriaBT" type="Node" parent="ArbolComportamiento"]
+script = ExtResource("13_4qigy")
+metadata/_custom_type_script = "uid://c15th4ucm31ke"
+
+[node name="DepuradorBT" type="CanvasLayer" parent="ArbolComportamiento" node_paths=PackedStringArray("arbol")]
+visible = false
+script = ExtResource("18_1mga7")
+arbol = NodePath("..")
+mostrar_memoria = false
+posicion_arbol = Vector2(10, 15)
+ancho_panel_arbol = 500.0
+
+[node name="Selector" type="Node" parent="ArbolComportamiento"]
+script = ExtResource("14_4qigy")
+nombre_nodo = "(Selector) Raiz"
+metadata/_custom_type_script = "uid://d4koe822cisq2"
+
+[node name="Atacar" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("42_atacar")
+nombre_nodo = "(Acción) Atacar"
+
+[node name="SelectorHabilidades" type="Node" parent="ArbolComportamiento/Selector/Atacar"]
+script = ExtResource("7_3n3x0")
+habilidades = Array[ExtResource("8_72jeo")]([ExtResource("10_mjm62"), ExtResource("9_a0pfi")])
+nombre_nodo = "Habilidades"
+
+[node name="Perseguir" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("43_perseg")
+multiplicador_velocidad = 1.2
+nombre_nodo = "(Acción) Perseguir"
+
+[node name="Deambular" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("44_deamb")
+nombre_nodo = "(Acción) Deambular"
+
+[node name="Habilidades" type="Marker2D" parent="."]
+
+[node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("26_6jhm3")]
+
+[node name="HabilidadCarga" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
+duracion_preparacion = 1.0
+dano_carga = 40.0
+multiplicador_velocidad_carga = 3.0
+distancia_maxima_dash = 200.0
+componente_movimiento = NodePath("../../MovimientoComponente")
+duracion_recarga = 5.0
+
+[node name="AtributosComponente" type="Node" parent="."]
+script = ExtResource("33_d76rf")
+base = SubResource("Resource_atributos")
+metadata/_custom_type_script = "uid://mgcsfgslagtk"

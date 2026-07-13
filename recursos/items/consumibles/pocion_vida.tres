@@ -14,3 +14,4 @@ type_equippable = 0
 can_use = true
 can_equip = false
 can_drop = true
+curacion = 40.0

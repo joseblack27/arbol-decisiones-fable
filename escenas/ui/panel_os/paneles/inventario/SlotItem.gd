@@ -45,7 +45,11 @@ func update_item():
 func _get_drag_data(_at_position):
 	is_dragging = true
 
-	if not item_data or item_data.can_equip == false:
+	# can_equip (llevar a un EquipoSlot) O can_use (llevar a la barra rápida
+	# de consumibles, ver SlotConsumibleRapido): sin el segundo caso, un
+	# ítem usable (poción, comida...) nunca podía arrastrarse desde la
+	# grilla general del inventario, solo equipables.
+	if not item_data or (item_data.can_equip == false and item_data.can_use == false):
 		return null
 
 	slot_dragging.emit(true, item_data.type_equippable)

@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="DatosItem" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="DatosItem" load_steps=3 format=3 uid="uid://vmrsskb13j2w"]
 
-[ext_resource type="Script" path="res://recursos/items/DatosItem.gd" id="1_scr"]
-[ext_resource type="Texture2D" path="res://assets/items/resources/zanahoria_2.png" id="2_ico"]
+[ext_resource type="Script" uid="uid://j6y1rt5twmvl" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" uid="uid://ds01h62rlhbtv" path="res://assets/items/resources/zanahoria_2.png" id="2_ico"]
 
 [resource]
 script = ExtResource("1_scr")
@@ -10,7 +10,5 @@ icon = ExtResource("2_ico")
 quantity = 2
 description = "Comida sencilla. Restaura un poco de vida."
 type = 2
-type_equippable = 0
 can_use = true
-can_equip = false
-can_drop = true
+curacion = 15.0

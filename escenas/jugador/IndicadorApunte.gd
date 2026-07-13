@@ -101,10 +101,11 @@ func _draw() -> void:
 	if not _activo:
 		return
 	match _tipo:
-		"proyectil": _draw_proyectil()
-		"area":      _draw_area_efecto()
-		"carga":     _draw_carga()
-		"muro":      _draw_muro()
+		"proyectil":         _draw_proyectil()
+		"proyectil_abanico": _draw_proyectil_abanico()
+		"area":              _draw_area_efecto()
+		"carga":             _draw_carga()
+		"muro":              _draw_muro()
 
 
 ## Dibuja el círculo grande de rango: relleno tenue + borde configurables.
@@ -142,6 +143,30 @@ func _draw_proyectil() -> void:
 	# El corredor (esq) es la zona de golpe real del proyectil.
 	var esq := PackedVector2Array([perp * hw, fin + perp * hw, fin - perp * hw, -perp * hw])
 	_dibujar_area_golpe_poligono(esq)
+
+
+## Mismo corredor que _draw_proyectil(), repetido una vez por cada dirección
+## del abanico — así se ve de antemano hacia dónde va cada proyectil, no
+## solo el rango total (círculo grande), antes de soltar el disparo.
+func _draw_proyectil_abanico() -> void:
+	var h             := _hab as HabilidadProyectilAbanico
+	var alcance       := h.alcance_maximo       if h else 400.0
+	var cantidad      := h.cantidad_proyectiles if h else 3
+	var angulo_total  := deg_to_rad(h.angulo_total_grados) if h else deg_to_rad(30.0)
+
+	_dibujar_rango(alcance)
+	if _dir.length() < 0.05:
+		return
+
+	var hw := 10.0
+	var paso := angulo_total / (cantidad - 1) if cantidad > 1 else 0.0
+	var angulo_inicial := -angulo_total / 2.0
+	for i in cantidad:
+		var dir_i := _dir.rotated(angulo_inicial + paso * i)
+		var fin   := dir_i * alcance
+		var perp  := Vector2(-dir_i.y, dir_i.x)
+		var esq := PackedVector2Array([perp * hw, fin + perp * hw, fin - perp * hw, -perp * hw])
+		_dibujar_area_golpe_poligono(esq)
 
 
 func _draw_area_efecto() -> void:

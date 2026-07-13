@@ -131,7 +131,20 @@ func quitar_vida(cantidad: float, fuente: Node = null) -> float:
 		return salud_actual
 	if cantidad <= 0:
 		return salud_actual
-	
+
+	# Escudo temporal (ver EscudoComponente/HabilidadEscudo): reduce o
+	# bloquea el daño ANTES de aplicarlo, en este mismo punto central por
+	# el que pasa TODO el daño real — así cualquier ataque (proyectil,
+	# arañazo, golpe, carga, área) respeta el escudo sin tener que meter el
+	# chequeo en cada habilidad por separado. Sibling, no hijo de este
+	# componente: vive colgado de la misma entidad dueña (ver Jugador.tscn).
+	var padre := get_parent()
+	var escudo := padre.get_node_or_null("EscudoComponente") as EscudoComponente if padre else null
+	if escudo:
+		cantidad = escudo.aplicar(cantidad)
+		if cantidad <= 0.0:
+			return salud_actual
+
 	salud_actual -= cantidad
 
 
@@ -200,6 +213,55 @@ func _recibir_vida_red(valor: float, ruta_fuente: String = "") -> void:
 			nombre_fuente = Utils.nombre_visible(fuente)
 		elif ruta_fuente != "":
 			nombre_fuente = "%s [invisible]" % ruta_fuente.get_file()
+			# Autocuración: en vez de solo etiquetarlo en el log, pedirle al
+			# servidor los datos de ese nodo (existe allá, no acá) para
+			# instanciar la réplica que faltó — ver _pedir_resync_nodo_red /
+			# _recibir_resync_nodo_red más abajo.
+			rpc_id(1, "_pedir_resync_nodo_red", ruta_fuente)
 		BusEventos.daño_replicado.emit(get_parent(), delta, nombre_fuente)
 	salud_actual = valor_clamp
 	cambio_valor_vida.emit(salud_actual)
+
+
+## CLIENTE → SERVIDOR: "no tengo el nodo en ruta_fuente" (mob invisible: pegó
+## desde el servidor pero nunca se replicó acá). any_peer porque lo dispara
+## cualquier cliente que reciba un golpe fantasma; el servidor resuelve la
+## ruta en SU árbol (siempre absoluta, ver quitar_vida) y, si el nodo sigue
+## vivo, le manda de vuelta lo necesario para reconstruirlo — solo a quien
+## preguntó, no a todos.
+@rpc("any_peer", "reliable")
+func _pedir_resync_nodo_red(ruta_nodo: String) -> void:
+	if not multiplayer.is_server():
+		return
+	var nodo := get_tree().root.get_node_or_null(ruta_nodo)
+	if nodo == null or not (nodo is Node2D):
+		return
+	var padre := nodo.get_parent()
+	if padre == null:
+		return
+	var escena_base: String = (nodo.scene_file_path if nodo.scene_file_path != "" \
+		else (nodo.get_owner().scene_file_path if nodo.get_owner() else ""))
+	if escena_base == "":
+		return
+	rpc_id(multiplayer.get_remote_sender_id(), "_recibir_resync_nodo_red",
+		str(padre.get_path()), escena_base, String(nodo.name), (nodo as Node2D).global_position)
+
+
+## SERVIDOR → CLIENTE (solo a quien preguntó): instancia la réplica que le
+## faltaba, con el mismo nombre bajo el mismo padre que en el servidor — así
+## los RPCs por ruta (posición, animación, despawn) le empiezan a llegar
+## igual que si nunca hubiera faltado. Idempotente por si dos golpes seguidos
+## dispararon la misma pedida antes de que llegara la primera respuesta.
+@rpc("authority", "reliable")
+func _recibir_resync_nodo_red(ruta_padre: String, escena_ruta: String, nombre: String, posicion: Vector2) -> void:
+	var padre := get_tree().root.get_node_or_null(ruta_padre)
+	if padre == null or padre.has_node(nombre):
+		return
+	var escena := load(escena_ruta) as PackedScene
+	if escena == null:
+		return
+	var nodo := escena.instantiate()
+	nodo.name = nombre
+	padre.add_child(nodo)
+	if nodo is Node2D:
+		(nodo as Node2D).global_position = posicion

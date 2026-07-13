@@ -46,10 +46,20 @@ var peer_id_dueño: int = -1
 
 ## Nombre para mostrar en logs/UI (el nombre de nodo NO sirve para eso: en
 ## red es el peer id, un número pelado). El dueño se lo manda al servidor al
-## aparecer (_registrar_nombre_red) y de ahí viaja a todos los peers por el
-## mismo MultiplayerSynchronizer que ya replica la posición. Leerlo siempre
-## vía Utils.nombre_visible(nodo), que cae al nombre de nodo si está vacío.
+## aparecer (_registrar_identidad_red) y de ahí viaja a todos los peers por
+## el mismo MultiplayerSynchronizer que ya replica la posición. Leerlo
+## siempre vía Utils.nombre_visible(nodo), que cae al nombre de nodo si está
+## vacío. PUEDE repetirse entre jugadores sin problema — es solo estético.
 var nombre_visible: String = ""
+
+## Fase 0 del plan de escalado a MMO: identidad ÚNICA y persistente del
+## dueño (ver Utils.id_jugador_local — un UUID guardado en su disco, NO el
+## nombre de Windows). El SERVIDOR la usa como clave real para encontrar/
+## guardar la partida de este jugador (ver GestorGuardado) — nombre_visible
+## NUNCA debe usarse para eso, dos jugadores con el mismo nombre de Windows
+## ("Usuario", "Admin"...) compartirían sin querer la misma partida.
+## No se muestra nunca en pantalla, solo viaja al servidor.
+var id_unico: String = ""
 
 ## Fase 6 del plan de multijugador: lo que se replica NO es global_position
 ## directo — es esta variable. Así el cliente puede suavizar el movimiento
@@ -90,13 +100,17 @@ func _enter_tree() -> void:
 		return
 	_posicion_replicada = global_position
 	var config := SceneReplicationConfig.new()
-	config.add_property(NodePath(".:_posicion_replicada"))
-	config.property_set_replication_mode(
-		NodePath(".:_posicion_replicada"), SceneReplicationConfig.REPLICATION_MODE_ALWAYS
-	)
-	# El nombre para mostrar solo cambia una vez (cuando el dueño lo registra
-	# en el servidor) — ON_CHANGE: viaja solo entonces, y también le llega a
-	# quien se conecta más tarde (el sync manda el estado actual al spawnear).
+	# _posicion_replicada NO va acá (ver _fisica_servidor/_recibir_posicion_
+	# red): Fase 1 del plan de escalado a MMO probó primero un
+	# add_visibility_filter() de distancia sobre este mismo Synchronizer,
+	# pero rompió la integración con MultiplayerSpawner en vivo ("spawner is
+	# null", "ID not found in cache", desconexión inmediata de ambos peers)
+	# — riesgo real de tocar el sistema de spawn de Godot. En vez de eso, la
+	# posición usa el MISMO patrón ya probado y funcionando de Enemigo.gd:
+	# RPC manual dirigido solo a los peers cercanos (ver InteresEspacial),
+	# con el Synchronizer reservado para lo que replica a TODOS igual
+	# (nombre_visible — pocos jugadores lo necesitan lejos, pero es un
+	# cambio raro y barato, no vale la pena filtrarlo).
 	config.add_property(NodePath(".:nombre_visible"))
 	config.property_set_replication_mode(
 		NodePath(".:nombre_visible"), SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE
@@ -118,14 +132,16 @@ func _ready():
 		if camara:
 			camara.enabled = (peer_id_dueño == multiplayer.get_unique_id())
 			resetear_camara()
-		# El dueño registra su nombre para mostrar en el servidor; de ahí se
-		# replica a todos (ver _enter_tree). El servidor no puede saberlo
-		# solo: el nombre vive en la máquina del cliente.
+		# El dueño registra su nombre (para mostrar, se replica a todos —
+		# ver _enter_tree) y su identidad única (solo para el servidor,
+		# nunca se muestra ni se replica — ver id_unico). Ninguno de los dos
+		# lo puede saber el servidor solo: ambos viven en el cliente.
 		if peer_id_dueño == multiplayer.get_unique_id():
 			nombre_visible = Utils.nombre_jugador_local()
-			rpc_id(1, "_registrar_nombre_red", nombre_visible)
+			rpc_id(1, "_registrar_identidad_red", Utils.id_jugador_local(), nombre_visible)
 	else:
 		nombre_visible = Utils.nombre_jugador_local()
+		id_unico = Utils.id_jugador_local()
 		resetear_camara()
 	# 1. Conectar señales de los componentes.
 	if componente_vida:
@@ -197,17 +213,22 @@ func _joystick_movimiento(_direccion: Vector2):
 ## el remitente sea el dueño real antes de aceptarlo (autoridad real, no
 ## solo quién puede mandar el mensaje — mismo criterio que
 ## prototipos/red/JugadorRed.gd).
-## El dueño registra acá su nombre para mostrar. Solo el servidor lo acepta
-## (y solo del dueño real); el valor replicado viaja por el Sync a todos.
+## El dueño registra acá su identidad (id_unico, la clave real de guardado —
+## ver GestorGuardado) y su nombre para mostrar. Solo el servidor lo acepta
+## (y solo del dueño real). id_unico se queda acá, solo el servidor lo lee;
+## nombre_visible sí se replica por el Sync a todos (ver _enter_tree).
 @rpc("any_peer", "reliable")
-func _registrar_nombre_red(nombre: String) -> void:
+func _registrar_identidad_red(id: String, nombre: String) -> void:
 	if not multiplayer.is_server():
 		return
 	if multiplayer.get_remote_sender_id() != peer_id_dueño:
 		return
-	var limpio := nombre.strip_edges().substr(0, 24)
-	if limpio != "":
-		nombre_visible = limpio
+	var id_limpio := id.strip_edges()
+	if id_limpio != "":
+		id_unico = id_limpio
+	var nombre_limpio := nombre.strip_edges().substr(0, 24)
+	if nombre_limpio != "":
+		nombre_visible = nombre_limpio
 
 
 @rpc("any_peer", "unreliable_ordered")
@@ -269,6 +290,42 @@ func _physics_process(delta: float) -> void:
 
 	if direccion != Vector2.ZERO:
 		_ultima_direccion = direccion
+
+	if Utils.en_red() and multiplayer.is_server():
+		_replicar_posicion_red()
+
+
+## Fase 1 del plan de escalado a MMO (interés espacial): mismo patrón que
+## Enemigo._physics_process — antes esto viajaba por MultiplayerSynchronizer
+## en modo ALWAYS (sin throttle, a TODOS los peers, cada tick de sync); con
+## 100 jugadores dispersos por el mapa era tráfico O(jugadores²). Ahora es
+## un RPC manual, con el mismo throttle por cambio + keepalive que ya usan
+## los mobs, dirigido SOLO a los peers que tienen a este jugador cerca (ver
+## InteresEspacial) — a quien está del otro lado del mapa no le llega nada.
+var _ultima_pos_enviada := Vector2.INF
+var _fotogramas_sin_enviar_pos := 0
+const _FOTOGRAMAS_KEEPALIVE_POS := 30
+
+func _replicar_posicion_red() -> void:
+	_fotogramas_sin_enviar_pos += 1
+	var cambio := global_position.distance_squared_to(_ultima_pos_enviada) > 0.25
+	if not (cambio or _fotogramas_sin_enviar_pos >= _FOTOGRAMAS_KEEPALIVE_POS):
+		return
+	for peer_id in InteresEspacial.peers_cercanos(global_position):
+		# El propio dueño también recibe su posición replicada (interpola
+		# igual que ve a los demás) — el filtro de InteresEspacial ya lo
+		# incluye siempre a sí mismo (ver es_relevante_para_peer).
+		rpc_id(peer_id, "_recibir_posicion_red", global_position)
+	_ultima_pos_enviada = global_position
+	_fotogramas_sin_enviar_pos = 0
+
+
+## unreliable_ordered: es estado continuo (~60 veces/seg) — un paquete
+## perdido no importa, el siguiente lo corrige (mismo criterio que
+## Enemigo._recibir_estado_red).
+@rpc("authority", "unreliable_ordered")
+func _recibir_posicion_red(pos: Vector2) -> void:
+	_posicion_replicada = pos
 
 
 ## La señal "muerte" de VidaComponente solo se emite donde el daño es real

@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://cxq8mescudo01"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_formas"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/escudo/HabilidadEscudo.tscn" id="3_esc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_escudo1"]
+atlas = ExtResource("2_formas")
+region = Rect2(160, 0, 32, 32)
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Escudo"
+icono = SubResource("AtlasTexture_escudo1")
+descripcion = "Bloquea todo el daño entrante durante unos segundos"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 20
+enfriamiento = 8.0

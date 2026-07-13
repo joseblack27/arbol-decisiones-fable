@@ -166,7 +166,18 @@ func _avanzar_hacia_destino(delta: float) -> void:
 ## avoidance_enabled está apagado) — mueve el cuerpo directo, sin volver a
 ## pasar por physics_process() para no aplicarle la normalización de
 ## dirección dos veces.
+##
+## NavigationServer2D calcula esto de forma ASÍNCRONA: una petición de
+## comandar_destino() puede tardar uno o más fotogramas en volver por acá. Si
+## mientras tanto algo tomó control directo del movimiento (p. ej.
+## HabilidadCarga durante el dash, vía liberar_comando() → _modo = LIBRE),
+## una respuesta tardía de la petición VIEJA llegaba igual y pisaba la
+## velocidad/dirección que el dash ya había fijado — el "cambio de dirección
+## a mitad del dash" reportado en juego real. Por eso se descarta cualquier
+## respuesta que llegue cuando ya NO estamos en modo DESTINO.
 func _on_velocity_computed(velocidad_segura: Vector2) -> void:
+	if _modo != ModoComando.DESTINO:
+		return
 	if _contador_inmovilizacion > 0:
 		jugador.velocity = Vector2.ZERO
 	else:

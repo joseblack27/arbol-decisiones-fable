@@ -10,7 +10,3 @@ vida_maxima = 250.0
 velocidad_base = 80.0
 energia_maxima = 120.0
 regeneracion_energia = 5.0
-daño_carga = 40.0
-velocidad_carga = 3.0
-distancia_carga = 200.0
-cooldown_carga = 5.0

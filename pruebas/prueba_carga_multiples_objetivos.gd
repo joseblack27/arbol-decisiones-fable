@@ -65,7 +65,7 @@ func _montar() -> void:
 	_habilidad = (load("res://escenas/habilidades/carga_jugador/HabilidadCargaJugador.tscn") as PackedScene).instantiate()
 	_habilidad.set("entidad_dueña", _jugador)
 	_habilidad.set("componente_movimiento", movimiento)
-	_habilidad.set("daño_carga", 15.0)
+	_habilidad.set("dano_carga", 15.0)
 	_habilidad.set("distancia_maxima_dash", 120.0)
 	_habilidad.set("multiplicador_velocidad_carga", 6.0)
 	_habilidad.set("duracion_maxima", 0.5)

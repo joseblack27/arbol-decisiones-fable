@@ -40,10 +40,22 @@ extends Accion
 @export var duracion_recuperacion: float = 3.0
 ## Segundos entre intentos de selección de habilidad.
 @export var intervalo_entre_intentos: float = 1.0
+## Segundos que debe pasar "apuntando" hacia el objetivo (sin un giro brusco
+## de dirección) antes de poder disparar una habilidad. Sin esto, el mob
+## gira y dispara EN EL MISMO tick del árbol (10/s) apenas adquiere o
+## reorienta hacia el objetivo — visualmente "no mira, solo tira la
+## habilidad". Con esta ventana, direccion_mirada tiene un par de ticks para
+## rotar de verdad antes del primer disparo.
+@export var duracion_apuntado: float = 0.25
+## Ángulo (rad) de cambio de dirección que reinicia la ventana de apuntado
+## (objetivo se movió mucho / cambió de lado — hay que reapuntar de nuevo).
+const _UMBRAL_CAMBIO_DIRECCION_APUNTADO := 0.35  # ~20°
 
 var _selector_habilidades: SelectorHabilidades
 var _fin_recuperacion: float = 0.0
 var _proximo_intento: float = 0.0
+var _inicio_apuntado: float = -INF
+var _direccion_apuntado: Vector2 = Vector2.ZERO
 
 
 func _on_inicializar() -> void:
@@ -66,6 +78,16 @@ func _on_ejecutar() -> Estado:
 	if not agente or not movimiento or not _selector_habilidades:
 		return Estado.FALLIDO
 	if not is_instance_valid(objetivo_raw):
+		return Estado.FALLIDO
+	# Un jugador muerto sigue existiendo como nodo (reaparece en el mismo
+	# lugar, no se libera) — sin este chequeo, los mobs seguían atacando
+	# "lo que queda" de un jugador ya muerto porque is_instance_valid()
+	# sigue dando true. Se limpia el objetivo para que, si reaparece cerca,
+	# haga falta redetectarlo por visión — no queda "enganchado" al mismo
+	# cadáver para siempre.
+	if "_muerto" in objetivo_raw and objetivo_raw.get("_muerto"):
+		_memoria.establecer("objetivo", null)
+		_memoria.establecer("jugador_detectado", false)
 		return Estado.FALLIDO
 	var objetivo := objetivo_raw as Node2D
 
@@ -96,6 +118,13 @@ func _on_ejecutar() -> Estado:
 	if "direccion_mirada" in agente:
 		agente.set("direccion_mirada", direccion)
 
+	# Reiniciar la ventana de apuntado si es la primera vez que apunta a
+	# este objetivo o si giró bruscamente (objetivo se movió mucho).
+	if _direccion_apuntado == Vector2.ZERO \
+			or direccion.angle_to(_direccion_apuntado) > _UMBRAL_CAMBIO_DIRECCION_APUNTADO:
+		_inicio_apuntado = ahora
+		_direccion_apuntado = direccion
+
 	# Recuperación post-habilidad: quieto.
 	if ahora < _fin_recuperacion:
 		movimiento.detener()
@@ -105,8 +134,9 @@ func _on_ejecutar() -> Estado:
 	if distancia > _distancia_maxima():
 		return Estado.FALLIDO
 
-	# Intentar habilidad cada N segundos.
-	if ahora >= _proximo_intento:
+	# Intentar habilidad cada N segundos — pero solo si ya lleva
+	# duracion_apuntado segundos apuntando establemente al objetivo.
+	if ahora >= _proximo_intento and (ahora - _inicio_apuntado) >= duracion_apuntado:
 		_proximo_intento = ahora + intervalo_entre_intentos
 		if _selector_habilidades.ejecutar() == Estado.EXITOSO:
 			_fin_recuperacion = ahora + duracion_recuperacion
@@ -133,6 +163,8 @@ func _on_reiniciar() -> void:
 	super._on_reiniciar()
 	_fin_recuperacion = 0.0
 	_proximo_intento = 0.0
+	_inicio_apuntado = -INF
+	_direccion_apuntado = Vector2.ZERO
 
 
 func _distancia_maxima() -> float:

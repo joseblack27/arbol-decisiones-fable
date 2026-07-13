@@ -20,6 +20,11 @@ class_name DatosItem
 @export var can_equip: bool = false
 @export var can_drop: bool = true
 
+## Vida que restaura al usarse (solo tiene efecto si can_use == true).
+## 0 = sin efecto de curación — a futuro, otros ítems usables (energía,
+## buffs...) sumarán sus propios campos acá cuando existan.
+@export var curacion: float = 0.0
+
 ## Bonos de atributos que aporta este ítem mientras esté equipado (solo
 ## tiene sentido si type == EQUIPPABLE). Reutiliza el mismo AtributosBase
 ## que ya usan jugador/enemigos — lo que pongas acá se SUMA a los atributos

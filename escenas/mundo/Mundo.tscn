@@ -1,16 +1,19 @@
-[gd_scene load_steps=12 format=3 uid="uid://brkcchgxseadn"]
+[gd_scene load_steps=15 format=3 uid="uid://brkcchgxseadn"]
 
 [ext_resource type="Script" uid="uid://b1k567eamw383" path="res://escenas/mundo/Mundo.gd" id="2_mundo"]
 [ext_resource type="PackedScene" uid="uid://cjw4ul4uo1qyp" path="res://escenas/ui/joystick/joystick.tscn" id="3_xywc0"]
 [ext_resource type="PackedScene" uid="uid://k23y3qpaht01" path="res://escenas/ui/zona_cancelacion/ZonaCancelacion.tscn" id="5_zc"]
 [ext_resource type="PackedScene" uid="uid://6fwc7y8i8y77" path="res://escenas/ui/ui_habilidad/UIHabilidad.tscn" id="6_uih"]
-[ext_resource type="PackedScene" uid="uid://duibn61qwvaxw" path="res://escenas/ui/barra_energia/BarraEnergia.tscn" id="8_be"]
 [ext_resource type="PackedScene" uid="uid://dfmy15nixg3h3" path="res://escenas/ui/panel_os/principal/OsPrincipal.tscn" id="14_os"]
 [ext_resource type="Script" uid="uid://c51cbomf7oq2h" path="res://escenas/ui/boton_os/BotonOS.gd" id="15_bos"]
 [ext_resource type="Script" uid="uid://dpmgf5u2u5w0y" path="res://escenas/ui/ControlJuego.gd" id="16_cj"]
 [ext_resource type="PackedScene" path="res://escenas/ui/notificaciones_loot/PanelNotificacionesLoot.tscn" id="17_pnl"]
 [ext_resource type="PackedScene" path="res://escenas/ui/contador_fps/ContadorFPS.tscn" id="18_fps"]
-[ext_resource type="PackedScene" path="res://escenas/ui/hud/HudJugador.tscn" id="19_hud"]
+[ext_resource type="PackedScene" uid="uid://dv6b7h20xpei5" path="res://escenas/ui/hud/HudJugador.tscn" id="19_hud"]
+[ext_resource type="PackedScene" path="res://escenas/ui/aviso_nivel/AvisoNivel.tscn" id="20_av"]
+[ext_resource type="PackedScene" uid="uid://da68t2dycxchb" path="res://escenas/ui/hud/BarraConsumibles.tscn" id="21_bc"]
+[ext_resource type="PackedScene" path="res://escenas/ui/contador_fps/ContadorLatencia.tscn" id="22_lat"]
+[ext_resource type="PackedScene" path="res://escenas/ui/hud/BarraBuffs.tscn" id="23_bb"]
 
 [node name="Mundo" type="Node2D"]
 y_sort_enabled = true
@@ -84,16 +87,6 @@ slot_index = 3
 color_reposo = Color(1, 1, 1, 0.50980395)
 color_activo = Color(1, 1, 1, 0.9019608)
 
-[node name="BarraEnergia" parent="CanvasLayer/Control" instance=ExtResource("8_be")]
-layout_mode = 1
-anchors_preset = 7
-offset_left = -72.0
-offset_top = -16.0
-offset_right = 72.0
-offset_bottom = -6.0
-grow_horizontal = 2
-grow_vertical = 0
-
 [node name="ZonaCancelacion" parent="CanvasLayer/Control" instance=ExtResource("5_zc")]
 anchors_preset = 0
 
@@ -102,6 +95,23 @@ offset_left = 16.0
 offset_top = 60.0
 
 [node name="ContadorFPS" parent="CanvasLayer" instance=ExtResource("18_fps")]
+
+[node name="ContadorLatencia" parent="CanvasLayer" instance=ExtResource("22_lat")]
+
+[node name="EstadoConexion" type="Label" parent="CanvasLayer"]
+process_mode = 3
+offset_left = 16.0
+offset_top = 56.0
+offset_right = 196.0
+offset_bottom = 80.0
+theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+text = "Desconectado"
+
+[node name="AvisoNivel" parent="CanvasLayer" instance=ExtResource("20_av")]
 
 [node name="HudJugador" parent="CanvasLayer" instance=ExtResource("19_hud")]
 anchors_preset = 7
@@ -116,18 +126,31 @@ offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="EstadoConexion" type="Label" parent="CanvasLayer"]
-process_mode = 3
-offset_left = 20.0
-offset_top = 34.0
-offset_right = 200.0
-offset_bottom = 58.0
-theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
-theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
-theme_override_constants/shadow_offset_x = 1
-theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 14
-text = "Desconectado"
+[node name="BarraBuffs" parent="CanvasLayer" instance=ExtResource("23_bb")]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -110.0
+offset_top = -116.0
+offset_right = 174.0
+offset_bottom = -88.0
+grow_horizontal = 1
+grow_vertical = 0
+
+[node name="BarraConsumibles" parent="CanvasLayer" instance=ExtResource("21_bc")]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = 120.0
+offset_top = -107.0
+offset_right = 304.0
+offset_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
 
 [node name="BotonOS" type="Button" parent="CanvasLayer"]
 anchors_preset = 1

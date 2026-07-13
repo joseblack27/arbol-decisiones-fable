@@ -14,6 +14,14 @@ class_name Enemigo
 ## así que nunca queda atrapado por sus propias habilidades.
 const CAPA_OBSTACULOS_HABILIDAD := 4
 
+## Los mobs viven en su propia capa física (collision_layer = 2, fijada en
+## enemigo.tscn) en vez de compartir la capa 1 del jugador/mundo: así dejan
+## de empujarse/bloquearse entre ellos físicamente. Su collision_mask (ver
+## _ready) sigue incluyendo la capa 1 (jugador/mundo) y la 4 (Muro), así que
+## siguen chocando con ambos con normalidad — solo entre sí ya no colisionan.
+## El daño entre mobs ya estaba bloqueado aparte, por equipo (ver
+## Combate.mismo_equipo — ambos en el grupo "enemigos" cuentan como aliados).
+
 # --- Componentes ---
 @export var componente_vida: VidaComponente
 @export var componente_maquina_de_estados: MaquinaDeEstadosComponente
@@ -23,7 +31,6 @@ const CAPA_OBSTACULOS_HABILIDAD := 4
 @export var memoria: MemoriaBT
 
 @export var datos: EnemigoDatos
-@export var velocidad_base: float = 150.0
 @export_range(0.0, 1.0, 0.05) var umbral_vida_baja: float = 0.3
 
 ## Ítems que este enemigo puede soltar al morir — van directo al inventario
@@ -53,6 +60,15 @@ var esta_atacando: bool = false
 ## era lo que hacían GestorInventario/GestorExperiencia antes de esto —
 ## incorrecto en cuanto hay más de un jugador conectado).
 var _ultimo_atacante: Node = null
+
+## true desde el primer instante de _on_muerte (antes incluso del fotograma
+## diferido de _procesar_muerte) — cualquier sistema con su PROPIO bucle de
+## física independiente del árbol de comportamiento (p. ej. HabilidadCarga
+## durante el dash, que mueve el cuerpo directo en su _physics_process, sin
+## pasar por MovimientoComponente) debe consultar esto para cortarse solo:
+## apagar arbol.activo no lo alcanza, porque esas habilidades no tickean por
+## el árbol una vez activadas.
+var _muerto: bool = false
 
 @onready var habilidades: Marker2D = $Habilidades
 
@@ -185,7 +201,14 @@ func _physics_process(delta: float) -> void:
 			or direccion != _ultima_dir_enviada \
 			or direccion_mirada != _ultima_mirada_enviada
 		if cambio or _fotogramas_sin_enviar >= _FOTOGRAMAS_KEEPALIVE_RED:
-			rpc("_recibir_estado_red", global_position, direccion, direccion_mirada)
+			# Fase 1 del plan de escalado a MMO (interés espacial): antes esto
+			# era rpc() — broadcast a TODOS los peers conectados, sin importar
+			# dónde estuvieran parados. Con 100 jugadores dispersos por el
+			# mapa, cada mob mandaba su posición a jugadores que ni siquiera
+			# lo tenían cerca — tráfico y costo de simulación que crecían como
+			# mobs × jugadores. Ahora solo a quien lo tiene a RADIO_INTERES.
+			for peer_id in InteresEspacial.peers_cercanos(global_position):
+				rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
 			_ultima_pos_enviada    = global_position
 			_ultima_dir_enviada    = direccion
 			_ultima_mirada_enviada = direccion_mirada
@@ -254,6 +277,7 @@ func _on_daño_aplicado(objetivo: Node, _cantidad: float, fuente: Node) -> void:
 
 
 func _on_muerte(_valor: float) -> void:
+	_muerto = true
 	memoria.establecer("vida_cero", true)
 	memoria.establecer("vida",      0.0)
 	# Apagar el cerebro y frenar el cuerpo: un muerto no decide ni camina.
@@ -364,8 +388,14 @@ func _desvanecer_y_eliminar() -> void:
 		componente_animacion.cancelar_override()
 		# Fijar el blend en la última dirección mirada ANTES de que
 		# _physics_process (que la actualizaba cada frame) se apague, para
-		# que el idle quede mirando hacia donde miraba, quieto.
-		componente_animacion.actualizar_blend(direccion)
+		# que el idle quede mirando hacia donde miraba, quieto. MISMO criterio
+		# que _aplicar_presentacion (no "direccion" a secas): un mob que
+		# muere en combate suele estar mirando al jugador vía
+		# direccion_mirada (AccionAtacar), no hacia donde caminó por última
+		# vez — usar solo "direccion" giraba el cadáver hacia un lado
+		# random al morir (reportado con la araña).
+		var hacia_donde_mirar := direccion_mirada if direccion_mirada != Vector2.ZERO else direccion
+		componente_animacion.actualizar_blend(hacia_donde_mirar)
 		componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", false)
 		componente_animacion.establecer_condicion("parameters/conditions/debeIdle",    true)
 	# Fase 5 del plan de multijugador: la réplica automática de "este nodo
@@ -390,6 +420,7 @@ func _desvanecer_y_eliminar() -> void:
 ## en el servidor).
 @rpc("authority", "reliable")
 func _despawn_red() -> void:
+	_muerto = true
 	set_deferred("collision_layer", 0)
 	set_deferred("collision_mask", 0)
 	if componente_animacion:
@@ -398,7 +429,10 @@ func _despawn_red() -> void:
 		# congelado a mitad de la animación que estuviera corriendo
 		# (caminar, ataque) en vez de quieto en reposo.
 		componente_animacion.cancelar_override()
-		componente_animacion.actualizar_blend(direccion)
+		# Mismo criterio que _desvanecer_y_eliminar(): direccion_mirada
+		# primero (mirando al jugador en combate), direccion como respaldo.
+		var hacia_donde_mirar := direccion_mirada if direccion_mirada != Vector2.ZERO else direccion
+		componente_animacion.actualizar_blend(hacia_donde_mirar)
 		componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", false)
 		componente_animacion.establecer_condicion("parameters/conditions/debeIdle",    true)
 	set_physics_process(false)
@@ -435,7 +469,6 @@ func _aplicar_datos() -> void:
 		componente_vida.salud_maxima = datos.vida_maxima
 	if componente_movimiento:
 		componente_movimiento.velocidad_base = datos.velocidad_base
-	velocidad_base = datos.velocidad_base
 	var comp_energia := get_node_or_null("EnergiaComponente") as EnergiaComponente
 	if comp_energia:
 		comp_energia.energia_maxima        = datos.energia_maxima

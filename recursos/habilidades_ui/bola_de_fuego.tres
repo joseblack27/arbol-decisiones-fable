@@ -15,7 +15,7 @@ icono = SubResource("AtlasTexture_rmpga")
 descripcion = "Bola de fuego que se lanza en linea recta, causando [color=red]{damage1}[/color]"
 escena = ExtResource("3_esc")
 nivel = 1
-costo_energia = 50
+costo_energia = 10
 dano_base_min = 10
 dano_base_max = 12
 tipo_dano = 1

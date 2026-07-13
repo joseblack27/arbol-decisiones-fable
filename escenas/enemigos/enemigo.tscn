@@ -1099,6 +1099,7 @@ radius = 200.30228
 radius = 26.019224
 
 [node name="Enemigo" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_maquina_de_estados", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
+collision_layer = 2
 script = ExtResource("1_bvf6m")
 componente_vida = NodePath("VidaComponente")
 componente_maquina_de_estados = NodePath("MaquinaEstadosComponente")
@@ -1106,7 +1107,6 @@ componente_movimiento = NodePath("MovimientoComponente")
 componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
-velocidad_base = 80.0
 
 [node name="EnergiaComponente" type="Node" parent="."]
 script = ExtResource("ec_enemigo")
