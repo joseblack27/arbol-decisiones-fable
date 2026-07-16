@@ -21,9 +21,12 @@ class_name DatosItem
 @export var can_drop: bool = true
 
 ## Vida que restaura al usarse (solo tiene efecto si can_use == true).
-## 0 = sin efecto de curación — a futuro, otros ítems usables (energía,
-## buffs...) sumarán sus propios campos acá cuando existan.
+## 0 = sin efecto de curación.
 @export var curacion: float = 0.0
+
+## Energía que restaura al usarse (solo tiene efecto si can_use == true).
+## 0 = sin efecto — ver jeringa_adrenalina.tres para el primer ítem que lo usa.
+@export var energia: float = 0.0
 
 ## Bonos de atributos que aporta este ítem mientras esté equipado (solo
 ## tiene sentido si type == EQUIPPABLE). Reutiliza el mismo AtributosBase

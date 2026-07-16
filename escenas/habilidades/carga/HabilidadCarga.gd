@@ -116,16 +116,21 @@ func _physics_process(delta: float) -> void:
 				objetivo = col.get_parent()
 			if objetivo == entidad_dueña:
 				continue
+			# Sin este chequeo, un mob dashing atravesaba/golpeaba a OTRO mob
+			# de su mismo bando ("los enemigos se golpean entre ellos") — no
+			# se notaba mientras los mobs colisionaban físicamente entre sí
+			# (nunca llegaban a solaparse durante el dash), pero desde que
+			# esa colisión se apagó (ver Enemigo.gd, capa propia) sí pueden
+			# atravesarse y el dash los detecta como cualquier otro objetivo.
+			if Combate.mismo_equipo(entidad_dueña, objetivo):
+				continue
 			if objetivo.has_method("quitar_vida"):
 				_ya_impacto = true
 				var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, dano_carga, tipo_dano)
-				# Enemigos/jugadores reenvían el atacante a su VidaComponente
-				# (para el log de Actividad Reciente en red); los genéricos
-				# (Muro...) mantienen su firma de un solo argumento.
-				if objetivo.is_in_group("enemigos") or objetivo.is_in_group("jugadores"):
-					objetivo.quitar_vida(dano_final, entidad_dueña)
-				else:
-					objetivo.quitar_vida(dano_final)
+				# Todos los quitar_vida() aceptan "fuente" como segundo
+				# argumento — Muro lo usa para no dejarse romper por su
+				# propio equipo (ver Muro._bloqueado_por_equipo).
+				objetivo.quitar_vida(dano_final, entidad_dueña)
 				if Utils.debe_mostrar_dano_local():
 					BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
 				BusEventos.habilidad_impacto.emit("carga", objetivo)
@@ -161,7 +166,6 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	if entidad_dueña and "memoria" in entidad_dueña:
 		entidad_dueña.get("memoria").establecer("ataque_en_curso", true)
 	_fase = Fase.PREPARACION
-	_set_excepciones_jugador(true)
 	preparacion_iniciada.emit()
 
 
@@ -190,19 +194,7 @@ func _iniciar_dash() -> void:
 
 func _terminar_carga() -> void:
 	_fase = Fase.INACTIVO
-	_set_excepciones_jugador(false)
 	carga_terminada.emit()
-
-
-func _set_excepciones_jugador(activar: bool) -> void:
-	var enemigo := entidad_dueña as CharacterBody2D
-	if not enemigo:
-		return
-	for jugador in enemigo.get_tree().get_nodes_in_group("jugadores"):
-		if activar:
-			enemigo.add_collision_exception_with(jugador)
-		else:
-			enemigo.remove_collision_exception_with(jugador)
 
 
 func _obtener_objetivo() -> Node2D:

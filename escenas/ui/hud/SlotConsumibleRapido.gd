@@ -32,6 +32,22 @@ func _ready() -> void:
 	_sincronizar()
 
 
+## Segundo dedo (index > 0) con toque crudo: el "mouse emulado" de Android
+## solo sigue al PRIMER dedo, así que con el joystick sostenido las casillas
+## nunca recibían el tap (reportado: "cuando te mueves no puedes interactuar
+## con los consumibles"). Solo en la barra flotante (usar_al_tocar): el
+## primer dedo conserva el flujo normal de SlotItem (clic y arrastre).
+func _input(event: InputEvent) -> void:
+	if not usar_al_tocar or not visible or not is_visible_in_tree():
+		return
+	if not (event is InputEventScreenTouch) or not event.pressed or event.index == 0:
+		return
+	if not get_global_rect().has_point(event.position):
+		return
+	get_viewport().set_input_as_handled()
+	_on_click(self)
+
+
 func _sincronizar() -> void:
 	item_data = GestorBarraRapida.casillas[slot_index]
 

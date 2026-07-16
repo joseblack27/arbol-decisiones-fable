@@ -1,13 +1,18 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://dm8bip261qqn"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://dm8bip261qqn"]
 
-[ext_resource type="Texture2D" uid="uid://trwq6shh2a0d" path="res://assets/iconos/buttons/skills/boton_5.png" id="1_vj2md"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_drs2c"]
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="2_rhsv4"]
 [ext_resource type="PackedScene" uid="uid://nxtblnos5iwa" path="res://escenas/habilidades/area_efecto/HabilidadAreaEfecto.tscn" id="3_esc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e3lqg"]
+atlas = ExtResource("2_drs2c")
+region = Rect2(448, 128, 32, 32)
+filter_clip = true
 
 [resource]
 script = ExtResource("2_rhsv4")
 nombre = "Picos rocosos"
-icono = ExtResource("1_vj2md")
+icono = SubResource("AtlasTexture_e3lqg")
 descripcion = "Picos de piedra que se despliegan en la zona elegida, causando [color=#905010]{damage1}[/color]"
 escena = ExtResource("3_esc")
 nivel = 1

@@ -64,11 +64,15 @@ func _aplicar_crecimiento_nivel() -> void:
 	var vida := padre.get_node_or_null("VidaComponente") as VidaComponente
 	if vida:
 		vida.salud_maxima += 10.0
-		vida.agregar_vida(10.0)  # el incremento también cura, se siente como un mini-heal
+		# Vida y energía a TOPE al subir de nivel (pedido del usuario) — no
+		# solo el incremento de +10: agregar_vida() ya clampea al máximo
+		# nuevo, así que pedir "todo el máximo" garantiza el 100% sin
+		# importar cuánta vida tenía antes.
+		vida.agregar_vida(vida.salud_maxima)
 	var energia := padre.get_node_or_null("EnergiaComponente") as EnergiaComponente
 	if energia:
 		energia.energia_maxima += 5.0
-		energia.agregar_energia(5.0)
+		energia.agregar_energia(energia.energia_maxima)
 	var atributos := padre.get_node_or_null("AtributosComponente") as AtributosComponente
 	if atributos:
 		# agregar_crecimiento_permanente() (no "atributos.base.danos += 1.0"

@@ -42,10 +42,10 @@ func _al_liberar_a_piscina() -> void:
 
 func _aplicar_daño() -> void:
 	_activado = true
-	# respetar_equipo=false: un AoE golpea a TODO lo que pise (salvo a su
-	# fuente), aliados incluidos — comportamiento de siempre, distinto de
-	# Arañazo/GolpeBasico que sí filtran por equipo.
-	Combate.golpear_area(self, _forma, daño, entidad_fuente, tipo_dano, "area_efecto", false)
+	# respetar_equipo por defecto (true): los AoE tampoco tienen fuego amigo —
+	# ni entre jugadores ni entre enemigos (antes golpeaban a TODO lo que
+	# pisaran, aliados incluidos; se cambió junto con el resto de habilidades).
+	Combate.golpear_area(self, _forma, daño, entidad_fuente, tipo_dano, "area_efecto")
 
 func _process(delta: float) -> void:
 	if not _activado:

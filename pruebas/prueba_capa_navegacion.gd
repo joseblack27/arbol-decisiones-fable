@@ -16,11 +16,26 @@ var _navegacion: TileMapLayer
 var _destino := Vector2.ZERO
 
 
+var _frames_con_lobo := 0
+
 func _process(_delta: float) -> bool:
 	_fotogramas += 1
-	match _fotogramas:
-		1:
-			_montar()
+	if _fotogramas == 1:
+		_montar()
+		return false
+	# Los mobs ya no son nodos fijos del nivel: los crea SpawnerMobs en
+	# runtime, en un fotograma que varía — sondear hasta que aparezca en vez
+	# de asumir un fotograma fijo.
+	if _lobo == null:
+		if _fotogramas > 120:
+			print("FALLO: SpawnerMobs no creó ningún lobo en la pradera.")
+			print("PRUEBA CAPA NAVEGACION FALLIDA")
+			quit(1)
+			return true
+		_capturar_lobo_y_pintar_pared()
+		return false
+	_frames_con_lobo += 1
+	match _frames_con_lobo:
 		10:
 			_destino = _lobo.global_position + Vector2(240, 0)
 			_movimiento.comandar_destino(_destino)
@@ -52,7 +67,16 @@ func _montar() -> void:
 	var nivel := (load("res://escenas/niveles/NivelPradera.tscn") as PackedScene).instantiate()
 	root.add_child(nivel)
 	current_scene = nivel
-	_lobo = nivel.get_node("Enemigos/EnemigoLobo")
+
+
+func _capturar_lobo_y_pintar_pared() -> void:
+	var nivel := current_scene
+	for mob in root.get_tree().get_nodes_in_group("enemigos"):
+		if "Lobo" in String(mob.name):
+			_lobo = mob
+			break
+	if _lobo == null:
+		return  # Todavía no spawneó — se reintenta el próximo fotograma.
 	var ia := _lobo.get_node_or_null("ArbolComportamiento")
 	if ia != null:
 		ia.set("activo", false)

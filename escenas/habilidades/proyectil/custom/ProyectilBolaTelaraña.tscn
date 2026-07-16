@@ -43,6 +43,7 @@ animations = [{
 [sub_resource type="CircleShape2D" id="CircleShape2D_0rym6"]
 
 [node name="ProyectilBolaTelaraña" type="Area2D"]
+collision_mask = 4294967295
 script = ExtResource("1_0rym6")
 velocidad_base = 200.0
 alcance_base = 300.0

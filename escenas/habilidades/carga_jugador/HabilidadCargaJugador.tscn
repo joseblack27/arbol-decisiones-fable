@@ -4,5 +4,6 @@
 
 [node name="HabilidadCargaJugador" type="Node"]
 script = ExtResource("1_hcj")
+congela_movimiento_en_red = false
 costo_energia = 25.0
 requiere_direccion = true

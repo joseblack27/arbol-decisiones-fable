@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://crafaga5proy1"]
+
+[ext_resource type="Script" path="res://escenas/habilidades/rafaga/HabilidadRafaga.gd" id="1_rafaga"]
+
+[node name="HabilidadRafaga" type="Node"]
+script = ExtResource("1_rafaga")
+requiere_direccion = true
+tipo_dano = 1

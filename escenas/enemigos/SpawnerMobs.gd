@@ -303,7 +303,16 @@ func _al_peer_listo(peer_id: int) -> void:
 ## CLIENTE: instancia las réplicas que le falten, con el MISMO nombre bajo el
 ## MISMO contenedor que en el servidor — así los RPCs por ruta (posición,
 ## animación, despawn) le llegan igual que a una réplica del spawner normal.
-## Idempotente: si alguna sí llegó por el lote automático, se salta.
+## Idempotente en la CREACIÓN (si el nodo ya existe no se instancia de
+## nuevo), pero NO en la posición: si el nodo ya llegó por el lote
+## automático del MultiplayerSpawner (su catch-up a peers que se conectan
+## tarde, que a veces sí dispara aunque no sea confiable — ver comentario en
+## _ready), ese lote NUNCA trae posición — Enemigo no usa Synchronizer para
+## eso a propósito (replica por RPC explícito, ver Enemigo._physics_process).
+## Antes esto se saltaba de largo si el nodo "ya estaba", dejándolo pegado
+## en el origen del contenedor para siempre — el "todos los mobs spawnean
+## en el centro" reportado en juego real. Ahora SIEMPRE se le pisa la
+## posición real, exista ya o se acabe de crear acá.
 @rpc("authority", "reliable")
 func _recibir_mobs_existentes(datos: Array) -> void:
 	if _contenedor == null:
@@ -312,13 +321,15 @@ func _recibir_mobs_existentes(datos: Array) -> void:
 		var ruta: String = entrada[0]
 		var nombre: String = entrada[1]
 		var pos: Vector2 = entrada[2]
-		if nombre == "" or _contenedor.has_node(nombre):
+		if nombre == "":
 			continue
-		var escena := load(ruta) as PackedScene
-		if escena == null:
-			continue
-		var mob := escena.instantiate()
-		mob.name = nombre
-		_contenedor.add_child(mob)
+		var mob := _contenedor.get_node_or_null(nombre)
+		if mob == null:
+			var escena := load(ruta) as PackedScene
+			if escena == null:
+				continue
+			mob = escena.instantiate()
+			mob.name = nombre
+			_contenedor.add_child(mob)
 		if mob is Node2D:
 			(mob as Node2D).global_position = pos

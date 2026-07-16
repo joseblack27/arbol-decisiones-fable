@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://cxq8minmov01"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" uid="uid://cy0wcowd7bkx1" path="res://assets/telarana_48x48.png" id="2_jwnv3"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/proyectil/custom/HabilidadProyectilInmovilizador.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Red inmovilizadora"
+icono = ExtResource("2_jwnv3")
+descripcion = "Dispara una red que inmoviliza al enemigo que impacte durante unos segundos"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 20
+alcance_metros = 7
+enfriamiento = 6.0

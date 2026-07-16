@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://bm4obwbxriwrr"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="2_dh"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_lh3uv"]
+[ext_resource type="PackedScene" uid="uid://b1utcrva0las" path="res://escenas/habilidades/lanzallamas/HabilidadLanzallamas.tscn" id="3_esc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_llamas"]
+atlas = ExtResource("2_lh3uv")
+region = Rect2(0, 128, 32, 32)
+
+[resource]
+script = ExtResource("2_dh")
+nombre = "Lanzallamas"
+icono = SubResource("AtlasTexture_llamas")
+descripcion = "Cono de fuego continuo mientras mantienes presionado (máximo 5s), causando [color=#ff8800]{damage1}[/color] por tick. Te quedás quieto mientras disparás."
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 4
+dano_base_min = 4
+dano_base_max = 8
+alcance_metros = 5.5
+enfriamiento = 4.0

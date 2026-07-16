@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://blanzallamasesc1"]
+
+[ext_resource type="Script" path="res://escenas/habilidades/lanzallamas/HabilidadLanzallamas.gd" id="1_llamas"]
+
+[node name="HabilidadLanzallamas" type="Node"]
+script = ExtResource("1_llamas")
+costo_energia = 4.0
+requiere_direccion = true
+tipo_dano = 1

@@ -162,6 +162,11 @@ func _al_desconectar(id: int) -> void:
 	print("Peer desconectado: %d" % id)
 	_peers_pendientes.erase(id)
 	_cola_spawn.erase(id)
+	# Volcar YA su último snapshot de progreso a la base — antes de liberar
+	# el nodo (GestorGuardado necesita el Jugador vivo para resolver su
+	# id_unico). Sin esto, cerrar el juego perdía lo posterior a la última
+	# volcada periódica.
+	GestorGuardado.volcar_peer(id)
 	var jugador := _jugadores.get_node_or_null(str(id))
 	if jugador:
 		# Avisarle a los mobs ANTES de liberar el nodo: la memoria de su

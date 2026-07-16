@@ -34,6 +34,7 @@ var _muro_fuerte: Node
 var _debil_sobrevive := false
 var _debil_gasto_proyectil := false
 var _fuerte_proyectil_sigue := false
+var _bloqueo_mismo_equipo_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -182,6 +183,34 @@ func _probar_impacto_vs_defensa() -> void:
 	proyectil_fuerte.queue_free()
 
 
+## El pedido original del usuario: "solo las habilidades de los enemigos
+## pueden destruir los muros del jugador y viceversa" — un proyectil
+## disparado por el MISMO jugador que invocó el muro (o cualquier otro
+## jugador: mismo equipo) no debe hacerle NADA de daño, ni siquiera con
+## impacto (penetración) muy por encima de su defensa.
+func _probar_bloqueo_mismo_equipo() -> bool:
+	var muro := _crear_muro_prueba(20.0)
+	var vida_antes: float = muro.call("obtener_vida")
+
+	var proyectil: Node = (load("res://escenas/habilidades/proyectil/Proyectil.gd") as GDScript).new()
+	_contenedor.add_child(proyectil)
+	# Impacto altísimo (muy por encima de la defensa=20): si el chequeo de
+	# equipo no bloqueara, esto rompería el muro de un solo golpe.
+	var atributos_jugador := _jugador.get_node("AtributosComponente") as AtributosComponente
+	atributos_jugador.base.impacto = 999.0
+	proyectil.call("configurar", Vector2.RIGHT, 1.0, 5.0, _jugador, Enums.Skill.TypeDamage.PHYSIC)
+	var impacto_bloqueado: bool = not muro.call("recibir_impacto", 999.0, _jugador)
+	proyectil.call("_on_area_entrada", muro)
+	var vida_despues: float = muro.call("obtener_vida")
+	atributos_jugador.base.impacto = 0.0
+	proyectil.queue_free()
+
+	var sin_dano := is_equal_approx(vida_antes, vida_despues)
+	print("Muro del jugador SIN daño por su propio proyectil (esperado true): %s" % sin_dano)
+	print("recibir_impacto() también bloqueado por mismo equipo (esperado true): %s" % impacto_bloqueado)
+	return sin_dano and impacto_bloqueado
+
+
 ## Muro mínimo para el caso anterior: sin daño propio ni bloqueo, solo con
 ## la defensa que interesa comprobar.
 func _crear_muro_prueba(defensa: float) -> Node:
@@ -267,6 +296,7 @@ func _montar() -> void:
 	_habilidad.call("activar", Vector2.RIGHT, 1.0)
 
 	_probar_impacto_vs_defensa()
+	_bloqueo_mismo_equipo_ok = _probar_bloqueo_mismo_equipo()
 
 
 func _informar() -> bool:
@@ -305,7 +335,8 @@ func _informar() -> bool:
 		and _aplico_datos_bien \
 		and _proyectil_dano_muro \
 		and _debil_sobrevive and _debil_gasto_proyectil \
-		and fuerte_rompio and _fuerte_proyectil_sigue
+		and fuerte_rompio and _fuerte_proyectil_sigue \
+		and _bloqueo_mismo_equipo_ok
 	print("PRUEBA MURO %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

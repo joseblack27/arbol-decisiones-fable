@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://drafagadatos1"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="2_2eq24"]
+[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_gsti0"]
+[ext_resource type="PackedScene" uid="uid://crafaga5proy1" path="res://escenas/habilidades/rafaga/HabilidadRafaga.tscn" id="3_esc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ibxma"]
+atlas = ExtResource("2_gsti0")
+region = Rect2(192, 0, 32, 32)
+
+[resource]
+script = ExtResource("2_2eq24")
+nombre = "Ráfaga"
+icono = SubResource("AtlasTexture_ibxma")
+descripcion = "Dispara 5 proyectiles seguidos en la misma dirección, causando [color=#00c4ff]{damage1}[/color] cada uno. Mientras disparas no puedes moverte ni girar."
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 60
+dano_base_min = 8
+dano_base_max = 12
+alcance_metros = 6
+enfriamiento = 3.0

@@ -1,0 +1,58 @@
+[gd_scene load_steps=2 format=3 uid="uid://dqxk0lvxwj2rt"]
+
+[ext_resource type="Script" uid="uid://dxxnw7jr4t6kl" path="res://escenas/ui/hud/PanelLogRed.gd" id="1_log"]
+
+[node name="PanelLogRed" type="Control"]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -452.0
+offset_top = 12.0
+offset_right = -60.0
+offset_bottom = 264.0
+grow_horizontal = 0
+mouse_filter = 2
+script = ExtResource("1_log")
+
+[node name="BotonToggle" type="Button" parent="."]
+process_mode = 3
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -60.0
+offset_top = -12.0
+offset_right = -6.0
+offset_bottom = 36.0
+grow_horizontal = 0
+theme_override_font_sizes/font_size = 12
+text = "Log red"
+
+[node name="Panel" type="PanelContainer" parent="."]
+process_mode = 3
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = -4.0
+offset_top = 44.0
+offset_right = -4.0
+offset_bottom = 268.0
+grow_horizontal = 2
+mouse_filter = 1
+
+[node name="Scroll" type="ScrollContainer" parent="Panel"]
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="Texto" type="RichTextLabel" parent="Panel/Scroll"]
+custom_minimum_size = Vector2(0, 220)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_colors/default_color = Color(0.85, 0.85, 0.85, 1)
+theme_override_font_sizes/normal_font_size = 11
+fit_content = true
+scroll_active = false
+autowrap_mode = 2

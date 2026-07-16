@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://cuul4ymwapaag"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_eswrt"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/parpadeo/HabilidadParpadeo.tscn" id="3_esc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_parpadeo1"]
+atlas = ExtResource("2_eswrt")
+region = Rect2(64, 160, 32, 32)
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Parpadeo"
+icono = SubResource("AtlasTexture_parpadeo1")
+descripcion = "Teletransporte corto e instantáneo en la dirección apuntada, sin daño"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 15
+alcance_metros = 5
+enfriamiento = 4.0

@@ -26,8 +26,32 @@ func debe_mostrar_dano_local() -> bool:
 
 ## Puerto ENet fijo del juego real (servidor dedicado en Docker + clientes
 ## locales) — distinto del puerto usado por los prototipos en
-## prototipos/red/, para poder correr ambos sin pisarse.
+## prototipos/red/, para poder correr ambos sin pisarse. Sigue siendo el
+## valor por DEFECTO que precarga MenuInicio — puerto_conexion (abajo) es lo
+## que Mundo.gd usa de verdad para conectar.
 const PUERTO_JUEGO := 8920
+
+## Configuración de conexión elegida en MenuInicio.tscn (pantalla previa a
+## Mundo.tscn, ver run/main_scene en project.godot) — Mundo._conectar_como_
+## cliente() los lee de acá en vez de tener la IP hardcodeada. Viven en este
+## autoload (no en MenuInicio, que se libera al cambiar de escena) para
+## sobrevivir el change_scene_to_file hacia Mundo.tscn.
+## IP de LAN de la PC que corre el servidor Docker — precargada de
+## entrada para no tener que escribirla cada vez desde el celular. Si el
+## servidor pasa a otra máquina/red, cambiar esto (o simplemente escribir la
+## IP nueva en MenuInicio, que sigue funcionando igual).
+var ip_conexion := "192.168.40.27"
+var puerto_conexion := PUERTO_JUEGO
+## "" = usar nombre_jugador_local() de siempre (el de Windows/env var, ver
+## abajo) — MenuInicio solo lo pisa si el jugador escribió algo distinto.
+var nombre_conexion := ""
+
+## SOLO para pruebas headless (prueba_niveles, prueba_muerte_jugador...): el
+## juego real es multijugador puro — Mundo reintenta conectarse para siempre
+## y jamás arranca sin servidor. Las pruebas necesitan lo contrario: un
+## jugador local determinista SIN tocar la red (ni conectarse de verdad al
+## servidor Docker si está corriendo). Ver Mundo._arrancar_modo_prueba_local.
+var modo_local_pruebas := false
 
 ## Nombre para mostrar del jugador de ESTA máquina (el nombre de usuario del
 ## sistema operativo; "Jugador" si no se puede leer). Cero configuración: en
@@ -39,6 +63,8 @@ const PUERTO_JUEGO := 8920
 ## (la clave con la que el servidor guarda la partida de cada uno) usar
 ## id_jugador_local(), NUNCA esto — ver esa función para el porqué.
 func nombre_jugador_local() -> String:
+	if nombre_conexion != "":
+		return nombre_conexion.substr(0, 24)
 	for variable in ["USERNAME", "USER"]:  # Windows / Linux-Mac
 		var nombre := OS.get_environment(variable).strip_edges()
 		if nombre != "":

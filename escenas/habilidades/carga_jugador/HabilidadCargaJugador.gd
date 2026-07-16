@@ -83,16 +83,18 @@ func _physics_process(delta: float) -> void:
 			objetivo = col.get_parent()
 		if objetivo == entidad_dueña or objetivo in _objetivos_golpeados:
 			continue
+		# Sin este chequeo, el dash lastimaba a OTRO jugador si el corredor
+		# lo cruzaba (fuego amigo en multijugador) — mismo fix que
+		# HabilidadCarga.gd (mobs).
+		if Combate.mismo_equipo(entidad_dueña, objetivo):
+			continue
 		if objetivo.has_method("quitar_vida"):
 			_objetivos_golpeados.append(objetivo)
 			var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, float(_dano_actual), tipo_dano)
-			# Enemigos/jugadores reenvían el atacante a su VidaComponente
-			# (para el log de Actividad Reciente en red); los genéricos
-			# (Muro...) mantienen su firma de un solo argumento.
-			if objetivo.is_in_group("enemigos") or objetivo.is_in_group("jugadores"):
-				objetivo.quitar_vida(dano_final, entidad_dueña)
-			else:
-				objetivo.quitar_vida(dano_final)
+			# Todos los quitar_vida() aceptan "fuente" como segundo
+			# argumento — Muro lo usa para no dejarse romper por su propio
+			# equipo (ver Muro._bloqueado_por_equipo).
+			objetivo.quitar_vida(dano_final, entidad_dueña)
 			if Utils.debe_mostrar_dano_local():
 				BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
 			BusEventos.habilidad_impacto.emit("carga_jugador", objetivo)
@@ -117,7 +119,6 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	_objetivos_golpeados.clear()
 	_en_dash             = true
 	_dano_actual         = _calcular_dano(int(dano_carga))
-	_set_excepciones_enemigos(true)
 	carga_iniciada.emit(_direccion_carga)
 
 
@@ -127,19 +128,7 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 
 func _terminar() -> void:
 	_en_dash = false
-	_set_excepciones_enemigos(false)
 	carga_terminada.emit()
-
-
-func _set_excepciones_enemigos(activar: bool) -> void:
-	var jugador := entidad_dueña as CharacterBody2D
-	if not jugador:
-		return
-	for enemigo in jugador.get_tree().get_nodes_in_group("enemigos"):
-		if activar:
-			jugador.add_collision_exception_with(enemigo)
-		else:
-			jugador.remove_collision_exception_with(enemigo)
 
 
 func _ultima_direccion_jugador() -> Vector2:

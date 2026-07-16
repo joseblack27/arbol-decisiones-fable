@@ -9,6 +9,7 @@ size = Vector2(16, 16)
 size = Vector2(16, 16)
 
 [node name="Muro" type="Area2D"]
+collision_mask = 10
 y_sort_enabled = true
 script = ExtResource("1_muro")
 grupo_objetivo = "enemigos"

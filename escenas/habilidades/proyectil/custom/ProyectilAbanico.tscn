@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3 uid="uid://mqijh2kqkl5d"]
+
+[ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
+[ext_resource type="Texture2D" uid="uid://jy5qvrtxhjfg" path="res://assets/iconos/icons32x32.png" id="2_ico"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_abanico"]
+radius = 8.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_abanico_proy"]
+atlas = ExtResource("2_ico")
+region = Rect2(288, 0, 32, 32)
+
+[node name="ProyectilAbanico" type="Area2D"]
+collision_mask = 4294967295
+monitorable = false
+script = ExtResource("1_proy")
+mostrar_debug = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_abanico")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("AtlasTexture_abanico_proy")

@@ -33,6 +33,11 @@ func _aplicar_tick() -> void:
 		# fuente puede haber muerto y liberado (p. ej. la araña que dejó esta
 		# telaraña); is_instance_valid() lo detecta, "if fuente:" no.
 		var fuente_valida: Node = fuente if is_instance_valid(fuente) else null
+		# Sin fuego amigo: grupo_objetivo ya filtra hoy (la telaraña de la
+		# araña solo agarra "jugadores"), pero este corte mantiene el efecto
+		# correcto si se reutiliza la escena para una habilidad del otro bando.
+		if Combate.mismo_equipo(fuente_valida, objetivo):
+			continue
 		var dano_final := AtributosComponente.calcular_pipeline(fuente_valida, objetivo, dano_por_tick, tipo_dano)
 		vida.quitar_vida(dano_final, fuente_valida)
 		# Se emite SIEMPRE en single-player/servidor (incluso con

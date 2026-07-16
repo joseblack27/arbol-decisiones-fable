@@ -88,6 +88,22 @@ func show_skill(skill: DatosHabilidad) -> void:
 	if atributos:
 		dmg_calc_min = int(atributos.calcular_dano_saliente_vista_previa(skill.damage_base_min))
 		dmg_calc_max = int(atributos.calcular_dano_saliente_vista_previa(skill.damage_base_max))
+
+	# Factor propio de la habilidad (p. ej. el lanzallamas solo aplica una
+	# FRACCIÓN de esto por tick, ver HabilidadLanzallamas.multiplicador_
+	# dano_tick — "decía 4-8 pero en realidad hace 1", reportado). Genérico
+	# a propósito: se lee del script de la escena por nombre de propiedad,
+	# así que cualquier habilidad futura con el mismo patrón se refleja acá
+	# sola, sin tener que tocar este panel de nuevo. instantiate() sin
+	# add_child no dispara _ready() — seguro leer y descartar.
+	if skill.escena:
+		var tmp := skill.escena.instantiate()
+		if "multiplicador_dano_tick" in tmp:
+			var factor: float = tmp.get("multiplicador_dano_tick")
+			dmg_calc_min = int(dmg_calc_min * factor)
+			dmg_calc_max = int(dmg_calc_max * factor)
+		tmp.free()
+
 	var dmg_calc := "%d - %d" % [dmg_calc_min, dmg_calc_max]
 
 	description_label.text = skill.description.format({"damage1": dmg_calc})

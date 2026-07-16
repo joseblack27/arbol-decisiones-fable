@@ -152,6 +152,73 @@ func _get_habilidad() -> HabilidadBase:
 	return null
 
 
+## Registra por adelantado las señales de otros slots que este botón físico
+## va a representar más adelante (ver PaginadorHabilidades, que llama esto
+## para TODAS las páginas apenas arranca) — sin esto, Jugador/IndicadorApunte
+## (que escuchan los total_slots completos desde su propio _ready(), no solo
+## la página visible) intentaban conectarse a señales que ningún botón había
+## registrado todavía porque nadie había visitado esa página, y
+## SeñalManager.conectar() falla EN SILENCIO si la señal no existe — sin
+## este registro adelantado, cambiar de página y usar esas habilidades
+## simplemente no hacía nada (nadie llegó a suscribirse a tiempo).
+func registrar_indices_adicionales(indices: Array) -> void:
+	for idx in indices:
+		if idx == slot_index:
+			continue
+		var apunte   := "slot_%d_apunte"   % idx
+		var lanzar   := "slot_%d_lanzar"   % idx
+		var cancelar := "slot_%d_cancelar" % idx
+		var activar  := "slot_%d_activar"  % idx
+		if SeñalManager.registros.has(apunte):
+			continue
+		SeñalManager.registrar(apunte,   _signal_id, {"direccion": TYPE_VECTOR2, "poder": TYPE_FLOAT})
+		SeñalManager.registrar(lanzar,   _signal_id, {"direccion": TYPE_VECTOR2, "poder": TYPE_FLOAT})
+		SeñalManager.registrar(cancelar, _signal_id, {})
+		SeñalManager.registrar(activar,  _signal_id, {})
+
+
+## Reasigna este botón físico a otro slot_index — usado por
+## PaginadorHabilidades al cambiar de página: los mismos 5 botones en
+## pantalla pasan a representar los siguientes 5 slots. Desregistra las
+## señales del slot viejo y registra (si hace falta) las del nuevo, para
+## que Jugador/IndicadorApunte (que ya escuchan TODOS los slot_N posibles,
+## ver sus _ready()) reciban las señales correctas sin tener que enterarse
+## de que hubo un cambio de página.
+func cambiar_slot(nuevo_index: int) -> void:
+	if nuevo_index == slot_index:
+		return
+	# Soltar cualquier joystick/press a medio hacer del slot anterior — si
+	# no, cambiar de página con el dedo todavía tocando el botón dejaría un
+	# joystick fantasma apuntando a un slot que ya no se muestra.
+	if _activo:
+		_soltar_joystick()
+	_presionado = false
+
+	for sig in [_sig_apunte, _sig_lanzar, _sig_cancelar, _sig_activar]:
+		if SeñalManager.registros.has(sig) and SeñalManager.registros[sig].suscriptores.has(self):
+			SeñalManager.desconectar(sig, self)
+
+	slot_index    = nuevo_index
+	_sig_apunte   = "slot_%d_apunte"   % slot_index
+	_sig_lanzar   = "slot_%d_lanzar"   % slot_index
+	_sig_cancelar = "slot_%d_cancelar" % slot_index
+	_sig_activar  = "slot_%d_activar"  % slot_index
+
+	# registrar() protesta si el nombre ya existe (otra página anterior de
+	# este mismo botón ya lo dejó registrado) — normal al volver a una
+	# página ya visitada, no hace falta re-registrar.
+	if not SeñalManager.registros.has(_sig_apunte):
+		SeñalManager.registrar(_sig_apunte,   _signal_id, {"direccion": TYPE_VECTOR2, "poder": TYPE_FLOAT})
+		SeñalManager.registrar(_sig_lanzar,   _signal_id, {"direccion": TYPE_VECTOR2, "poder": TYPE_FLOAT})
+		SeñalManager.registrar(_sig_cancelar, _signal_id, {})
+		SeñalManager.registrar(_sig_activar,  _signal_id, {})
+
+	_cd_ratio    = 0.0
+	_cd_restante = 0.0
+	_actualizar_desde_habilidad()
+	_actualizar_cooldown_visual()
+
+
 # ── Input ─────────────────────────────────────────────────────────────────────
 
 func _input(event: InputEvent) -> void:
@@ -265,6 +332,16 @@ func _process(delta: float) -> void:
 		_cd_restante -= delta
 		_cd_ratio = clampf(_cd_restante / _cd_duracion, 0.0, 1.0) if _cd_duracion > 0.0 else 0.0
 		_actualizar_cooldown_visual()
+	# apunte SOLO se emitía en el evento de arrastre (motion) — si el dedo se
+	# queda quieto sosteniendo el joystick sin mover el punto, dejaba de
+	# avisar. Habilidades de canal continuo (lanzallamas: "mientras
+	# mantienes presionado") necesitan un tick por FOTOGRAMA para saber que
+	# seguís con el dedo puesto, no solo cuando te movés. Barato: es un
+	# Vector2 al bus de señales, y el resto de las habilidades (que solo
+	# leen apunte para dibujar el indicador de puntería) ya lo manejan bien
+	# sin importar la frecuencia.
+	if _modo_joystick and _activo:
+		_emitir_apunte()
 
 
 func _on_recarga_iniciada(entidad: Node, slot_idx: int, duracion: float) -> void:
@@ -312,7 +389,7 @@ func _disponer_nodos() -> void:
 	_pie_cooldown.position = c
 	_pie_cooldown.radio = radio_boton
 	_centrar_etiqueta(_etiqueta_sin_energia, c)
-	_etiqueta_cooldown.position = c + Vector2(-_etiqueta_cooldown.size.x / 2.0, radio_boton - 14.0)
+	_centrar_etiqueta(_etiqueta_cooldown, c)
 
 
 ## Refleja el estado lógico en los nodos (antes era _draw()).
@@ -351,8 +428,10 @@ func _actualizar_cooldown_visual() -> void:
 	_etiqueta_cooldown.visible = _cd_ratio > 0.0
 	if _etiqueta_cooldown.visible:
 		_etiqueta_cooldown.text = "%.1fs" % _cd_restante
-		_etiqueta_cooldown.position = _get_centro() \
-			+ Vector2(-_etiqueta_cooldown.size.x / 2.0, radio_boton - 14.0)
+		# Centrado real (antes quedaba pegado al borde inferior del botón,
+		# desalineado del ícono) — mismo helper que ya centra el resto de
+		# las etiquetas de este control.
+		_centrar_etiqueta(_etiqueta_cooldown, _get_centro())
 
 
 ## Escala un sprite para que su textura ocupe el diámetro indicado.

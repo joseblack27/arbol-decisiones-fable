@@ -45,6 +45,10 @@ func _montar() -> void:
 
 	_cuerpo = CharacterBody2D.new()
 	_cuerpo.add_to_group("jugadores")
+	# Capa 8, igual que Jugador.tscn real: AreaOclusion detecta cuerpos con
+	# mascara 8 (ver DecoracionOcluible.CAPA_CUERPO_JUGADOR) — un cuerpo en
+	# la capa 1 por defecto ya no la dispara.
+	_cuerpo.collision_layer = 8
 	var colision := CollisionShape2D.new()
 	var forma := CircleShape2D.new()
 	forma.radius = 10.0

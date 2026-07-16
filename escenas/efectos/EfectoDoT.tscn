@@ -7,6 +7,7 @@
 radius = 24.0
 
 [node name="EfectoDoT" type="Area2D"]
+collision_mask = 10
 z_index = -1
 script = ExtResource("1_dot")
 duracion = 3.1

@@ -45,19 +45,14 @@ func _conectar() -> void:
 	# generan ruido ahí (ver mismo corte en Jugador._ready()).
 	if Utils.en_red() and multiplayer.is_server():
 		return
-	# Señales de los 4 slots (UIHabilidad)
-	SeñalManager.conectar("slot_0_apunte",    self, "_on_slot_0_apunte")
-	SeñalManager.conectar("slot_0_cancelar",  self, "_on_borrar")
-	SeñalManager.conectar("slot_0_lanzar",    self, "_on_borrar_con_args")
-	SeñalManager.conectar("slot_1_apunte",    self, "_on_slot_1_apunte")
-	SeñalManager.conectar("slot_1_cancelar",  self, "_on_borrar")
-	SeñalManager.conectar("slot_1_lanzar",    self, "_on_borrar_con_args")
-	SeñalManager.conectar("slot_2_apunte",    self, "_on_slot_2_apunte")
-	SeñalManager.conectar("slot_2_cancelar",  self, "_on_borrar")
-	SeñalManager.conectar("slot_2_lanzar",    self, "_on_borrar_con_args")
-	SeñalManager.conectar("slot_3_apunte",    self, "_on_slot_3_apunte")
-	SeñalManager.conectar("slot_3_cancelar",  self, "_on_borrar")
-	SeñalManager.conectar("slot_3_lanzar",    self, "_on_borrar_con_args")
+	# Un slot_N_apunte/cancelar/lanzar por CADA slot posible, no solo los
+	# visibles a la vez en el HUD (ver PaginadorHabilidades: un botón físico
+	# puede mostrar cualquier slot_index según la página activa).
+	var total := _slot_habilidades.total_slots if _slot_habilidades else 10
+	for i in total:
+		SeñalManager.conectar("slot_%d_apunte" % i,   self, "_on_slot_%d_apunte" % i)
+		SeñalManager.conectar("slot_%d_cancelar" % i, self, "_on_borrar")
+		SeñalManager.conectar("slot_%d_lanzar" % i,   self, "_on_borrar_con_args")
 
 
 # ── Handlers por slot ─────────────────────────────────────────────────────────
@@ -66,6 +61,12 @@ func _on_slot_0_apunte(dir: Vector2, poder: float) -> void: _set_apunte(0, dir, 
 func _on_slot_1_apunte(dir: Vector2, poder: float) -> void: _set_apunte(1, dir, poder)
 func _on_slot_2_apunte(dir: Vector2, poder: float) -> void: _set_apunte(2, dir, poder)
 func _on_slot_3_apunte(dir: Vector2, poder: float) -> void: _set_apunte(3, dir, poder)
+func _on_slot_4_apunte(dir: Vector2, poder: float) -> void: _set_apunte(4, dir, poder)
+func _on_slot_5_apunte(dir: Vector2, poder: float) -> void: _set_apunte(5, dir, poder)
+func _on_slot_6_apunte(dir: Vector2, poder: float) -> void: _set_apunte(6, dir, poder)
+func _on_slot_7_apunte(dir: Vector2, poder: float) -> void: _set_apunte(7, dir, poder)
+func _on_slot_8_apunte(dir: Vector2, poder: float) -> void: _set_apunte(8, dir, poder)
+func _on_slot_9_apunte(dir: Vector2, poder: float) -> void: _set_apunte(9, dir, poder)
 
 
 func _set_apunte(slot: int, dir: Vector2, poder: float) -> void:
@@ -102,10 +103,13 @@ func _draw() -> void:
 		return
 	match _tipo:
 		"proyectil":         _draw_proyectil()
+		"rafaga":            _draw_proyectil()  # mismo corredor recto: 5 tiros, una dirección
 		"proyectil_abanico": _draw_proyectil_abanico()
 		"area":              _draw_area_efecto()
 		"carga":             _draw_carga()
 		"muro":              _draw_muro()
+		"parpadeo":          _draw_parpadeo()
+		"lanzallamas":       _draw_lanzallamas()
 
 
 ## Dibuja el círculo grande de rango: relleno tenue + borde configurables.
@@ -129,8 +133,11 @@ func _dibujar_area_golpe_circulo(centro: Vector2, radio: float) -> void:
 
 
 func _draw_proyectil() -> void:
-	var h       := _hab as HabilidadProyectil
-	var alcance := h.alcance_maximo if h else 400.0
+	# Por propiedad y no casteando a HabilidadProyectil: la ráfaga
+	# (HabilidadRafaga) comparte este dibujo y también expone alcance_maximo,
+	# pero no hereda de esa clase.
+	var alcance: float = _hab.get("alcance_maximo") \
+		if _hab and ("alcance_maximo" in _hab) else 400.0
 
 	_dibujar_rango(alcance)
 	if _dir.length() < 0.05:
@@ -230,3 +237,42 @@ func _draw_carga() -> void:
 	# El corredor (esq) es la zona de golpe real del dash.
 	var esq := PackedVector2Array([perp * hw, fin + perp * hw, fin - perp * hw, -perp * hw])
 	_dibujar_area_golpe_poligono(esq)
+
+
+## A diferencia de _draw_carga: el parpadeo no golpea nada en el camino, así
+## que en vez de un corredor relleno se traza una LÍNEA fina hasta el punto
+## de destino — mostraba solo el círculo de rango (grande, fijo) más el
+## puntito de destino, y sin una línea que los conecte no queda claro que
+## uno depende del otro (reportado: "no se entiende bien solo el círculo").
+func _draw_parpadeo() -> void:
+	var h         := _hab as HabilidadParpadeo
+	var distancia := h.distancia_parpadeo if h else 200.0
+
+	_dibujar_rango(distancia)
+	if _dir.length() < 0.05:
+		return
+
+	var destino := _dir * distancia
+	draw_line(Vector2.ZERO, destino, COLOR_AREA_GOLPE, 3.0)
+	_dibujar_area_golpe_circulo(destino, 14.0)
+
+
+## Cono real (mismo abanico que arma HabilidadLanzallamas._construir_forma_
+## cono en código) — no un círculo genérico, para que el jugador vea desde
+## antes exactamente qué ancho de chorro va a tocar.
+func _draw_lanzallamas() -> void:
+	var h        := _hab as HabilidadLanzallamas
+	var alcance  := h.alcance_cono if h else 220.0
+	var angulo   := h.angulo_cono_grados if h else 50.0
+
+	_dibujar_rango(alcance)
+	if _dir.length() < 0.05:
+		return
+
+	const SEGMENTOS := 8
+	var mitad := deg_to_rad(angulo) / 2.0
+	var puntos := PackedVector2Array([Vector2.ZERO])
+	for i in (SEGMENTOS + 1):
+		var ang := lerpf(-mitad, mitad, float(i) / float(SEGMENTOS))
+		puntos.append(_dir.rotated(ang) * alcance)
+	_dibujar_area_golpe_poligono(puntos)

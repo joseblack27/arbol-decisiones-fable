@@ -79,11 +79,11 @@ const VELOCIDAD_INTERPOLACION_RED := 12.0
 ## referencia colgante si algún día alguien más se suscribe — SeñalManager
 ## no limpia solo a sus suscriptores liberados.
 func _exit_tree() -> void:
-	for nombre in [
-		"joystick_movimiento",
-		"slot_0_activar", "slot_0_lanzar", "slot_1_activar", "slot_1_lanzar",
-		"slot_2_activar", "slot_2_lanzar", "slot_3_activar", "slot_3_lanzar",
-	]:
+	var nombres := ["joystick_movimiento"]
+	for i in _total_slots_habilidad():
+		nombres.append("slot_%d_activar" % i)
+		nombres.append("slot_%d_lanzar" % i)
+	for nombre in nombres:
 		if SeñalManager.registros.has(nombre) and SeñalManager.registros[nombre].suscriptores.has(self):
 			SeñalManager.desconectar(nombre, self)
 
@@ -120,6 +120,14 @@ func _enter_tree() -> void:
 
 func _ready():
 	add_to_group("jugadores")
+	# Capa propia (8, fijada en Jugador.tscn) con máscara solo-mundo (1):
+	# los personajes NO chocan físicamente entre sí — ni jugador-jugador,
+	# ni jugador-mob (los mobs viven en la capa 2 con el mismo criterio,
+	# ver Enemigo.gd). El daño/detección no depende de esto: hitboxes y
+	# dashes usan queries con máscara completa, y la visión de los mobs
+	# usa el área VidaComponente. OJO: toda Area2D que necesite detectar
+	# CUERPOS de personajes debe incluir las capas 2 y 8 en su máscara
+	# (ver muro.tscn, EfectoDoT.tscn, EfectoInmovilizar.tscn).
 	_capa_colision_original    = collision_layer
 	_mascara_colision_original = collision_mask
 	if Utils.en_red():
@@ -170,15 +178,13 @@ func _ready():
 	var soy_dueño_local := not Utils.en_red() or peer_id_dueño == multiplayer.get_unique_id()
 	if soy_dueño_local and not (Utils.en_red() and multiplayer.is_server()):
 		SeñalManager.conectar("joystick_movimiento", self, "_joystick_movimiento")
-		# Slots 0-3 (UIHabilidad por índice de slot)
-		SeñalManager.conectar("slot_0_activar", self, "_on_slot_0_activar")
-		SeñalManager.conectar("slot_0_lanzar",  self, "_on_slot_0_lanzar")
-		SeñalManager.conectar("slot_1_activar", self, "_on_slot_1_activar")
-		SeñalManager.conectar("slot_1_lanzar",  self, "_on_slot_1_lanzar")
-		SeñalManager.conectar("slot_2_activar", self, "_on_slot_2_activar")
-		SeñalManager.conectar("slot_2_lanzar",  self, "_on_slot_2_lanzar")
-		SeñalManager.conectar("slot_3_activar", self, "_on_slot_3_activar")
-		SeñalManager.conectar("slot_3_lanzar",  self, "_on_slot_3_lanzar")
+		# Un slot_N_activar/lanzar por CADA slot posible (no solo los que se
+		# ven a la vez en el HUD): PaginadorHabilidades reasigna qué slot_index
+		# muestra cada botón físico según la página, así que hay que estar
+		# suscripto a los 10 de entrada, aunque el HUD solo muestre 5 por vez.
+		for i in _total_slots_habilidad():
+			SeñalManager.conectar("slot_%d_activar" % i, self, "_on_slot_%d_activar" % i)
+			SeñalManager.conectar("slot_%d_lanzar"  % i, self, "_on_slot_%d_lanzar"  % i)
 
 	# Los bonos de atributos del equipo (armas, armaduras, anillos…) se
 	# recalculan directo desde EquipoComponente.actualizar() (su propio
@@ -192,8 +198,36 @@ func _ready():
 	# equipar mejor armadura no cambiaba nada en combates reales.
 
 
+## Contador de bloqueos de control (ráfaga en curso, etc.): mientras sea
+## > 0, el joystick NO mueve ni gira al personaje. Contador y no bool, por
+## si dos efectos se solapan alguna vez (mismo patrón que
+## MovimientoComponente.agregar_inmovilizacion). Ver HabilidadRafaga.
+var _bloqueos_control := 0
+
+
+func bloquear_control() -> void:
+	_bloqueos_control += 1
+	# Frenar en seco YA: si el joystick venía empujado, direccion conservaba
+	# el último valor y el personaje seguía caminando "bloqueado".
+	direccion = Vector2.ZERO
+	# En red: dejar de MANDAR movimiento (lo que ya hacía _joystick_movimiento
+	# al cortar por _bloqueos_control) no alcanza — el SERVIDOR sigue
+	# aplicando la ÚLTIMA dirección que le llegó, cada frame, hasta que se le
+	# diga lo contrario (no hace falta reenviar "seguí" a cada frame para que
+	# siga moviéndose). Sin este aviso explícito de "parate", el cuerpo
+	# autoritativo del servidor seguía caminando durante toda la ida y vuelta
+	# de red mientras el cliente ya se veía quieto — exactamente el desfase
+	# de origen que hace fallar los proyectiles lanzados en movimiento.
+	if Utils.en_red() and peer_id_dueño == multiplayer.get_unique_id():
+		rpc_id(1, "_pedir_detener_red")
+
+
+func desbloquear_control() -> void:
+	_bloqueos_control = maxi(0, _bloqueos_control - 1)
+
+
 func _joystick_movimiento(_direccion: Vector2):
-	if _muerto:
+	if _muerto or _bloqueos_control > 0:
 		return
 	if Utils.en_red():
 		# En red: el joystick es local a CADA cliente (SeñalManager es un bus
@@ -204,6 +238,14 @@ func _joystick_movimiento(_direccion: Vector2):
 		if peer_id_dueño != multiplayer.get_unique_id():
 			return
 		rpc_id(1, "_pedir_mover_red", _direccion)
+		# TAMBIÉN local, para predicción — ver _physics_process: sin esto el
+		# dueño no movía su propio cuerpo hasta que la posición volviera
+		# replicada desde el servidor (1 ida y vuelta de red completa),
+		# quedando su render siempre ATRASADO respecto a su posición real.
+		# Eso desalineaba el ORIGEN del proyectil que ve el dueño (su
+		# posición vieja) contra el que arma el servidor (su posición ya
+		# actualizada) — "el golpe no acierta, sobre todo moviéndose".
+		direccion = _direccion
 		return
 	direccion = _direccion
 
@@ -239,7 +281,32 @@ func _pedir_mover_red(direccion_pedida: Vector2) -> void:
 		return
 	if _muerto:
 		return
+	# La copia AUTORITATIVA también respeta el bloqueo de control (ráfaga en
+	# curso): el cliente dueño ya no manda intención mientras está bloqueado,
+	# pero un paquete rezagado (o manipulado) no debe mover el cuerpo real.
+	if _bloqueos_control > 0:
+		return
 	direccion = direccion_pedida
+
+
+## Aviso de "parate ya" — reliable (a diferencia de _pedir_mover_red, que es
+## unreliable_ordered: estado continuo donde un paquete de más no importa).
+## Este SÍ importa que llegue y en orden respecto al RPC de activar()
+## siguiente (ver bloquear_control()/HabilidadBase.activar()): la ida y
+## vuelta de red completa que tarda "activar la habilidad" es EXACTAMENTE
+## la ventana en la que, si el servidor seguía moviendo este cuerpo con la
+## última dirección recibida, terminaba spawneando el proyectil real desde
+## un punto distinto al que el cliente ya mostraba quieto — "el golpe no
+## acierta, más si disparo en movimiento". Mandarlo por el mismo canal
+## reliable que _activar_red asegura que llegue ANTES (mismo orden de
+## envío del lado del cliente, ver bloquear_control()).
+@rpc("any_peer", "reliable")
+func _pedir_detener_red() -> void:
+	if not multiplayer.is_server():
+		return
+	if multiplayer.get_remote_sender_id() != peer_id_dueño:
+		return
+	direccion = Vector2.ZERO
 
 
 ## Fase 4 del plan de multijugador: el SERVIDOR ya le dio este botín/XP de
@@ -270,12 +337,33 @@ func _recibir_xp_red(cantidad: int) -> void:
 func _physics_process(delta: float) -> void:
 	# *** ORQUESTACIÓN FÍSICA ***
 
-	# En red, el cliente NO mueve el cuerpo directo — solo interpola hacia
-	# la posición replicada (Fase 6: suaviza el "salto" entre actualizaciones
-	# de red, que llegan más espaciadas que los fotogramas de render). Sin
-	# multiplayer activo (un solo jugador, de siempre), esto nunca es true y
-	# el comportamiento no cambia en nada.
+	# En red, el cliente que NO es dueño de este cuerpo (la réplica de OTRO
+	# jugador en mi pantalla) no lo mueve directo — solo interpola hacia la
+	# posición replicada (Fase 6: suaviza el "salto" entre actualizaciones de
+	# red, que llegan más espaciadas que los fotogramas de render).
 	if Utils.en_red() and not multiplayer.is_server():
+		if peer_id_dueño == multiplayer.get_unique_id():
+			# Predicción local del PROPIO dueño: mover YA con la misma
+			# dirección que ya le mandamos al servidor (ver
+			# _joystick_movimiento), sin esperar la ida y vuelta de red —
+			# el servidor corre exactamente el mismo componente_movimiento
+			# con la misma dirección, así que ambos deberían coincidir.
+			if componente_movimiento:
+				componente_movimiento.physics_process(delta, direccion)
+			# Reconciliación suave con la posición autoritativa (el
+			# servidor manda la real): un muro, un empujón u otra causa
+			# que el cliente no simula igual puede hacer que diverja poco a
+			# poco. Corrección chica y progresiva; solo un salto brusco
+			# (drift grande — conexión que se recupera, etc.) se corrige
+			# de un tirón, igual que Enemigo.gd con los mobs.
+			var diferencia := _posicion_replicada - global_position
+			if diferencia.length() > 60.0:
+				global_position = _posicion_replicada
+			else:
+				global_position = global_position.lerp(
+					_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
+				)
+			return
 		global_position = global_position.lerp(
 			_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
 		)
@@ -433,6 +521,17 @@ func _mostrar_aviso_muerte() -> void:
 		_aviso_muerte.text = "Has muerto\nReapareces en %d..." % i
 
 
+## Cuántos slots de habilidad hay que escuchar por SeñalManager (0..N-1) —
+## la MISMA fuente de verdad que SlotHabilidades.total_slots, para no
+## mantener dos números "10" copiados a mano que puedan desincronizarse.
+## Con fallback fijo por si esto corre antes de que el nodo exista o
+## después de liberado (ver _exit_tree, donde el hijo puede ya no ser válido).
+func _total_slots_habilidad() -> int:
+	if is_instance_valid(slot_habilidades):
+		return slot_habilidades.total_slots
+	return 10
+
+
 ## Activa la habilidad del slot indicado.
 func _activar_slot(index: int, dir: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	# En red, SeñalManager es un bus global: sin este corte, apretar un
@@ -455,6 +554,18 @@ func _on_slot_2_activar()                    -> void: _activar_slot(2)
 func _on_slot_2_lanzar(d: Vector2, p: float) -> void: _activar_slot(2, d, p)
 func _on_slot_3_activar()                    -> void: _activar_slot(3)
 func _on_slot_3_lanzar(d: Vector2, p: float) -> void: _activar_slot(3, d, p)
+func _on_slot_4_activar()                    -> void: _activar_slot(4)
+func _on_slot_4_lanzar(d: Vector2, p: float) -> void: _activar_slot(4, d, p)
+func _on_slot_5_activar()                    -> void: _activar_slot(5)
+func _on_slot_5_lanzar(d: Vector2, p: float) -> void: _activar_slot(5, d, p)
+func _on_slot_6_activar()                    -> void: _activar_slot(6)
+func _on_slot_6_lanzar(d: Vector2, p: float) -> void: _activar_slot(6, d, p)
+func _on_slot_7_activar()                    -> void: _activar_slot(7)
+func _on_slot_7_lanzar(d: Vector2, p: float) -> void: _activar_slot(7, d, p)
+func _on_slot_8_activar()                    -> void: _activar_slot(8)
+func _on_slot_8_lanzar(d: Vector2, p: float) -> void: _activar_slot(8, d, p)
+func _on_slot_9_activar()                    -> void: _activar_slot(9)
+func _on_slot_9_lanzar(d: Vector2, p: float) -> void: _activar_slot(9, d, p)
 
 
 ## Recibe daño externo (carga, habilidades enemigas). Delega al componente.

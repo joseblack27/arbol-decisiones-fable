@@ -32,6 +32,21 @@ func _ready() -> void:
 	boton_toggle.pressed.connect(_on_boton_toggle)
 
 
+## Con el joystick de movimiento sostenido (primer dedo), el "mouse emulado"
+## de Android queda pegado a ESE dedo y el Button jamás recibía el toque de
+## un segundo dedo — no se podía abrir la barra mientras te movías
+## (reportado). Los dedos extra (index > 0) se atienden acá con toque crudo;
+## el primer dedo (index 0) sigue el camino normal del Button (clic de
+## siempre en escritorio y parado). Mismo criterio que PaginadorHabilidades.
+func _input(event: InputEvent) -> void:
+	if not (event is InputEventScreenTouch) or not event.pressed or event.index == 0:
+		return
+	if not boton_toggle.get_global_rect().has_point(event.position):
+		return
+	get_viewport().set_input_as_handled()
+	_on_boton_toggle()
+
+
 func _on_boton_toggle() -> void:
 	panel_slots.visible = not panel_slots.visible
 	if panel_slots.visible:

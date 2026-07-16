@@ -25,6 +25,17 @@ signal recarga_terminada(habilidad: HabilidadBase)
 @export var requiere_direccion: bool = false
 ## Tipo de daño que inflige esta habilidad. Afecta las resistencias del defensor.
 @export var tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+## Apagar SOLO en habilidades cuyo propósito ES moverse (dash, parpadeo):
+## para esas, congelar al activar no tiene sentido (el desplazamiento es la
+## habilidad misma) y ya tienen su propio manejo de posición. El resto
+## (proyectiles, áreas, ráfaga...) se congela por defecto — ver activar().
+@export var congela_movimiento_en_red := true
+## Ida y vuelta de red que se le da al dueño para congelarse ANTES de que
+## el servidor procese _activar_red — ver activar(). Si el ping real supera
+## esto, la mitigación no alcanza a cubrir todo el hueco (mejor que nada,
+## pero no es una garantía dura — la solución completa sería lag
+## compensation del lado del servidor).
+const _MARGEN_CONGELAMIENTO_RED := 0.25
 
 ## Entidad a la que pertenece esta habilidad (asignada automáticamente en _ready).
 var entidad_dueña: Node = null
@@ -74,6 +85,21 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	if not puede_usarse():
 		return
 	if _debe_pedirle_al_servidor():
+		# Congelar ANTES de mandar el RPC de activación (no después): el
+		# dueño deja de moverse en el mismo instante que decide disparar,
+		# y bloquear_control() ya manda su propio aviso de "parate" al
+		# servidor por un canal reliable — ver Jugador.bloquear_control().
+		# Sin esto, el servidor seguía moviendo el cuerpo real durante toda
+		# la ida y vuelta de red, y el proyectil "real" salía desde un
+		# punto distinto al que el cliente ya mostraba quieto ("el golpe
+		# no acierta, más si disparo en movimiento" — reportado).
+		if congela_movimiento_en_red and entidad_dueña and entidad_dueña.has_method("bloquear_control"):
+			entidad_dueña.bloquear_control()
+			var dueño_congelado := entidad_dueña
+			get_tree().create_timer(_MARGEN_CONGELAMIENTO_RED).timeout.connect(func():
+				if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
+					dueño_congelado.desbloquear_control()
+			)
 		# Fase 3 del plan de multijugador: el servidor es quien de verdad
 		# corre _ejecutar() con autoridad (el daño real, vía
 		# VidaComponente.quitar_vida, está gateado a "solo servidor") para

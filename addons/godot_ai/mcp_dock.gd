@@ -40,6 +40,14 @@ const LogViewerScript := preload("res://addons/godot_ai/dock_panels/log_viewer.g
 const PortPickerPanelScript := preload("res://addons/godot_ai/dock_panels/port_picker_panel.gd")
 
 const DEV_MODE_SETTING := "godot_ai/dev_mode"
+## "Change the port + reconfigure your clients" guide. Surfaced from the crash
+## panel when a foreign process holds the HTTP port — the one piece of recovery
+## (per-client config rewrite) that doesn't fit in the inline crash body.
+## Resolved against the installed plugin version at click time (see
+## `_port_conflict_docs_url`) so a shipped build opens the guide as it shipped,
+## not tip-of-main, which may have drifted from that build's UI.
+const PORT_CONFLICT_DOCS_PATH := "docs/port-conflicts.md"
+const REPO_BLOB_BASE := "https://github.com/hi-godot/godot-ai/blob"
 const CLIENT_STATUS_REFRESH_COOLDOWN_MSEC := 15 * 1000
 const CLIENT_STATUS_REFRESH_TIMEOUT_MSEC := 30 * 1000
 const CLIENT_ACTION_TIMEOUT_MSEC := 30 * 1000
@@ -61,6 +69,7 @@ var _status_icon: ColorRect
 var _status_label: Label
 var _client_grid: VBoxContainer
 var _client_configure_all_btn: Button
+var _client_empty_cta_btn: Button
 var _clients_summary_label: Label
 var _clients_window: Window
 var _dev_mode_toggle: CheckButton
@@ -69,7 +78,7 @@ var _install_label: Label
 # Tools tab (secondary window, Tab 2) — domain-exclusion UI for clients
 # that cap total tool count (Antigravity: 100). Pending set is mutated by
 # checkbox clicks; saved set reflects what the spawned server actually
-# sees. `Apply & Restart Server` writes pending → setting and triggers a
+# sees. `Apply and Restart Server` writes pending → setting and triggers a
 # plugin reload so the new server comes up with the trimmed list.
 var _tools_pending_excluded: PackedStringArray = PackedStringArray()
 var _tools_saved_excluded: PackedStringArray = PackedStringArray()
@@ -195,6 +204,11 @@ var _crash_panel: VBoxContainer
 var _crash_output: RichTextLabel
 var _crash_restart_btn: Button
 var _crash_reload_btn: Button
+## Help link — visible only for the genuinely-foreign-occupant INCOMPATIBLE
+## case (no `can_recover_incompatible` proof). The inline body names a free
+## port; this button carries the per-client reconfigure steps that don't fit
+## inline. See `PORT_CONFLICT_DOCS` and `_update_crash_panel`.
+var _crash_docs_btn: Button
 ## Port-picker escape hatch — visible inside the crash panel when the root
 ## cause is port contention (PORT_EXCLUDED or FOREIGN_PORT). The dock writes
 ## the EditorSetting and reloads the plugin in response to the panel's
@@ -548,6 +562,13 @@ func _build_ui() -> void:
 	_crash_reload_btn.pressed.connect(_on_reload_plugin)
 	_crash_panel.add_child(_crash_reload_btn)
 
+	_crash_docs_btn = Button.new()
+	_crash_docs_btn.text = "How to change the port"
+	_crash_docs_btn.tooltip_text = "Open the guide: change godot_ai/http_port and reconfigure your MCP clients"
+	_crash_docs_btn.visible = false
+	_crash_docs_btn.pressed.connect(func(): OS.shell_open(_port_conflict_docs_url()))
+	_crash_panel.add_child(_crash_docs_btn)
+
 	_crash_panel.add_child(HSeparator.new())
 	add_child(_crash_panel)
 
@@ -562,7 +583,7 @@ func _build_ui() -> void:
 	_update_label = Label.new()
 	_update_label.add_theme_font_size_override("font_size", 15)
 	_update_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.3))
-	## Wrap long banner text (e.g. the < 4.4 manual-update guidance) instead
+	## Wrap long banner text (e.g. the < 4.5 support-floor guidance) instead
 	## of letting a single line stretch the whole dock wide. The dock is a
 	## fixed-width side panel, so constrain horizontally and wrap.
 	_update_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -664,6 +685,14 @@ func _build_ui() -> void:
 
 	add_child(clients_header_row)
 	add_child(clients_actions)
+
+	_client_empty_cta_btn = Button.new()
+	_client_empty_cta_btn.text = "Configure an AI client ->"
+	_client_empty_cta_btn.tooltip_text = "Open the Clients tab to configure an AI coding client for this Godot AI server."
+	_client_empty_cta_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_client_empty_cta_btn.visible = false
+	_client_empty_cta_btn.pressed.connect(_on_open_clients_window)
+	add_child(_client_empty_cta_btn)
 
 	# Drift banner — hidden until a sweep finds at least one mismatched client.
 	_drift_banner = VBoxContainer.new()
@@ -840,7 +869,7 @@ func _build_client_row(client_id: String) -> void:
 # --- Status updates ---
 
 func _update_status() -> void:
-	var connected: bool = _connection.is_connected
+	var connected: bool = _connection != null and _connection.is_connected
 	## During plugin self-update there's a brief window where this dock
 	## script is already the new version (Godot hot-reloads scripts on
 	## file change) but `_plugin` is still the old `EditorPlugin` instance
@@ -867,7 +896,7 @@ func _update_status() -> void:
 		status_text = "Restarting server..."
 		status_color = COLOR_AMBER
 	elif connected:
-		status_text = "Connected"
+		status_text = _connected_status_text()
 		status_color = Color.GREEN
 	elif state == ServerStateScript.CRASHED:
 		var exit_ms: int = server_status.get("exit_ms", 0)
@@ -940,6 +969,15 @@ func _update_crash_panel(server_status: Dictionary) -> void:
 			not show_recovery_restart
 			and state != ServerStateScript.INCOMPATIBLE
 		)
+	## Docs link only for the genuinely-foreign occupant: a recoverable
+	## (older godot-ai) server gets Restart Server instead, and the inline
+	## body already names a free port — the link carries the per-client
+	## reconfigure steps that don't fit inline.
+	if _crash_docs_btn != null:
+		_crash_docs_btn.visible = (
+			state == ServerStateScript.INCOMPATIBLE
+			and not bool(server_status.get("can_recover_incompatible", false))
+		)
 
 	var port_picker_visible := (
 		state == ServerStateScript.PORT_EXCLUDED
@@ -969,9 +1007,16 @@ static func _crash_body_for_state(state: int, server_status: Dictionary = {}) ->
 				if not message.is_empty():
 					return "%s Click Restart Server below to replace it with godot-ai v%s." % [message, expected]
 				return "Port %d is occupied by an older godot-ai server. Click Restart Server below to replace it with godot-ai v%s." % [port, expected]
+			## Genuinely foreign occupant (no recovery proof). Name a concrete
+			## free port so the user doesn't have to hunt for one, and let the
+			## crash panel's "How to change the port" link carry the per-client
+			## reconfigure steps. `suggest_free_port` already routes through the
+			## Windows reservation table, so the named port won't itself fail
+			## with WinError 10013.
+			var hint := _free_port_hint(port)
 			if not message.is_empty():
-				return message
-			return "Port %d is occupied by an incompatible server. Stop it or change both HTTP and WS ports." % port
+				return "%s %s" % [message, hint]
+			return "Port %d is occupied by an incompatible server. %s" % [port, hint]
 		ServerStateScript.FOREIGN_PORT:
 			return "Another process is already bound to port %d. Pick a free port or stop the other process." % port
 		ServerStateScript.CRASHED:
@@ -987,6 +1032,31 @@ static func _crash_body_for_state(state: int, server_status: Dictionary = {}) ->
 			return "No godot-ai server found. Install `uv` via the Setup panel above, or run `pip install godot-ai`."
 		_:
 			return ""
+
+
+## One sentence naming concrete free ports for the user to switch to. Names
+## BOTH http and ws: this branch also fires for an incompatible godot-ai
+## server we can't prove we own, which commonly holds both ports — moving only
+## http would then leave the new server unable to bind ws. Both suggestions are
+## routed through `suggest_free_port` so they clear Windows' winnat reservation
+## table (no point suggesting a port that 10013s on bind). Only the http port
+## reaches client configs; the ws port is server↔plugin, hence the wording.
+## The per-client reconfigure steps live behind the crash panel's docs link.
+static func _free_port_hint(port: int) -> String:
+	var free_http := ClientConfigurator.suggest_free_port(port + 1)
+	var free_ws := ClientConfigurator.suggest_free_port(ClientConfigurator.ws_port() + 1)
+	return "Ports %d (HTTP) and %d (WS) are free — set `godot_ai/http_port` and `godot_ai/ws_port` in Editor Settings, then update your client config with the new HTTP port (How to change the port, below)." % [free_http, free_ws]
+
+
+## URL for the port-conflict guide, pinned to the release tag that matches the
+## installed plugin version (releases are tagged `v<version>`). The crash-panel
+## button only exists in builds that ship `docs/port-conflicts.md`, so the
+## versioned ref always resolves — and a shipped build never points users at a
+## tip-of-main guide that has drifted from its own UI.
+static func _port_conflict_docs_url() -> String:
+	var version := ClientConfigurator.get_plugin_version()
+	var git_ref := ("v%s" % version) if not version.is_empty() else "main"
+	return "%s/%s/%s" % [REPO_BLOB_BASE, git_ref, PORT_CONFLICT_DOCS_PATH]
 
 
 ## Build the mixed-state banner. Hidden until `_refresh_mixed_state_banner`
@@ -1063,10 +1133,17 @@ func _apply_mixed_state_banner_diagnostic(diag: Dictionary) -> void:
 
 
 ## Signal handler for the extracted LogViewer — the panel owns its own
-## display visibility, the dock owns dispatcher logging routing.
+## display visibility, the dock owns logging routing. Routes to BOTH the
+## dispatcher (gates [recv]/[send] recording) and the log buffer's console
+## echo — the connection logs [event]/[defer] lines directly to the buffer,
+## bypassing the dispatcher, so gating only `mcp_logging` left the console
+## spamming with the toggle off (#626). Ring recording is unaffected, so
+## the dock's log panel keeps working while the console stays quiet.
 func _on_log_logging_enabled_changed(enabled: bool) -> void:
 	if _connection and _connection.dispatcher:
 		_connection.dispatcher.mcp_logging = enabled
+	if _log_buffer != null:
+		_log_buffer.enabled = enabled
 
 
 ## Signal handler for the extracted PortPickerPanel — the panel range-validates
@@ -1379,7 +1456,9 @@ func _refresh_setup_status() -> void:
 	# User mode — check for uv
 	var uv_version := ClientConfigurator.check_uv_version()
 	if not uv_version.is_empty():
-		_setup_container.add_child(_make_status_row("uv", uv_version, Color.GREEN))
+		var compact_uv_version := _compact_uv_version_text(uv_version)
+		var uv_tooltip := uv_version if compact_uv_version != uv_version else ""
+		_setup_container.add_child(_make_status_row("uv", compact_uv_version, Color.GREEN, uv_tooltip))
 		## Build the Server row with a placeholder label we can update every
 		## frame. `_refresh_server_version_label` replaces the text + color
 		## once `McpConnection.server_version` lands via `handshake_ack`, and
@@ -1440,19 +1519,39 @@ func _resolve_plugin_symlink_target() -> String:
 	return target
 
 
-func _make_status_row(label_text: String, value_text: String, value_color: Color) -> HBoxContainer:
+static func _compact_uv_version_text(uv_version: String) -> String:
+	var text := uv_version.strip_edges()
+	if text.ends_with(")"):
+		var metadata_start := text.rfind(" (")
+		if metadata_start >= 0:
+			return text.substr(0, metadata_start).strip_edges()
+	return text
+
+
+func _make_status_row(
+	label_text: String,
+	value_text: String,
+	value_color: Color,
+	tooltip_text: String = ""
+) -> HBoxContainer:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 6)
+	if not tooltip_text.is_empty():
+		row.tooltip_text = tooltip_text
 
 	var label := Label.new()
 	label.text = label_text
 	label.add_theme_color_override("font_color", COLOR_MUTED)
 	label.custom_minimum_size.x = 60
+	if not tooltip_text.is_empty():
+		label.tooltip_text = tooltip_text
 	row.add_child(label)
 
 	var value := Label.new()
 	value.text = value_text
 	value.add_theme_color_override("font_color", value_color)
+	if not tooltip_text.is_empty():
+		value.tooltip_text = tooltip_text
 	row.add_child(value)
 
 	return row
@@ -1560,6 +1659,14 @@ func _update_dev_section_buttons() -> void:
 		var stop_state := _dev_stop_btn_state(dev_running)
 		_dev_stop_btn.disabled = (not stop_state["enabled"]) or _server_restart_in_progress
 		_dev_stop_btn.tooltip_text = stop_state["tooltip"]
+
+
+func _client_status_refresh_has_completed() -> bool:
+	return _last_client_status_refresh_completed_msec > 0
+
+
+func _connected_status_text() -> String:
+	return "Server connected"
 
 
 func _on_install_uv() -> void:
@@ -1914,7 +2021,7 @@ func _build_tools_tab(tabs: TabContainer) -> void:
 	footer.add_theme_constant_override("separation", 8)
 
 	_tools_apply_btn = Button.new()
-	_tools_apply_btn.text = "Apply && Restart Server"
+	_tools_apply_btn.text = "Apply and Restart Server"
 	_tools_apply_btn.tooltip_text = "Save the excluded list to Editor Settings and reload the plugin so the server respawns with --exclude-domains."
 	_tools_apply_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_tools_apply_btn.pressed.connect(_on_tools_apply)
@@ -2098,7 +2205,10 @@ func _refresh_clients_summary() -> void:
 	_clients_summary_label.text = text
 	if _client_configure_all_btn != null:
 		_client_configure_all_btn.disabled = ClientRefreshStateScript.should_disable_client_actions(_refresh_state)
+	if _client_empty_cta_btn != null:
+		_client_empty_cta_btn.visible = configured == 0 and _client_status_refresh_has_completed()
 	_refresh_drift_banner(mismatched_ids)
+	_update_status()
 
 
 func _show_manual_command_for(client_id: String) -> void:
@@ -2629,6 +2739,5 @@ func _on_install_state_changed(state: Dictionary) -> void:
 	if state.has("banner_visible") and _update_banner != null:
 		_update_banner.visible = bool(state["banner_visible"])
 	if String(state.get("outcome", "")) == "success" and _update_label != null:
-		## Visual confirmation for the pre-4.4 "Updated! Restart the editor."
-		## terminal state — the only outcome the manager paints green for.
+		## Visual confirmation for successful terminal update states.
 		_update_label.add_theme_color_override("font_color", Color.GREEN)

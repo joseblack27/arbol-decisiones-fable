@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://cuulrkmhcuj8g"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_dypkp"]
+[ext_resource type="PackedScene" uid="uid://c76lywbyu37mf" path="res://escenas/habilidades/curacion/HabilidadCuracion.tscn" id="3_esc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_curacion1"]
+atlas = ExtResource("2_dypkp")
+region = Rect2(128, 160, 32, 32)
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Curación"
+icono = SubResource("AtlasTexture_curacion1")
+descripcion = "Restaura 60 de vida repartidos a lo largo de 6 segundos"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 25
+enfriamiento = 10.0

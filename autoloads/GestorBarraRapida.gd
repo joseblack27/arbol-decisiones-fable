@@ -20,6 +20,26 @@ const CANTIDAD_CASILLAS := 4
 var casillas: Array[DatosItem] = [null, null, null, null]
 
 
+func _ready() -> void:
+	# Lootear MÁS unidades de un consumible ya puesto en una casilla sube el
+	# quantity del MISMO DatosItem que la casilla referencia — pero nadie
+	# redibujaba su etiqueta de cantidad hasta el próximo casilla_cambiada
+	# (reportado: "consigues más en el inventario y el valor no se
+	# actualiza"). Escuchar el loot acá refresca ambas vistas de una.
+	# Diferido: BusEventos se declara antes que este autoload, pero por las
+	# dudas del orden se conecta al primer fotograma (mismo criterio que
+	# GestorGuardado._conectar_eventos_guardado).
+	(func():
+		BusEventos.item_agregado.connect(_al_agregar_item)
+	).call_deferred()
+
+
+func _al_agregar_item(item: DatosItem, _cantidad: int) -> void:
+	for i in casillas.size():
+		if casillas[i] == item:
+			refrescar(i)
+
+
 func asignar(indice: int, item: DatosItem) -> void:
 	if indice < 0 or indice >= CANTIDAD_CASILLAS:
 		return

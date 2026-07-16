@@ -31,8 +31,15 @@ extends Node
 ##     por los canales de siempre) y el servidor aplica lo autoritativo
 ##     (posición y vida, que replican solas hacia el cliente).
 ##   - Al conectar, el cliente pide su partida automáticamente (ver
-##     Mundo._esperar_jugador_propio), y además se autoguarda cada
-##     AUTOGUARDADO_SEGUNDOS.
+##     Mundo._esperar_jugador_propio). Después se autoguarda cada
+##     AUTOGUARDADO_SEGUNDOS, y ADEMÁS al instante (con antirrebote) cuando
+##     pasa algo valioso: subir de nivel, ganar XP, loot, cambiar equipo.
+##   - El servidor NO escribe a SQLite en cada envío: acumula el snapshot
+##     más nuevo de cada jugador en memoria (_snapshots_pendientes) y lo
+##     vuelca por lotes cada FLUSH_BD_SEGUNDOS, de inmediato cuando ese
+##     jugador se desconecta (volcar_peer, ver ServidorDedicado), y al
+##     apagarse el servidor — patrón buffer-adelante/base-atrás, sin
+##     necesidad de un Redis aparte a esta escala.
 ## El "nivel_escena" guardado se ignora en red: el mundo es uno solo, el del
 ## servidor. Sin red, TODO sigue funcionando exactamente como siempre.
 
@@ -43,29 +50,97 @@ const VERSION_GUARDADO := 1
 ## Tope del JSON aceptado por el servidor (anti-abuso): una partida legítima
 ## pesa ~1-2 KB.
 const _MAX_BYTES_PARTIDA := 65536
-## Cada cuántos segundos un cliente puro guarda solo su progreso.
-const AUTOGUARDADO_SEGUNDOS := 60.0
+## Cada cuántos segundos un cliente puro guarda solo su progreso. Bajado de
+## 60 a 10: el snapshot pesa ~1-2 KB y el servidor ya no lo escribe a disco
+## al recibirlo (va a un buffer en memoria, ver _snapshots_pendientes) —
+## mandarlo seguido cuesta casi nada y acota la pérdida por desconexión.
+const AUTOGUARDADO_SEGUNDOS := 10.0
+## Antirrebote de los guardados por evento (subir de nivel, loot, equipo...):
+## varios eventos seguidos (abrir un cofre con 5 items) producen UN solo
+## envío, no cinco.
+const DEBOUNCE_EVENTO_SEGUNDOS := 2.0
+## SERVIDOR: cada cuántos segundos vuelca el buffer de snapshots a SQLite.
+## Entre volcadas, lo recibido vive en memoria — el papel del "Redis": la
+## desconexión de un peer fuerza SU volcada inmediata (ver volcar_peer).
+const FLUSH_BD_SEGUNDOS := 60.0
 
 signal partida_guardada
 signal partida_cargada
 
 var _acumulador_autoguardado := 0.0
+var _guardado_evento_pendiente := false
+## SERVIDOR: snapshot más reciente de cada jugador que aún no tocó SQLite.
+## id_unico -> {"nombre": String, "texto": String (JSON)}.
+var _snapshots_pendientes: Dictionary = {}
+var _acumulador_flush := 0.0
 ## Conexión SQLite única, abierta perezosamente y reutilizada — el
 ## servidor corre en un solo hilo (el bucle principal de Godot), así que no
 ## hace falta pool de conexiones ni nada más elaborado.
-var _bd: SQLite = null
+## Sin tipo estático "SQLite" a propósito (ver _bd_red()): esta clase la
+## registra el GDExtension addons/godot-sqlite, que solo tiene binario
+## nativo compilado para Windows/Linux — el SERVIDOR (Docker, Linux). El
+## build de Android (el CLIENTE en el celular) no lo trae, y GDScript
+## necesita resolver un tipo estático en tiempo de COMPILACIÓN aunque el
+## código que lo usa nunca corra ahí (_bd_red() es "solo tiene sentido en
+## el servidor", pero igual hay que poder COMPILAR este autoload en el
+## cliente) — con el tipo estático, todo el autoload fallaba al cargar en
+## Android, tirando abajo el resto del arranque (incluida la conexión).
+var _bd = null
+
+
+func _ready() -> void:
+	# Diferido: GestorBarraRapida se declara DESPUÉS de este autoload en
+	# project.godot — en este _ready() todavía no existe.
+	_conectar_eventos_guardado.call_deferred()
+
+
+## Guardado por EVENTO (cliente puro): lo valioso no espera al tick
+## periódico — al subir de nivel, recoger loot o cambiar el equipo, el
+## snapshot viaja al servidor de inmediato (con antirrebote, ver
+## _guardar_por_evento). La posición sí puede esperar los 10s de siempre.
+func _conectar_eventos_guardado() -> void:
+	BusEventos.nivel_subido.connect(func(_n): _guardar_por_evento())
+	BusEventos.xp_agregada.connect(func(_c, _t): _guardar_por_evento())
+	BusEventos.item_agregado.connect(func(_i, _c): _guardar_por_evento())
+	BusEventos.equipo_cambiado.connect(func(_e): _guardar_por_evento())
+	BusEventos.habilidad_equipada.connect(func(_e, _s, _h): _guardar_por_evento())
+	GestorBarraRapida.casilla_cambiada.connect(func(_i): _guardar_por_evento())
 
 
 func _process(delta: float) -> void:
+	# SERVIDOR dedicado: volcar el buffer de snapshots a SQLite por lotes.
+	if Utils.en_red() and multiplayer.is_server():
+		_acumulador_flush += delta
+		if _acumulador_flush >= FLUSH_BD_SEGUNDOS:
+			_acumulador_flush = 0.0
+			_volcar_pendientes()
+		return
 	# Autoguardado SOLO como cliente puro en red (un jugador conserva su
 	# F5 manual de siempre; el servidor dedicado no tiene "su" jugador).
-	if not (Utils.en_red() and not multiplayer.is_server()):
+	if not Utils.en_red():
 		return
 	_acumulador_autoguardado += delta
 	if _acumulador_autoguardado >= AUTOGUARDADO_SEGUNDOS:
 		_acumulador_autoguardado = 0.0
 		if _obtener_jugador() != null:
 			guardar_partida()
+
+
+## Cliente puro: agenda UN guardado dentro de DEBOUNCE_EVENTO_SEGUNDOS —
+## los eventos que lleguen mientras tanto quedan cubiertos por ese mismo
+## envío. Fuera de red no hace nada (un jugador conserva su F5 manual).
+func _guardar_por_evento() -> void:
+	if not (Utils.en_red() and not multiplayer.is_server()):
+		return
+	if _guardado_evento_pendiente:
+		return
+	_guardado_evento_pendiente = true
+	get_tree().create_timer(DEBOUNCE_EVENTO_SEGUNDOS).timeout.connect(func():
+		_guardado_evento_pendiente = false
+		if Utils.en_red() and not multiplayer.is_server() and _obtener_jugador() != null:
+			_acumulador_autoguardado = 0.0
+			guardar_partida()
+	)
 
 
 func _input(event: InputEvent) -> void:
@@ -272,7 +347,7 @@ func _serializar_habilidades() -> Array:
 	var lista := []
 	if slots == null:
 		return lista
-	for i in 4:
+	for i in slots.total_slots:
 		var datos: DatosHabilidad = slots.obtener_datos(i)
 		lista.append(datos.resource_path if datos else "")
 	return lista
@@ -282,7 +357,7 @@ func _restaurar_habilidades(rutas: Array) -> void:
 	var slots := Utils.slot_habilidades_local()
 	if slots == null:
 		return
-	for i in 4:
+	for i in slots.total_slots:
 		var ruta: String = rutas[i] if i < rutas.size() else ""
 		if ruta != "" and ResourceLoader.exists(ruta):
 			slots.equipar(i, load(ruta) as DatosHabilidad)
@@ -299,10 +374,17 @@ func _obtener_jugador() -> Node2D:
 # =============================================================================
 
 ## Conexión abierta y con la tabla lista, creándola la primera vez que hace
-## falta. Solo tiene sentido llamarla del lado del SERVIDOR.
-func _bd_red() -> SQLite:
+## falta. Solo tiene sentido llamarla del lado del SERVIDOR — ClassDB.
+## instantiate() en vez de "SQLite.new()" a propósito: evita que GDScript
+## necesite resolver la clase en tiempo de compilación (ver comentario en
+## "_bd" arriba), así este autoload compila igual en un build sin el
+## addon nativo (el cliente de Android).
+func _bd_red():
 	if _bd == null:
-		_bd = SQLite.new()
+		if not ClassDB.class_exists("SQLite"):
+			push_error("GestorGuardado: SQLite no disponible en esta build (¿cliente sin el addon nativo?).")
+			return null
+		_bd = ClassDB.instantiate("SQLite")
 		_bd.path = RUTA_BD_RED
 		_bd.open_db()
 		# nombre_visible es columna aparte (no solo dentro del JSON) a
@@ -320,9 +402,11 @@ func _bd_red() -> SQLite:
 	return _bd
 
 
-## SERVIDOR: recibe el JSON del cliente y lo guarda (INSERT u UPDATE según
-## corresponda) en la fila de ESE jugador, identificado por su id_unico —
-## nunca por un dato mandado directo por el cliente.
+## SERVIDOR: recibe el JSON del cliente y lo deja en el buffer en memoria
+## (_snapshots_pendientes) — instantáneo, sin tocar el disco. A SQLite llega
+## después, por lotes cada FLUSH_BD_SEGUNDOS, o de inmediato si ESE peer se
+## desconecta (volcar_peer). La fila se identifica por id_unico — nunca por
+## un dato mandado directo por el cliente.
 @rpc("any_peer", "reliable")
 func _guardar_partida_red(texto: String) -> void:
 	if not multiplayer.is_server():
@@ -336,12 +420,21 @@ func _guardar_partida_red(texto: String) -> void:
 	var id := _id_unico_limpio(jugador)
 	if id == "":
 		return
-	var nombre := Utils.nombre_visible(jugador)
-	# query_with_bindings: los valores viajan como parámetros, nunca
-	# concatenados al SQL — evita cualquier inyección aunque nombre_visible
-	# venga en última instancia del cliente (ver Jugador._registrar_
-	# identidad_red). ON CONFLICT: upsert en una sola sentencia, atómico.
-	_bd_red().query_with_bindings(
+	_snapshots_pendientes[id] = {
+		"nombre": Utils.nombre_visible(jugador),
+		"texto": texto,
+	}
+
+
+## SERVIDOR: escribe UNA fila en SQLite (upsert). query_with_bindings: los
+## valores viajan como parámetros, nunca concatenados al SQL — evita
+## cualquier inyección aunque nombre_visible venga en última instancia del
+## cliente (ver Jugador._registrar_identidad_red).
+func _escribir_snapshot_bd(id: String, nombre: String, texto: String) -> void:
+	var bd = _bd_red()
+	if bd == null:
+		return
+	bd.query_with_bindings(
 		"""
 		INSERT INTO partidas (id_unico, nombre_visible, datos_json, actualizado)
 		VALUES (?, ?, ?, ?)
@@ -352,6 +445,45 @@ func _guardar_partida_red(texto: String) -> void:
 		""",
 		[id, nombre, texto, Time.get_datetime_string_from_system(true)]
 	)
+
+
+## SERVIDOR: vuelca TODO el buffer a SQLite en una sola transacción y lo
+## vacía. Corre cada FLUSH_BD_SEGUNDOS (ver _process) y al apagarse el
+## servidor (_exit_tree).
+func _volcar_pendientes() -> void:
+	if _snapshots_pendientes.is_empty():
+		return
+	var bd = _bd_red()
+	if bd == null:
+		return
+	bd.query("BEGIN;")
+	for id: String in _snapshots_pendientes:
+		var entrada: Dictionary = _snapshots_pendientes[id]
+		_escribir_snapshot_bd(id, entrada["nombre"], entrada["texto"])
+	bd.query("COMMIT;")
+	_snapshots_pendientes.clear()
+
+
+## SERVIDOR: vuelca de inmediato el snapshot pendiente del peer que se está
+## desconectando — el arreglo al "cerré el juego y perdí el último minuto".
+## Llamar ANTES de liberar su nodo Jugador (ver ServidorDedicado.
+## _al_desconectar): _jugador_de_peer lo necesita vivo para resolver su
+## id_unico.
+func volcar_peer(peer_id: int) -> void:
+	var jugador := _jugador_de_peer(peer_id)
+	var id := _id_unico_limpio(jugador)
+	if id == "" or not _snapshots_pendientes.has(id):
+		return
+	var entrada: Dictionary = _snapshots_pendientes[id]
+	_escribir_snapshot_bd(id, entrada["nombre"], entrada["texto"])
+	_snapshots_pendientes.erase(id)
+
+
+## Último recurso al apagarse el servidor (docker stop, reinicio limpio):
+## nada pendiente se queda sin escribir. En cliente/un jugador el buffer
+## siempre está vacío — no hace nada.
+func _exit_tree() -> void:
+	_volcar_pendientes()
 
 
 ## SERVIDOR: el cliente pide su partida — si existe una fila para su
@@ -365,7 +497,15 @@ func _pedir_partida_red() -> void:
 	var id := _id_unico_limpio(jugador)
 	if id == "":
 		return
-	var bd := _bd_red()
+	# Primero el buffer en memoria: si el jugador reconectó antes del
+	# volcado periódico, ahí está su versión más nueva (la de SQLite puede
+	# tener hasta FLUSH_BD_SEGUNDOS de atraso).
+	if _snapshots_pendientes.has(id):
+		rpc_id(quien, "_recibir_partida_red", _snapshots_pendientes[id]["texto"])
+		return
+	var bd = _bd_red()
+	if bd == null:
+		return
 	bd.query_with_bindings("SELECT datos_json FROM partidas WHERE id_unico = ?;", [id])
 	if bd.query_result.is_empty():
 		return  # sin partida guardada: el cliente arranca de cero, sin error.

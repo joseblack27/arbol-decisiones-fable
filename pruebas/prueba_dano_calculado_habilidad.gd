@@ -69,7 +69,27 @@ func _informar() -> bool:
 	print("Descripción tras el cambio (esperado 'Golpea por 24 - 26'): %s" % desc_label.text)
 	var actualizado_ok := calc_label.text == "24 - 26" and desc_label.text == "Golpea por 24 - 26"
 
-	var exito := inicial_ok and actualizado_ok
+	# Habilidad con "multiplicador_dano_tick" en su escena (el lanzallamas):
+	# el panel debe leerlo y escalar el rango mostrado — sin esto, mostraba
+	# el rango base entero (4-8) cuando el tick real aplica solo el 20 %
+	# ("dice 4-8 pero en realidad hace 1", reportado).
+	_atributos.base.danos    = 0.0
+	_atributos.base.potencia = 0.0
+	root.get_node("/root/BusEventos").emit_signal("equipo_cambiado", [])
+	var datos_llamas := DatosHabilidad.new()
+	datos_llamas.nombre        = "Lanzallamas prueba"
+	datos_llamas.descripcion   = "Quema por {damage1}"
+	datos_llamas.dano_base_min = 4
+	datos_llamas.dano_base_max = 8
+	datos_llamas.escena = load("res://escenas/habilidades/lanzallamas/HabilidadLanzallamas.tscn")
+	_panel_detalle.call("show_skill", datos_llamas)
+
+	# 4*0.2=0.8 -> int() trunca a 0; 8*0.2=1.6 -> int() trunca a 1.
+	print("Daño calculado del lanzallamas (esperado '0 - 1'): %s" % calc_label.text)
+	print("Descripción del lanzallamas (esperado 'Quema por 0 - 1'): %s" % desc_label.text)
+	var factor_ok := calc_label.text == "0 - 1" and desc_label.text == "Quema por 0 - 1"
+
+	var exito := inicial_ok and actualizado_ok and factor_ok
 	print("PRUEBA DAÑO CALCULADO HABILIDAD %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

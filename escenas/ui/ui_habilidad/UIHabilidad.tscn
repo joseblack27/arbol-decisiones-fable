@@ -1,23 +1,27 @@
-[gd_scene load_steps=5 format=3 uid="uid://uihabilidad01"]
+[gd_scene load_steps=5 format=3 uid="uid://6fwc7y8i8y77"]
 
-[ext_resource type="Script" path="res://escenas/ui/ui_habilidad/UIHabilidad.gd" id="1_uih"]
+[ext_resource type="Script" uid="uid://ctq1h1y7vdkm8" path="res://escenas/ui/ui_habilidad/UIHabilidad.gd" id="1_uih"]
 [ext_resource type="Texture2D" uid="uid://chisa83fx1453" path="res://assets/joystick_base_01.svg" id="2_base"]
 [ext_resource type="Texture2D" uid="uid://corpnd3h4rk75" path="res://assets/joystick_ball_01.svg" id="3_bola"]
-[ext_resource type="Script" path="res://escenas/ui/ui_habilidad/PieCooldown.gd" id="4_pie"]
+[ext_resource type="Script" uid="uid://c6tqvls3fa3hm" path="res://escenas/ui/ui_habilidad/PieCooldown.gd" id="4_pie"]
 
 [node name="UIHabilidad" type="Control"]
+layout_mode = 3
+anchors_preset = 3
 anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -200.0
-offset_top = -200.0
-offset_right = -10.0
-offset_bottom = -10.0
-mouse_filter = 0
+offset_left = -800.0
+offset_top = -480.0
+offset_right = -736.0
+offset_bottom = -416.0
+grow_horizontal = 0
+grow_vertical = 0
 script = ExtResource("1_uih")
 
 [node name="Base" type="Sprite2D" parent="."]
+scale = Vector2(0.44444445, 0.44444445)
 texture = ExtResource("2_base")
 
 [node name="LineaDireccion" type="Line2D" parent="."]
@@ -31,7 +35,7 @@ texture = ExtResource("3_bola")
 [node name="Icono" type="Sprite2D" parent="."]
 
 [node name="EtiquetaTexto" type="Label" parent="."]
-mouse_filter = 2
+layout_mode = 0
 
 [node name="OverlaySinEnergia" type="Sprite2D" parent="."]
 visible = false
@@ -40,16 +44,18 @@ texture = ExtResource("2_base")
 
 [node name="EtiquetaSinEnergia" type="Label" parent="."]
 visible = false
-mouse_filter = 2
+layout_mode = 0
 theme_override_colors/font_color = Color(1, 0.3, 0.3, 1)
 theme_override_font_sizes/font_size = 14
 text = "E"
 
 [node name="PieCooldown" type="Control" parent="."]
+anchors_preset = 0
 mouse_filter = 2
 script = ExtResource("4_pie")
 
 [node name="EtiquetaCooldown" type="Label" parent="."]
-visible = false
-mouse_filter = 2
+layout_mode = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 14

@@ -31,12 +31,22 @@ extends StaticBody2D
 var _cuerpos_dentro := 0
 
 
+## Capa física del CUERPO del jugador (ver Jugador.tscn, collision_layer=8):
+## desde que dejó la capa 1 (para que los personajes no choquen entre sí),
+## una máscara por defecto (1) ya no lo detecta.
+const CAPA_CUERPO_JUGADOR := 8
+
+
 func _ready() -> void:
 	set_physics_process(false)
 	# Sin área de oclusión (o sin sprite) no hay nada que evaluar: el nodo
 	# queda como decoración sólida pasiva, con coste cero.
 	if area_oclusion == null or sprite == null:
 		return
+	# Por código y no en la escena: los niveles tienen MUCHAS decoraciones
+	# armadas a mano (no instancias de DecoracionOcluible.tscn) — fijarlo acá
+	# cubre todas, presentes y futuras, sin depender de editar cada .tscn.
+	area_oclusion.collision_mask = CAPA_CUERPO_JUGADOR
 	area_oclusion.body_entered.connect(_al_entrar_cuerpo)
 	area_oclusion.body_exited.connect(_al_salir_cuerpo)
 

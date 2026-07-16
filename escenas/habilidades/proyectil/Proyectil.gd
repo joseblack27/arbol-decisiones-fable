@@ -91,6 +91,11 @@ func _on_area_entrada(area: Area2D) -> void:
 		return
 	if Combate.mismo_equipo(entidad_fuente, defensor):
 		return
+	# Muro ALIADO: atravesarlo como si nada — sin gastarse ni dañarlo (el
+	# muro igual bloquearía el daño por equipo, pero el proyectil moría
+	# contra él de todos modos: disparo desperdiciado contra el muro propio).
+	if defensor.has_method("es_aliado_de") and defensor.es_aliado_de(entidad_fuente):
+		return
 	# Obstáculos rompibles (p. ej. Muro): si el impacto (penetración de
 	# armadura) de quien disparó supera su defensa, lo revienta y el
 	# proyectil sigue de largo sin gastarse — no se marca _ya_impacto ni
@@ -99,14 +104,14 @@ func _on_area_entrada(area: Area2D) -> void:
 	# muestra número de daño flotante — ese feedback es para golpes entre
 	# personajes, no para chocar contra una pared.
 	var es_obstaculo_rompible := defensor.has_method("recibir_impacto")
-	if es_obstaculo_rompible and defensor.recibir_impacto(_obtener_impacto_fuente()):
+	if es_obstaculo_rompible and defensor.recibir_impacto(_obtener_impacto_fuente(), entidad_fuente):
 		return
 	_ya_impacto = true
 	var dano_final := AtributosComponente.calcular_pipeline(entidad_fuente, defensor, daño, tipo_dano)
 	if vida is VidaComponente:
 		(vida as VidaComponente).quitar_vida(dano_final, entidad_fuente)
 	else:
-		vida.quitar_vida(dano_final)
+		vida.quitar_vida(dano_final, entidad_fuente)
 	if not es_obstaculo_rompible and Utils.debe_mostrar_dano_local():
 		BusEventos.daño_aplicado.emit(defensor, dano_final, entidad_fuente)
 	BusEventos.habilidad_impacto.emit("proyectil", defensor)
@@ -122,22 +127,59 @@ func _on_body_entrada(cuerpo: Node2D) -> void:
 		return
 	if not cuerpo.has_method("quitar_vida"):
 		return
+	# Muro ALIADO: atravesarlo sin gastarse (ver _on_area_entrada).
+	if cuerpo.has_method("es_aliado_de") and cuerpo.es_aliado_de(entidad_fuente):
+		return
 	var es_obstaculo_rompible := cuerpo.has_method("recibir_impacto")
-	if es_obstaculo_rompible and cuerpo.recibir_impacto(_obtener_impacto_fuente()):
+	if es_obstaculo_rompible and cuerpo.recibir_impacto(_obtener_impacto_fuente(), entidad_fuente):
 		return
 	_ya_impacto = true
 	var dano_final := AtributosComponente.calcular_pipeline(entidad_fuente, cuerpo, daño, tipo_dano)
 	# Enemigos/jugadores reenvían el atacante a su VidaComponente; los
-	# quitar_vida() genéricos de un solo argumento (Muro...) no lo llevan.
-	if cuerpo.is_in_group("enemigos") or cuerpo.is_in_group("jugadores"):
-		cuerpo.quitar_vida(dano_final, entidad_fuente)
-	else:
-		cuerpo.quitar_vida(dano_final)
+	# quitar_vida() genéricos (Muro...) también lo aceptan, para poder
+	# chequear equipo (ver Muro._bloqueado_por_equipo).
+	cuerpo.quitar_vida(dano_final, entidad_fuente)
 	if not es_obstaculo_rompible and Utils.debe_mostrar_dano_local():
 		BusEventos.daño_aplicado.emit(cuerpo, dano_final, entidad_fuente)
 	BusEventos.habilidad_impacto.emit("proyectil", cuerpo)
 	_spawnear_efecto_impacto(cuerpo)
 	GestorPiscinas.liberar(self)
+
+## Sprite provisional: el ÍCONO de la habilidad como imagen del proyectil,
+## mientras no exista arte dedicado. Las habilidades que usan el
+## Proyectil.tscn base (bola de fuego, ráfaga, abanico...) pasan su
+## DatosHabilidad.icono acá tras configurar(). Los proyectiles custom con
+## arte propio (AnimatedSprite2D en su escena, como la bola de telaraña o el
+## inmovilizador) se ignoran solos. Con null se vuelve a los círculos de
+## debug de _draw() — importante para el pooling: la MISMA instancia
+## reciclada puede servir a habilidades distintas, así que esto se fija en
+## cada disparo, nunca se asume el valor del uso anterior.
+func poner_textura_icono(tex: Texture2D) -> void:
+	# Arte propio de una escena custom (AnimatedSprite2D, como la bola de
+	# telaraña; o un Sprite2D fijo con nombre propio, como ProyectilAbanico)
+	# — no pisarlo. "SpriteIcono" es el nombre reservado que crea ESTA
+	# función más abajo, así que un Sprite2D con otro nombre es arte real.
+	if get_node_or_null("AnimatedSprite2D") != null:
+		return
+	for hijo in get_children():
+		if hijo is Sprite2D and hijo.name != "SpriteIcono":
+			return
+	var sprite := get_node_or_null("SpriteIcono") as Sprite2D
+	if tex == null:
+		if sprite:
+			sprite.visible = false
+		mostrar_debug = true
+		queue_redraw()
+		return
+	if sprite == null:
+		sprite = Sprite2D.new()
+		sprite.name = "SpriteIcono"
+		add_child(sprite)
+	sprite.texture = tex
+	sprite.visible = true
+	mostrar_debug = false
+	queue_redraw()
+
 
 ## Penetración de armadura ("impacto") de quien disparó este proyectil, o 0
 ## si no tiene AtributosComponente. Usado para romper obstáculos como Muro.

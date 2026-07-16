@@ -26,13 +26,18 @@ static func mismo_equipo(fuente: Node, objetivo: Node) -> bool:
 ## Un objetivo válido es el VidaComponente de una entidad (jugador o mob;
 ## el objetivo real es su padre) o, genérico, cualquier collider con un
 ## método quitar_vida() propio (p. ej. Muro). Nunca golpea a la fuente, y
-## si respetar_equipo=true tampoco a sus aliados (AreaEfecto lo apaga: un
-## AoE golpea a todo lo que pise, de siempre).
+## con respetar_equipo=true (el default, usado por TODAS las hitboxes hoy)
+## tampoco a sus aliados — sin fuego amigo entre jugadores ni entre mobs.
 ##
 ## nombre_evento es el identificador emitido en BusEventos.habilidad_impacto
 ## ("arañazo", "golpe_basico", "area_efecto"...).
+##
+## "area" tipado Node2D (no Area2D): solo se usa para get_world_2d() y
+## global_transform, que cualquier Node2D tiene — permite pasar directo la
+## entidad_dueña (un CharacterBody2D) sin necesitar un Area2D dedicado, como
+## hace HabilidadLanzallamas (cono de daño anclado al propio jugador).
 static func golpear_area(
-		area: Area2D,
+		area: Node2D,
 		forma: Shape2D,
 		dano: float,
 		fuente: Node,
@@ -66,15 +71,14 @@ static func golpear_area(
 			continue
 		ya_dañados.append(objetivo)
 		var dano_final := AtributosComponente.calcular_pipeline(fuente, objetivo, dano, tipo_dano)
-		# VidaComponente y los cuerpos de enemigos/jugadores aceptan el
-		# atacante (se replica al cliente para el log de Actividad Reciente);
-		# los quitar_vida() genéricos (Muro...) mantienen su firma de un arg.
+		# Todos los quitar_vida() del proyecto aceptan "fuente" como segundo
+		# argumento (VidaComponente, Enemigo, Jugador, y Muro — este último
+		# lo usa para no dejarse romper por su propio equipo, ver Muro.
+		# _bloqueado_por_equipo), así que siempre se puede pasar derecho.
 		if vida is VidaComponente:
 			(vida as VidaComponente).quitar_vida(dano_final, fuente)
-		elif vida.is_in_group("enemigos") or vida.is_in_group("jugadores"):
-			vida.quitar_vida(dano_final, fuente)
 		else:
-			vida.quitar_vida(dano_final)
+			vida.quitar_vida(dano_final, fuente)
 		# El número flotante local solo se muestra donde el cálculo ES el
 		# real (servidor / un jugador); en un cliente puro lo emite
 		# VidaComponente._recibir_vida_red con el delta ya replicado.

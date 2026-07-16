@@ -7,6 +7,7 @@
 radius = 30.0
 
 [node name="PortalNivel" type="Area2D"]
+collision_mask = 8
 collision_layer = 0
 script = ExtResource("1_portal")
 

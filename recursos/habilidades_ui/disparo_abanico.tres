@@ -1,12 +1,12 @@
 [gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://bhvedwopedvk8"]
 
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
-[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_formas"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/proyectil/custom/HabilidadProyectilAbanico.tscn" id="3_esc"]
+[ext_resource type="Texture2D" uid="uid://jy5qvrtxhjfg" path="res://assets/iconos/icons32x32.png" id="2_8b7on"]
+[ext_resource type="PackedScene" uid="uid://cnhwhx7gqvop4" path="res://escenas/habilidades/proyectil/custom/HabilidadProyectilAbanico.tscn" id="3_esc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_abanico1"]
-atlas = ExtResource("2_formas")
-region = Rect2(128, 0, 32, 32)
+atlas = ExtResource("2_8b7on")
+region = Rect2(64, 0, 32, 32)
 
 [resource]
 script = ExtResource("1_dh")

@@ -127,7 +127,13 @@ func obtener_vida_maxima() -> float:
 	return _salud_maxima
 
 
-func quitar_vida(cantidad: float) -> float:
+## fuente_ataque (opcional): quién pega — si es del mismo equipo que quien
+## INVOCÓ este muro (_fuente), el golpe no hace nada (ver _bloqueado_por_
+## equipo). Sin fuente_ataque (null: daño ambiental sin atacante
+## identificable) no se bloquea nada, igual que antes.
+func quitar_vida(cantidad: float, fuente_ataque: Node = null) -> float:
+	if _bloqueado_por_equipo(fuente_ataque):
+		return _salud_actual
 	if cantidad <= 0.0:
 		return _salud_actual
 	_salud_actual -= cantidad
@@ -141,12 +147,30 @@ func quitar_vida(cantidad: float) -> float:
 ## en el intento: ver Proyectil._on_area_entrada, que al recibir true aquí
 ## no se destruye a sí mismo y sigue de largo.
 ## Devuelve true si el muro se rompió, false si lo absorbió sin más (en ese
-## caso el daño normal ya lo aplica quien llamó, vía quitar_vida()).
-func recibir_impacto(impacto: float) -> bool:
+## caso el daño normal ya lo aplica quien llamó, vía quitar_vida()) o si el
+## golpe se bloqueó por ser del mismo equipo que quien invocó el muro.
+func recibir_impacto(impacto: float, fuente_ataque: Node = null) -> bool:
+	if _bloqueado_por_equipo(fuente_ataque):
+		return false
 	if impacto > _defensa:
 		_romper()
 		return true
 	return false
+
+
+## Un jugador no puede destruir su propio muro (ni el de otro jugador), y
+## un mob no puede destruir el de otro mob — solo bandos distintos pueden
+## true si "nodo" es del mismo equipo de quien invocó este muro — Proyectil
+## lo consulta para ATRAVESAR muros aliados sin gastarse (antes el proyectil
+## moría contra el muro propio sin poder dañarlo: disparo desperdiciado).
+func es_aliado_de(nodo: Node) -> bool:
+	return _bloqueado_por_equipo(nodo)
+
+
+## romperse los muros entre sí. _fuente es quien INVOCÓ este muro (ver
+## configurar()); fuente_ataque es quien está pegando ahora.
+func _bloqueado_por_equipo(fuente_ataque: Node) -> bool:
+	return is_instance_valid(fuente_ataque) and Combate.mismo_equipo(fuente_ataque, _fuente)
 
 
 func _romper() -> void:
@@ -192,6 +216,11 @@ func _aplicar_tick() -> void:
 
 
 func _danar(objetivo: Node) -> void:
+	# Sin fuego amigo: el grupo_objetivo del .tscn ya filtra hoy ("enemigos"
+	# para el muro del jugador), pero este corte por equipo real de quien
+	# invocó el muro lo mantiene correcto si algún día un mob lanza muros.
+	if Combate.mismo_equipo(_fuente, objetivo):
+		return
 	var vida_obj := objetivo.get_node_or_null("VidaComponente") as VidaComponente
 	if not vida_obj:
 		return

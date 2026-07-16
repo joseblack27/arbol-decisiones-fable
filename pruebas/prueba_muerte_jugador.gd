@@ -20,6 +20,11 @@ func _process(_delta: float) -> bool:
 	_fotogramas += 1
 	match _fotogramas:
 		1:
+			# Modo local de pruebas: sin esto, Mundo reintenta conectarse al
+			# servidor para siempre (multijugador puro) — o peor, se conecta
+			# de verdad al Docker si esta corriendo y la prueba deja de ser
+			# determinista. Ver Mundo._arrancar_modo_prueba_local().
+			root.get_node("/root/Utils").modo_local_pruebas = true
 			_mundo = (load("res://escenas/mundo/Mundo.tscn") as PackedScene).instantiate()
 			root.add_child(_mundo)
 			current_scene = _mundo

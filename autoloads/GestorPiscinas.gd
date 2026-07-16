@@ -56,7 +56,14 @@ func obtener(escena: PackedScene) -> Node:
 	else:
 		nodo = lista.pop_back()
 
-	nodo.process_mode = Node.PROCESS_MODE_INHERIT
+	# set_deferred, NO asignación directa: liberar() apaga process_mode
+	# también en diferido — si este mismo nodo se recicla en el MISMO
+	# fotograma en que fue liberado (número de daño que termina y otro golpe
+	# llega enseguida), el apagado diferido de liberar() caía DESPUÉS de esta
+	# reactivación y el nodo quedaba desactivado a mitad de su animación
+	# nueva (números congelados/perdidos). En diferido, este encendido se
+	# encola después del apagado y gana.
+	nodo.set_deferred("process_mode", Node.PROCESS_MODE_INHERIT)
 	if nodo is CanvasItem:
 		(nodo as CanvasItem).show()
 	if nodo.has_method(&"_al_obtener_de_piscina"):

@@ -1,11 +1,12 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3 uid="uid://cnhwhx7gqvop4"]
 
 [ext_resource type="Script" path="res://escenas/habilidades/proyectil/custom/HabilidadProyectilAbanico.gd" id="1_abanico"]
+[ext_resource type="PackedScene" uid="uid://dproyabanico01" path="res://escenas/habilidades/proyectil/custom/ProyectilAbanico.tscn" id="2_proy"]
 
 [node name="HabilidadProyectilAbanico" type="Node"]
 script = ExtResource("1_abanico")
+escena_proyectil = ExtResource("2_proy")
+usar_icono_como_sprite = false
 costo_energia = 15.0
 requiere_direccion = true
 tipo_dano = 1
-cantidad_proyectiles = 3
-angulo_total_grados = 30.0

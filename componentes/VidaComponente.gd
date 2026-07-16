@@ -91,7 +91,7 @@ func restaurar_vida(valor: float) -> void:
 	# Mismo criterio que quitar/agregar: si esto corre en el servidor (p. ej.
 	# al cargar una partida guardada), el cliente tiene que enterarse.
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_recibir_vida_red", salud_actual)
+		rpc("_recibir_vida_red", salud_actual, "", salud_maxima)
 
 
 ## Agrega vida al agente. Retorna el exceso de vida (si se sobrepasa el máximo).
@@ -112,7 +112,7 @@ func agregar_vida(cantidad: float) -> float:
 
 	cambio_valor_vida.emit(salud_actual)
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_recibir_vida_red", salud_actual)
+		rpc("_recibir_vida_red", salud_actual, "", salud_maxima)
 
 	# Retorna la vida que se perdió al alcanzar el máximo
 	return max(0.0, (vida_anterior + cantidad) - salud_maxima)
@@ -167,7 +167,7 @@ func quitar_vida(cantidad: float, fuente: Node = null) -> float:
 		# con el MISMO path en todos los peers (así funcionan ya todos los
 		# RPCs por nodo), así que el cliente puede resolverla localmente.
 		var ruta_fuente := str(fuente.get_path()) if is_instance_valid(fuente) else ""
-		rpc("_recibir_vida_red", salud_actual, ruta_fuente)
+		rpc("_recibir_vida_red", salud_actual, ruta_fuente, salud_maxima)
 
 	# Emitir señal si la vida es menor o igual a cero
 	if salud_actual <= 0.0:
@@ -177,13 +177,26 @@ func quitar_vida(cantidad: float, fuente: Node = null) -> float:
 	return max(0.0, salud_actual)
 
 
-## unreliable_ordered: si se pierde un paquete no importa, el siguiente
-## golpe (o la réplica de "muerte" ya vía despawn/RPC dedicado) lo corrige.
+## reliable (antes unreliable_ordered): la barra de vida en sí se corregía
+## sola con el siguiente golpe, pero los NÚMEROS flotantes de daño salen del
+## delta entre dos réplicas consecutivas — un paquete perdido era un número
+## que nunca aparecía, y si el perdido era el primero de dos golpes seguidos,
+## el segundo mostraba UN solo número con la suma ("cuando es daño múltiple
+## solo sale 1", reportado en el celular por Wi-Fi). Son pocos paquetes (uno
+## por golpe real), el costo de fiabilidad es trivial.
 ## No emite "muerte" acá a propósito: eso ya lo maneja Enemigo._despawn_red
 ## / el flujo de muerte del jugador — emitirlo también acá duplicaría la
 ## reacción (animación de muerte, etc.) del lado del cliente.
-@rpc("authority", "unreliable_ordered")
-func _recibir_vida_red(valor: float, ruta_fuente: String = "") -> void:
+##
+## maxima: la vida MÁXIMA del servidor viaja en cada réplica — al subir de
+## nivel, el crecimiento (+10 de máxima, ver ExperienciaComponente) ocurre
+## solo en el servidor, y el clamp de abajo con la máxima VIEJA del cliente
+## recortaba el valor nuevo: la base no subía hasta que otra cosa la
+## refrescara (reportado como "la vida no sube de base hasta regenerar").
+@rpc("authority", "reliable")
+func _recibir_vida_red(valor: float, ruta_fuente: String = "", maxima: float = -1.0) -> void:
+	if maxima > 0.0 and not is_equal_approx(maxima, salud_maxima):
+		salud_maxima = maxima
 	# El número de daño en pantalla, del lado del cliente, sale de ACÁ (el
 	# delta real ya replicado) — no del cálculo local de cada habilidad
 	# (Arañazo/Proyectil/GolpeBasico/etc, que corren en el cliente como

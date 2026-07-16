@@ -15,22 +15,23 @@ const COLOR_BG := Color(0.80, 0.10, 0.10, 0.75)
 const COLOR_X  := Color(1.00, 1.00, 1.00, 0.95)
 
 
+## Debe cubrir TODOS los slots equipables (ver SlotHabilidades.total_slots)
+## — cuando esto era una lista fija de 0-3, las habilidades de los slots
+## 4-9 (agregados con la paginación) apuntaban SIN círculo de cancelar
+## ("a veces no aparece el botón", reportado: dependía del slot, no del
+## lugar del mapa). OJO con el orden en Mundo.tscn: este nodo debe ir
+## DESPUÉS de PaginadorHabilidades, que es quien registra las señales de
+## los slots de páginas futuras (SeñalManager.conectar no reintenta).
+const TOTAL_SLOTS := 10
+
+
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visible = false
-	# Slots 0-3 (UIHabilidad por slot)
-	SeñalManager.conectar("slot_0_apunte",   self, "_on_apunte")
-	SeñalManager.conectar("slot_0_cancelar", self, "_ocultar")
-	SeñalManager.conectar("slot_0_lanzar",   self, "_on_lanzar")
-	SeñalManager.conectar("slot_1_apunte",   self, "_on_apunte")
-	SeñalManager.conectar("slot_1_cancelar", self, "_ocultar")
-	SeñalManager.conectar("slot_1_lanzar",   self, "_on_lanzar")
-	SeñalManager.conectar("slot_2_apunte",   self, "_on_apunte")
-	SeñalManager.conectar("slot_2_cancelar", self, "_ocultar")
-	SeñalManager.conectar("slot_2_lanzar",   self, "_on_lanzar")
-	SeñalManager.conectar("slot_3_apunte",   self, "_on_apunte")
-	SeñalManager.conectar("slot_3_cancelar", self, "_ocultar")
-	SeñalManager.conectar("slot_3_lanzar",   self, "_on_lanzar")
+	for i in TOTAL_SLOTS:
+		SeñalManager.conectar("slot_%d_apunte" % i,   self, "_on_apunte")
+		SeñalManager.conectar("slot_%d_cancelar" % i, self, "_ocultar")
+		SeñalManager.conectar("slot_%d_lanzar" % i,   self, "_on_lanzar")
 
 
 func _on_apunte(_dir: Vector2, _poder: float) -> void:

@@ -14,13 +14,17 @@ class_name Enemigo
 ## así que nunca queda atrapado por sus propias habilidades.
 const CAPA_OBSTACULOS_HABILIDAD := 4
 
-## Los mobs viven en su propia capa física (collision_layer = 2, fijada en
-## enemigo.tscn) en vez de compartir la capa 1 del jugador/mundo: así dejan
-## de empujarse/bloquearse entre ellos físicamente. Su collision_mask (ver
-## _ready) sigue incluyendo la capa 1 (jugador/mundo) y la 4 (Muro), así que
-## siguen chocando con ambos con normalidad — solo entre sí ya no colisionan.
+## Los mobs viven en su propia capa física (CAPA_MOB, fijada por CÓDIGO en
+## _ready — no confiar en los .tscn: EnemigoLobo/Araña/Caballero/Raton son
+## escenas independientes, no heredan de enemigo.tscn, y sus raíces seguían
+## en la capa 1 — por eso "el dash chocaba en seco con los enemigos" aunque
+## la base ya estuviera en la 2). Máscara: mundo (1) + Muro (4). Nadie choca
+## con nadie: mob-mob no (ni capa 2 ni 8 en la máscara), mob-jugador no (el
+## jugador vive en la capa 8, ver Jugador.tscn, y su máscara es solo 1).
 ## El daño entre mobs ya estaba bloqueado aparte, por equipo (ver
 ## Combate.mismo_equipo — ambos en el grupo "enemigos" cuentan como aliados).
+const CAPA_MOB := 2
+const CAPA_MUNDO := 1
 
 # --- Componentes ---
 @export var componente_vida: VidaComponente
@@ -77,13 +81,20 @@ var _muerto: bool = false
 ## variable, para poder interpolar del lado del cliente (ver _physics_process)
 ## en vez de saltar de golpe a cada actualización de red.
 var _posicion_replicada: Vector2 = Vector2.ZERO
-# Antes en 12.0: con eso el mob visual quedaba ~200-300ms detrás de su
-# posición real en el servidor (que es la que de verdad decide el ataque,
-# ver AccionAtacar._on_ejecutar/distancia). El jugador recibía el golpe
-# (_recibir_vida_red) antes de que el mob se viera lo bastante cerca como
-# para justificarlo — reportado como "daño fantasma"/"mob invisible que me
-# pega". Con 20.0 la ventana de rezago visual se achica bastante.
-const VELOCIDAD_INTERPOLACION_RED := 20.0
+# Antes en 12.0, luego en 20.0: con cada valor el mob visual del cliente
+# queda un poco MÁS atrás de su posición real en el servidor (constante de
+# tiempo ≈ 1/valor: ~50ms de rezago con 20.0). Ese rezago es justo la causa
+# de "el proyectil impacta pero no hace daño" en red — el disparo del
+# cliente conecta contra la posición ATRASADA que ve, pero el servidor (el
+# único que decide el daño real) simula el mismo tiro contra la posición
+# REAL y actualizada, que para cuando el proyectil llega ya se movió más
+# allá. 30.0 (~33ms de rezago) es una mitigación PARCIAL: reduce cuánto se
+# nota, no lo elimina — solución completa requeriría rebobinar la posición
+# en el servidor al momento exacto del disparo (lag compensation/rollback),
+# fuera de alcance de este cambio. Contrapartida de subir este valor: con
+# paquetes perdidos o picos de lag, la corrección se nota un poco más
+# (menos "amortiguada") que con 20.0.
+const VELOCIDAD_INTERPOLACION_RED := 30.0
 
 ## Último estado replicado por RPC — para no reenviar lo mismo cada physics
 ## frame cuando el mob está quieto (con varios mobs idle era tráfico y
@@ -117,7 +128,8 @@ func _enter_tree() -> void:
 
 func _ready() -> void:
 	add_to_group("enemigos")
-	collision_mask |= CAPA_OBSTACULOS_HABILIDAD
+	collision_layer = CAPA_MOB
+	collision_mask = CAPA_MUNDO | CAPA_OBSTACULOS_HABILIDAD
 	_aplicar_datos()
 	# ── Memoria inicial ───────────────────────────────────────────────────────
 	memoria.establecer("agente",                        self)

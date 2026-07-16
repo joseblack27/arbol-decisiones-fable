@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="ArbolDecisiones"
-run/main_scene="res://escenas/mundo/Mundo.tscn"
+run/main_scene="res://escenas/menu_inicio/MenuInicio.tscn"
 config/features=PackedStringArray("4.5")
 run/max_fps=60
 config/icon="uid://crulm186ucr"
@@ -34,6 +34,7 @@ GestorEquipo="*res://autoloads/GestorEquipo.gd"
 GestorGuardado="*res://autoloads/GestorGuardado.gd"
 GestorBarraRapida="*res://autoloads/GestorBarraRapida.gd"
 InteresEspacial="*res://autoloads/InteresEspacial.gd"
+GestorLogRed="*res://autoloads/GestorLogRed.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [display]

@@ -5,15 +5,15 @@
 
 [node name="SelectorSlot" type="PanelContainer"]
 z_index = 10
-custom_minimum_size = Vector2(320, 0)
+custom_minimum_size = Vector2(360, 0)
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -400.0
-offset_top = -240.0
-offset_right = -80.0
+offset_left = -420.0
+offset_top = -260.0
+offset_right = -60.0
 offset_bottom = -57.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -35,86 +35,11 @@ theme_override_constants/separation = 12
 layout_mode = 2
 horizontal_alignment = 1
 
-[node name="HBoxSlots" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+[node name="GridSlots" type="GridContainer" parent="MarginContainer/VBoxContainer"]
 layout_mode = 2
-theme_override_constants/separation = 10
-
-[node name="Slot0" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HBoxSlots"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 4
-
-[node name="BtnSlot0" type="Button" parent="MarginContainer/VBoxContainer/HBoxSlots/Slot0"]
-custom_minimum_size = Vector2(64, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-expand_icon = true
-
-[node name="LblSlot0" type="Label" parent="MarginContainer/VBoxContainer/HBoxSlots/Slot0"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-text = "Vacio"
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Slot1" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HBoxSlots"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 4
-
-[node name="BtnSlot1" type="Button" parent="MarginContainer/VBoxContainer/HBoxSlots/Slot1"]
-custom_minimum_size = Vector2(64, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-expand_icon = true
-
-[node name="LblSlot1" type="Label" parent="MarginContainer/VBoxContainer/HBoxSlots/Slot1"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Slot2" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HBoxSlots"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 4
-
-[node name="BtnSlot2" type="Button" parent="MarginContainer/VBoxContainer/HBoxSlots/Slot2"]
-custom_minimum_size = Vector2(64, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-expand_icon = true
-
-[node name="LblSlot2" type="Label" parent="MarginContainer/VBoxContainer/HBoxSlots/Slot2"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-horizontal_alignment = 1
-autowrap_mode = 3
-
-[node name="Slot3" type="VBoxContainer" parent="MarginContainer/VBoxContainer/HBoxSlots"]
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_constants/separation = 4
-
-[node name="BtnSlot3" type="Button" parent="MarginContainer/VBoxContainer/HBoxSlots/Slot3"]
-custom_minimum_size = Vector2(64, 64)
-layout_mode = 2
-size_flags_horizontal = 3
-expand_icon = true
-
-[node name="LblSlot3" type="Label" parent="MarginContainer/VBoxContainer/HBoxSlots/Slot3"]
-custom_minimum_size = Vector2(0, 10)
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
-horizontal_alignment = 1
-autowrap_mode = 3
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 5
 
 [node name="BtnCancelar" type="Button" parent="MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 30)
