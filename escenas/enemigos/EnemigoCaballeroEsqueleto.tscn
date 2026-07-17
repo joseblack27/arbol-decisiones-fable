@@ -1,10 +1,11 @@
-[gd_scene load_steps=59 format=3 uid="uid://d1042g45vblt7"]
+[gd_scene load_steps=61 format=3 uid="uid://d1042g45vblt7"]
 
 [ext_resource type="Resource" uid="uid://cbkkggbjn6q82" path="res://recursos/enemigos/CaballeroEsqueleto.tres" id="0_datos"]
 [ext_resource type="Script" uid="uid://clnx7q65b85bh" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.gd" id="0_script_caballero"]
 [ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="3_3v04n"]
 [ext_resource type="Resource" path="res://recursos/items/consumibles/pildora_roja.tres" id="4_0wona"]
 [ext_resource type="Resource" uid="uid://vmrsskb13j2w" path="res://recursos/items/consumibles/zanahoria.tres" id="5_rjqlh"]
+[ext_resource type="Resource" path="res://recursos/items/consumibles/jeringa_adrenalina.tres" id="6_0wona"]
 [ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
 [ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
 [ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="7_ng816"]
@@ -36,6 +37,11 @@ metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 [sub_resource type="Resource" id="Resource_i4fs3"]
 script = ExtResource("3_3v04n")
 item = ExtResource("5_rjqlh")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_rjqlh"]
+script = ExtResource("3_3v04n")
+item = ExtResource("6_0wona")
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
@@ -300,7 +306,7 @@ componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("0_datos")
-tabla_botin = Array[ExtResource("3_3v04n")]([SubResource("Resource_qwpms"), SubResource("Resource_i4fs3")])
+tabla_botin = Array[ExtResource("3_3v04n")]([SubResource("Resource_qwpms"), SubResource("Resource_i4fs3"), SubResource("Resource_rjqlh")])
 xp_otorgada = 100
 
 [node name="EnergiaComponente" type="Node" parent="."]

@@ -100,24 +100,19 @@ anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -64.0
-offset_top = -264.0
+offset_top = -272.0
 offset_right = -20.0
 offset_bottom = -233.0
 grow_horizontal = 0
 grow_vertical = 0
-text = "1/2"
+text = "1"
 script = ExtResource("24_pag")
 rutas_botones = Array[NodePath]([NodePath("../UIHabilidadSlot0"), NodePath("../UIHabilidadSlot1"), NodePath("../UIHabilidadSlot2"), NodePath("../UIHabilidadSlot3"), NodePath("../UIHabilidadSlot4")])
 
 [node name="ZonaCancelacion" parent="CanvasLayer/Control" instance=ExtResource("5_zc")]
 anchors_preset = 0
-anchor_left = 0.5
-anchor_right = 0.5
-offset_left = -48.0
-offset_top = 8.0
-offset_right = 48.0
-offset_bottom = 104.0
-grow_horizontal = 2
+offset_top = 90.0
+offset_bottom = 186.0
 
 [node name="PanelNotificacionesLoot" parent="CanvasLayer" instance=ExtResource("17_pnl")]
 offset_left = 16.0

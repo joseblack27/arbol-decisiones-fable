@@ -81,6 +81,7 @@ func _toque_en_boton(pos_global: Vector2) -> bool:
 
 
 func _ready() -> void:
+	add_to_group("ui_habilidad")
 	_signal_id    = str(get_instance_id())
 	_sig_apunte   = "slot_%d_apunte"   % slot_index
 	_sig_lanzar   = "slot_%d_lanzar"   % slot_index
@@ -150,6 +151,16 @@ func _get_habilidad() -> HabilidadBase:
 	if _slot_habilidades:
 		return _slot_habilidades.obtener(slot_index)
 	return null
+
+
+## En cooldown, ni siquiera se ARMA el apunte (ni el tap del modo botón) —
+## para TODAS las habilidades, no solo las de canal continuo: apuntar algo
+## que no puede dispararse solo confunde (parecía que la habilidad
+## respondía y el disparo nunca salía). Empezó siendo exclusivo del
+## lanzallamas (donde además rearrancaba el chorro solo al vencer el
+## cooldown) y el usuario pidió extenderlo a todas.
+func _apunte_bloqueado_por_cooldown() -> bool:
+	return _cd_restante > 0.0
 
 
 ## Registra por adelantado las señales de otros slots que este botón físico
@@ -229,7 +240,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			if _touch_index == -1 and _toque_en_boton(event.position):
-				if _sin_energia:
+				if _sin_energia or _apunte_bloqueado_por_cooldown():
 					return
 				if _modo_joystick:
 					# Guardar la posición de press en espacio local relativo al centro
@@ -256,7 +267,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch:
 		if event.pressed:
 			if _touch_index == -1 and _toque_en_boton(event.position):
-				if _sin_energia:
+				if _sin_energia or _apunte_bloqueado_por_cooldown():
 					return
 				if _modo_joystick:
 					# Posición de press en espacio local relativo al centro
@@ -282,11 +293,42 @@ func _input(event: InputEvent) -> void:
 
 # ── Lógica joystick ───────────────────────────────────────────────────────────
 
+## Slot que está apuntando AHORA MISMO (-1 = ninguno) — estático, como
+## ZonaCancelacion.rect_activo: le permite a la zona de cancelar saber QUÉ
+## habilidad está apuntando (las señales slot_N_apunte no llevan el N como
+## argumento) y ocultarse para las de canal continuo (lanzallamas), donde
+## "cancelar" no existe: soltar ya es parar.
+static var slot_apuntando: int = -1
+
+
 func _iniciar_joystick(indice: int) -> void:
 	_touch_index = indice
 	_activo      = true
 	_drag_offset = Vector2.ZERO
+	slot_apuntando = slot_index
 	_emitir_apunte()
+	_refrescar_visual()
+
+
+## Cancela el apunte en curso desde AFUERA (la habilidad misma, no el dedo):
+## usado por habilidades de canal continuo cuando el chorro se corta solo
+## (energía/tiempo agotados) con el dedo aún puesto — el botón se
+## "desengancha" de ese toque (no vuelve a reaccionar hasta que lo levanten
+## y toquen de nuevo) y emite cancelar para que el indicador de apunte y la
+## zona de cancelación se escondan. En el servidor no hay botones (el grupo
+## está vacío) — no-op.
+static func cancelar_apunte_de_slot(arbol: SceneTree, slot: int) -> void:
+	for boton in arbol.get_nodes_in_group("ui_habilidad"):
+		if boton is UIHabilidad and boton.slot_index == slot and boton._activo:
+			boton._cancelar_apunte_externo()
+
+
+func _cancelar_apunte_externo() -> void:
+	_activo      = false
+	_touch_index = -1
+	slot_apuntando = -1
+	_drag_offset = Vector2.ZERO
+	SeñalManager.emitir(_sig_cancelar, _signal_id, [])
 	_refrescar_visual()
 
 
@@ -295,6 +337,7 @@ func _soltar_joystick() -> void:
 		return
 	_activo      = false
 	_touch_index = -1
+	slot_apuntando = -1
 
 	if ZonaCancelacion.rect_activo != Rect2() \
 			and ZonaCancelacion.rect_activo.has_point(_ultima_pos_vp):

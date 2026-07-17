@@ -35,6 +35,16 @@ func _ready() -> void:
 
 
 func _on_apunte(_dir: Vector2, _poder: float) -> void:
+	# Habilidades de canal continuo (lanzallamas): soltar YA es parar — no
+	# existe "cancelar", así que la zona no debe aparecer (reportado: "al
+	# activar el lanzallamas sale el botón de cancelar"). Se identifica por
+	# la propiedad es_canal_continuo en la habilidad del slot que apunta
+	# (ver UIHabilidad.slot_apuntando).
+	var slots := Utils.slot_habilidades_local()
+	if slots and UIHabilidad.slot_apuntando >= 0:
+		var hab := slots.obtener(UIHabilidad.slot_apuntando)
+		if hab and ("es_canal_continuo" in hab):
+			return
 	if not visible:
 		visible = true
 		queue_redraw()

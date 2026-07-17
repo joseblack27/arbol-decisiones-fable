@@ -8,33 +8,33 @@
 [ext_resource type="Resource" uid="uid://h64hc611crho" path="res://recursos/items/equipables/accesorio_1.tres" id="5_s57h7"]
 [ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
 [ext_resource type="Resource" uid="uid://dpcxd3rxudn7t" path="res://recursos/items/equipables/accesorio_2.tres" id="6_wrpy6"]
-[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
+[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
 [ext_resource type="Resource" uid="uid://c251a1ngx46ck" path="res://recursos/items/equipables/accesorio_3.tres" id="7_hecjv"]
 [ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="7_ng816"]
-[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
 [ext_resource type="Resource" uid="uid://cwsqm88ycevvv" path="res://recursos/items/equipables/accesorio_4.tres" id="8_u7a2k"]
 [ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
 [ext_resource type="Texture2D" uid="uid://dhdbpiomf5alu" path="res://assets/lobo marron.png" id="10_2yvtj"]
-[ext_resource type="Resource" uid="uid://bcarga001tres" path="res://arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
-[ext_resource type="Resource" uid="uid://cricr6prjvmev" path="res://arbol_comportamiento/recursos/ArañazoLobo.tres" id="11_l6bpy"]
+[ext_resource type="Resource" uid="uid://bcarga001tres" path="res://componentes/arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
+[ext_resource type="Resource" uid="uid://cricr6prjvmev" path="res://componentes/arbol_comportamiento/recursos/ArañazoLobo.tres" id="11_l6bpy"]
 [ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
-[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
-[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
-[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://arbol_comportamiento/composites/Selector.gd" id="14_4qigy"]
+[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
+[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
+[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="14_4qigy"]
 [ext_resource type="Texture2D" uid="uid://bcwr2iejfd47i" path="res://assets/lobo_posicion_ataque.png" id="14_ywip5"]
-[ext_resource type="Script" uid="uid://ct4bjrtr7d8rn" path="res://arbol_comportamiento/composites/Secuencia.gd" id="15_od7qp"]
-[ext_resource type="Script" uid="uid://dn738h7elp7t4" path="res://arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
-[ext_resource type="Script" uid="uid://ca1qx7dmkknyn" path="res://arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
+[ext_resource type="Script" uid="uid://ct4bjrtr7d8rn" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="15_od7qp"]
+[ext_resource type="Script" uid="uid://dn738h7elp7t4" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
+[ext_resource type="Script" uid="uid://ca1qx7dmkknyn" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
 [ext_resource type="PackedScene" uid="uid://cwna41dn0homy" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
 [ext_resource type="PackedScene" uid="uid://dtw6fvi03aau8" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="31_l6bpy"]
 [ext_resource type="Script" uid="uid://cmvtumtuaysdj" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="31_vm1f8"]
 [ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
-[ext_resource type="Script" uid="uid://be8iggj3gj48x" path="res://arbol_comportamiento/decoradores/Enfriamiento.gd" id="40_enfria"]
-[ext_resource type="Script" uid="uid://7nknx7mjsa07" path="res://arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="41_huir"]
-[ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
-[ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
-[ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
+[ext_resource type="Script" uid="uid://be8iggj3gj48x" path="res://componentes/arbol_comportamiento/decoradores/Enfriamiento.gd" id="40_enfria"]
+[ext_resource type="Script" uid="uid://7nknx7mjsa07" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="41_huir"]
+[ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
+[ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
+[ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
 
@@ -51,21 +51,25 @@ metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 [sub_resource type="Resource" id="Resource_hu05i"]
 script = ExtResource("2_ivj8v")
 item = ExtResource("5_s57h7")
+probabilidad = 0.2
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="Resource" id="Resource_385uh"]
 script = ExtResource("2_ivj8v")
 item = ExtResource("6_wrpy6")
+probabilidad = 0.2
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="Resource" id="Resource_ua77i"]
 script = ExtResource("2_ivj8v")
 item = ExtResource("7_hecjv")
+probabilidad = 0.2
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="Resource" id="Resource_wmgm4"]
 script = ExtResource("2_ivj8v")
 item = ExtResource("8_u7a2k")
+probabilidad = 0.2
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]

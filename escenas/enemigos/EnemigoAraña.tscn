@@ -1,4 +1,4 @@
-[gd_scene load_steps=68 format=3 uid="uid://7r1t84krlu7l"]
+[gd_scene load_steps=70 format=3 uid="uid://7r1t84krlu7l"]
 
 [ext_resource type="Script" uid="uid://cf4rph1eqiupl" path="res://escenas/enemigos/EnemigoAraña.gd" id="1_0tb4j"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="2_lgvut"]
@@ -8,28 +8,29 @@
 [ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="4_33eb0"]
 [ext_resource type="Resource" path="res://recursos/items/recursos/bateria_1.tres" id="4_pltau"]
 [ext_resource type="Resource" uid="uid://bempq01reqpiw" path="res://recursos/items/equipables/armadura_1.tres" id="5_d42sf"]
-[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://arbol_comportamiento/ArbolComportamiento.gd" id="5_fslt1"]
+[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="5_fslt1"]
 [ext_resource type="Resource" uid="uid://ck24etbf1nuk" path="res://recursos/items/equipables/armadura_2.tres" id="6_hd4e3"]
-[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://arbol_comportamiento/MemoriaBT.gd" id="6_igt8w"]
+[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="6_igt8w"]
 [ext_resource type="Resource" uid="uid://bvr8e3vphuup1" path="res://recursos/items/equipables/armadura_3.tres" id="7_2p2om"]
-[ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="7_atacar"]
-[ext_resource type="Script" uid="uid://7nknx7mjsa07" path="res://arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="8_huir"]
+[ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="7_atacar"]
+[ext_resource type="Script" uid="uid://7nknx7mjsa07" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="8_huir"]
 [ext_resource type="Resource" uid="uid://d0odx5bfd0f70" path="res://recursos/items/equipables/armadura_4.tres" id="8_ybncr"]
-[ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="9_deamb"]
-[ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="9_perseg"]
+[ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="9_deamb"]
+[ext_resource type="Resource" path="res://recursos/items/consumibles/jeringa_adrenalina.tres" id="9_mra3o"]
+[ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="9_perseg"]
 [ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="10_tj55f"]
 [ext_resource type="PackedScene" uid="uid://tua225kmlaa3" path="res://escenas/habilidades/proyectil/custom/HabilidadProyectilBolaTelaraña.tscn" id="11_tj55f"]
 [ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="12_araña"]
-[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://arbol_comportamiento/hojas/SelectorHabilidades.gd" id="15_araña"]
-[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://arbol_comportamiento/composites/Selector.gd" id="16_araña"]
-[ext_resource type="Script" uid="uid://ct4bjrtr7d8rn" path="res://arbol_comportamiento/composites/Secuencia.gd" id="17_araña"]
-[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://arbol_comportamiento/recursos/HabilidadBT.gd" id="17_j3vsa"]
-[ext_resource type="Script" uid="uid://dn738h7elp7t4" path="res://arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="18_araña"]
-[ext_resource type="Script" uid="uid://bypmgglgk2kwl" path="res://arbol_comportamiento/utilidades/condiciones/CondicionDistanciaObjetivo.gd" id="19_araña"]
-[ext_resource type="Resource" uid="uid://bs65i184d1vi" path="res://arbol_comportamiento/recursos/Arañazo.tres" id="19_o2a7m"]
+[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="15_araña"]
+[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="16_araña"]
+[ext_resource type="Script" uid="uid://ct4bjrtr7d8rn" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="17_araña"]
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="17_j3vsa"]
+[ext_resource type="Script" uid="uid://dn738h7elp7t4" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="18_araña"]
+[ext_resource type="Script" uid="uid://bypmgglgk2kwl" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionDistanciaObjetivo.gd" id="19_araña"]
+[ext_resource type="Resource" uid="uid://bs65i184d1vi" path="res://componentes/arbol_comportamiento/recursos/Arañazo.tres" id="19_o2a7m"]
 [ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="21_araña"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="22_araña"]
-[ext_resource type="Resource" uid="uid://btelaran001bt" path="res://arbol_comportamiento/recursos/BolaTelaraña.tres" id="23_araña"]
+[ext_resource type="Resource" uid="uid://btelaran001bt" path="res://componentes/arbol_comportamiento/recursos/BolaTelaraña.tres" id="23_araña"]
 [ext_resource type="PackedScene" uid="uid://dtw6fvi03aau8" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="24_2vgoe"]
 [ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="28_2vgoe"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
@@ -47,21 +48,30 @@ metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 [sub_resource type="Resource" id="Resource_qvumm"]
 script = ExtResource("2_qvumm")
 item = ExtResource("5_d42sf")
+probabilidad = 0.2
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="Resource" id="Resource_8ri25"]
 script = ExtResource("2_qvumm")
 item = ExtResource("6_hd4e3")
+probabilidad = 0.2
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="Resource" id="Resource_xmh4o"]
 script = ExtResource("2_qvumm")
 item = ExtResource("7_2p2om")
+probabilidad = 0.2
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="Resource" id="Resource_cwwu6"]
 script = ExtResource("2_qvumm")
 item = ExtResource("8_ybncr")
+probabilidad = 0.2
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Resource_hh83h"]
+script = ExtResource("2_qvumm")
+item = ExtResource("9_mra3o")
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0tb4j"]
@@ -646,8 +656,7 @@ componente_movimiento = NodePath("MovimientoComponente")
 componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
-velocidad_base = 50.0
-tabla_botin = Array[ExtResource("2_qvumm")]([SubResource("Resource_vdkck"), SubResource("Resource_d42sf"), SubResource("Resource_qvumm"), SubResource("Resource_8ri25"), SubResource("Resource_xmh4o"), SubResource("Resource_cwwu6")])
+tabla_botin = Array[ExtResource("2_qvumm")]([SubResource("Resource_vdkck"), SubResource("Resource_d42sf"), SubResource("Resource_qvumm"), SubResource("Resource_8ri25"), SubResource("Resource_xmh4o"), SubResource("Resource_cwwu6"), SubResource("Resource_hh83h")])
 xp_otorgada = 50
 metadata/_custom_type_script = "uid://dmntoeg3f84od"
 
@@ -657,7 +666,6 @@ shape = SubResource("CircleShape2D_0tb4j")
 
 [node name="EnergiaComponente" type="Node" parent="."]
 script = ExtResource("2_lgvut")
-regeneracion_por_tick = 10.0
 metadata/_custom_type_script = "uid://ce5tqrjrcv2bu"
 
 [node name="Label" type="Label" parent="."]

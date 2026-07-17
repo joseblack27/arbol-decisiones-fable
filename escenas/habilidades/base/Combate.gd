@@ -36,6 +36,18 @@ static func mismo_equipo(fuente: Node, objetivo: Node) -> bool:
 ## global_transform, que cualquier Node2D tiene — permite pasar directo la
 ## entidad_dueña (un CharacterBody2D) sin necesitar un Area2D dedicado, como
 ## hace HabilidadLanzallamas (cono de daño anclado al propio jugador).
+##
+## multiplicador_final escala el resultado YA calculado por el pipeline de
+## atributos (bono plano + potencia + crítico + resistencias del defensor),
+## NO el "dano" de entrada — a propósito: habilidades que reparten el golpe
+## completo en varios ticks (el lanzallamas, con multiplicador_dano_tick)
+## necesitan que el bono plano de "danos" se sume al golpe COMPLETO antes de
+## repartirlo, igual que muestra el panel de detalle (PanelDetalleHabilidad
+## calcula con los atributos primero, la fracción del tick al final). Escalar
+## el "dano" de ENTRADA en cambio hacía que el bono plano del atacante se
+## sumara DESPUÉS sobre un número ya achicado, dominando el resultado y
+## desalineando lo que en verdad pegaba del número que mostraba la
+## descripción ("dice 2-3 pero pega 10-12", reportado).
 static func golpear_area(
 		area: Node2D,
 		forma: Shape2D,
@@ -43,7 +55,8 @@ static func golpear_area(
 		fuente: Node,
 		tipo_dano: Enums.Skill.TypeDamage,
 		nombre_evento: String,
-		respetar_equipo: bool = true) -> void:
+		respetar_equipo: bool = true,
+		multiplicador_final: float = 1.0) -> void:
 	var espacio := area.get_world_2d().direct_space_state
 	var query   := PhysicsShapeQueryParameters2D.new()
 	query.shape               = forma
@@ -70,7 +83,7 @@ static func golpear_area(
 		if respetar_equipo and mismo_equipo(fuente, objetivo):
 			continue
 		ya_dañados.append(objetivo)
-		var dano_final := AtributosComponente.calcular_pipeline(fuente, objetivo, dano, tipo_dano)
+		var dano_final := AtributosComponente.calcular_pipeline(fuente, objetivo, dano, tipo_dano) * multiplicador_final
 		# Todos los quitar_vida() del proyecto aceptan "fuente" como segundo
 		# argumento (VidaComponente, Enemigo, Jugador, y Muro — este último
 		# lo usa para no dejarse romper por su propio equipo, ver Muro.
