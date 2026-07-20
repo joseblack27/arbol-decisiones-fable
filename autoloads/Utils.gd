@@ -45,6 +45,14 @@ var puerto_conexion := PUERTO_JUEGO
 ## "" = usar nombre_jugador_local() de siempre (el de Windows/env var, ver
 ## abajo) — MenuInicio solo lo pisa si el jugador escribió algo distinto.
 var nombre_conexion := ""
+## PIN de la cuenta (ver GestorGuardado.resolver_cuenta): con PIN, la
+## partida sigue al NOMBRE (cuenta en el servidor) y no al dispositivo —
+## cambiar de celular ya no pierde el progreso. "" = sin cuenta, modo
+## clásico por dispositivo (id_jugador_local).
+var pin_conexion := ""
+## Mensaje de error de la última conexión rechazada (PIN incorrecto...) —
+## lo setea Jugador._rechazar_cuenta_red y lo muestra/limpia MenuInicio.
+var error_conexion := ""
 
 ## SOLO para pruebas headless (prueba_niveles, prueba_muerte_jugador...): el
 ## juego real es multijugador puro — Mundo reintenta conectarse para siempre

@@ -53,11 +53,16 @@ func _montar() -> void:
 
 func _informar() -> bool:
 	# (10+5)*1.2=18, (12+5)*1.2=20.4 -> int() trunca a 20.
+	# _datos no fija tipo_dano -> default FISICO -> gris (ver
+	# Enums.Habilidad.valor_color_dano), inyectado alrededor de {damage1}
+	# desde PanelDetalleHabilidad.gd (ver ese archivo) — el .tres YA NO
+	# trae su propio [color=...] hardcodeado.
 	var calc_label: Label = _panel_detalle.get("dmg_calc_label")
 	var desc_label: RichTextLabel = _panel_detalle.get("description_label")
 	print("Daño calculado inicial (esperado '18 - 20'): %s" % calc_label.text)
-	print("Descripción inicial (esperado 'Golpea por 18 - 20'): %s" % desc_label.text)
-	var inicial_ok := calc_label.text == "18 - 20" and desc_label.text == "Golpea por 18 - 20"
+	print("Descripción inicial (esperado 'Golpea por [color=ghostwhite][b]18 - 20[/b][/color]'): %s" % desc_label.text)
+	var inicial_ok := calc_label.text == "18 - 20" \
+		and desc_label.text == "Golpea por [color=ghostwhite][b]18 - 20[/b][/color]"
 
 	# Sube "danos" a 10 (equivalente a equipar algo con ese bono) y avisa
 	# como haría GestorEquipo.actualizar() al equipar/desequipar de verdad.
@@ -66,8 +71,9 @@ func _informar() -> bool:
 
 	# (10+10)*1.2=24, (12+10)*1.2=26.4 -> 26.
 	print("Daño calculado tras subir 'danos' (esperado '24 - 26'): %s" % calc_label.text)
-	print("Descripción tras el cambio (esperado 'Golpea por 24 - 26'): %s" % desc_label.text)
-	var actualizado_ok := calc_label.text == "24 - 26" and desc_label.text == "Golpea por 24 - 26"
+	print("Descripción tras el cambio (esperado 'Golpea por [color=ghostwhite][b]24 - 26[/b][/color]'): %s" % desc_label.text)
+	var actualizado_ok := calc_label.text == "24 - 26" \
+		and desc_label.text == "Golpea por [color=ghostwhite][b]24 - 26[/b][/color]"
 
 	# Habilidad con "multiplicador_dano_tick" en su escena (el lanzallamas):
 	# el panel debe leerlo y escalar el rango mostrado — sin esto, mostraba
@@ -81,13 +87,15 @@ func _informar() -> bool:
 	datos_llamas.descripcion   = "Quema por {damage1}"
 	datos_llamas.dano_base_min = 4
 	datos_llamas.dano_base_max = 8
+	datos_llamas.tipo_dano     = Enums.Habilidad.TipoDano.FUEGO
 	datos_llamas.escena = load("res://escenas/habilidades/lanzallamas/HabilidadLanzallamas.tscn")
 	_panel_detalle.call("show_skill", datos_llamas)
 
 	# 4*0.2=0.8 -> int() trunca a 0; 8*0.2=1.6 -> int() trunca a 1.
 	print("Daño calculado del lanzallamas (esperado '0 - 1'): %s" % calc_label.text)
-	print("Descripción del lanzallamas (esperado 'Quema por 0 - 1'): %s" % desc_label.text)
-	var factor_ok := calc_label.text == "0 - 1" and desc_label.text == "Quema por 0 - 1"
+	print("Descripción del lanzallamas (esperado 'Quema por [color=red][b]0 - 1[/b][/color]'): %s" % desc_label.text)
+	var factor_ok := calc_label.text == "0 - 1" \
+		and desc_label.text == "Quema por [color=red][b]0 - 1[/b][/color]"
 
 	var exito := inicial_ok and actualizado_ok and factor_ok
 	print("PRUEBA DAÑO CALCULADO HABILIDAD %s" % ("OK" if exito else "FALLIDA"))

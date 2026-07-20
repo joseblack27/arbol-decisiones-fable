@@ -81,6 +81,13 @@ var _muerto: bool = false
 ## variable, para poder interpolar del lado del cliente (ver _physics_process)
 ## en vez de saltar de golpe a cada actualización de red.
 var _posicion_replicada: Vector2 = Vector2.ZERO
+## Posición del fotograma anterior en un cliente puro — para inferir
+## "caminando" del desplazamiento REAL en pantalla (ver _physics_process).
+var _posicion_render_anterior: Vector2 = Vector2.ZERO
+## Desplazamiento mínimo por fotograma físico para considerarse "caminando"
+## en un cliente (0.1px/frame ≈ 6px/s, muy por debajo de cualquier
+## velocidad real de mob, incluso ralentizado).
+const _UMBRAL_CAMINANDO_RED := 0.1
 # Antes en 12.0, luego en 20.0: con cada valor el mob visual del cliente
 # queda un poco MÁS atrás de su posición real en el servidor (constante de
 # tiempo ≈ 1/valor: ~50ms de rezago con 20.0). Ese rezago es justo la causa
@@ -130,6 +137,7 @@ func _ready() -> void:
 	add_to_group("enemigos")
 	collision_layer = CAPA_MOB
 	collision_mask = CAPA_MUNDO | CAPA_OBSTACULOS_HABILIDAD
+	_posicion_render_anterior = global_position
 	_aplicar_datos()
 	# ── Memoria inicial ───────────────────────────────────────────────────────
 	memoria.establecer("agente",                        self)
@@ -187,8 +195,19 @@ func _physics_process(delta: float) -> void:
 			global_position = global_position.lerp(
 				_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
 			)
-		# "Caminando" se infiere del movimiento real (no hay velocity local).
-		_aplicar_presentacion(diferencia.length() > 1.0)
+		# "Caminando" se infiere del desplazamiento REAL de este fotograma
+		# (no hay velocity local en un cliente). OJO: antes se usaba la
+		# BRECHA de interpolación (diferencia > 1.0px) — pero un mob lento
+		# (p. ej. ralentizado al 50% por EfectoLentitud: 40px/s ≈ 0.67px
+		# por fotograma) avanza menos de lo que la interpolación alcanza a
+		# cerrar, la brecha quedaba bajo el umbral y el cliente lo animaba
+		# en IDLE aunque seguía avanzando ("no entiendo porque no sigue
+		# usando la animacion de caminar" — reportado). Medir cuánto se
+		# movió de verdad en pantalla no depende de qué tan al día vaya la
+		# interpolación.
+		var avance := global_position.distance_to(_posicion_render_anterior)
+		_posicion_render_anterior = global_position
+		_aplicar_presentacion(avance > _UMBRAL_CAMINANDO_RED)
 		return
 
 	var tiempo_cd: float = memoria.obtener("tiempo_cooldown_huida", 0.0)
@@ -382,12 +401,29 @@ func _peer_dueño_del_atacante() -> int:
 ## liberar un hueco) puede escuchar la señal nativa `tree_exiting`, que
 ## dispara justo cuando queue_free() lo retira de verdad — no hace falta
 ## una señal propia.
+## Apaga la colisión del cuerpo Y de cualquier VidaComponente hijo (un
+## Area2D con capas/máscara PROPIAS, independientes del cuerpo — zerar solo
+## las del CharacterBody2D no alcanza). En mobs cuyo VidaComponente lleva
+## forma de colisión real (Araña, Ratón — a diferencia de Lobo/Caballero,
+## que detectan golpes solo por el cuerpo), sin esto el cadáver seguía
+## siendo "golpeable" por esa área durante todo el fundido de 0.4s,
+## consumiendo proyectiles/dashes del jugador contra un mob ya muerto
+## (reportado: "aun chocan con las habilidades del jugador").
+func _apagar_colision_de_muerto() -> void:
+	set_deferred("collision_layer", 0)
+	set_deferred("collision_mask", 0)
+	if componente_vida:
+		componente_vida.set_deferred("collision_layer", 0)
+		componente_vida.set_deferred("collision_mask", 0)
+		componente_vida.set_deferred("monitorable", false)
+		componente_vida.set_deferred("monitoring", false)
+
+
 func _desvanecer_y_eliminar() -> void:
 	# Diferido: _on_muerte() puede llegar desde dentro de un callback de
 	# física (un golpe cuerpo a cuerpo), donde cambiar capas de colisión
 	# de golpe dispara "flushing queries".
-	set_deferred("collision_layer", 0)
-	set_deferred("collision_mask", 0)
+	_apagar_colision_de_muerto()
 	set_physics_process(false)
 	velocity = Vector2.ZERO
 	var barra := get_node_or_null("BarraVidaEnergia") as CanvasItem
@@ -433,8 +469,7 @@ func _desvanecer_y_eliminar() -> void:
 @rpc("authority", "reliable")
 func _despawn_red() -> void:
 	_muerto = true
-	set_deferred("collision_layer", 0)
-	set_deferred("collision_mask", 0)
+	_apagar_colision_de_muerto()
 	if componente_animacion:
 		# Mismo motivo que en _desvanecer_y_eliminar(): fijar el idle ANTES
 		# de apagar _physics_process, o el cliente ve el desvanecido
@@ -479,6 +514,15 @@ func _aplicar_datos() -> void:
 		return
 	if componente_vida:
 		componente_vida.salud_maxima = datos.vida_maxima
+		# VidaComponente._ready() (un HIJO — corre ANTES que este _ready() del
+		# padre) ya fijó salud_actual = salud_maxima usando el valor por
+		# DEFECTO del export (100.0), antes de que datos.vida_maxima pisara
+		# salud_maxima acá arriba — sin este restaurar_vida(), un mob con
+		# vida_maxima distinta de 100 (Caballero=150, Tanque=250, Rápido=60,
+		# cualquier boss) arrancaba con la vida real vieja (100) aunque la
+		# barra mostrara el máximo correcto. Bug real, no solo del jefe —
+		# encontrado al armar uno con vida_maxima=400 (moría de 30 de golpe).
+		componente_vida.restaurar_vida(datos.vida_maxima)
 	if componente_movimiento:
 		componente_movimiento.velocidad_base = datos.velocidad_base
 	var comp_energia := get_node_or_null("EnergiaComponente") as EnergiaComponente

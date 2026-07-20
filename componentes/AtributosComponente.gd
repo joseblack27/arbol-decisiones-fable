@@ -105,7 +105,7 @@ func _sumar_bonos(destino: AtributosBase, bonos: AtributosBase) -> void:
 ## Devuelve el daño final como float (el caller decide si lo trunca).
 func calcular_dano_saliente(
 	dano_base: float, 
-	_tipo: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC) -> float:
+	_tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO) -> float:
 	if not base:
 		return dano_base
 
@@ -138,7 +138,7 @@ func calcular_dano_saliente_vista_previa(dano_base: float) -> float:
 ## El Impacto del atacante reduce la Defensa del receptor.
 func calcular_dano_entrante(
 		dano: float,
-		tipo: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC,
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO,
 		atacante: AtributosComponente = null) -> float:
 
 	if not base:
@@ -152,14 +152,20 @@ func calcular_dano_entrante(
 	# 2. Reducción porcentual acumulada (fortaleza + resistencia elemental)
 	var reduccion: float = base.fortaleza / 100.0
 	match tipo:
-		Enums.Skill.TypeDamage.PHYSIC: reduccion += base.resistencia_fisica / 100.0
-		Enums.Skill.TypeDamage.WIND:   reduccion += base.resistencia_aire   / 100.0
-		Enums.Skill.TypeDamage.WATER:   reduccion += base.resistencia_agua   / 100.0
-		Enums.Skill.TypeDamage.FIRE:  reduccion += base.resistencia_fuego  / 100.0
-		Enums.Skill.TypeDamage.EARTH: reduccion += base.resistencia_tierra / 100.0
+		Enums.Habilidad.TipoDano.FISICO: reduccion += base.resistencia_fisica / 100.0
+		Enums.Habilidad.TipoDano.AIRE:   reduccion += base.resistencia_aire   / 100.0
+		Enums.Habilidad.TipoDano.AGUA:   reduccion += base.resistencia_agua   / 100.0
+		Enums.Habilidad.TipoDano.FUEGO:  reduccion += base.resistencia_fuego  / 100.0
+		Enums.Habilidad.TipoDano.TIERRA: reduccion += base.resistencia_tierra / 100.0
 
-	# Máximo 95 % de reducción para evitar inmunidad total
-	reduccion = clampf(reduccion, 0.0, 0.95)
+	# Máximo 95 % de reducción para evitar inmunidad total. Piso en -100 %
+	# (no 0): una resistencia NEGATIVA es una DEBILIDAD elemental — debe
+	# amplificar el daño, no quedarse en "no hace nada". Con piso en 0 antes,
+	# ponerle -25 de resistencia al fuego a un mob no tenía ningún efecto
+	# (clampf cortaba a 0 igual que sin nada) — el sistema de debilidades
+	# nunca podía funcionar. -1.0 tope: como mucho el doble de daño, para
+	# que una debilidad marcada sea notoria sin volverse un one-shot.
+	reduccion = clampf(reduccion, -1.0, 0.95)
 	resultado *= 1.0 - reduccion
 
 	# Mínimo 1 de daño siempre pasa
@@ -173,7 +179,7 @@ static func calcular_pipeline(
 		fuente: Node,
 		defensor: Node,
 		cantidad: float,
-		tipo: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC) -> float:
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO) -> float:
 
 	# Lado ofensivo
 	# is_instance_valid() (no "if fuente:") porque un efecto persistente

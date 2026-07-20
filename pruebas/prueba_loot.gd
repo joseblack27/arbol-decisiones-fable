@@ -42,12 +42,12 @@ func _montar() -> void:
 
 	_item_consumible = DatosItem.new()
 	_item_consumible.name = "Poción"
-	_item_consumible.type = 2  # CONSUMABLE
+	_item_consumible.type = 2  # CONSUMIBLE
 	_item_consumible.quantity = 1
 
 	_item_equipable = DatosItem.new()
 	_item_equipable.name = "Espada"
-	_item_equipable.type = 3  # EQUIPPABLE
+	_item_equipable.type = 3  # EQUIPABLE
 	_item_equipable.quantity = 1
 
 	# --- Apilado de consumibles ---

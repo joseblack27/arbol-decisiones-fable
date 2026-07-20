@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://8c1bik8488pp"]
+
+[ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_4yuha"]
+[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="1_8h737"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_4yuha"]
+radius = 8.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ysxfg"]
+atlas = ExtResource("1_8h737")
+region = Rect2(192, 0, 32, 32)
+
+[node name="ProyectilRafaga" type="Area2D"]
+collision_mask = 4294967295
+monitorable = false
+script = ExtResource("1_4yuha")
+mostrar_debug = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_4yuha")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
+texture = SubResource("AtlasTexture_ysxfg")

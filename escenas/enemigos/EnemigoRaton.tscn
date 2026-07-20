@@ -51,13 +51,13 @@ item = ExtResource("7_u0vvy")
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="forma_cuerpo"]
-radius = 12.0
+radius = 8.0
 
 [sub_resource type="CircleShape2D" id="forma_vision"]
 radius = 100.0
 
 [sub_resource type="CircleShape2D" id="forma_vida"]
-radius = 14.0
+radius = 8.0
 
 [sub_resource type="Animation" id="Animation_wufat"]
 length = 0.001
@@ -325,6 +325,7 @@ script = ExtResource("4_vision")
 grupos_objetivo = Array[String](["jugadores"])
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="VisionComponente"]
+visible = false
 shape = SubResource("forma_vision")
 
 [node name="VidaComponente" type="Area2D" parent="."]
@@ -332,6 +333,7 @@ script = ExtResource("5_vida")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
 shape = SubResource("forma_vida")
+debug_color = Color(0.99999994, 0, 0.10429447, 0.41960785)
 
 [node name="ArbolComportamiento" type="Node" parent="."]
 script = ExtResource("6_arbol")

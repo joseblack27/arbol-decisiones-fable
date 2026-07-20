@@ -33,7 +33,7 @@ func _montar() -> void:
 
 	_pocion = DatosItem.new()
 	_pocion.name = "Poción de Prueba Fase1"
-	_pocion.type = 2  # CONSUMABLE
+	_pocion.type = 2  # CONSUMIBLE
 
 	gestor_inv.agregar_item(_pocion, 5)
 	gestor_xp.agregar_xp(12)

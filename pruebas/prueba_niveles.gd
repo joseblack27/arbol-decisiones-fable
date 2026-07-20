@@ -77,7 +77,7 @@ func _verificar_cueva_e_informar() -> bool:
 	print("Nivel tras portal: %s | enemigos del nivel: %d" % [
 		nivel.nombre_nivel if nivel else "<ninguno>", enemigos_cueva,
 	])
-	var exito := _fase1_ok and en_cueva and enemigos_cueva == 3
+	var exito := _fase1_ok and en_cueva and enemigos_cueva == 5
 	print("PRUEBA NIVELES %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

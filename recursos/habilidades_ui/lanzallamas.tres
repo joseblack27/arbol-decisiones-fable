@@ -12,11 +12,12 @@ region = Rect2(0, 128, 32, 32)
 script = ExtResource("2_dh")
 nombre = "Lanzallamas"
 icono = SubResource("AtlasTexture_llamas")
-descripcion = "Cono de fuego continuo mientras mantienes presionado (máximo 5s), causando [color=#ff8800]{damage1}[/color] por tick. Te quedás quieto mientras disparás."
+descripcion = "Cono de fuego continuo mientras mantienes presionado (máximo 5s), causando {damage1} por tick. Te quedás quieto mientras disparás."
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 4
 dano_base_min = 4
 dano_base_max = 8
+tipo_dano = 1
 alcance_metros = 5.5
 enfriamiento = 4.0

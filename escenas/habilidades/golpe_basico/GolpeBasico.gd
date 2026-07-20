@@ -8,7 +8,7 @@ var _duracion: float       = 0.15
 var _timer: float          = 0.0
 var _entidad_fuente: Node  = null
 var _configurado: bool     = false
-var _tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+var _tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 
 @onready var _col_shape: CollisionShape2D = $CollisionShape2D
 var _forma: CircleShape2D
@@ -22,7 +22,7 @@ func _ready() -> void:
 ## fuente        — entidad que realizó el golpe (evita auto-daño).
 ## duracion      — segundos antes de que se destruya el nodo.
 ## tipo          — tipo de daño (afecta resistencias del defensor).
-func configurar(cantidad_daño: float, radio: float, fuente: Node, duracion: float, tipo: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC) -> void:
+func configurar(cantidad_daño: float, radio: float, fuente: Node, duracion: float, tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO) -> void:
 	_daño           = cantidad_daño
 	_forma.radius   = radio
 	_entidad_fuente = fuente

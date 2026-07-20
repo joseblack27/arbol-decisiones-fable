@@ -34,15 +34,15 @@ func get_time_text() -> String:
 	var now := Time.get_unix_time_from_system()
 	
 	match resource.status:
-		Enums.Event.Status.UPCOMING:
+		Enums.Evento.Estado.PROXIMO:
 			@warning_ignore("narrowing_conversion")
 			return "Comienza en " + _format_time(resource.start_time - now)
 
-		Enums.Event.Status.ACTIVE:
+		Enums.Evento.Estado.ACTIVO:
 			@warning_ignore("narrowing_conversion")
 			return "Termina en " + _format_time(resource.end_time - now)
 
-		Enums.Event.Status.COMPLETED:
+		Enums.Evento.Estado.COMPLETADO:
 			return "Finalizado"
 
 	return ""
@@ -64,9 +64,9 @@ func refresh():
 	date_label.text = get_time_text()
 
 	match resource.status:
-		Enums.Event.Status.UPCOMING:
+		Enums.Evento.Estado.PROXIMO:
 			modulate = Color.WHITE
-		Enums.Event.Status.ACTIVE:
+		Enums.Evento.Estado.ACTIVO:
 			modulate = Color(0.6, 1, 0.6)
-		Enums.Event.Status.COMPLETED:
+		Enums.Evento.Estado.COMPLETADO:
 			modulate = Color(0.5, 0.5, 0.5)

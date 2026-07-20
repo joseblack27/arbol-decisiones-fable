@@ -117,7 +117,7 @@ func _cargar(ruta_escena: String) -> void:
 		return
 
 	# Invalida los acks de "cliente listo" de cualquier carga anterior — ver
-	# SpawnerMobs._esperar_clientes_listos().
+	# SpawnerMobs._al_peer_listo().
 	_generacion_nivel += 1
 	_peers_listos.clear()
 
@@ -171,19 +171,6 @@ func _marcar_listo_red(generacion: int) -> void:
 	if not _peers_listos.has(quien):
 		_peers_listos.append(quien)
 		peer_listo.emit(quien)
-
-
-## true si TODOS los peers conectados ya confirmaron que cargaron el nivel
-## actual — o si esto no aplica (sin red, o soy un cliente puro). Lo usa
-## SpawnerMobs para no generar mobs nuevos hasta que sea seguro que el
-## evento de spawn le va a llegar a todo el mundo.
-func todos_los_clientes_listos() -> bool:
-	if not Utils.en_red() or not multiplayer.is_server():
-		return true
-	for peer_id in multiplayer.get_peers():
-		if not _peers_listos.has(peer_id):
-			return false
-	return true
 
 
 ## Anima el velo negro hacia la opacidad objetivo (1.0 = tapado, 0.0 = visible).

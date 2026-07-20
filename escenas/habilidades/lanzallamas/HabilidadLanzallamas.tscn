@@ -6,4 +6,3 @@
 script = ExtResource("1_llamas")
 costo_energia = 4.0
 requiere_direccion = true
-tipo_dano = 1

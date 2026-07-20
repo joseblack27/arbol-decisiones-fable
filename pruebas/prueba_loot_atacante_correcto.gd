@@ -51,7 +51,7 @@ func _montar() -> void:
 	root.add_child(_raton)
 	_pocion = DatosItem.new()
 	_pocion.name = "Loot de Prueba Fase4"
-	_pocion.type = 2  # CONSUMABLE
+	_pocion.type = 2  # CONSUMIBLE
 	var gota := LootDrop.new()
 	gota.item = _pocion
 	gota.probabilidad = 1.0

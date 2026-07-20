@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=3 uid="uid://1qnkk71waqhk"]
+
+[ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
+[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_tex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_bfuego"]
+radius = 8.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bfuego_proy"]
+atlas = ExtResource("2_tex")
+region = Rect2(96, 0, 32, 32)
+
+[node name="ProyectilBolaDeFuego" type="Area2D"]
+collision_mask = 4294967295
+monitorable = false
+script = ExtResource("1_proy")
+mostrar_debug = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_bfuego")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
+texture = SubResource("AtlasTexture_bfuego_proy")

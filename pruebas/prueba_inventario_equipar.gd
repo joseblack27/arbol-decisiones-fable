@@ -91,7 +91,7 @@ func _montar() -> void:
 
 	_armadura = DatosItem.new()
 	_armadura.name = "Armadura de Prueba"
-	_armadura.type = 3       # EQUIPPABLE
+	_armadura.type = 3       # EQUIPABLE
 	_armadura.type_equippable = 2  # BODY
 	_armadura.can_equip = true
 
@@ -103,7 +103,7 @@ func _montar() -> void:
 
 	_pocion = DatosItem.new()
 	_pocion.name = "Poción de Prueba"
-	_pocion.type = 2  # CONSUMABLE
+	_pocion.type = 2  # CONSUMIBLE
 
 	_gestor.agregar_item(_armadura)
 	_gestor.agregar_item(_casco)

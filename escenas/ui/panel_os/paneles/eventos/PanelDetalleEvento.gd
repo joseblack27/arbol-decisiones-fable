@@ -18,9 +18,9 @@ func show_event(event: DatosEvento):
 		description_label.text = event.description
 
 		match event.status:
-			Enums.Event.Status.UPCOMING:
+			Enums.Eventoo.Estado.PROXIMO:
 				status_label.text = "Próximamente"
-			Enums.Event.Status.ACTIVE:
+			Enums.Eventoo.Estado.ACTIVO:
 				status_label.text = "Activo"
-			Enums.Event.Status.COMPLETED:
+			Enums.Eventoo.Estado.COMPLETADO:
 				status_label.text = "Finalizado"

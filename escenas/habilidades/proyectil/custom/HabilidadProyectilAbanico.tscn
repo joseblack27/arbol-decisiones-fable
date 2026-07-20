@@ -9,4 +9,3 @@ escena_proyectil = ExtResource("2_proy")
 usar_icono_como_sprite = false
 costo_energia = 15.0
 requiere_direccion = true
-tipo_dano = 1

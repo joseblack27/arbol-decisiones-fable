@@ -6,4 +6,3 @@
 script = ExtResource("1_hproy01")
 costo_energia = 10.0
 requiere_direccion = true
-tipo_dano = 1

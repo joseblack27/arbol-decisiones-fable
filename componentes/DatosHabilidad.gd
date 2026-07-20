@@ -16,8 +16,7 @@ class_name DatosHabilidad
 @export_group("Estadísticas")
 @export var dano_base_min: int = 0
 @export var dano_base_max: int = 0
-@export var tipo_lanzamiento: Enums.Skill.TypeLaunch = Enums.Skill.TypeLaunch.PROYECTIL
-@export var tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+@export var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 @export var alcance_metros: int = 0
 @export var radio_golpe: float = 0.0
 @export var enfriamiento: float = 0.0
@@ -47,10 +46,7 @@ var damage_base_min: int:
 var damage_base_max: int:
 	get:
 		return dano_base_max
-var type_launch: Enums.Skill.TypeLaunch:
-	get:
-		return tipo_lanzamiento
-var type_damage: Enums.Skill.TypeDamage:
+var type_damage: Enums.Habilidad.TipoDano:
 	get:
 		return tipo_dano
 var range_meters: int:

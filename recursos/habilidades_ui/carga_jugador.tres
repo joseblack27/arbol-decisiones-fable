@@ -12,7 +12,7 @@ region = Rect2(0, 0, 32, 32)
 script = ExtResource("2_scr")
 nombre = "Carga"
 icono = SubResource("AtlasTexture_stpio")
-descripcion = "Embestida rapida hacia el enemigo causando [color=cyan]{damage1}[/color]"
+descripcion = "Embestida rapida hacia el enemigo causando {damage1}"
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 40

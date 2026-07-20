@@ -6,7 +6,7 @@ class_name EquipoSlot
 		icon = value
 		update_item()
 
-## 0=NONE,1=HELMET,2=BODY,3=PANT,4=BOOTS,5=NECK,6=RING,7=BELT,8=WEAPON,9=SHIELD
+## 0=NINGUNO,1=CASCO,2=CUERPO,3=PANTALON,4=BOTAS,5=AMULETO,6=ANILLO,7=CINTURON,8=ARMA,9=ESCUDO
 @export var type_equippable: int = 0
 
 func update_item():

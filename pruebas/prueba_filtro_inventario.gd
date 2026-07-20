@@ -26,7 +26,7 @@ func _process(_delta: float) -> bool:
 			_montar()
 		2:
 			# Filtrar solo Equipables (debería ocultar la poción).
-			_panel.flow.filter_items(3)  # 3 = Enums.Inventory.TypeItem.EQUIPPABLE
+			_panel.flow.filter_items(3)  # 3 = Enums.Inventario.TipoItem.EQUIPABLE
 			_visibles_tras_filtro = _contar_visibles(_panel.flow)
 			print("Visibles tras filtrar Equipables (esperado 1, solo la armadura): %d" % _visibles_tras_filtro)
 			# Equipar la armadura (dispara refrescar() -> reconstruye la grilla).
@@ -45,13 +45,13 @@ func _montar() -> void:
 
 	_armadura = DatosItem.new()
 	_armadura.name = "Armadura de Prueba"
-	_armadura.type = 3  # EQUIPPABLE
+	_armadura.type = 3  # EQUIPABLE
 	_armadura.type_equippable = 2  # BODY
 	_armadura.can_equip = true
 
 	_pocion = DatosItem.new()
 	_pocion.name = "Poción de Prueba"
-	_pocion.type = 2  # CONSUMABLE
+	_pocion.type = 2  # CONSUMIBLE
 
 	_gestor.agregar_item(_armadura)
 	_gestor.agregar_item(_pocion)

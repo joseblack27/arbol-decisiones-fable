@@ -146,7 +146,7 @@ func _ready():
 		# lo puede saber el servidor solo: ambos viven en el cliente.
 		if peer_id_dueño == multiplayer.get_unique_id():
 			nombre_visible = Utils.nombre_jugador_local()
-			rpc_id(1, "_registrar_identidad_red", Utils.id_jugador_local(), nombre_visible)
+			rpc_id(1, "_registrar_identidad_red", Utils.id_jugador_local(), nombre_visible, Utils.pin_conexion)
 	else:
 		nombre_visible = Utils.nombre_jugador_local()
 		id_unico = Utils.id_jugador_local()
@@ -260,17 +260,63 @@ func _joystick_movimiento(_direccion: Vector2):
 ## (y solo del dueño real). id_unico se queda acá, solo el servidor lo lee;
 ## nombre_visible sí se replica por el Sync a todos (ver _enter_tree).
 @rpc("any_peer", "reliable")
-func _registrar_identidad_red(id: String, nombre: String) -> void:
+func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> void:
 	if not multiplayer.is_server():
 		return
 	if multiplayer.get_remote_sender_id() != peer_id_dueño:
 		return
 	var id_limpio := id.strip_edges()
-	if id_limpio != "":
-		id_unico = id_limpio
 	var nombre_limpio := nombre.strip_edges().substr(0, 24)
 	if nombre_limpio != "":
 		nombre_visible = nombre_limpio
+	# Con PIN, la identidad real la resuelve la CUENTA (nombre+PIN), no el
+	# dispositivo: así el progreso sigue al nombre aunque cambie de celular
+	# (ver GestorGuardado.resolver_cuenta). Sin PIN, comportamiento clásico:
+	# el id del dispositivo tal cual.
+	if pin.strip_edges() != "" and nombre_limpio != "":
+		var id_cuenta: String = GestorGuardado.resolver_cuenta(nombre_limpio, pin.strip_edges(), id_limpio)
+		if id_cuenta == "":
+			# PIN incorrecto: avisar al dueño y desconectarlo — jugar con la
+			# identidad "equivocada" (la del dispositivo) sería peor, porque
+			# creería estar en su cuenta y estaría escribiendo otra partida.
+			rpc_id(peer_id_dueño, "_rechazar_cuenta_red", "PIN incorrecto para '%s'." % nombre_limpio)
+			var peer := multiplayer.multiplayer_peer
+			if peer is ENetMultiplayerPeer:
+				# call_deferred() NO alcanza acá: solo pospone al mismo
+				# fotograma, no le da tiempo real a ENet de transmitir el
+				# RPC reliable por la red antes del corte (verificado con
+				# pruebas en vivo: el RPC nunca llegaba a destino, el
+				# cliente se quedaba sin el aviso y reintentaba con el
+				# mismo PIN malo para siempre). Con un timer real de por
+				# medio hay varios ciclos de red de por medio para que el
+				# paquete salga antes de cortar.
+				get_tree().create_timer(0.3).timeout.connect(
+					(peer as ENetMultiplayerPeer).disconnect_peer.bind(peer_id_dueño, false)
+				)
+			return
+		id_unico = id_cuenta
+		return
+	if id_limpio != "":
+		id_unico = id_limpio
+
+
+## CLIENTE (dueño): el servidor rechazó la cuenta (PIN incorrecto). Solo
+## ANOTA el motivo — no toca la escena ni el peer acá: el disconnect_peer()
+## que el servidor manda justo después de esto dispara
+## multiplayer.server_disconnected en este cliente de todos modos, y
+## Mundo._al_perder_conexion() es quien de verdad decide qué hacer al
+## desconectarse (ver ese archivo). Si esta función TAMBIÉN cambiara de
+## escena, competiría en una carrera contra ese mismo evento — normalmente
+## la pierde, porque _al_perder_conexion() ya tenía el hábito de recargar
+## Mundo.tscn y reintentar conectarse SOLO (el diseño "nunca se rinde" de
+## este juego, ver Mundo.gd), reintentando con el MISMO PIN malo para
+## siempre en vez de mostrar el error (bug encontrado en pruebas).
+@rpc("authority", "reliable")
+func _rechazar_cuenta_red(motivo: String) -> void:
+	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
+		return
+	GestorLogRed.registrar("Cuenta rechazada: %s" % motivo)
+	Utils.error_conexion = motivo
 
 
 @rpc("any_peer", "unreliable_ordered")

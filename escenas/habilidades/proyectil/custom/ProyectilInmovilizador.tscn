@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3]
+[gd_scene load_steps=10 format=3 uid="uid://baapq0y1sj8sn"]
 
 [ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
 [ext_resource type="Texture2D" uid="uid://s3x45hj5rnlo" path="res://assets/bola_telarana_spritesheet.png" id="2_tex"]
@@ -47,12 +47,12 @@ collision_mask = 4294967295
 script = ExtResource("1_proy")
 velocidad_base = 350.0
 alcance_base = 350.0
-daño = 0.0
 mostrar_debug = false
 escena_al_impactar = ExtResource("3_efecto")
 metadata/_custom_type_script = "uid://bvgpgmf67u2sw"
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -8)
 sprite_frames = SubResource("SpriteFrames_i1")
 autoplay = "default"
 

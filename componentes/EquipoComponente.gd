@@ -45,11 +45,22 @@ func _sincronizar_equipo_red(items: Array[DatosItem]) -> void:
 		return
 	if jugador.peer_id_dueño != multiplayer.get_unique_id():
 		return
-	# id_recurso: la ruta del .tres original (ver DatosItem.gd) — mismo
-	# mecanismo que ya usa GestorGuardado para reconstruir ítems duplicados.
+	# id_recurso: la ruta del .tres original (ver DatosItem.gd). Respaldo a
+	# resource_path si id_recurso vino vacío (mismo criterio que
+	# InventarioComponente.agregar_item()) — sin esto, un ítem cuyo campo
+	# id_recurso nunca se estampó (p. ej. un .tres de fábrica al que se le
+	# olvidó ponerlo, ver recursos/items/equipables/*.tres) mandaba una ruta
+	# vacía al servidor, que la descartaba en silencio: el equipo cambiaba
+	# de verdad solo en la vista previa del cliente, nunca en el servidor
+	# (bug reportado: "al desequipar un item no se actualizan los atributos"
+	# — pasaba igual al EQUIPAR, pero se notaba menos porque la vista previa
+	# local ya mostraba el bono aplicado).
 	var rutas: PackedStringArray = []
 	for item in items:
-		rutas.append(item.id_recurso if item else "")
+		if item == null:
+			rutas.append("")
+		else:
+			rutas.append(item.id_recurso if item.id_recurso != "" else item.resource_path)
 	rpc_id(1, "_equipar_red", rutas)
 
 

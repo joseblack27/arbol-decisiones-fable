@@ -127,7 +127,18 @@ func _al_conectar_ok() -> void:
 ## YA, no recién cuando termine de recargar la escena (que puede tardar por
 ## el fundido de GestorNiveles). reload_current_scene reinicia Mundo desde
 ## cero, así que _ready() vuelve a arrancar el ciclo de reintentos.
+##
+## EXCEPCIÓN: si el servidor cortó la conexión porque rechazó la cuenta (PIN
+## incorrecto — ver Jugador._rechazar_cuenta_red, que anota Utils.
+## error_conexion justo antes de que esto dispare), reintentar sin más no
+## sirve — se reconectaría con el MISMO PIN malo para siempre, sin que el
+## jugador se enterara nunca de por qué. En ese caso, en vez de reintentar,
+## se vuelve al menú para que pueda corregirlo.
 func _al_perder_conexion() -> void:
+	if Utils.error_conexion != "":
+		multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+		get_tree().change_scene_to_file("res://escenas/menu_inicio/MenuInicio.tscn")
+		return
 	_label_conexion.text = "Desconectado"
 	_label_conexion.add_theme_color_override("font_color", COLOR_DESCONECTADO)
 	get_tree().reload_current_scene()

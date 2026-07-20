@@ -45,6 +45,7 @@ item = ExtResource("6_0wona")
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
+radius = 8.0
 
 [sub_resource type="Animation" id="Animation_i4fs3"]
 length = 0.001
@@ -288,13 +289,15 @@ graph_offset = Vector2(-45.419453, 0)
 radius = 200.30228
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
-radius = 26.019224
+radius = 8.0
 
 [sub_resource type="Resource" id="Resource_atributos"]
 script = ExtResource("34_iuxaj")
 regeneracion_vida = 1.0
 regeneracion_energia = 5.0
 resistencia_fisica = 10.0
+resistencia_fuego = -20.0
+resistencia_tierra = 20.0
 metadata/_custom_type_script = "uid://ddhq5qxvccml7"
 
 [node name="EnemigoCaballeroEsqueleto" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
@@ -372,8 +375,10 @@ script = ExtResource("9_2yvtj")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
 shape = SubResource("CircleShape2D_ysyd8")
+debug_color = Color(0.99999326, 0, 0.10991942, 0.41960785)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -16)
 texture = ExtResource("18_qwpms")
 hframes = 3
 vframes = 4

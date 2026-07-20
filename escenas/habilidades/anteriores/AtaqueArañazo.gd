@@ -21,7 +21,7 @@ signal golpe_conectado(cuerpo: Node2D, golpe: float)
 signal ataque_completado()
 
 @export var daño: float = 10.0
-@export var tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+@export var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 
 var _activo: bool = false
 

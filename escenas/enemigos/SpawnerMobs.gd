@@ -72,10 +72,8 @@ func _ready() -> void:
 			GestorNiveles.peer_listo.connect(_al_peer_listo)
 	if cantidad_inicial > 0 and (not Utils.en_red() or multiplayer.is_server()):
 		await _esperar_malla_lista()
-		await _esperar_clientes_listos()
-		if _debe_generar_localmente():
-			for _i in cantidad_inicial:
-				_generar_uno()
+		for _i in cantidad_inicial:
+			_generar_uno()
 	_tiempo_restante = intervalo_spawn
 	_listo = true
 
@@ -102,35 +100,26 @@ func _configurar_spawner_red() -> void:
 ## servidor. El cliente nunca llama _generar_uno() — ve los mobs aparecer
 ## solos, replicados por el MultiplayerSpawner de arriba.
 ##
-## En red, además espera a que TODOS los clientes conectados hayan
-## confirmado que ya cargaron el nivel actual (GestorNiveles.todos_los_
-## clientes_listos): a diferencia de la posición de un mob (que se
-## autocorrige sola al ser unreliable_ordered), el EVENTO DE SPAWN de un mob
-## nuevo no se reintenta — si llega antes de que el cliente tenga su propio
-## nodo "SpawnerRed" (ver _configurar_spawner_red), ese mob no aparece nunca
-## para él. Sin este freno, el spawner podía perder mobs contra un cliente
-## que todavía estuviera terminando de cargar el nivel.
+## ANTES esto también esperaba (con tope de 5s) a que TODOS los clientes
+## conectados confirmaran haber cargado el nivel actual, para que el EVENTO
+## DE SPAWN no se perdiera contra uno que todavía no tuviera su propio nodo
+## "SpawnerRed" — a diferencia de la posición de un mob (que se autocorrige
+## sola al ser unreliable_ordered), ese evento no se reintenta.
+## Ese freno terminó siendo la causa de un bug peor: si el ack de "listo"
+## de un cliente (celular, red real con más latencia que las pruebas
+## locales) tardaba más de esos 5s — algo bastante común al volver a un
+## nivel por portal, no solo en la conexión inicial — la tanda ENTERA de
+## cantidad_inicial se saltaba en silencio, y el nivel quedaba vacío
+## hasta que el goteo lento de _process() (1 cada intervalo_spawn) lo
+## rellenara de a poco (hasta minuto y medio para 10 mobs) — "los mobs
+## están bugueados, no los veo" reportado en juego real. Ya no hace falta
+## ese freno: _al_peer_listo() (ver _ready) reenvía a mano los mobs vivos a
+## cualquier peer que confirme estar listo DESPUÉS de que ya se generaron,
+## cubriendo el mismo caso sin arriesgar perder la tanda entera.
 func _debe_generar_localmente() -> bool:
 	if not Utils.en_red():
 		return true
-	if not multiplayer.is_server():
-		return false
-	return GestorNiveles.todos_los_clientes_listos()
-
-
-## Espera (con tope) a que todos los peers conectados confirmen que
-## cargaron el nivel actual — usado antes de la tanda inicial de mobs. Un
-## tope evita que un cliente colgado/desconectado a medias trabe la
-## generación para siempre.
-const _ESPERA_MAXIMA_CLIENTES_LISTOS := 5.0
-
-func _esperar_clientes_listos() -> void:
-	if not Utils.en_red() or not multiplayer.is_server():
-		return
-	var esperado := 0.0
-	while not GestorNiveles.todos_los_clientes_listos() and esperado < _ESPERA_MAXIMA_CLIENTES_LISTOS:
-		await get_tree().create_timer(0.2).timeout
-		esperado += 0.2
+	return multiplayer.is_server()
 
 
 ## Si este mundo tiene una malla de navegación (nivel real con capa

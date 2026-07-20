@@ -24,7 +24,7 @@ signal recarga_terminada(habilidad: HabilidadBase)
 ## Si false, se usa como botón tap.
 @export var requiere_direccion: bool = false
 ## Tipo de daño que inflige esta habilidad. Afecta las resistencias del defensor.
-@export var tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+@export var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 ## Apagar SOLO en habilidades cuyo propósito ES moverse (dash, parpadeo):
 ## para esas, congelar al activar no tiene sentido (el desplazamiento es la
 ## habilidad misma) y ya tienen su propio manejo de posición. El resto
@@ -35,7 +35,13 @@ signal recarga_terminada(habilidad: HabilidadBase)
 ## esto, la mitigación no alcanza a cubrir todo el hueco (mejor que nada,
 ## pero no es una garantía dura — la solución completa sería lag
 ## compensation del lado del servidor).
-const _MARGEN_CONGELAMIENTO_RED := 0.25
+## Confirmado en juego real (probado con 1.0s a propósito, bien
+## perceptible: el disparo SÍ esperaba el congelamiento completo antes de
+## salir — el mecanismo funciona) que el atravesar/no-hacer-daño reportado
+## sigue pasando incluso con el congelamiento funcionando, así que no era
+## (solo) un problema de timing del freeze. Se deja en 0.5s — más margen
+## que el 0.25 original, sin el costo de sentirse "pegado" al disparar.
+const _MARGEN_CONGELAMIENTO_RED := 0.5
 
 ## Entidad a la que pertenece esta habilidad (asignada automáticamente en _ready).
 var entidad_dueña: Node = null
@@ -84,22 +90,49 @@ func obtener_recarga_restante() -> float:
 func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	if not puede_usarse():
 		return
+	if costo_energia > 0.0:
+		var energia := entidad_dueña.get_node_or_null("EnergiaComponente") as EnergiaComponente
+		if energia and not energia.consumir(costo_energia):
+			return  # Sin energía suficiente
+	# Recarga y avisos van ACÁ, en el instante en que se presiona — no tiene
+	# sentido que el cooldown visual espere al margen de abajo, el jugador
+	# ya "gastó" la habilidad en cuanto la tocó.
+	_iniciar_recarga()
+	habilidad_activada.emit(self)
+	BusEventos.habilidad_usada.emit(entidad_dueña, tipo_habilidad)
+
+	if _debe_pedirle_al_servidor() and congela_movimiento_en_red \
+			and entidad_dueña and entidad_dueña.has_method("bloquear_control"):
+		# Congelar YA (bloquear_control ya manda su propio aviso de "parate"
+		# al servidor por un canal reliable — ver Jugador.bloquear_control),
+		# pero el DISPARO en sí (RPC + _ejecutar, lo que de verdad importa
+		# para dónde nace un proyectil) se pospone _MARGEN_CONGELAMIENTO_RED
+		# — antes salía en el mismo instante que el freeze, así que si el
+		# jugador venía en movimiento, el "párate" y el disparo viajaban
+		# juntos: el servidor podía procesar el disparo ANTES de que el
+		# "párate" surtiera efecto, y el proyectil real nacía unos píxeles
+		# más adelante de donde el cliente ya lo mostraba quieto — más
+		# notorio disparando justo al borde de un objetivo en movimiento
+		# ("a veces traspasa haciendo daño, o choca y no hace daño",
+		# reportado). Esperar el mismo margen que ya se usaba para
+		# descongelar (no uno nuevo) le da tiempo real a la orden de
+		# frenado de llegar y aplicarse ANTES de que la posición importe.
+		entidad_dueña.bloquear_control()
+		var dueño_congelado := entidad_dueña
+		get_tree().create_timer(_MARGEN_CONGELAMIENTO_RED).timeout.connect(func():
+			if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
+				dueño_congelado.desbloquear_control()
+			_disparar(direccion, poder)
+		)
+	else:
+		_disparar(direccion, poder)
+
+
+## El disparo de verdad: manda el RPC de activación (si corresponde) y
+## corre _ejecutar() — separado de activar() para poder posponerlo sin
+## posponer también el cooldown/los avisos (ver activar()).
+func _disparar(direccion: Vector2, poder: float) -> void:
 	if _debe_pedirle_al_servidor():
-		# Congelar ANTES de mandar el RPC de activación (no después): el
-		# dueño deja de moverse en el mismo instante que decide disparar,
-		# y bloquear_control() ya manda su propio aviso de "parate" al
-		# servidor por un canal reliable — ver Jugador.bloquear_control().
-		# Sin esto, el servidor seguía moviendo el cuerpo real durante toda
-		# la ida y vuelta de red, y el proyectil "real" salía desde un
-		# punto distinto al que el cliente ya mostraba quieto ("el golpe
-		# no acierta, más si disparo en movimiento" — reportado).
-		if congela_movimiento_en_red and entidad_dueña and entidad_dueña.has_method("bloquear_control"):
-			entidad_dueña.bloquear_control()
-			var dueño_congelado := entidad_dueña
-			get_tree().create_timer(_MARGEN_CONGELAMIENTO_RED).timeout.connect(func():
-				if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
-					dueño_congelado.desbloquear_control()
-			)
 		# Fase 3 del plan de multijugador: el servidor es quien de verdad
 		# corre _ejecutar() con autoridad (el daño real, vía
 		# VidaComponente.quitar_vida, está gateado a "solo servidor") para
@@ -109,14 +142,7 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 		# ve y se anima al instante en vez de esperar la ida y vuelta de
 		# red, sin aplicar daño de verdad (VidaComponente ya lo bloquea).
 		rpc_id(1, "_activar_red", direccion, poder)
-	if costo_energia > 0.0:
-		var energia := entidad_dueña.get_node_or_null("EnergiaComponente") as EnergiaComponente
-		if energia and not energia.consumir(costo_energia):
-			return  # Sin energía suficiente
 	_ejecutar(direccion, poder)
-	_iniciar_recarga()
-	habilidad_activada.emit(self)
-	BusEventos.habilidad_usada.emit(entidad_dueña, tipo_habilidad)
 	# Avisar a los DEMÁS clientes (espectadores, y toda habilidad de
 	# enemigos — _debe_pedirle_al_servidor() siempre da false para mobs,
 	# así que esta rama es la única que corre para ellos) para que también
@@ -183,6 +209,14 @@ func aplicar_datos(d: DatosHabilidad) -> void:
 	nombre_habilidad = d.nombre
 	costo_energia    = float(d.costo_energia)
 	duracion_recarga = d.enfriamiento
+	# El elemento vive en el .tres (DatosHabilidad.tipo_dano) — sin esta
+	# copia, toda habilidad equipada pegaba como PHYSIC sin importar el
+	# elemento asignado en el editor, y las resistencias elementales de
+	# calcular_dano_entrante() nunca entraban en juego. OJO: igual que con
+	# costo_energia/enfriamiento (ver el bug de lanzallamas.tres), el .tres
+	# SIEMPRE pisa lo que diga la escena — una habilidad elemental necesita
+	# su tipo_dano asignado en el .tres, no solo en el .tscn.
+	tipo_dano        = d.tipo_dano
 	_dano_min        = d.dano_base_min
 	_dano_max        = d.dano_base_max
 

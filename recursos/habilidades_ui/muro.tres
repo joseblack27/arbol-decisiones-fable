@@ -8,7 +8,7 @@
 script = ExtResource("1_scr")
 nombre = "Muro"
 icono = ExtResource("2_uyudi")
-descripcion = "Invoca una fila de pilares que bloquea y daña [color=orange]{damage1}[/color] por segundo a los enemigos que la toquen mientras dure"
+descripcion = "Invoca una fila de pilares que bloquea y daña {damage1} por segundo a los enemigos que la toquen mientras dure"
 escena = ExtResource("2_esc")
 nivel = 1
 costo_energia = 35

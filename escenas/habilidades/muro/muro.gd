@@ -28,7 +28,7 @@ signal muerte(valor: float)
 @onready var _forma_bloqueo: CollisionShape2D  = $Bloqueo/CollisionShape2D
 
 var _fuente: Node = null
-var _tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+var _tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 var _dano: float = 10.0
 
 var _salud_maxima: float = 50.0
@@ -67,7 +67,7 @@ func configurar(
 		distancia_entre_pilares: float,
 		radio_pilar: float,
 		escena_pilar: PackedScene,
-		tipo: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC) -> void:
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO) -> void:
 	_fuente    = fuente
 	_dano      = dano
 	_defensa   = defensa

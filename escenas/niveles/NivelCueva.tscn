@@ -11,6 +11,10 @@
 [ext_resource type="Script" path="res://escenas/enemigos/EnemigoAraña.gd" id="6_6mnn1"]
 [ext_resource type="PackedScene" path="res://escenas/niveles/PortalNivel.tscn" id="7_trqwu"]
 [ext_resource type="Script" path="res://escenas/niveles/PortalNivel.gd" id="8_g47bl"]
+[ext_resource type="PackedScene" uid="uid://djefeesqueletoescena1" path="res://escenas/enemigos/EnemigoJefeEsqueleto.tscn" id="9_jefe"]
+[ext_resource type="Script" path="res://escenas/enemigos/EnemigoJefeEsqueleto.gd" id="10_jefe_gd"]
+[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoLoboFeroz.tscn" id="11_feroz"]
+[ext_resource type="Script" path="res://escenas/enemigos/EnemigoLoboFeroz.gd" id="12_feroz_gd"]
 
 [sub_resource type="AtlasTexture" id="textura_roca_cueva"]
 atlas = ExtResource("10_atlas")
@@ -64,6 +68,24 @@ componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 velocidad_base = 80.0
+
+[node name="EnemigoJefeEsqueleto" type="CharacterBody2D" parent="Enemigos" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria") instance=ExtResource("9_jefe")]
+position = Vector2(-600, 60)
+script = ExtResource("10_jefe_gd")
+componente_vida = NodePath("VidaComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+componente_vision = NodePath("VisionComponente")
+componente_animacion = NodePath("AnimacionComponente")
+memoria = NodePath("ArbolComportamiento/MemoriaBT")
+
+[node name="EnemigoLoboFeroz" type="CharacterBody2D" parent="Enemigos" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria") instance=ExtResource("11_feroz")]
+position = Vector2(200, -150)
+script = ExtResource("12_feroz_gd")
+componente_vida = NodePath("VidaComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+componente_vision = NodePath("VisionComponente")
+componente_animacion = NodePath("AnimacionComponente")
+memoria = NodePath("ArbolComportamiento/MemoriaBT")
 
 [node name="EnemigoAraña" type="CharacterBody2D" parent="Enemigos" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria") instance=ExtResource("5_6ieua")]
 position = Vector2(120, -200)

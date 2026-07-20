@@ -129,7 +129,7 @@ theme_override_constants/v_separation = 8
 script = ExtResource("13_kk5td")
 
 [node name="Control" type="Control" parent="Margin/HBox"]
-custom_minimum_size = Vector2(200, 0)
+custom_minimum_size = Vector2(300, 0)
 layout_mode = 2
 
 [node name="PanelEquipamiento" type="Panel" parent="Margin/HBox/Control"]
@@ -491,7 +491,7 @@ text = "Usar"
 visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
-text = "Equipar rápida"
+text = "Equipar"
 
 [node name="BotonEquipar" type="Button" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
 visible = false

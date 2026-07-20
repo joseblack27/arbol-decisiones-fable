@@ -7,14 +7,14 @@ class_name DatosItem
 
 @export var description: String = ""
 
-# 0=NONE,1=ALL,2=CONSUMABLE,3=EQUIPPABLE,4=RESOURCE,5=QUEST,6=WEAPON
-@export var type: Enums.Inventory.TypeItem = Enums.Inventory.TypeItem.NONE:
+# 0=NINGUNO,1=TODOS,2=CONSUMIBLE,3=EQUIPABLE,4=RECURSO,5=MISION,6=ARMA
+@export var type: Enums.Inventario.TipoItem = Enums.Inventario.TipoItem.NINGUNO:
 	set(value):
 		type = value
 		type_descripcion = item_description[value]
 
-# 0=NONE,1=HELMET,2=BODY,3=PANT,4=BOOTS,5=NECK,6=RING,7=BELT,8=WEAPON,9=SHIELD
-@export var type_equippable: Enums.Inventory.TypeItemEquippable = Enums.Inventory.TypeItemEquippable.NONE
+# 0=NINGUNO,1=CASCO,2=CUERPO,3=PANTALON,4=BOTAS,5=AMULETO,6=ANILLO,7=CINTURON,8=ARMA,9=ESCUDO
+@export var type_equippable: Enums.Inventario.TipoItemEquipable = Enums.Inventario.TipoItemEquipable.NINGUNO
 
 @export var can_use: bool = false
 @export var can_equip: bool = false
@@ -29,7 +29,7 @@ class_name DatosItem
 @export var energia: float = 0.0
 
 ## Bonos de atributos que aporta este ítem mientras esté equipado (solo
-## tiene sentido si type == EQUIPPABLE). Reutiliza el mismo AtributosBase
+## tiene sentido si type == EQUIPABLE). Reutiliza el mismo AtributosBase
 ## que ya usan jugador/enemigos — lo que pongas acá se SUMA a los atributos
 ## base de quien lo tenga puesto. Dejar vacío (null) = sin bono.
 @export var bonos: AtributosBase
@@ -45,11 +45,11 @@ class_name DatosItem
 var type_descripcion: String
 
 const item_description := {
-	Enums.Inventory.TypeItem.NONE: "vacio",
-	Enums.Inventory.TypeItem.ALL: "todos",
-	Enums.Inventory.TypeItem.CONSUMABLE: "consumible",
-	Enums.Inventory.TypeItem.RESOURCE: "recurso",
-	Enums.Inventory.TypeItem.WEAPON: "arma",
-	Enums.Inventory.TypeItem.QUEST: "misión",
-	Enums.Inventory.TypeItem.EQUIPPABLE: "equipable"
+	Enums.Inventario.TipoItem.NINGUNO: "vacio",
+	Enums.Inventario.TipoItem.TODOS: "todos",
+	Enums.Inventario.TipoItem.CONSUMIBLE: "consumible",
+	Enums.Inventario.TipoItem.RECURSO: "recurso",
+	Enums.Inventario.TipoItem.ARMA: "arma",
+	Enums.Inventario.TipoItem.MISION: "misión",
+	Enums.Inventario.TipoItem.EQUIPABLE: "equipable"
 }

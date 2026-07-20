@@ -213,18 +213,6 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "40 - 48"
 
-[node name="HBoxTipoLanzamiento" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoLanzamiento"]
-layout_mode = 2
-text = "Tipo de lanzamiento:"
-
-[node name="EtiquetaTipoLanzamiento" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoLanzamiento"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Proyectil"
-
 [node name="HBoxTipoDano" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
 layout_mode = 2
 

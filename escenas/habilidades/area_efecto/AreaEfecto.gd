@@ -8,7 +8,7 @@ extends Area2D
 @export var duracion_efecto: float  = 0.4
 
 var entidad_fuente: Node = null
-var tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 
 @onready var _col_shape: CollisionShape2D = $CollisionShape2D
 var _forma: CircleShape2D
@@ -22,7 +22,7 @@ func _ready() -> void:
 ## cantidad_daño — daño a aplicar a cada objetivo.
 ## fuente        — entidad que originó el área (evita auto-daño).
 ## tipo          — tipo de daño (afecta resistencias del defensor).
-func configurar(cantidad_daño: float, fuente: Node, tipo: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC) -> void:
+func configurar(cantidad_daño: float, fuente: Node, tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO) -> void:
 	daño           = cantidad_daño
 	entidad_fuente = fuente
 	tipo_dano      = tipo

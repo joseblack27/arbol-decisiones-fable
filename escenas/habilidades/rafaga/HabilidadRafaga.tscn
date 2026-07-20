@@ -1,8 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://crafaga5proy1"]
+[gd_scene load_steps=3 format=3 uid="uid://crafaga5proy1"]
 
-[ext_resource type="Script" path="res://escenas/habilidades/rafaga/HabilidadRafaga.gd" id="1_rafaga"]
+[ext_resource type="Script" uid="uid://b5x11wenovpq2" path="res://escenas/habilidades/rafaga/HabilidadRafaga.gd" id="1_rafaga"]
+[ext_resource type="PackedScene" uid="uid://8c1bik8488pp" path="res://escenas/habilidades/rafaga/ProyectilRafaga.tscn" id="2_vs4vt"]
 
 [node name="HabilidadRafaga" type="Node"]
 script = ExtResource("1_rafaga")
+escena_proyectil = ExtResource("2_vs4vt")
 requiere_direccion = true
-tipo_dano = 1

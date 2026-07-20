@@ -8,6 +8,7 @@
 script = ExtResource("3_atr")
 defensa = 8.0
 tenacidad = 4.0
+resistencia_fuego = 25.0
 
 [resource]
 script = ExtResource("1_scr")
@@ -18,3 +19,4 @@ type = 3
 type_equippable = 9
 can_equip = true
 bonos = SubResource("AtributosBase_bonos")
+id_recurso = "res://recursos/items/equipables/escudo.tres"

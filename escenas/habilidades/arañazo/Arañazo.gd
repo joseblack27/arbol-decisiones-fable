@@ -7,7 +7,7 @@ extends Area2D
 
 var _daño: float = 15.0
 var _entidad_fuente: Node = null
-var _tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+var _tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 
 @onready var _col_shape: CollisionShape2D = $CollisionShape2D
 @onready var _animacion: AnimationPlayer  = $AnimationPlayer
@@ -22,7 +22,7 @@ func _ready() -> void:
 ## Misma firma que GolpeBasico.configurar() — compatible con HabilidadGolpeBasico._ejecutar().
 ## duracion se ignora: el tiempo de vida lo controla la animación.
 func configurar(cantidad_daño: float, radio: float, fuente: Node, _duracion: float,
-		tipo: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC) -> void:
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO) -> void:
 	_daño           = cantidad_daño
 	_forma.radius   = radio
 	_entidad_fuente = fuente

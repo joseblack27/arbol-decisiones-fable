@@ -73,6 +73,7 @@ probabilidad = 0.2
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
+radius = 8.0
 
 [sub_resource type="Animation" id="Animation_gg1r0"]
 length = 0.001
@@ -1138,12 +1139,13 @@ graph_offset = Vector2(0, -19.308817)
 radius = 200.30228
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
-radius = 26.019224
+radius = 16.0
 
 [sub_resource type="Resource" id="Resource_s57h7"]
 script = ExtResource("34_iuxaj")
 regeneracion_vida = 1.0
 resistencia_fisica = 10.0
+resistencia_fuego = -10.0
 metadata/_custom_type_script = "uid://ddhq5qxvccml7"
 
 [node name="EnemigoLobo" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
@@ -1230,6 +1232,7 @@ shape = SubResource("CircleShape2D_ysyd8")
 debug_color = Color(0.9676711, 0.16954571, 0.1691272, 0.41960785)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
 texture = ExtResource("10_2yvtj")
 hframes = 5
 vframes = 4

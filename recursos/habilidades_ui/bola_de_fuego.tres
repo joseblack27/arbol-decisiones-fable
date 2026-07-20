@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_2udu0"]
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="2_s4kur"]
-[ext_resource type="PackedScene" uid="uid://eyd0lniej4po" path="res://escenas/habilidades/proyectil/HabilidadProyectil.tscn" id="3_esc"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/bola_de_fuego/HabilidadBolaDeFuego.tscn" id="3_esc"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_rmpga"]
 atlas = ExtResource("2_2udu0")
@@ -12,7 +12,7 @@ region = Rect2(96, 0, 32, 32)
 script = ExtResource("2_s4kur")
 nombre = "Bola de fuego"
 icono = SubResource("AtlasTexture_rmpga")
-descripcion = "Bola de fuego que se lanza en linea recta, causando [color=red]{damage1}[/color]"
+descripcion = "Bola de fuego que se lanza en linea recta, causando {damage1}"
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 10

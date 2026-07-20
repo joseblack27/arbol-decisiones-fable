@@ -22,11 +22,11 @@ func _on_tick():
 	for event in events:
 
 		if now < event.start_time:
-			event.status = Enums.Event.Status.UPCOMING
+			event.status = Enums.Evento.Estado.PROXIMO
 		elif now < event.end_time:
-			event.status = Enums.Event.Status.ACTIVE
+			event.status = Enums.Evento.Estado.ACTIVO
 		else:
-			event.status = Enums.Event.Status.COMPLETED
+			event.status = Enums.Evento.Estado.COMPLETADO
 			if event.is_persistent == false:
 				expired = true
 				event_expired.emit(event)

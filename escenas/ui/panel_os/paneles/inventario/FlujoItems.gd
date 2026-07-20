@@ -5,7 +5,7 @@ class_name FlujoItems
 @export var spacing: int = 8
 
 var slot_scene: PackedScene = preload("res://escenas/ui/panel_os/paneles/inventario/SlotItem.tscn")
-var last_filter_type: int = 1  # 1 = Enums.Inventory.TypeItem.ALL
+var last_filter_type: int = 1  # 1 = Enums.Inventario.TipoItem.TODOS
 
 func _ready():
 	resized.connect(_update_layout)

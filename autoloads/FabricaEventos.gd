@@ -15,7 +15,7 @@ static func create_world_boss(
 
 	event.start_time = now + start_in_seconds
 	event.end_time = event.start_time + duration_seconds
-	event.status = Enums.Event.Status.UPCOMING
+	event.status = Enums.Eventoo.Estado.PROXIMO
 
 	event.priority = 10
 

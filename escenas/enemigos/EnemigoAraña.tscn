@@ -644,9 +644,10 @@ transitions = ["Start", "IDLE", SubResource("AnimationNodeStateMachineTransition
 script = ExtResource("22_araña")
 regeneracion_vida = 1.0
 regeneracion_energia = 10.0
+resistencia_fuego = -25.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_qvumm"]
-radius = 19.026299
+radius = 16.0
 
 [node name="EnemigoAraña" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
 motion_mode = 1
@@ -694,6 +695,7 @@ visible = false
 shape = SubResource("CircleShape2D_vision")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
 texture = ExtResource("3_cilxc")
 hframes = 3
 vframes = 4
@@ -842,6 +844,5 @@ script = ExtResource("28_2vgoe")
 metadata/_custom_type_script = "uid://bleljlysbo3tm"
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
-visible = false
 shape = SubResource("CircleShape2D_qvumm")
 debug_color = Color(0.98598844, 0.11810657, 0, 0.41960785)

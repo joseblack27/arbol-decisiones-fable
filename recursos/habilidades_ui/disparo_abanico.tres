@@ -12,11 +12,12 @@ region = Rect2(64, 0, 32, 32)
 script = ExtResource("1_dh")
 nombre = "Disparo en abanico"
 icono = SubResource("AtlasTexture_abanico1")
-descripcion = "Dispara 3 proyectiles en abanico, cada uno causando [color=red]{damage1}[/color]"
+descripcion = "Dispara 3 proyectiles en abanico, cada uno causando {damage1}"
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 15
 dano_base_min = 8
 dano_base_max = 10
+tipo_dano = 1
 alcance_metros = 6
 enfriamiento = 2.0

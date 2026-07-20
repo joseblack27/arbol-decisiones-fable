@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="1_bt"]
+
+[resource]
+script = ExtResource("1_bt")
+nombre = "GolpeBasicoJefe"
+prioridad = 7
+rango_minimo = 0.0
+rango_maximo = 55.0
+duracion_cooldown = 1.2
+requiere_acercarse = true
+ruta_nodo = NodePath("Habilidades/HabilidadGolpeBasico")
+metadata/_custom_type_script = "uid://fr6tavpigufc"

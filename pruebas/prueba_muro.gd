@@ -117,7 +117,7 @@ func _probar_proyectil_contra_muro() -> bool:
 	# autoloads existan (mismo artefacto de --script de siempre).
 	var proyectil: Node = (load("res://escenas/habilidades/proyectil/Proyectil.gd") as GDScript).new()
 	_contenedor.add_child(proyectil)
-	proyectil.call("configurar", Vector2.RIGHT, 1.0, 8.0, _enemigo, Enums.Skill.TypeDamage.PHYSIC)
+	proyectil.call("configurar", Vector2.RIGHT, 1.0, 8.0, _enemigo, Enums.Habilidad.TipoDano.FISICO)
 
 	var contenedor_piscina := root.get_node("/root/GestorPiscinas/InstanciasPiscina")
 	var numeros_antes := _numeros_activos(contenedor_piscina)
@@ -158,7 +158,7 @@ func _probar_impacto_vs_defensa() -> void:
 	_muro_debil = _crear_muro_prueba(defensa_muro)
 	var proyectil_debil: Node = (load("res://escenas/habilidades/proyectil/Proyectil.gd") as GDScript).new()
 	_contenedor.add_child(proyectil_debil)
-	proyectil_debil.call("configurar", Vector2.RIGHT, 1.0, 5.0, _enemigo, Enums.Skill.TypeDamage.PHYSIC)
+	proyectil_debil.call("configurar", Vector2.RIGHT, 1.0, 5.0, _enemigo, Enums.Habilidad.TipoDano.FISICO)
 	proyectil_debil.call("_on_area_entrada", _muro_debil)
 	_debil_gasto_proyectil = proyectil_debil.get("_ya_impacto")
 	proyectil_debil.queue_free()
@@ -177,7 +177,7 @@ func _probar_impacto_vs_defensa() -> void:
 	_muro_fuerte = _crear_muro_prueba(defensa_muro)
 	var proyectil_fuerte: Node = (load("res://escenas/habilidades/proyectil/Proyectil.gd") as GDScript).new()
 	_contenedor.add_child(proyectil_fuerte)
-	proyectil_fuerte.call("configurar", Vector2.RIGHT, 1.0, 5.0, atacante_fuerte, Enums.Skill.TypeDamage.PHYSIC)
+	proyectil_fuerte.call("configurar", Vector2.RIGHT, 1.0, 5.0, atacante_fuerte, Enums.Habilidad.TipoDano.FISICO)
 	proyectil_fuerte.call("_on_area_entrada", _muro_fuerte)
 	_fuerte_proyectil_sigue = not proyectil_fuerte.get("_ya_impacto")
 	proyectil_fuerte.queue_free()
@@ -198,7 +198,7 @@ func _probar_bloqueo_mismo_equipo() -> bool:
 	# equipo no bloqueara, esto rompería el muro de un solo golpe.
 	var atributos_jugador := _jugador.get_node("AtributosComponente") as AtributosComponente
 	atributos_jugador.base.impacto = 999.0
-	proyectil.call("configurar", Vector2.RIGHT, 1.0, 5.0, _jugador, Enums.Skill.TypeDamage.PHYSIC)
+	proyectil.call("configurar", Vector2.RIGHT, 1.0, 5.0, _jugador, Enums.Habilidad.TipoDano.FISICO)
 	var impacto_bloqueado: bool = not muro.call("recibir_impacto", 999.0, _jugador)
 	proyectil.call("_on_area_entrada", muro)
 	var vida_despues: float = muro.call("obtener_vida")
@@ -219,7 +219,7 @@ func _crear_muro_prueba(defensa: float) -> Node:
 	muro.global_position = Vector2(300, 0)
 	muro.call(
 		"configurar", _jugador, Vector2.RIGHT, 999.0, defensa, 0.0, 100.0, false,
-		1, 16.0, 8.0, load("res://escenas/habilidades/muro/pilar.tscn"), Enums.Skill.TypeDamage.PHYSIC,
+		1, 16.0, 8.0, load("res://escenas/habilidades/muro/pilar.tscn"), Enums.Habilidad.TipoDano.FISICO,
 	)
 	return muro
 

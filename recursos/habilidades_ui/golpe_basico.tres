@@ -12,7 +12,7 @@ region = Rect2(416, 128, 32, 32)
 script = ExtResource("2_scr")
 nombre = "Golpe basico"
 icono = SubResource("AtlasTexture_mhui3")
-descripcion = "Golpe directo al enemigo mas cercano causando [color=orange]{damage1}[/color]"
+descripcion = "Golpe directo al enemigo mas cercano causando {damage1}"
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 3

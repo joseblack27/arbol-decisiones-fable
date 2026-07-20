@@ -1,6 +1,6 @@
 extends Button
 
-## 0=NONE,1=ALL,2=CONSUMABLE,3=EQUIPPABLE,4=RESOURCE,5=QUEST,6=WEAPON
+## 0=NINGUNO,1=TODOS,2=CONSUMIBLE,3=EQUIPABLE,4=RECURSO,5=MISION,6=ARMA
 @export var filter_type: int = 0
 
 @export var flow_items: FlujoItems

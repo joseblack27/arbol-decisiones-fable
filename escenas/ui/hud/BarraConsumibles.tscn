@@ -23,21 +23,21 @@ corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
 [node name="BarraConsumibles" type="Control"]
-custom_minimum_size = Vector2(184, 100)
+custom_minimum_size = Vector2(58, 288)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 224.0
-offset_bottom = 108.0
+offset_right = 58.0
+offset_bottom = 288.0
 mouse_filter = 2
 script = ExtResource("1_script")
 
 [node name="PanelSlots" type="PanelContainer" parent="."]
 layout_mode = 1
-offset_right = 224.0
-offset_bottom = 58.0
+offset_right = 58.0
+offset_bottom = 220.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_fondo_panel")
 
-[node name="HBoxSlots" type="HBoxContainer" parent="PanelSlots"]
+[node name="HBoxSlots" type="VBoxContainer" parent="PanelSlots"]
 layout_mode = 2
 theme_override_constants/separation = 4
 alignment = 1
@@ -58,12 +58,14 @@ layout_mode = 2
 slot_index = 3
 
 [node name="BotonToggle" type="Button" parent="."]
+custom_minimum_size = Vector2(58, 58)
 layout_mode = 1
-offset_top = 64.0
+offset_top = 224.0
 offset_right = 44.0
-offset_bottom = 108.0
+offset_bottom = 268.0
 theme_override_styles/normal = SubResource("StyleBoxFlat_boton")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_boton")
 theme_override_styles/hover = SubResource("StyleBoxFlat_boton")
 icon = ExtResource("2_icono")
+icon_alignment = 1
 expand_icon = true

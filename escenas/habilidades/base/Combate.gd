@@ -53,7 +53,7 @@ static func golpear_area(
 		forma: Shape2D,
 		dano: float,
 		fuente: Node,
-		tipo_dano: Enums.Skill.TypeDamage,
+		tipo_dano: Enums.Habilidad.TipoDano,
 		nombre_evento: String,
 		respetar_equipo: bool = true,
 		multiplicador_final: float = 1.0) -> void:

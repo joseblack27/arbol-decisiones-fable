@@ -15,6 +15,7 @@
 [ext_resource type="Resource" uid="uid://c6t4kbl6xo405" path="res://recursos/habilidades_ui/bola_de_fuego.tres" id="20_bf"]
 [ext_resource type="Resource" uid="uid://drafagadatos1" path="res://recursos/habilidades_ui/rafaga.tres" id="21_eh"]
 [ext_resource type="Resource" uid="uid://dlanzallamasdatos1" path="res://recursos/habilidades_ui/lanzallamas.tres" id="35_llamas"]
+[ext_resource type="Resource" path="res://recursos/habilidades_ui/esquirla_helada.tres" id="36_esquirla"]
 [ext_resource type="Resource" uid="uid://dm8bip261qqn" path="res://recursos/habilidades_ui/picos_rocosos.tres" id="22_pr"]
 [ext_resource type="Resource" uid="uid://qwx3tms4pg2x" path="res://recursos/habilidades_ui/golpe_basico.tres" id="23_gb"]
 [ext_resource type="Resource" uid="uid://bnmuhpm1lfsy1" path="res://recursos/habilidades_ui/carga_jugador.tres" id="24_cj"]
@@ -72,7 +73,7 @@ script = ExtResource("30_buffs")
 [node name="SlotHabilidades" type="Node" parent="." node_paths=PackedStringArray("jugador")]
 script = ExtResource("13_sh")
 jugador = NodePath("..")
-catalogo = Array[ExtResource("25_dh")]([ExtResource("20_bf"), ExtResource("21_eh"), ExtResource("22_pr"), ExtResource("23_gb"), ExtResource("24_cj"), ExtResource("26_muro"), ExtResource("27_abanico"), ExtResource("29_escudo"), ExtResource("31_parpadeo"), ExtResource("32_curacion"), ExtResource("33_inmov"), ExtResource("35_llamas")])
+catalogo = Array[ExtResource("25_dh")]([ExtResource("20_bf"), ExtResource("21_eh"), ExtResource("36_esquirla"), ExtResource("22_pr"), ExtResource("23_gb"), ExtResource("24_cj"), ExtResource("26_muro"), ExtResource("27_abanico"), ExtResource("29_escudo"), ExtResource("31_parpadeo"), ExtResource("32_curacion"), ExtResource("33_inmov"), ExtResource("35_llamas")])
 
 [node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador")]
 script = ExtResource("3_ukil5")

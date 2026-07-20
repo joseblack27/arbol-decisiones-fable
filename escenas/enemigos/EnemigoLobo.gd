@@ -30,14 +30,22 @@ func _on_arañazo_activado(_habilidad: HabilidadBase) -> void:
 	memoria.establecer("habilidad_lanzada", true)
 
 
+## Arranca el telegrafiado (el árbol de animación tiene IDLE -> MORDIDA_
+## PREPARACION -> MORDIDA_DASH -> IDLE ya armado, pero nadie disparaba esas
+## 3 condiciones — quedaba viéndose con caminar/idle en vez de su propia
+## animación de mordida, con la única transición real siendo "debeCargar",
+## que no existe en este árbol (typo/resto viejo, no hacía nada).
 func _on_carga_preparacion() -> void:
-	pass
+	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaPrep", true)
 
 
 func _on_carga_iniciada(_direccion: Vector2, _multiplicador: float) -> void:
-	pass
+	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaPrep", false)
+	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaDash", true)
 
 
 func _on_carga_terminada() -> void:
 	memoria.establecer("ataque_en_curso", false)
-	componente_animacion.establecer_condicion("parameters/conditions/debeCargar", false)
+	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaDash", false)
+	componente_animacion.establecer_condicion("parameters/conditions/debeSalirMordida", true)
+	componente_animacion.establecer_condicion("parameters/conditions/debeIdle", true)

@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://escenas/efectos/EfectoLentitud.gd" id="1_efecto"]
+[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_tex"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icono_lentitud"]
+atlas = ExtResource("2_tex")
+region = Rect2(192, 0, 32, 32)
+
+[node name="EfectoLentitudEsquirla" type="Node"]
+script = ExtResource("1_efecto")
+factor_lentitud = 0.5
+duracion = 3.0
+id_debuff = "lentitud_esquirla"
+icono_debuff = SubResource("AtlasTexture_icono_lentitud")

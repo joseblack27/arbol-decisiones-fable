@@ -13,12 +13,12 @@ filter_clip = true
 script = ExtResource("2_rhsv4")
 nombre = "Picos rocosos"
 icono = SubResource("AtlasTexture_e3lqg")
-descripcion = "Picos de piedra que se despliegan en la zona elegida, causando [color=#905010]{damage1}[/color]"
+descripcion = "Picos de piedra que se despliegan en la zona elegida, causando {damage1}"
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 30
 dano_base_min = 20
 dano_base_max = 24
-tipo_lanzamiento = 1
+tipo_dano = 0
 alcance_metros = 6
 enfriamiento = 1.0

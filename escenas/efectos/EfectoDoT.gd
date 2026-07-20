@@ -5,7 +5,7 @@ class_name EfectoDoT
 
 @export var dano_por_tick: float = 5.0
 @export var intervalo: float     = 1.0
-@export var tipo_dano: Enums.Skill.TypeDamage = Enums.Skill.TypeDamage.PHYSIC
+@export var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 
 ## Se asigna automáticamente desde Proyectil si tiene la propiedad "fuente".
 var fuente: Node = null

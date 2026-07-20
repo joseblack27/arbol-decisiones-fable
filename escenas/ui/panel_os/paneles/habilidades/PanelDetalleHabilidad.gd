@@ -7,7 +7,6 @@ extends Panel
 @onready var cost_label        := $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenCosto/HBoxCosto/EtiquetaCosto
 @onready var dmg_base_label    := $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoBase/EtiquetaDanoBase
 @onready var dmg_calc_label    := $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado/EtiquetaDanoCalculado
-@onready var type_launch_label := $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoLanzamiento/EtiquetaTipoLanzamiento
 @onready var type_damage_label := $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoDano/EtiquetaTipoDano
 @onready var range_launch_label = $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxRangoLanzamiento/EtiquetaRangoLanzamiento
 @onready var cool_down_label    = $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxEnfriamiento/EtiquetaEnfriamiento
@@ -106,13 +105,22 @@ func show_skill(skill: DatosHabilidad) -> void:
 
 	var dmg_calc := "%d - %d" % [dmg_calc_min, dmg_calc_max]
 
-	description_label.text = skill.description.format({"damage1": dmg_calc})
+	# El color del número de daño en la descripción sale del elemento real
+	# de la habilidad (Enums.Habilidad.valor_color_dano), no de un
+	# [color=...] pegado a mano en cada .tres — antes cada descripción
+	# traía su propio color hardcodeado, y varios ya habían quedado
+	# desincronizados del tipo_dano real (Ráfaga es AIRE pero se pintaba
+	# con el cyan de AGUA; Golpe Básico/Carga/Muro son FÍSICO pero usaban
+	# colores de otros elementos) — con esto es imposible que se
+	# desincronicen, porque los dos salen del mismo dato.
+	var color_dano: String = Enums.Habilidad.valor_color_dano[skill.type_damage]
+	var dmg_calc_coloreado := "[color=%s][b]%s[/b][/color]" % [color_dano, dmg_calc]
+	description_label.text = skill.description.format({"damage1": dmg_calc_coloreado})
 	cost_label.text = str(skill.cost_energy)
 
 	dmg_base_label.text = "%d - %d" % [skill.damage_base_min, skill.damage_base_max]
 	dmg_calc_label.text = dmg_calc
 
-	type_launch_label.text  = Utils.snake_to_pascal(Enums.Skill.TypeLaunch.keys()[skill.type_launch])
-	type_damage_label.text  = Utils.snake_to_pascal(Enums.Skill.TypeDamage.keys()[skill.type_damage])
+	type_damage_label.text  = Utils.snake_to_pascal(Enums.Habilidad.TipoDano.keys()[skill.type_damage])
 	range_launch_label.text = "%d metros" % skill.range_meters
 	cool_down_label.text    = "%.1f segundos" % skill.cooldown_seconds

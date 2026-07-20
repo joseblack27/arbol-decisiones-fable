@@ -29,7 +29,7 @@ func _process(_delta: float) -> bool:
 func _montar() -> void:
 	_armadura = DatosItem.new()
 	_armadura.name = "Armadura de Prueba"
-	_armadura.type = 3  # EQUIPPABLE
+	_armadura.type = 3  # EQUIPABLE
 	_armadura.can_equip = true
 	var bonos := AtributosBase.new()
 	bonos.defensa = 10.0
@@ -39,7 +39,7 @@ func _montar() -> void:
 
 	_pocion = DatosItem.new()
 	_pocion.name = "Poción de Prueba"
-	_pocion.type = 2  # CONSUMABLE
+	_pocion.type = 2  # CONSUMIBLE
 
 	_panel = (load("res://escenas/ui/panel_os/paneles/inventario/PanelInventario.tscn") as PackedScene).instantiate()
 	root.add_child(_panel)

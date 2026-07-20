@@ -17,3 +17,4 @@ type = 3
 type_equippable = 2
 can_equip = true
 bonos = SubResource("AtributosBase_bonos")
+id_recurso = "res://recursos/items/equipables/armadura_2.tres"

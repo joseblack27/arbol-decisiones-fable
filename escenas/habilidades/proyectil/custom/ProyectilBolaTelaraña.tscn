@@ -52,6 +52,7 @@ escena_al_impactar = ExtResource("2_kmuus")
 metadata/_custom_type_script = "uid://bvgpgmf67u2sw"
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(0, -8)
 sprite_frames = SubResource("SpriteFrames_s5ue2")
 autoplay = "default"
 frame_progress = 0.15275927

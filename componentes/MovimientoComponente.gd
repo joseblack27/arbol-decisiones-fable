@@ -143,7 +143,7 @@ func _avanzar_hacia_destino(delta: float) -> void:
 		if "direccion" in jugador:
 			jugador.set("direccion", direccion)  # Para animaciones y habilidades.
 		var vel := _velocidad_comandada if _velocidad_comandada > 0.0 else velocidad_base
-		deseada = direccion * vel
+		deseada = direccion * vel * _multiplicador_lentitud()
 
 	# En CUALQUIER contexto headless (el servidor dedicado en Docker, y
 	# también las pruebas por --script) el callback de evasión
@@ -200,11 +200,34 @@ func physics_process(_delta: float, _direccion: Vector2, velocidad_override: flo
 	var vel := velocidad_override if velocidad_override > 0.0 else velocidad_base
 
 	# 2. Calcular el movimiento en función de la dirección recibida.
-	var velocidad_aplicada: Vector2 = _direccion.normalized() * vel
+	var velocidad_aplicada: Vector2 = _direccion.normalized() * vel * _multiplicador_lentitud()
 
 	# 3. Aplicar movimiento físico.
 	jugador.velocity = velocidad_aplicada
 	jugador.move_and_slide()
+
+
+## Factores de lentitud activos (0.5 = mitad de velocidad). Lista y no un
+## solo float por la misma razón que la inmovilización usa contador: dos
+## efectos solapados no deben pisarse entre sí al expirar cada uno por su
+## lado — cada efecto agrega SU factor al aplicarse y quita ESE MISMO
+## factor al vencer (ver EfectoLentitud). Se multiplican entre sí.
+var _factores_lentitud: Array[float] = []
+
+
+func agregar_lentitud(factor: float) -> void:
+	_factores_lentitud.append(clampf(factor, 0.05, 1.0))
+
+
+func quitar_lentitud(factor: float) -> void:
+	_factores_lentitud.erase(clampf(factor, 0.05, 1.0))
+
+
+func _multiplicador_lentitud() -> float:
+	var multiplicador := 1.0
+	for factor in _factores_lentitud:
+		multiplicador *= factor
+	return multiplicador
 
 
 func agregar_inmovilizacion() -> void:

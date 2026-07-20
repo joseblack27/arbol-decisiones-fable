@@ -133,7 +133,6 @@ icon = ExtResource("7_8rkdy")
 icon_alignment = 1
 
 [node name="ColorRect" type="ColorRect" parent="."]
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -149,17 +148,17 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 26
-theme_override_constants/margin_top = 26
-theme_override_constants/margin_right = 26
-theme_override_constants/margin_bottom = 26
+theme_override_constants/margin_left = 30
+theme_override_constants/margin_top = 15
+theme_override_constants/margin_right = 30
+theme_override_constants/margin_bottom = 15
 
 [node name="VBox" type="VBoxContainer" parent="ColorRect/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
 [node name="PanelTitulo" type="Panel" parent="ColorRect/Margin/VBox"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
 
 [node name="HBoxContainer" type="HBoxContainer" parent="ColorRect/Margin/VBox/PanelTitulo"]
@@ -183,25 +182,27 @@ theme_override_font_sizes/font_size = 16
 text = "OS"
 
 [node name="BotonGuardar" type="Button" parent="ColorRect/Margin/VBox/PanelTitulo/HBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Guardar"
 
 [node name="BotonCargar" type="Button" parent="ColorRect/Margin/VBox/PanelTitulo/HBoxContainer"]
+visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 text = "Cargar"
 
 [node name="BotonCerrar" type="Button" parent="ColorRect/Margin/VBox/PanelTitulo/HBoxContainer"]
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
 text = "x"
 
 [node name="Panel" type="Panel" parent="ColorRect/Margin/VBox"]
-custom_minimum_size = Vector2(0, 30)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 
 [node name="BarraSuperior" type="HBoxContainer" parent="ColorRect/Margin/VBox/Panel"]
