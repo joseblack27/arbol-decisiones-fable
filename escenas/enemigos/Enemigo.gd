@@ -280,9 +280,11 @@ func _recibir_estado_red(pos: Vector2, dir: Vector2, mirada: Vector2) -> void:
 # API PÚBLICA
 # =============================================================================
 
-func quitar_vida(cantidad: float, fuente: Node = null) -> void:
+func quitar_vida(cantidad: float, fuente: Node = null,
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO,
+		critico: bool = false) -> void:
 	if componente_vida:
-		componente_vida.quitar_vida(cantidad, fuente)
+		componente_vida.quitar_vida(cantidad, fuente, tipo, critico)
 
 
 # =============================================================================
@@ -302,7 +304,7 @@ func _on_vida_cambiada(nuevo_valor: float) -> void:
 	memoria.establecer("vida", nuevo_valor)
 
 
-func _on_daño_aplicado(objetivo: Node, _cantidad: float, fuente: Node) -> void:
+func _on_daño_aplicado(objetivo: Node, _cantidad: float, fuente: Node, _tipo: int = 2, _critico: bool = false) -> void:
 	if objetivo == self:
 		_ultimo_atacante = fuente
 

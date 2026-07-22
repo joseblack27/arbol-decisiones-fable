@@ -142,7 +142,7 @@ func _on_xp_agregada(_cantidad: int, _xp_total: int) -> void:
 ## el daño real llega replicado desde el servidor sin atacante — ver
 ## VidaComponente._recibir_vida_red, que emite fuente=null), se registra
 ## "???": justo la firma del "daño fantasma" que se busca rastrear.
-func _on_dano_registrado(objetivo: Node, cantidad: float, fuente: Node) -> void:
+func _on_dano_registrado(objetivo: Node, cantidad: float, fuente: Node, _tipo: int = 2, _critico: bool = false) -> void:
 	# En cliente puro esta misma línea llega (mejor) por daño_replicado —
 	# con el nombre del atacante aunque su nodo no exista en este peer.
 	if Utils.en_red() and not multiplayer.is_server():

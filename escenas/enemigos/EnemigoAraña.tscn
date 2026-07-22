@@ -830,8 +830,10 @@ metadata/_custom_type_script = "uid://bjyr6iyvtuirj"
 [node name="Habilidades" type="Marker2D" parent="."]
 
 [node name="HabilidadProyectilBolaTelaraña" parent="Habilidades" instance=ExtResource("11_tj55f")]
+daño_proyectil = 47.0
 
 [node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("24_2vgoe")]
+daño = 47.0
 costo_energia = 20.0
 
 [node name="AtributosComponente" type="Node" parent="."]

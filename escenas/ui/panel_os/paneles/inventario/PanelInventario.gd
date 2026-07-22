@@ -8,12 +8,12 @@ class_name PanelInventario
 
 @onready var flow: FlujoItems = $Margin/HBox/PanelItems/MarginContainer/VBoxItems/MarginContainer/ScrollContainer/FlujoItems
 
-@onready var item_name         := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/NombreItem
-@onready var item_icon         := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/IconoItem
-@onready var type_value        := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo/ValorTipo
-@onready var qty_value         := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo/ValorCantidad
-@onready var description_text  := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer2/VBoxContainer/TextoDescripcion
-@onready var vbox_caracteristicas: VBoxContainer = $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/VBoxCaracteristicas
+@onready var item_name         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre/NombreItem
+@onready var item_icon         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/IconoItem
+@onready var type_value        := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo/ValorTipo
+@onready var qty_value         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo/ValorCantidad
+@onready var description_text  := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2/VBoxContainer/TextoDescripcion
+@onready var vbox_caracteristicas: VBoxContainer = $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/VBoxCaracteristicas
 
 ## Orden y etiqueta en español de cada campo de AtributosBase que se muestra
 ## en el detalle de un equipable. Solo se listan los bonos que el ítem
@@ -36,42 +36,48 @@ const ETIQUETAS_ATRIBUTOS := [
 	["resistencia_fuego", "Resist. Fuego"],
 	["resistencia_tierra", "Resist. Tierra"],
 ]
-@onready var close_button      := $Margin/HBox/Control/PanelDetalle/BotonCerrar
-@onready var detail_panel_margin := $Margin/HBox/Control/PanelDetalle
+@onready var close_button      := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre/BotonCerrar
+## Lo que se muestra/oculta según haya algo seleccionado o no — el PANEL en
+## sí (PanelDetalle) ya no se oculta más: la columna "Detalles del Objeto"
+## siempre está ahí, como Mochila/Inventario y Equipamiento Activo; lo que
+## aparece y desaparece es solo el contenido específico del ítem elegido,
+## dejando el espacio realmente VACÍO (sin nombre, sin ícono, nada) cuando
+## no hay selección, en vez de mostrar placeholders tipo "No item" / "-".
+@onready var detail_panel_margin := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle
 
-@onready var action_button     := $Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/BotonAccion
-@onready var main_action_panel: PanelContainer = $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal
-@onready var use_action_button   := $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonUsar
-@onready var barra_rapida_button := $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonBarraRapida
-@onready var equip_action_button := $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonEquipar
-@onready var drop_action_button  := $Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonSoltar
+@onready var action_button     := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/BotonAccion
+@onready var main_action_panel: PanelContainer = $Margin/HBox/PanelDetalle/PanelAccionPrincipal
+@onready var use_action_button   := $Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonUsar
+@onready var barra_rapida_button := $Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonBarraRapida
+@onready var equip_action_button := $Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonEquipar
+@onready var drop_action_button  := $Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonSoltar
 
 @onready var all_filter_button:        Button = $Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro/BotonTodos
 @onready var equipments_filter_button: Button = $Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro/BotonEquipables
 @onready var consumables_filter_button: Button = $Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro/BotonConsumibles
 @onready var resources_filter_button:  Button = $Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro/BotonRecursos
 
-@onready var equipment_panel: Panel = $Margin/HBox/Control/PanelEquipamiento
-@onready var equip_slot_weapon:  EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1/SlotArma
-@onready var equip_slot_shield:  EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1/SlotEscudo
-@onready var equip_slot_helmet:  EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2/SlotCasco
-@onready var equip_slot_neck:    EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2/SlotCuello
-@onready var equip_slot_body:    EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3/SlotPecho
-@onready var equip_slot_ring_1:  EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3/SlotAnillo1
-@onready var equip_slot_pant:    EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4/SlotPantalon
-@onready var equip_slot_ring_2:  EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4/SlotAnillo2
-@onready var equip_slot_boots:   EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5/SlotBotas
-@onready var equip_slot_belt:    EquipoSlot = $Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5/SlotCinturon
+@onready var equipment_panel: Panel = $Margin/HBox/PanelEquipamiento
+@onready var equip_slot_weapon:  EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColArma/SlotArma
+@onready var equip_slot_shield:  EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColEscudo/SlotEscudo
+@onready var equip_slot_helmet:  EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColCasco/SlotCasco
+@onready var equip_slot_neck:    EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAmuleto/SlotCuello
+@onready var equip_slot_body:    EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColCuerpo/SlotPecho
+@onready var equip_slot_ring_1:  EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAnillo1/SlotAnillo1
+@onready var equip_slot_pant:    EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColPantalon/SlotPantalon
+@onready var equip_slot_ring_2:  EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAnillo2/SlotAnillo2
+@onready var equip_slot_boots:   EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColBotas/SlotBotas
+@onready var equip_slot_belt:    EquipoSlot = $Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColCinturon/SlotCinturon
 
 ## Fila vertical de casillas rápidas dentro del inventario (misma fuente de
 ## verdad que la barra flotante del HUD, ver GestorBarraRapida/
 ## SlotConsumibleRapido) — usar_al_tocar=false en su escena: un toque acá
 ## solo abre el detalle de siempre, no usa el ítem directo.
 @onready var quick_slots_inventario: Array[SlotConsumibleRapido] = [
-	$Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox/Slot0,
-	$Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox/Slot1,
-	$Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox/Slot2,
-	$Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox/Slot3,
+	$Margin/HBox/PanelBarraRapida/MarginContainer/VBox/Slot0,
+	$Margin/HBox/PanelBarraRapida/MarginContainer/VBox/Slot1,
+	$Margin/HBox/PanelBarraRapida/MarginContainer/VBox/Slot2,
+	$Margin/HBox/PanelBarraRapida/MarginContainer/VBox/Slot3,
 ]
 
 @export var slots_equippable: Array[EquipoSlot]
@@ -173,6 +179,7 @@ func _on_slot_clicked(slot: SlotItem):
 		detail_panel_margin.show()
 
 func _on_close_button():
+	item_data_details = null
 	detail_panel_margin.hide()
 	main_action_panel.hide()
 
@@ -228,6 +235,11 @@ func _on_drop_button():
 func _on_barra_rapida_button():
 	var item := item_data_details.item_data
 	if item == null:
+		return
+	# Ya está en alguna casilla rápida: no duplicar la referencia ni moverla
+	# de lugar solo por presionar el botón de nuevo.
+	if item in GestorBarraRapida.casillas:
+		_on_close_button()
 		return
 	var indice := GestorBarraRapida.primer_indice_vacio()
 	if indice < 0:

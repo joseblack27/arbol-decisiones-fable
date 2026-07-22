@@ -93,6 +93,10 @@ func _physics_process(delta: float) -> void:
 	var vel       := multiplicador_velocidad_carga * componente_movimiento.velocidad_base
 	var pos_antes := entidad.global_position
 	componente_movimiento.physics_process(delta, _direccion_carga, vel)
+	# A la velocidad de un dash, el borde del mapa puede tener puntos
+	# localmente delgados que move_and_slide() no llega a detectar en un
+	# solo fotograma — ver el comentario de contener_dentro_del_mapa().
+	componente_movimiento.contener_dentro_del_mapa()
 	_distancia_recorrida += entidad.global_position.distance_to(pos_antes)
 
 	# ── Daño al jugador si hay colisión durante el dash ──────────────────────
@@ -127,12 +131,13 @@ func _physics_process(delta: float) -> void:
 			if objetivo.has_method("quitar_vida"):
 				_ya_impacto = true
 				var dano_final := AtributosComponente.calcular_pipeline(entidad_dueña, objetivo, dano_carga, tipo_dano)
+				var fue_critico := AtributosComponente.ultimo_pipeline_critico
 				# Todos los quitar_vida() aceptan "fuente" como segundo
 				# argumento — Muro lo usa para no dejarse romper por su
 				# propio equipo (ver Muro._bloqueado_por_equipo).
-				objetivo.quitar_vida(dano_final, entidad_dueña)
+				objetivo.quitar_vida(dano_final, entidad_dueña, tipo_dano, fue_critico)
 				if Utils.debe_mostrar_dano_local():
-					BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña)
+					BusEventos.daño_aplicado.emit(objetivo, dano_final, entidad_dueña, tipo_dano, fue_critico)
 				BusEventos.habilidad_impacto.emit("carga", objetivo)
 				break
 

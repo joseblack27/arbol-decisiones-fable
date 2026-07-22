@@ -16,8 +16,11 @@ signal jugador_murio()
 signal jugador_reaparecio(posicion: Vector2)
 
 # ── COMBATE ──────────────────────────────────────────────────────────────────
-## Emitida cuando una entidad aplica daño a otra (objetivo, cantidad, fuente).
-signal daño_aplicado(objetivo: Node, cantidad: float, fuente: Node)
+## Emitida cuando una entidad aplica daño a otra (objetivo, cantidad, fuente,
+## tipo). "tipo" es el elemento del golpe (Enums.Habilidad.TipoDano, viaja
+## como int) — lo usa GestorNumerosDano para pintar el número flotante del
+## color del elemento y marcar los golpes a una debilidad elemental.
+signal daño_aplicado(objetivo: Node, cantidad: float, fuente: Node, tipo: int, critico: bool)
 ## Solo en clientes puros: daño real replicado desde el servidor, con el
 ## nombre del atacante YA resuelto como texto — incluso si el nodo atacante
 ## no existe en este peer (mob invisible: se deriva de la ruta que mandó el

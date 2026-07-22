@@ -15,13 +15,32 @@ extends CharacterBody2D
 var componentes_de_acciones: Dictionary = {}
 var _vida_anterior: float = 0.0
 var direccion: Vector2
+## Dirección hacia la que apuntó la última habilidad direccional lanzada —
+## tiene prioridad sobre la dirección de movimiento para orientar el sprite
+## (mismo patrón que Enemigo.direccion_mirada): lanzar una habilidad hacia
+## un lado debe girar al personaje hacia ahí, aunque en ese instante siga
+## caminando hacia otro (reportado: "el personaje no cambia su dirección
+## hacia donde lanzó la habilidad"). Pulso de un solo fotograma — ver
+## _aplicar_presentacion, que la consume y la limpia enseguida; lo que
+## persiste después es _ultima_direccion, ya actualizada con este valor.
+var direccion_mirada: Vector2 = Vector2.ZERO
 
 @onready var sprite: Sprite2D = $Sprite2D
 @onready var slot_habilidades: SlotHabilidades = $SlotHabilidades
 @onready var camara: Camera2D = $Camara
 @onready var componente_atributos: AtributosComponente = $AtributosComponente
+@onready var componente_animacion: AnimacionComponente = $AnimacionComponente
 
 var _ultima_direccion: Vector2 = Vector2.RIGHT
+## Posición del fotograma anterior — SOLO para inferir "caminando" en la
+## réplica de OTRO jugador en mi pantalla (ver _physics_process), donde no
+## hay velocity local propio para consultar. Mismo criterio que Enemigo.gd.
+var _posicion_render_anterior: Vector2 = Vector2.ZERO
+## Desplazamiento mínimo por fotograma físico para considerarse "caminando"
+## en esa réplica (mismo valor que Enemigo.gd — ver ese archivo para el
+## razonamiento completo: más bajo que cualquier velocidad real, incluso
+## ralentizado).
+const _UMBRAL_CAMINANDO_RED := 0.1
 
 # ── Muerte / reaparición ─────────────────────────────────────────────────────
 ## Segundos entre morir y reaparecer en el punto de aparición del nivel.
@@ -396,6 +415,7 @@ func _physics_process(delta: float) -> void:
 			# con la misma dirección, así que ambos deberían coincidir.
 			if componente_movimiento:
 				componente_movimiento.physics_process(delta, direccion)
+			_aplicar_presentacion(velocity != Vector2.ZERO)
 			# Reconciliación suave con la posición autoritativa (el
 			# servidor manda la real): un muro, un empujón u otra causa
 			# que el cliente no simula igual puede hacer que diverja poco a
@@ -410,9 +430,25 @@ func _physics_process(delta: float) -> void:
 					_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
 				)
 			return
+		# Réplica de OTRO jugador en mi pantalla: no hay velocity local que
+		# consultar (nunca corre su componente_movimiento acá), así que
+		# "caminando" se infiere del desplazamiento REAL en pantalla — mismo
+		# criterio que Enemigo.gd con los mobs replicados. OJO con el ORDEN
+		# (bug encontrado y corregido: quedaba SIEMPRE en 0, nunca animaba
+		# — ver Enemigo._physics_process): el lerp que mueve global_position
+		# va PRIMERO, recién después se mide cuánto se movió comparando
+		# contra el valor de _posicion_render_anterior del fotograma
+		# anterior. Calcularlo ANTES del lerp comparaba la posición contra
+		# sí misma (nada había cambiado _posicion_render_anterior todavía
+		# este fotograma), dando avance=0 siempre — se deslizaba a la
+		# posición correcta pero JAMÁS entraba en la animación de caminar
+		# (reportado: "se mueve en la dirección que mira, pero sin animación").
 		global_position = global_position.lerp(
 			_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
 		)
+		var avance := global_position.distance_to(_posicion_render_anterior)
+		_aplicar_presentacion(avance > _UMBRAL_CAMINANDO_RED)
+		_posicion_render_anterior = global_position
 		return
 
 	# Delegamos la aplicación de física al componente de movimiento.
@@ -422,11 +458,31 @@ func _physics_process(delta: float) -> void:
 	# real — mantener esto sincronizado es lo que efectivamente se replica.
 	_posicion_replicada = global_position
 
-	if direccion != Vector2.ZERO:
-		_ultima_direccion = direccion
+	_aplicar_presentacion(velocity != Vector2.ZERO)
 
 	if Utils.en_red() and multiplayer.is_server():
 		_replicar_posicion_red()
+
+
+## Único punto que aplica la animación de caminar/idle según la dirección
+## actual — mismo patrón que Enemigo._aplicar_presentacion(), para que
+## jugador y mobs se comporten igual ante quien mire el código. Prioridad
+## de orientación: apunte de la última habilidad lanzada (direccion_mirada,
+## un pulso de un solo fotograma) > dirección de movimiento > última
+## dirección recordada (mantiene la pose de reposo orientada, no vuelve a
+## mirar a la derecha por defecto). _ultima_direccion se actualiza ACÁ,
+## centralizado, para las tres ramas de _physics_process que llaman esto.
+func _aplicar_presentacion(caminando: bool) -> void:
+	if not componente_animacion:
+		return
+	componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", caminando)
+	componente_animacion.establecer_condicion("parameters/conditions/debeIdle",    not caminando)
+	var hacia_donde_mirar := direccion_mirada if direccion_mirada != Vector2.ZERO \
+		else (direccion if direccion != Vector2.ZERO else _ultima_direccion)
+	direccion_mirada = Vector2.ZERO
+	if hacia_donde_mirar != Vector2.ZERO:
+		_ultima_direccion = hacia_donde_mirar
+	componente_animacion.actualizar_blend(hacia_donde_mirar)
 
 
 ## Fase 1 del plan de escalado a MMO (interés espacial): mismo patrón que
@@ -437,29 +493,70 @@ func _physics_process(delta: float) -> void:
 ## los mobs, dirigido SOLO a los peers que tienen a este jugador cerca (ver
 ## InteresEspacial) — a quien está del otro lado del mapa no le llega nada.
 var _ultima_pos_enviada := Vector2.INF
+## Sin esto, la réplica de un jugador en la pantalla de OTRO nunca se
+## enteraba hacia dónde miraba — solo se replicaba la posición. Se quedaba
+## siempre mirando a la derecha (el valor inicial de _ultima_direccion),
+## incluso parado justo después de caminar hacia otro lado (reportado).
+## Mismo patrón que Enemigo._recibir_estado_red, que sí manda "direccion".
+var _ultima_dir_enviada := Vector2.INF
 var _fotogramas_sin_enviar_pos := 0
 const _FOTOGRAMAS_KEEPALIVE_POS := 30
 
 func _replicar_posicion_red() -> void:
 	_fotogramas_sin_enviar_pos += 1
-	var cambio := global_position.distance_squared_to(_ultima_pos_enviada) > 0.25
+	# Se manda _ultima_direccion (no "direccion" cruda): "direccion" es SOLO
+	# la del joystick, cero en cuanto el jugador se detiene o lanza una
+	# habilidad quieto — un giro por apunte de habilidad (ver
+	# HabilidadBase.activar) nunca viajaba a los demás porque no había
+	# movimiento que lo acompañara (reportado: "la dirección solo cambia en
+	# el local"). _ultima_direccion ya tiene la prioridad correcta resuelta
+	# (apunte > movimiento > última) — ver _aplicar_presentacion.
+	var cambio := global_position.distance_squared_to(_ultima_pos_enviada) > 0.25 \
+		or _ultima_direccion != _ultima_dir_enviada
 	if not (cambio or _fotogramas_sin_enviar_pos >= _FOTOGRAMAS_KEEPALIVE_POS):
 		return
 	for peer_id in InteresEspacial.peers_cercanos(global_position):
 		# El propio dueño también recibe su posición replicada (interpola
 		# igual que ve a los demás) — el filtro de InteresEspacial ya lo
 		# incluye siempre a sí mismo (ver es_relevante_para_peer).
-		rpc_id(peer_id, "_recibir_posicion_red", global_position)
+		rpc_id(peer_id, "_recibir_posicion_red", global_position, _ultima_direccion)
 	_ultima_pos_enviada = global_position
+	_ultima_dir_enviada = _ultima_direccion
 	_fotogramas_sin_enviar_pos = 0
 
 
 ## unreliable_ordered: es estado continuo (~60 veces/seg) — un paquete
 ## perdido no importa, el siguiente lo corrige (mismo criterio que
-## Enemigo._recibir_estado_red).
+## Enemigo._recibir_estado_red). "dir" viaja como _ultima_direccion del
+## emisor (ver _replicar_posicion_red) — casi siempre distinto de cero, así
+## que acá alcanza con guardarlo tal cual para que _aplicar_presentacion lo
+## use directo como "direccion" (misma prioridad, sin caer a su propio
+## _ultima_direccion local, que para una réplica nunca se actualizaría solo).
+##
+## OJO: este RPC también le llega de vuelta al propio DUEÑO (eco de su
+## posición — ver _replicar_posicion_red/InteresEspacial, a propósito, para
+## la reconciliación de _posicion_replicada). Para el dueño, "direccion" NO
+## es un dato de orientación: es el input real que la rama de predicción
+## local de _physics_process usa para mover el cuerpo. Pisarlo acá con el
+## eco de red lo corrompía: _ultima_direccion casi nunca es CERO (una vez
+## que te moviste, se queda apuntando para siempre — ver
+## _aplicar_presentacion), así que apenas soltabas el joystick, el próximo
+## eco volvía a poner "direccion" en esa dirección vieja y el cuerpo seguía
+## caminando/deslizándose solo hacia allá sin que el jugador tocara nada
+## (reportado: "en local se queda animando el caminar", y al lanzar una
+## habilidad —que además fuerza esa dirección al apuntar— "se mueve sin
+## animación hasta que sueltas el botón"). Para la réplica de OTRO jugador
+## esto no aplica: ahí "direccion" es puramente orientación (nunca mueve el
+## cuerpo, ver rama correspondiente de _physics_process), así que sigue
+## haciendo falta guardarlo.
 @rpc("authority", "unreliable_ordered")
-func _recibir_posicion_red(pos: Vector2) -> void:
+func _recibir_posicion_red(pos: Vector2, dir: Vector2 = Vector2.ZERO) -> void:
 	_posicion_replicada = pos
+	if Utils.en_red() and peer_id_dueño == multiplayer.get_unique_id():
+		return
+	direccion = dir
+	if dir != Vector2.ZERO:
+		_ultima_direccion = dir
 
 
 ## La señal "muerte" de VidaComponente solo se emite donde el daño es real
@@ -590,6 +687,13 @@ func _activar_slot(index: int, dir: Vector2 = Vector2.ZERO, poder: float = 1.0) 
 	var h := slot_habilidades.obtener(index)
 	if h:
 		var d := dir if dir.length() > 0.1 else _ultima_direccion
+		# Girar a mirar hacia donde se lanza — reportado: "el personaje no
+		# cambia su dirección hacia donde lanzó la habilidad". Solo si esta
+		# habilidad de verdad usa una dirección (requiere_direccion): un
+		# botón sin apuntar (curación, escudo…) no debería hacer girar al
+		# personaje hacia el último rumbo que tenía el joystick.
+		if h.requiere_direccion:
+			direccion_mirada = d
 		h.activar(d, poder)
 
 func _on_slot_0_activar()                    -> void: _activar_slot(0)
@@ -615,9 +719,11 @@ func _on_slot_9_lanzar(d: Vector2, p: float) -> void: _activar_slot(9, d, p)
 
 
 ## Recibe daño externo (carga, habilidades enemigas). Delega al componente.
-func quitar_vida(cantidad: float, fuente: Node = null) -> void:
+func quitar_vida(cantidad: float, fuente: Node = null,
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO,
+		critico: bool = false) -> void:
 	if componente_vida:
-		componente_vida.quitar_vida(cantidad, fuente)
+		componente_vida.quitar_vida(cantidad, fuente, tipo, critico)
 
 
 ## GestorNiveles llama esto tras cada cambio de nivel para que la cámara no

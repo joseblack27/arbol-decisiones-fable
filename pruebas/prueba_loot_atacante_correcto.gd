@@ -27,7 +27,7 @@ func _process(_delta: float) -> bool:
 			# Solo B ataca: simula lo que haría una habilidad real al pegarle
 			# al ratón (emitir daño_aplicado con "fuente" = quien atacó).
 			var bus := root.get_node("/root/BusEventos")
-			bus.daño_aplicado.emit(_raton, 10.0, _jugador_b)
+			bus.daño_aplicado.emit(_raton, 10.0, _jugador_b, 2, false)
 			var vida := _raton.get_node("VidaComponente")
 			vida.quitar_vida(9999.0)
 		3:

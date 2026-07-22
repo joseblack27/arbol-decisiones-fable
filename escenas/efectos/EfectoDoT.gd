@@ -39,11 +39,12 @@ func _aplicar_tick() -> void:
 		if Combate.mismo_equipo(fuente_valida, objetivo):
 			continue
 		var dano_final := AtributosComponente.calcular_pipeline(fuente_valida, objetivo, dano_por_tick, tipo_dano)
-		vida.quitar_vida(dano_final, fuente_valida)
+		var fue_critico := AtributosComponente.ultimo_pipeline_critico
+		vida.quitar_vida(dano_final, fuente_valida, tipo_dano, fue_critico)
 		# Se emite SIEMPRE en single-player/servidor (incluso con
 		# fuente_valida = null): el golpe fue real y debe verse (número
 		# flotante vía GestorNumerosDano), aunque ya no haya quién reclamar
 		# el crédito por él. En un cliente puro el número real ya lo emite
 		# VidaComponente._recibir_vida_red() — ver Utils.debe_mostrar_dano_local().
 		if Utils.debe_mostrar_dano_local():
-			BusEventos.daño_aplicado.emit(objetivo, dano_final, fuente_valida)
+			BusEventos.daño_aplicado.emit(objetivo, dano_final, fuente_valida, tipo_dano, fue_critico)

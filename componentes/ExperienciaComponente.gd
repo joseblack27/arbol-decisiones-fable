@@ -15,6 +15,80 @@ var xp_total: int = 0
 ## TablaNiveles desde cada lugar que solo quiere mostrar el nivel.
 var nivel: int = 1
 
+## Valores de fábrica (nivel 1, sin ningún crecimiento) de las estadísticas
+## que _aplicar_crecimiento_nivel() incrementa — capturados UNA sola vez en
+## _ready(), antes de que este nodo haya subido de nivel jamás. Existen para
+## que restaurar_xp() pueda RESETEAR a un punto de partida conocido antes de
+## reaplicar el crecimiento, en vez de sumarlo encima de lo que ya hubiera.
+var _vida_maxima_base: float = 0.0
+var _energia_maxima_base: float = 0.0
+var _danos_base: float = 0.0
+var _base_capturada := false
+
+
+func _ready() -> void:
+	_capturar_baseline()
+
+
+## Sin esto, cada reconexión del jugador volvía a sumar +10 vida_maxima /
+## +5 energia_maxima / +1 daños POR CADA NIVEL YA ALCANZADO encima de las
+## estadísticas que ya tenía — restaurar_xp() nunca partía de cero, así que
+## el crecimiento se acumulaba sin límite con cada reconexión (bug grave
+## reportado: una Bola de Fuego con daño base 10-12 llegó a hacer 400 de
+## daño tras varias reconexiones). Este componente vive en el mismo nodo
+## Jugador que persiste en el servidor entre reconexiones — _ready() solo
+## corre una vez en la vida de ese nodo, así que esto captura el nivel 1
+## real una sola vez, antes de que cualquier crecimiento se haya aplicado.
+func _capturar_baseline() -> void:
+	if _base_capturada:
+		return
+	var padre := get_parent()
+	if padre == null:
+		return
+	var vida := padre.get_node_or_null("VidaComponente") as VidaComponente
+	if vida:
+		_vida_maxima_base = vida.salud_maxima
+	var energia := padre.get_node_or_null("EnergiaComponente") as EnergiaComponente
+	if energia:
+		_energia_maxima_base = energia.energia_maxima
+	var atributos := padre.get_node_or_null("AtributosComponente") as AtributosComponente
+	if atributos and atributos._base_sin_equipo:
+		_danos_base = atributos._base_sin_equipo.danos
+	_base_capturada = true
+
+
+## Vuelve vida_maxima/energia_maxima/daños al valor de fábrica capturado en
+## _capturar_baseline() — el punto de partida limpio desde el que
+## restaurar_xp() reaplica el crecimiento, para que llamarlo varias veces
+## (una por reconexión) dé siempre el mismo resultado en vez de acumular.
+func _resetear_a_baseline() -> void:
+	var padre := get_parent()
+	if padre == null:
+		return
+	var vida := padre.get_node_or_null("VidaComponente") as VidaComponente
+	if vida:
+		vida.salud_maxima = _vida_maxima_base
+	var energia := padre.get_node_or_null("EnergiaComponente") as EnergiaComponente
+	if energia:
+		energia.energia_maxima = _energia_maxima_base
+	var atributos := padre.get_node_or_null("AtributosComponente") as AtributosComponente
+	if atributos:
+		if atributos._base_sin_equipo:
+			atributos._base_sin_equipo.danos = _danos_base
+		# "base" NO se pisa a pelo con la fábrica: se reconstruye como
+		# fábrica + bonos del equipo ACTUAL. Al reconectar, el equipo suele
+		# aplicarse ANTES de que llegue la restauración de XP — pisar base
+		# directo borraba el bono de daños de la espada (la potencia
+		# sobrevivía porque este reseteo solo toca daños), y el servidor
+		# quedaba pegando más flojo de lo que el panel del cliente mostraba
+		# (reportado: "parece que tuviera +10 de resistencia en vez de -10"
+		# — la debilidad sí multiplicaba, pero sobre una base ya recortada).
+		var equipo := padre.get_node_or_null("EquipoComponente")
+		if equipo and atributos._base_sin_equipo:
+			atributos.recalcular_con_equipo(equipo.equipados)
+		elif atributos.base:
+			atributos.base.danos = _danos_base
+
 
 func agregar_xp(cantidad: int) -> void:
 	if cantidad <= 0:
@@ -47,6 +121,8 @@ func agregar_xp(cantidad: int) -> void:
 func restaurar_xp(valor: int) -> void:
 	xp_total = maxi(valor, 0)
 	nivel = 1
+	_capturar_baseline()
+	_resetear_a_baseline()
 	var nivel_real := TablaNiveles.nivel_desde_xp(xp_total)
 	while nivel < nivel_real:
 		nivel += 1

@@ -166,6 +166,10 @@ func _equipar_red(slot_index: int, ruta_datos: String) -> void:
 		return
 	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
 		return
+	# Compatibilidad: un cliente con APK anterior al renombre de la carpeta
+	# (habilidades_ui -> habilidades) manda la ruta vieja — remapear acá para
+	# que el servidor igual encuentre el recurso.
+	ruta_datos = ruta_datos.replace("res://recursos/habilidades_ui/", "res://recursos/habilidades/")
 	var datos: DatosHabilidad = load(ruta_datos) as DatosHabilidad if ruta_datos != "" else null
 	_procesando_rpc_red = true
 	equipar(slot_index, datos)

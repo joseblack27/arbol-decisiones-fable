@@ -1,17 +1,13 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://bhvedwopedvk8"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://bhvedwopedvk8"]
 
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
-[ext_resource type="Texture2D" uid="uid://jy5qvrtxhjfg" path="res://assets/iconos/icons32x32.png" id="2_8b7on"]
+[ext_resource type="Texture2D" uid="uid://b3mpfryj28uk" path="res://assets/iconos/icono_abanico_bolas_de_fuego_32x32.png" id="2_c1nx3"]
 [ext_resource type="PackedScene" uid="uid://cnhwhx7gqvop4" path="res://escenas/habilidades/proyectil/custom/HabilidadProyectilAbanico.tscn" id="3_esc"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_abanico1"]
-atlas = ExtResource("2_8b7on")
-region = Rect2(64, 0, 32, 32)
 
 [resource]
 script = ExtResource("1_dh")
 nombre = "Disparo en abanico"
-icono = SubResource("AtlasTexture_abanico1")
+icono = ExtResource("2_c1nx3")
 descripcion = "Dispara 3 proyectiles en abanico, cada uno causando {damage1}"
 escena = ExtResource("3_esc")
 nivel = 1

@@ -84,17 +84,18 @@ static func golpear_area(
 			continue
 		ya_dañados.append(objetivo)
 		var dano_final := AtributosComponente.calcular_pipeline(fuente, objetivo, dano, tipo_dano) * multiplicador_final
+		var fue_critico := AtributosComponente.ultimo_pipeline_critico
 		# Todos los quitar_vida() del proyecto aceptan "fuente" como segundo
 		# argumento (VidaComponente, Enemigo, Jugador, y Muro — este último
 		# lo usa para no dejarse romper por su propio equipo, ver Muro.
 		# _bloqueado_por_equipo), así que siempre se puede pasar derecho.
 		if vida is VidaComponente:
-			(vida as VidaComponente).quitar_vida(dano_final, fuente)
+			(vida as VidaComponente).quitar_vida(dano_final, fuente, tipo_dano, fue_critico)
 		else:
-			vida.quitar_vida(dano_final, fuente)
+			vida.quitar_vida(dano_final, fuente, tipo_dano, fue_critico)
 		# El número flotante local solo se muestra donde el cálculo ES el
 		# real (servidor / un jugador); en un cliente puro lo emite
 		# VidaComponente._recibir_vida_red con el delta ya replicado.
 		if Utils.debe_mostrar_dano_local():
-			BusEventos.daño_aplicado.emit(objetivo, dano_final, fuente)
+			BusEventos.daño_aplicado.emit(objetivo, dano_final, fuente, tipo_dano, fue_critico)
 		BusEventos.habilidad_impacto.emit(nombre_evento, objetivo)

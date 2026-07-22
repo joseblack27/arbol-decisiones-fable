@@ -12,6 +12,26 @@ class_name AtributosComponente
 ## Valores base del personaje. Asignar en el Inspector.
 @export var base: AtributosBase
 
+## Multiplicador BASE de todo golpe crítico (+20%), aplicado siempre que el
+## crítico acierta — dano_critico (el atributo visible) se SUMA encima de
+## esto. A propósito NO se muestra en ningún panel de atributos: es parte
+## de la fórmula, no una estadística del personaje. Sin esta base, un
+## personaje con probabilidad de crítico pero 0 de dano_critico acertaba
+## críticos que multiplicaban por 1.0 — no hacían absolutamente nada.
+const MULTIPLICADOR_CRITICO_BASE := 1.2
+
+## true si el ÚLTIMO calcular_dano_saliente() de esta instancia acertó el
+## crítico — el pipeline lo lee justo después para propagarlo hasta el
+## número flotante (amarillo). Ver ultimo_pipeline_critico.
+var ultimo_golpe_critico := false
+
+## Copia estática del flag de crítico del último calcular_pipeline() — los
+## que aplican daño (Proyectil, Combate, DoT, cargas, muro) lo leen JUSTO
+## después de llamar al pipeline, en el mismo hilo y sin nada en el medio,
+## para pasarlo a quitar_vida()/daño_aplicado. Estado mutable compartido a
+## propósito acotado a ese patrón "llamar y leer de inmediato".
+static var ultimo_pipeline_critico := false
+
 ## Copia congelada de los atributos "de fábrica" (los del Inspector, sin
 ## ningún bono de equipo). Se toma UNA vez en _ready() y nunca se toca — es
 ## la referencia desde la que se recalcula cada vez que el equipo cambia
@@ -115,9 +135,12 @@ func calcular_dano_saliente(
 	# 2. Multiplicador de potencia
 	total *= 1.0 + base.potencia / 100.0
 
-	# 3. Crítico
+	# 3. Crítico: base x1.2 SIEMPRE que acierta (ver MULTIPLICADOR_CRITICO_
+	# BASE) + el dano_critico visible del personaje encima.
+	ultimo_golpe_critico = false
 	if base.probabilidad_critico > 0.0 and randf() * 100.0 < base.probabilidad_critico:
-		total *= 1.0 + base.dano_critico / 100.0
+		ultimo_golpe_critico = true
+		total *= MULTIPLICADOR_CRITICO_BASE + base.dano_critico / 100.0
 
 	return maxf(0.0, total)
 
@@ -190,6 +213,7 @@ static func calcular_pipeline(
 	if is_instance_valid(fuente):
 		atrib_at = fuente.get_node_or_null("AtributosComponente") as AtributosComponente
 	var dano := atrib_at.calcular_dano_saliente(cantidad, tipo) if atrib_at else cantidad
+	ultimo_pipeline_critico = atrib_at.ultimo_golpe_critico if atrib_at else false
 
 	# Lado defensivo
 	var atrib_def: AtributosComponente = null

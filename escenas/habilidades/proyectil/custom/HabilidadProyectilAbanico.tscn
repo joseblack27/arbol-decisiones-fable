@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://cnhwhx7gqvop4"]
 
 [ext_resource type="Script" path="res://escenas/habilidades/proyectil/custom/HabilidadProyectilAbanico.gd" id="1_abanico"]
-[ext_resource type="PackedScene" uid="uid://dproyabanico01" path="res://escenas/habilidades/proyectil/custom/ProyectilAbanico.tscn" id="2_proy"]
+[ext_resource type="PackedScene" uid="uid://mqijh2kqkl5d" path="res://escenas/habilidades/proyectil/custom/ProyectilAbanico.tscn" id="2_proy"]
 
 [node name="HabilidadProyectilAbanico" type="Node"]
 script = ExtResource("1_abanico")

@@ -232,7 +232,7 @@ func _crear_muro_prueba(defensa: float) -> Node:
 ## azar entre ambos.
 func _probar_aplicar_datos() -> bool:
 	var otra_habilidad := (load("res://escenas/habilidades/muro/HabilidadMuroJugador.tscn") as PackedScene).instantiate()
-	var datos := load("res://recursos/habilidades_ui/muro.tres") as DatosHabilidad
+	var datos := load("res://recursos/habilidades/muro.tres") as DatosHabilidad
 	otra_habilidad.call("aplicar_datos", datos)
 	var costo_ok := is_equal_approx(otra_habilidad.get("costo_energia"), 35.0)
 	var recarga_ok := is_equal_approx(otra_habilidad.get("duracion_recarga"), 1.0)

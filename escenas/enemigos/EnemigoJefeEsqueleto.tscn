@@ -455,19 +455,21 @@ nombre_nodo = "(Acción) Deambular"
 
 [node name="HabilidadCarga" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
 duracion_preparacion = 1.2
-dano_carga = 18.0
+dano_carga = 62.0
 multiplicador_velocidad_carga = 3.0
 distancia_maxima_dash = 200.0
 componente_movimiento = NodePath("../../MovimientoComponente")
 duracion_recarga = 5.0
 
 [node name="HabilidadAbanico" parent="Habilidades" instance=ExtResource("28_abanico_esc")]
+daño_proyectil = 52.0
 angulo_total_grados = 35.0
 duracion_recarga = 5.0
 costo_energia = 0.0
 tipo_dano = 1
 
 [node name="HabilidadGolpeBasico" parent="Habilidades" instance=ExtResource("29_golpe_esc")]
+daño = 57.0
 radio_golpe = 40.0
 duracion_recarga = 1.2
 costo_energia = 0.0

@@ -121,7 +121,14 @@ func agregar_vida(cantidad: float) -> float:
 ## fuente (opcional) — quién infligió el daño: solo se usa para replicarle
 ## al cliente QUIÉN pegó (ver _recibir_vida_red), así el log de Actividad
 ## Reciente puede decir "EnemigoLobo hizo X daño a ..." en vez de "???".
-func quitar_vida(cantidad: float, fuente: Node = null) -> float:
+## tipo (opcional) — elemento del golpe: NO afecta el cálculo (el daño llega
+## acá YA pasado por calcular_pipeline, resistencias incluidas), solo viaja
+## al cliente para que el número flotante se pinte del color del elemento.
+## critico (opcional) — si el golpe acertó el crítico (mismo criterio: solo
+## viaja para que el número flotante salga amarillo).
+func quitar_vida(cantidad: float, fuente: Node = null,
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO,
+		critico: bool = false) -> float:
 	# Fase 3 del plan de multijugador: en red, solo el SERVIDOR decide
 	# cuánta vida queda — es el punto central por el que pasa TODO el daño
 	# (Proyectil, Arañazo, GolpeBasico, AreaEfecto, HabilidadCarga...), así
@@ -167,7 +174,7 @@ func quitar_vida(cantidad: float, fuente: Node = null) -> float:
 		# con el MISMO path en todos los peers (así funcionan ya todos los
 		# RPCs por nodo), así que el cliente puede resolverla localmente.
 		var ruta_fuente := str(fuente.get_path()) if is_instance_valid(fuente) else ""
-		rpc("_recibir_vida_red", salud_actual, ruta_fuente, salud_maxima)
+		rpc("_recibir_vida_red", salud_actual, ruta_fuente, salud_maxima, tipo, critico)
 
 	# Emitir señal si la vida es menor o igual a cero
 	if salud_actual <= 0.0:
@@ -194,7 +201,8 @@ func quitar_vida(cantidad: float, fuente: Node = null) -> float:
 ## recortaba el valor nuevo: la base no subía hasta que otra cosa la
 ## refrescara (reportado como "la vida no sube de base hasta regenerar").
 @rpc("authority", "reliable")
-func _recibir_vida_red(valor: float, ruta_fuente: String = "", maxima: float = -1.0) -> void:
+func _recibir_vida_red(valor: float, ruta_fuente: String = "", maxima: float = -1.0,
+		tipo: int = Enums.Habilidad.TipoDano.FISICO, critico: bool = false) -> void:
 	if maxima > 0.0 and not is_equal_approx(maxima, salud_maxima):
 		salud_maxima = maxima
 	# El número de daño en pantalla, del lado del cliente, sale de ACÁ (el
@@ -214,7 +222,7 @@ func _recibir_vida_red(valor: float, ruta_fuente: String = "", maxima: float = -
 		# mobs y jugadores existen con el mismo path en todos los peers, así
 		# que acá se resuelve al nodo local.
 		var fuente: Node = get_node_or_null(ruta_fuente) if ruta_fuente != "" else null
-		BusEventos.daño_aplicado.emit(get_parent(), delta, fuente)
+		BusEventos.daño_aplicado.emit(get_parent(), delta, fuente, tipo, critico)
 		# Nombre del atacante SIEMPRE resoluble como texto, para el log de
 		# Actividad Reciente: si el nodo no existe en este peer (¡mob
 		# invisible! — existe en el servidor pero acá no), se saca el nombre

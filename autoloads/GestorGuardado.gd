@@ -359,6 +359,11 @@ func _restaurar_habilidades(rutas: Array) -> void:
 		return
 	for i in slots.total_slots:
 		var ruta: String = rutas[i] if i < rutas.size() else ""
+		# Compatibilidad: las partidas guardadas ANTES del renombre de la
+		# carpeta (habilidades_ui -> habilidades) traen las rutas viejas —
+		# sin este remapeo, cargar una de esas partidas dejaba todos los
+		# slots de habilidades vacíos.
+		ruta = ruta.replace("res://recursos/habilidades_ui/", "res://recursos/habilidades/")
 		if ruta != "" and ResourceLoader.exists(ruta):
 			slots.equipar(i, load(ruta) as DatosHabilidad)
 		else:

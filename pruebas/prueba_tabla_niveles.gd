@@ -17,6 +17,13 @@
 #      desde la copia de fábrica, sin saber nada de niveles. Este es
 #      EXACTAMENTE lo que pasa al cargar una partida: restaurar_xp()
 #      corre, y después _restaurar_equipo() dispara un recálculo.
+#   6. restaurar_xp() llamado VARIAS veces sobre el mismo nodo (cada
+#      reconexión del jugador al servidor dispara _aplicar_estado_red ->
+#      restaurar_xp(), ver GestorGuardado) da SIEMPRE el mismo resultado en
+#      vez de sumar el crecimiento de nuevo encima de lo que ya había — bug
+#      grave reportado: una Bola de Fuego con daño base 10-12 llegó a hacer
+#      400 de daño tras varias reconexiones, porque cada una volvía a sumar
+#      +10 vida_max/+5 energia_max/+1 daños POR NIVEL YA ALCANZADO.
 #   godot --headless --path . --script res://pruebas/prueba_tabla_niveles.gd
 # =============================================================================
 extends SceneTree
@@ -81,6 +88,12 @@ func _montar() -> void:
 	_experiencia.subio_de_nivel.connect(func(n): _niveles_recibidos.append(n))
 	_jugador.add_child(_experiencia)
 
+	# Para el paso 7: el reseteo de restaurar_xp() reconstruye "base" desde
+	# el equipo actual leyendo este componente hermano (como el Jugador real).
+	var equipo = (load("res://componentes/EquipoComponente.gd") as GDScript).new()
+	equipo.name = "EquipoComponente"
+	_jugador.add_child(equipo)
+
 	root.add_child(_jugador)
 
 
@@ -133,17 +146,13 @@ func _verificar_curva() -> bool:
 	var vida_max_directo: float = _vida.salud_maxima
 	var energia_max_directo: float = _energia.energia_maxima
 	var danos_directo: float = _atributos.base.danos
-	# Reiniciar todo a "recién creado" y restaurar de un salto a 710 XP.
-	# OJO: también hay que resetear _base_sin_equipo (la copia de fábrica,
-	# no solo "base") — si no, este segundo restaurar_xp() suma el
-	# crecimiento ENCIMA del que ya había quedado grabado ahí en el paso
-	# anterior (agregar_crecimiento_permanente toca ambas), duplicándolo.
-	# En juego real restaurar_xp() se llama una sola vez por sesión, así
-	# que esto es un artefacto de repetir la prueba, no un bug real.
-	_vida.salud_maxima = _vida_max_inicial
-	_energia.energia_maxima = _energia_max_inicial
-	_atributos.base.danos = _danos_inicial
-	_atributos._base_sin_equipo.danos = _danos_inicial
+	# NO se resetea nada a mano acá a propósito — restaurar_xp() ahora
+	# resetea a la línea de base de fábrica (_capturar_baseline/
+	# _resetear_a_baseline) por su cuenta antes de reaplicar el crecimiento,
+	# así que llamarlo de nuevo sobre el mismo nodo (nivel/xp_total en
+	# cualquier estado previo) tiene que dar el mismo resultado — ver el
+	# paso 6 más abajo, que es la prueba real de esto: dos reconexiones
+	# seguidas sin resetear nada a mano.
 	_experiencia.nivel = 1
 	_experiencia.xp_total = 0
 	_experiencia.restaurar_xp(710)
@@ -169,7 +178,45 @@ func _verificar_curva() -> bool:
 		danos_antes_recalculo, _danos_inicial, _atributos.base.danos])
 	var sobrevive_ok: bool = is_equal_approx(_atributos.base.danos, danos_antes_recalculo)
 
-	var exito: bool = curva_ok and un_nivel_ok and salto_ok and restaurar_ok and sobrevive_ok
+	# ── 6. Reconexiones repetidas: restaurar_xp() NO debe acumular ──────
+	# Simula al jugador reconectando dos veces seguidas con la misma XP
+	# guardada (710, nivel 4) — igual que el servidor real (ver
+	# GestorGuardado._aplicar_estado_red). Nada se resetea a mano: si
+	# restaurar_xp() no fuera idempotente, esta segunda llamada volvería a
+	# sumar +30 vida_max/+15 energia_max/+3 daños ENCIMA de lo que ya había.
+	_experiencia.restaurar_xp(710)
+	print("restaurar_xp(710) llamado 2 VECES seguidas (simula reconexión doble) — nivel=%d(esp 4) vida_max=%.0f(esp %.0f) energia_max=%.0f(esp %.0f) danos=%.0f(esp %.0f)" % [
+		_experiencia.nivel, _vida.salud_maxima, vida_max_directo,
+		_energia.energia_maxima, energia_max_directo,
+		_atributos.base.danos, danos_directo,
+	])
+	var reconexion_doble_ok: bool = _experiencia.nivel == 4 \
+		and is_equal_approx(_vida.salud_maxima, vida_max_directo) \
+		and is_equal_approx(_energia.energia_maxima, energia_max_directo) \
+		and is_equal_approx(_atributos.base.danos, danos_directo)
+
+	# ── 7. Equipo puesto ANTES de restaurar_xp() sobrevive al reseteo ───
+	# Orden real al reconectar: el equipo llega y se aplica primero
+	# (EquipoComponente._equipar_red), la XP después (GestorGuardado.
+	# _aplicar_estado_red -> restaurar_xp). El reseteo a fábrica de
+	# restaurar_xp() borraba el bono de daños del equipo — el servidor
+	# quedaba pegando más flojo de lo que el panel del cliente mostraba
+	# (reportado: "parece resistencia en vez de debilidad al fuego").
+	var espada := DatosItem.new()
+	espada.name = "Espada de Prueba"
+	var bonos_espada = (load("res://recursos/AtributosBase.gd") as GDScript).new()
+	bonos_espada.danos = 6.0
+	espada.bonos = bonos_espada
+	var con_espada: Array[DatosItem] = [espada]
+	_jugador.get_node("EquipoComponente").actualizar(con_espada)
+	_experiencia.restaurar_xp(710)
+	# Esperado: fábrica + 6 de la espada + 3 del crecimiento de niveles.
+	var danos_esperado_equipo: float = _danos_inicial + 6.0 + 3.0
+	print("restaurar_xp(710) con la espada YA puesta — danos=%.0f(esp %.0f: fábrica + 6 espada + 3 niveles)" % [
+		_atributos.base.danos, danos_esperado_equipo])
+	var equipo_sobrevive_ok: bool = is_equal_approx(_atributos.base.danos, danos_esperado_equipo)
+
+	var exito: bool = curva_ok and un_nivel_ok and salto_ok and restaurar_ok and sobrevive_ok and reconexion_doble_ok and equipo_sobrevive_ok
 	print("PRUEBA TABLA NIVELES %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

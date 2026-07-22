@@ -101,6 +101,19 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	habilidad_activada.emit(self)
 	BusEventos.habilidad_usada.emit(entidad_dueña, tipo_habilidad)
 
+	# Girar al dueño hacia donde apunta — necesario ACÁ (no solo en
+	# Jugador._activar_slot) porque el SERVIDOR nunca pasa por ese método:
+	# recibe la activación directo por _activar_red() y llama activar() acá
+	# mismo. Sin esto, el giro solo se veía en la pantalla de quien lanzaba
+	# (reportado: "la dirección solo cambia en el local, no en los demás
+	# jugadores") — el servidor (la copia autoritativa que se replica a
+	# todos) nunca se enteraba. Acotado a jugadores (grupo "jugadores"): los
+	# mobs ya manejan su propio direccion_mirada desde su IA/acciones de
+	# combate, con más criterio (p. ej. mantenerlo mientras dura el ataque).
+	if requiere_direccion and direccion.length() > 0.1 and is_instance_valid(entidad_dueña) \
+			and entidad_dueña.is_in_group("jugadores") and "direccion_mirada" in entidad_dueña:
+		entidad_dueña.direccion_mirada = direccion.normalized()
+
 	if _debe_pedirle_al_servidor() and congela_movimiento_en_red \
 			and entidad_dueña and entidad_dueña.has_method("bloquear_control"):
 		# Congelar YA (bloquear_control ya manda su propio aviso de "parate"

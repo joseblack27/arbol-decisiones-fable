@@ -26,7 +26,7 @@ func _process(_delta: float) -> bool:
 		5:
 			_verificar_sin_numero()
 			# Ahora sí, por el camino real: el bus.
-			_bus.emit_signal("daño_aplicado", _entidad, 10.0, _entidad)
+			_bus.emit_signal("daño_aplicado", _entidad, 10.0, _entidad, 2, false)
 		7:
 			return _verificar_con_numero()
 	return false

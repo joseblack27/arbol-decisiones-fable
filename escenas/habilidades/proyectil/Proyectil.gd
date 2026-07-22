@@ -222,12 +222,13 @@ func _resolver_colision(objeto: Object) -> void:
 		return
 	_ya_impacto = true
 	var dano_final := AtributosComponente.calcular_pipeline(entidad_fuente, defensor, daño, tipo_dano)
+	var fue_critico := AtributosComponente.ultimo_pipeline_critico
 	if vida is VidaComponente:
-		(vida as VidaComponente).quitar_vida(dano_final, entidad_fuente)
+		(vida as VidaComponente).quitar_vida(dano_final, entidad_fuente, tipo_dano, fue_critico)
 	else:
-		vida.quitar_vida(dano_final, entidad_fuente)
+		vida.quitar_vida(dano_final, entidad_fuente, tipo_dano, fue_critico)
 	if not es_obstaculo_rompible and Utils.debe_mostrar_dano_local():
-		BusEventos.daño_aplicado.emit(defensor, dano_final, entidad_fuente)
+		BusEventos.daño_aplicado.emit(defensor, dano_final, entidad_fuente, tipo_dano, fue_critico)
 	BusEventos.habilidad_impacto.emit("proyectil", defensor)
 	_spawnear_efecto_impacto(defensor)
 	GestorPiscinas.liberar(self)

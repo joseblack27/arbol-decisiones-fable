@@ -131,7 +131,7 @@ func obtener_vida_maxima() -> float:
 ## INVOCÓ este muro (_fuente), el golpe no hace nada (ver _bloqueado_por_
 ## equipo). Sin fuente_ataque (null: daño ambiental sin atacante
 ## identificable) no se bloquea nada, igual que antes.
-func quitar_vida(cantidad: float, fuente_ataque: Node = null) -> float:
+func quitar_vida(cantidad: float, fuente_ataque: Node = null, _tipo: int = 2, _critico: bool = false) -> float:
 	if _bloqueado_por_equipo(fuente_ataque):
 		return _salud_actual
 	if cantidad <= 0.0:
@@ -225,6 +225,7 @@ func _danar(objetivo: Node) -> void:
 	if not vida_obj:
 		return
 	var dano_final := AtributosComponente.calcular_pipeline(_fuente, objetivo, _dano, _tipo_dano)
-	vida_obj.quitar_vida(dano_final, _fuente)
+	var fue_critico := AtributosComponente.ultimo_pipeline_critico
+	vida_obj.quitar_vida(dano_final, _fuente, _tipo_dano, fue_critico)
 	if Utils.debe_mostrar_dano_local():
-		BusEventos.daño_aplicado.emit(objetivo, dano_final, _fuente)
+		BusEventos.daño_aplicado.emit(objetivo, dano_final, _fuente, _tipo_dano, fue_critico)

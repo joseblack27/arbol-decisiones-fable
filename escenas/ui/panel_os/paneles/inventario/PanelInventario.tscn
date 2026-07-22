@@ -1,10 +1,11 @@
-[gd_scene load_steps=18 format=3 uid="uid://6ysewcuhdy8u"]
+[gd_scene load_steps=19 format=3 uid="uid://6ysewcuhdy8u"]
 
 [ext_resource type="PackedScene" uid="uid://b1vgkb46lgx3a" path="res://escenas/ui/hud/SlotConsumibleRapido.tscn" id="0_scr"]
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tikhs"]
 [ext_resource type="Texture2D" uid="uid://crulm186ucr" path="res://icon.svg" id="2_2qy46"]
 [ext_resource type="Script" uid="uid://dtfy25u18tx3k" path="res://escenas/ui/panel_os/paneles/inventario/PanelInventario.gd" id="2_js0jc"]
 [ext_resource type="PackedScene" uid="uid://cp7vpuqjt24rq" path="res://escenas/ui/panel_os/paneles/inventario/SlotItem.tscn" id="3_cdap4"]
+[ext_resource type="Texture2D" uid="uid://b8sw0dtvugedl" path="res://assets/Silueta de inventario.png" id="6_oaab3"]
 [ext_resource type="Script" uid="uid://c1e113v5ung2y" path="res://escenas/ui/panel_os/paneles/inventario/FlujoItems.gd" id="13_kk5td"]
 [ext_resource type="Script" uid="uid://bhpvolte3emd1" path="res://escenas/ui/panel_os/paneles/inventario/BotonFiltro.gd" id="19_tf88s"]
 [ext_resource type="PackedScene" uid="uid://c51diq6hqeah1" path="res://escenas/ui/panel_os/paneles/inventario/EquipoSlot.tscn" id="22_c47ir"]
@@ -28,7 +29,7 @@ grow_vertical = 2
 theme = ExtResource("1_tikhs")
 script = ExtResource("2_js0jc")
 slot_scene = ExtResource("3_cdap4")
-slots_equippable = [NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1/SlotArma"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1/SlotEscudo"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2/SlotCasco"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2/SlotCuello"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3/SlotPecho"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3/SlotAnillo1"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4/SlotPantalon"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4/SlotAnillo2"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5/SlotBotas"), NodePath("Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5/SlotCinturon")]
+slots_equippable = [NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColArma/SlotArma"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColEscudo/SlotEscudo"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColCasco/SlotCasco"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAmuleto/SlotCuello"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColCuerpo/SlotPecho"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAnillo1/SlotAnillo1"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColPantalon/SlotPantalon"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAnillo2/SlotAnillo2"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColBotas/SlotBotas"), NodePath("Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColCinturon/SlotCinturon")]
 
 [node name="Margin" type="MarginContainer" parent="."]
 layout_mode = 1
@@ -49,6 +50,7 @@ theme_override_constants/separation = 2
 [node name="PanelItems" type="Panel" parent="Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.4
 
 [node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelItems"]
 clip_contents = true
@@ -69,36 +71,36 @@ layout_mode = 2
 theme_override_constants/separation = 0
 
 [node name="BotonTodos" type="Button" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro" node_paths=PackedStringArray("flow_items")]
-custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
 text = "Todos"
 script = ExtResource("19_tf88s")
 filter_type = 1
 flow_items = NodePath("../../MarginContainer/ScrollContainer/FlujoItems")
 
 [node name="BotonEquipables" type="Button" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro" node_paths=PackedStringArray("flow_items")]
-custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
 text = "Equipos"
 script = ExtResource("19_tf88s")
 filter_type = 3
 flow_items = NodePath("../../MarginContainer/ScrollContainer/FlujoItems")
 
 [node name="BotonConsumibles" type="Button" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro" node_paths=PackedStringArray("flow_items")]
-custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
 text = "Consumibles"
 script = ExtResource("19_tf88s")
 filter_type = 2
 flow_items = NodePath("../../MarginContainer/ScrollContainer/FlujoItems")
 
 [node name="BotonRecursos" type="Button" parent="Margin/HBox/PanelItems/MarginContainer/VBoxItems/TabsFiltro" node_paths=PackedStringArray("flow_items")]
-custom_minimum_size = Vector2(90, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 10
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
 text = "Recursos"
 script = ExtResource("19_tf88s")
 filter_type = 4
@@ -128,20 +130,24 @@ theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 script = ExtResource("13_kk5td")
 
-[node name="Control" type="Control" parent="Margin/HBox"]
-custom_minimum_size = Vector2(300, 0)
+[node name="PanelEquipamiento" type="Panel" parent="Margin/HBox"]
+custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 
-[node name="PanelEquipamiento" type="Panel" parent="Margin/HBox/Control"]
+[node name="SiluetaFondo" type="TextureRect" parent="Margin/HBox/PanelEquipamiento"]
+modulate = Color(1, 1, 1, 0.4)
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_right = -60.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_oaab3")
+expand_mode = 4
+stretch_mode = 6
 
-[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelEquipamiento"]
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelEquipamiento"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -153,86 +159,178 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBoxEquipamiento" type="VBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer"]
-layout_mode = 2
-alignment = 1
-
-[node name="HBoxContainer1" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+[node name="VBoxEquipamiento" type="HBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 8
 
-[node name="SlotArma" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1" instance=ExtResource("22_c47ir")]
+[node name="VBoxIzquierda" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="ColArma" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="LabelArma" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColArma"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "ARMA"
+horizontal_alignment = 1
+
+[node name="SlotArma" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColArma" instance=ExtResource("22_c47ir")]
 layout_mode = 2
 icon = ExtResource("23_8tsm6")
 type_equippable = 8
 
-[node name="SlotEscudo" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer1" instance=ExtResource("22_c47ir")]
+[node name="ColCasco" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda"]
 layout_mode = 2
-icon = ExtResource("24_1tche")
-type_equippable = 9
+theme_override_constants/separation = 1
 
-[node name="HBoxContainer2" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+[node name="LabelCasco" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColCasco"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_font_sizes/font_size = 7
+text = "CABEZA"
+horizontal_alignment = 1
 
-[node name="SlotCasco" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2" instance=ExtResource("22_c47ir")]
+[node name="SlotCasco" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColCasco" instance=ExtResource("22_c47ir")]
 layout_mode = 2
 icon = ExtResource("25_x5xd4")
 type_equippable = 1
 
-[node name="SlotCuello" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer2" instance=ExtResource("22_c47ir")]
+[node name="ColCuerpo" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda"]
 layout_mode = 2
-icon = ExtResource("26_hshqp")
-type_equippable = 5
+theme_override_constants/separation = 1
 
-[node name="HBoxContainer3" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+[node name="LabelCuerpo" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColCuerpo"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_font_sizes/font_size = 7
+text = "TORSO"
+horizontal_alignment = 1
 
-[node name="SlotPecho" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3" instance=ExtResource("22_c47ir")]
+[node name="SlotPecho" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColCuerpo" instance=ExtResource("22_c47ir")]
 layout_mode = 2
 icon = ExtResource("27_s7e8m")
 type_equippable = 2
 
-[node name="SlotAnillo1" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer3" instance=ExtResource("22_c47ir")]
+[node name="ColPantalon" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda"]
 layout_mode = 2
-icon = ExtResource("28_7e6tm")
-type_equippable = 6
+theme_override_constants/separation = 1
 
-[node name="HBoxContainer4" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+[node name="LabelPantalon" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColPantalon"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_font_sizes/font_size = 7
+text = "PIERNAS"
+horizontal_alignment = 1
 
-[node name="SlotPantalon" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4" instance=ExtResource("22_c47ir")]
+[node name="SlotPantalon" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColPantalon" instance=ExtResource("22_c47ir")]
 layout_mode = 2
 icon = ExtResource("29_kuybn")
 type_equippable = 3
 
-[node name="SlotAnillo2" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer4" instance=ExtResource("22_c47ir")]
+[node name="ColBotas" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda"]
 layout_mode = 2
-icon = ExtResource("28_7e6tm")
-type_equippable = 6
+theme_override_constants/separation = 1
 
-[node name="HBoxContainer5" type="HBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+[node name="LabelBotas" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColBotas"]
 layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 8
+theme_override_font_sizes/font_size = 7
+text = "PIES"
+horizontal_alignment = 1
 
-[node name="SlotBotas" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5" instance=ExtResource("22_c47ir")]
+[node name="SlotBotas" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxIzquierda/ColBotas" instance=ExtResource("22_c47ir")]
 layout_mode = 2
 icon = ExtResource("30_dmwk7")
 type_equippable = 4
 
-[node name="SlotCinturon" parent="Margin/HBox/Control/PanelEquipamiento/MarginContainer/VBoxEquipamiento/HBoxContainer5" instance=ExtResource("22_c47ir")]
+[node name="Espaciador" type="Control" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="VBoxDerecha" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="ColEscudo" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="LabelEscudo" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColEscudo"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "ESCUDO"
+horizontal_alignment = 1
+
+[node name="SlotEscudo" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColEscudo" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("24_1tche")
+type_equippable = 9
+
+[node name="ColAmuleto" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="LabelAmuleto" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAmuleto"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "AMULETO"
+horizontal_alignment = 1
+
+[node name="SlotCuello" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAmuleto" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("26_hshqp")
+type_equippable = 5
+
+[node name="ColAnillo1" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="LabelAnillo1" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAnillo1"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "ANILLO"
+horizontal_alignment = 1
+
+[node name="SlotAnillo1" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAnillo1" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("28_7e6tm")
+type_equippable = 6
+
+[node name="ColAnillo2" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="LabelAnillo2" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAnillo2"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "ANILLO"
+horizontal_alignment = 1
+
+[node name="SlotAnillo2" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColAnillo2" instance=ExtResource("22_c47ir")]
+layout_mode = 2
+icon = ExtResource("28_7e6tm")
+type_equippable = 6
+
+[node name="ColCinturon" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha"]
+layout_mode = 2
+theme_override_constants/separation = 1
+
+[node name="LabelCinturon" type="Label" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColCinturon"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 7
+text = "CINTURÓN"
+horizontal_alignment = 1
+
+[node name="SlotCinturon" parent="Margin/HBox/PanelEquipamiento/MarginContainer/VBoxEquipamiento/VBoxDerecha/ColCinturon" instance=ExtResource("22_c47ir")]
 layout_mode = 2
 icon = ExtResource("31_3wc4y")
 type_equippable = 7
 
-[node name="PanelAccionPrincipal" type="PanelContainer" parent="Margin/HBox/Control/PanelEquipamiento"]
+[node name="PanelAccionPrincipal" type="PanelContainer" parent="Margin/HBox/PanelEquipamiento"]
 visible = false
 custom_minimum_size = Vector2(120, 0)
 layout_mode = 1
@@ -247,48 +345,229 @@ offset_bottom = -38.0
 grow_horizontal = 0
 grow_vertical = 0
 
-[node name="Panel" type="Panel" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal"]
+[node name="Panel" type="Panel" parent="Margin/HBox/PanelEquipamiento/PanelAccionPrincipal"]
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal"]
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelEquipamiento/PanelAccionPrincipal"]
 layout_mode = 2
 theme_override_constants/margin_left = 4
 theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/PanelEquipamiento/PanelAccionPrincipal/MarginContainer"]
 layout_mode = 2
 alignment = 2
 
-[node name="BotonUsar" type="Button" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+[node name="BotonUsar" type="Button" parent="Margin/HBox/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
 visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 text = "Usar"
 
-[node name="BotonEquipar" type="Button" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+[node name="BotonEquipar" type="Button" parent="Margin/HBox/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
 visible = false
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 text = "Equipar"
 
-[node name="BotonSoltar" type="Button" parent="Margin/HBox/Control/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+[node name="BotonSoltar" type="Button" parent="Margin/HBox/PanelEquipamiento/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 text = "Soltar"
 
-[node name="PanelBarraRapida" type="Panel" parent="Margin/HBox/Control"]
+[node name="PanelDetalle" type="Panel" parent="Margin/HBox"]
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelDetalle"]
 layout_mode = 1
-anchors_preset = 11
-anchor_left = 1.0
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -56.0
-grow_horizontal = 0
+grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelBarraRapida"]
+[node name="VBoxDetalle" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TituloPanel" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Detalles del Objeto"
+horizontal_alignment = 1
+
+[node name="HSeparatorTitulo" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle"]
+visible = false
+layout_mode = 2
+
+[node name="ContenidoDetalle" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle"]
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 0
+
+[node name="HeaderNombre" type="HBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+custom_minimum_size = Vector2(0, 17)
+layout_mode = 2
+
+[node name="NombreItem" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 12
+text = "Godot Engine"
+vertical_alignment = 1
+
+[node name="BotonCerrar" type="Button" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "x"
+
+[node name="HSeparator" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+
+[node name="IconoItem" type="TextureRect" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+texture = ExtResource("2_2qy46")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HSeparator2" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_right = 2
+
+[node name="RejillaInfo" type="GridContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer"]
+layout_mode = 2
+columns = 2
+
+[node name="TypeLabel" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo"]
+layout_mode = 2
+text = "Tipo:"
+
+[node name="ValorTipo" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Recurso"
+
+[node name="QtyLabel" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo"]
+layout_mode = 2
+text = "Cantidad:"
+
+[node name="ValorCantidad" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "1"
+
+[node name="HSeparator3" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+
+[node name="MarginContainer2" type="MarginContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_right = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="EtiquetaDescripcion" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2/VBoxContainer"]
+layout_mode = 2
+text = "Descripción:"
+
+[node name="TextoDescripcion" type="RichTextLabel" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+text = "Godot Engine es un motor de videojuegos gratuito y de código abierto que permite desarrollar juegos en 2D y 3D de forma intuitiva y eficiente. Fue creado por Juan Linietsky y Ariel Manzur, y liberado públicamente el 14 de enero de 2014 bajo licencia MIT"
+fit_content = true
+
+[node name="HSeparator4" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="VBoxCaracteristicas" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="HSeparator5" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="BotonAccion" type="Button" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+custom_minimum_size = Vector2(78, 32)
+layout_mode = 2
+size_flags_horizontal = 8
+text = "Acción"
+
+[node name="PanelAccionPrincipal" type="PanelContainer" parent="Margin/HBox/PanelDetalle"]
+visible = false
+custom_minimum_size = Vector2(120, 0)
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -76.0
+offset_bottom = -38.0
+grow_horizontal = 0
+grow_vertical = 0
+
+[node name="Panel" type="Panel" parent="Margin/HBox/PanelDetalle/PanelAccionPrincipal"]
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelDetalle/PanelAccionPrincipal"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer"]
+layout_mode = 2
+alignment = 2
+
+[node name="BotonUsar" type="Button" parent="Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Usar"
+
+[node name="BotonBarraRapida" type="Button" parent="Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Equipar"
+
+[node name="BotonEquipar" type="Button" parent="Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Equipar"
+
+[node name="BotonSoltar" type="Button" parent="Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Soltar"
+
+[node name="PanelBarraRapida" type="Panel" parent="Margin/HBox"]
+custom_minimum_size = Vector2(56, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelBarraRapida"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -300,206 +579,26 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="Margin/HBox/Control/PanelBarraRapida/MarginContainer"]
+[node name="VBox" type="VBoxContainer" parent="Margin/HBox/PanelBarraRapida/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Slot0" parent="Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox" instance=ExtResource("0_scr")]
+[node name="Slot0" parent="Margin/HBox/PanelBarraRapida/MarginContainer/VBox" instance=ExtResource("0_scr")]
 layout_mode = 2
 usar_al_tocar = false
 
-[node name="Slot1" parent="Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox" instance=ExtResource("0_scr")]
+[node name="Slot1" parent="Margin/HBox/PanelBarraRapida/MarginContainer/VBox" instance=ExtResource("0_scr")]
 layout_mode = 2
 slot_index = 1
 usar_al_tocar = false
 
-[node name="Slot2" parent="Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox" instance=ExtResource("0_scr")]
+[node name="Slot2" parent="Margin/HBox/PanelBarraRapida/MarginContainer/VBox" instance=ExtResource("0_scr")]
 layout_mode = 2
 slot_index = 2
 usar_al_tocar = false
 
-[node name="Slot3" parent="Margin/HBox/Control/PanelBarraRapida/MarginContainer/VBox" instance=ExtResource("0_scr")]
+[node name="Slot3" parent="Margin/HBox/PanelBarraRapida/MarginContainer/VBox" instance=ExtResource("0_scr")]
 layout_mode = 2
 slot_index = 3
 usar_al_tocar = false
-
-[node name="PanelDetalle" type="Panel" parent="Margin/HBox/Control"]
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 3
-theme_override_constants/margin_top = 3
-theme_override_constants/margin_right = 3
-theme_override_constants/margin_bottom = 3
-
-[node name="VBoxDetalle" type="VBoxContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="NombreItem" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-custom_minimum_size = Vector2(0, 17)
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Godot Engine"
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="HSeparator" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-layout_mode = 2
-
-[node name="IconoItem" type="TextureRect" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-custom_minimum_size = Vector2(0, 64)
-layout_mode = 2
-texture = ExtResource("2_2qy46")
-expand_mode = 1
-stretch_mode = 5
-
-[node name="HSeparator2" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-layout_mode = 2
-theme_override_constants/margin_left = 2
-theme_override_constants/margin_right = 2
-
-[node name="RejillaInfo" type="GridContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer"]
-layout_mode = 2
-columns = 2
-
-[node name="TypeLabel" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo"]
-layout_mode = 2
-text = "Tipo:"
-
-[node name="ValorTipo" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "Recurso"
-
-[node name="QtyLabel" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo"]
-layout_mode = 2
-text = "Cantidad:"
-
-[node name="ValorCantidad" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer/RejillaInfo"]
-layout_mode = 2
-size_flags_horizontal = 3
-text = "1"
-
-[node name="HSeparator3" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-layout_mode = 2
-
-[node name="MarginContainer2" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-layout_mode = 2
-theme_override_constants/margin_left = 2
-theme_override_constants/margin_right = 2
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer2"]
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="EtiquetaDescripcion" type="Label" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer2/VBoxContainer"]
-layout_mode = 2
-text = "Descripción:"
-
-[node name="TextoDescripcion" type="RichTextLabel" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle/MarginContainer2/VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-text = "Godot Engine es un motor de videojuegos gratuito y de código abierto que permite desarrollar juegos en 2D y 3D de forma intuitiva y eficiente. Fue creado por Juan Linietsky y Ariel Manzur, y liberado públicamente el 14 de enero de 2014 bajo licencia MIT"
-fit_content = true
-
-[node name="HSeparator4" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="VBoxCaracteristicas" type="VBoxContainer" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-layout_mode = 2
-size_flags_vertical = 3
-theme_override_constants/separation = 2
-
-[node name="HSeparator5" type="HSeparator" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-layout_mode = 2
-theme_override_constants/separation = 0
-
-[node name="BotonAccion" type="Button" parent="Margin/HBox/Control/PanelDetalle/MarginContainer/VBoxDetalle"]
-custom_minimum_size = Vector2(78, 32)
-layout_mode = 2
-size_flags_horizontal = 8
-text = "Acción"
-
-[node name="BotonCerrar" type="Button" parent="Margin/HBox/Control/PanelDetalle"]
-custom_minimum_size = Vector2(26, 26)
-layout_mode = 1
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -20.0
-offset_bottom = 20.0
-grow_horizontal = 0
-size_flags_horizontal = 8
-size_flags_vertical = 0
-theme_override_font_sizes/font_size = 12
-text = "x"
-
-[node name="PanelAccionPrincipal" type="PanelContainer" parent="Margin/HBox/Control/PanelDetalle"]
-visible = false
-custom_minimum_size = Vector2(120, 0)
-layout_mode = 1
-anchors_preset = 3
-anchor_left = 1.0
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = -120.0
-offset_top = -76.0
-offset_bottom = -38.0
-grow_horizontal = 0
-grow_vertical = 0
-
-[node name="Panel" type="Panel" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal"]
-layout_mode = 2
-
-[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal"]
-layout_mode = 2
-theme_override_constants/margin_left = 4
-theme_override_constants/margin_top = 4
-theme_override_constants/margin_right = 4
-theme_override_constants/margin_bottom = 4
-
-[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer"]
-layout_mode = 2
-alignment = 2
-
-[node name="BotonUsar" type="Button" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
-visible = false
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-text = "Usar"
-
-[node name="BotonBarraRapida" type="Button" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
-visible = false
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-text = "Equipar"
-
-[node name="BotonEquipar" type="Button" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
-visible = false
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-text = "Equipar"
-
-[node name="BotonSoltar" type="Button" parent="Margin/HBox/Control/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer"]
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-text = "Soltar"

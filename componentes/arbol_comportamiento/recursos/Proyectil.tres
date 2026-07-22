@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3 uid="uid://npipuwob8po"]
 
-[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://arbol_comportamiento/recursos/HabilidadBT.gd" id="1_wx68d"]
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="1_wx68d"]
 
 [resource]
 script = ExtResource("1_wx68d")

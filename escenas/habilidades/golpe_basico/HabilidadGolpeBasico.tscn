@@ -5,3 +5,4 @@
 [node name="HabilidadGolpeBasico" type="Node"]
 script = ExtResource("1_hgb")
 costo_energia = 5.0
+congela_movimiento_en_red = false

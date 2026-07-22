@@ -12,7 +12,7 @@ extends Node2D
 
 @export_file("*.tscn") var nivel_inicial := "res://escenas/niveles/NivelPradera.tscn"
 
-const DATOS_GOLPE_BASICO := preload("res://recursos/habilidades_ui/golpe_basico.tres")
+const DATOS_GOLPE_BASICO := preload("res://recursos/habilidades/golpe_basico.tres")
 const RETARDO_REINTENTO := 2.0
 
 @onready var _jugadores: Node2D = $Jugadores

@@ -118,7 +118,7 @@ func _montar() -> void:
 	_slots_habilidades = (load("res://componentes/SlotHabilidades.gd") as GDScript).new()
 	_slots_habilidades.jugador = _jugador
 	_jugador.add_child(_slots_habilidades)
-	_datos_muro = load("res://recursos/habilidades_ui/muro.tres") as DatosHabilidad
+	_datos_muro = load("res://recursos/habilidades/muro.tres") as DatosHabilidad
 	_slots_habilidades.equipar(0, _datos_muro)
 
 

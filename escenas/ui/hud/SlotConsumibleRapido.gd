@@ -101,6 +101,13 @@ func _drop_data(_position, data) -> void:
 		# Viene de la grilla general del inventario: SOLO se guarda la
 		# referencia acá, el ítem sigue estando en GestorInventario.items —
 		# la casilla es un atajo, no un contenedor que lo saca de ahí.
+		# Si ese mismo ítem ya estaba puesto en OTRA casilla rápida, la
+		# referencia vieja se limpia — sin esto quedaba duplicado en dos
+		# casillas a la vez (reportado: soltarlo en una casilla vacía no
+		# quitaba la copia que ya tenía en otra).
+		var indice_anterior := GestorBarraRapida.casillas.find(item)
+		if indice_anterior != -1 and indice_anterior != slot_index:
+			GestorBarraRapida.limpiar(indice_anterior)
 		GestorBarraRapida.asignar(slot_index, item)
 
 

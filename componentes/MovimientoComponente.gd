@@ -236,3 +236,49 @@ func agregar_inmovilizacion() -> void:
 
 func quitar_inmovilizacion() -> void:
 	_contador_inmovilizacion = max(0, _contador_inmovilizacion - 1)
+
+
+## Margen (px) antes de considerar que el cuerpo realmente "se salió" del
+## área navegable — un punto interior normal da distancia ~0 contra su
+## propia malla, así que cualquier valor bien por encima de eso es señal
+## real de fuga, no ruido de la consulta.
+const MARGEN_FUERA_DE_MAPA := 6.0
+
+## Red de seguridad contra fugas del mapa: la colisión física del borde
+## (tiles diagonales en las esquinas del contorno) puede tener puntos
+## localmente delgados donde una embestida a alta velocidad cruza en un solo
+## fotograma físico sin que move_and_slide() llegue a detectarlo — mismo
+## tipo de bug que el de los proyectiles atravesando objetivos, ver
+## Proyectil.gd. En vez de perseguir cada unión diagonal de tiles, se usa la
+## malla de NAVEGACIÓN (ya comprobada sin huecos reales) como fuente de
+## verdad de "qué es adentro": si tras moverse el cuerpo quedó fuera de ella,
+## se lo devuelve al punto navegable más cercano.
+##
+## Pública y NO llamada automáticamente en cada physics_process(): el
+## movimiento normal (caminar, IA persiguiendo) nunca es tan rápido como
+## para tunelear, y llamarla en cada fotograma para TODO movimiento rompía
+## casos legítimos donde la posición cambia de golpe por otro motivo (spawn
+## inicial, teletransporte al cambiar de nivel) contra una malla que recién
+## está sincronizando — el jugador terminaba corregido a ~800px de su punto
+## de aparición real (reportado como regresión de esta misma prueba).
+## Llamar SOLO desde las habilidades que sí mueven el cuerpo a velocidad de
+## riesgo: HabilidadCarga, HabilidadCargaJugador (ver ahí) y HabilidadParpadeo
+## (que hace su propio chequeo equivalente, no pasa por acá).
+##
+## Sin malla en la escena (pruebas sueltas, mobs sin nivel real) esto no
+## hace nada — se sale solo si de verdad hay una malla contra la cual comparar.
+func contener_dentro_del_mapa() -> void:
+	var mapa: RID = jugador.get_world_2d().navigation_map
+	# iteration_id == 0: el mapa todavía no terminó su primera sincronización
+	# (recién cargado el nivel, mismo fotograma) — consultarlo ya dispara un
+	# ERROR de NavigationServer y, peor, puede devolver un punto sin sentido
+	# (0,0) que teletransportaría al recién llegado ahí. Sin regiones
+	# tampoco hay nada contra qué comparar (pruebas sueltas sin nivel real).
+	if NavigationServer2D.map_get_iteration_id(mapa) == 0:
+		return
+	if NavigationServer2D.map_get_regions(mapa).is_empty():
+		return
+	var posicion := jugador.global_position
+	var punto_navegable: Vector2 = NavigationServer2D.map_get_closest_point(mapa, posicion)
+	if posicion.distance_to(punto_navegable) > MARGEN_FUERA_DE_MAPA:
+		jugador.global_position = punto_navegable

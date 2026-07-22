@@ -1,15 +1,50 @@
-[gd_scene load_steps=6 format=3 uid="uid://ertg3wev3qps"]
+[gd_scene load_steps=8 format=3 uid="uid://ertg3wev3qps"]
 
 [ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
-[ext_resource type="Texture2D" uid="uid://cpos6vhoqdaah" path="res://assets/iconos/buttons/skills/formas.png" id="2_tex"]
+[ext_resource type="Texture2D" uid="uid://fsiaj1soryoe" path="res://assets/proyectil de hielo animacion.png" id="3_bncs4"]
 [ext_resource type="PackedScene" path="res://escenas/efectos/EfectoLentitudEsquirla.tscn" id="3_efecto"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_esquirla"]
 radius = 8.0
 
-[sub_resource type="AtlasTexture" id="AtlasTexture_esquirla_proy"]
-atlas = ExtResource("2_tex")
-region = Rect2(192, 0, 32, 32)
+[sub_resource type="Animation" id="Animation_bncs4"]
+resource_name = "default"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [0, 1, 2, 3]
+}
+
+[sub_resource type="Animation" id="Animation_let4p"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_fmib0"]
+_data = {
+&"RESET": SubResource("Animation_let4p"),
+&"default": SubResource("Animation_bncs4")
+}
 
 [node name="ProyectilEsquirla" type="Area2D"]
 collision_mask = 4294967295
@@ -23,4 +58,11 @@ shape = SubResource("CircleShape2D_esquirla")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 position = Vector2(0, -8)
-texture = SubResource("AtlasTexture_esquirla_proy")
+texture = ExtResource("3_bncs4")
+hframes = 4
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_fmib0")
+}
+autoplay = "default"

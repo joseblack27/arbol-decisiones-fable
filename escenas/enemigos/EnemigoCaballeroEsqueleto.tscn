@@ -450,10 +450,11 @@ nombre_nodo = "(Acción) Deambular"
 [node name="Habilidades" type="Marker2D" parent="."]
 
 [node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("26_6jhm3")]
+daño = 47.0
 
 [node name="HabilidadCarga" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
 duracion_preparacion = 1.0
-dano_carga = 40.0
+dano_carga = 52.0
 multiplicador_velocidad_carga = 3.0
 distancia_maxima_dash = 200.0
 componente_movimiento = NodePath("../../MovimientoComponente")
