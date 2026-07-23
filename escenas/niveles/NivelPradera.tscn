@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://7r1t84krlu7l" path="res://escenas/enemigos/EnemigoAraña.tscn" id="6_fhb07"]
 [ext_resource type="PackedScene" uid="uid://b7r15dmdjvgww" path="res://escenas/enemigos/EnemigoRaton.tscn" id="8_fc1o5"]
 [ext_resource type="PackedScene" uid="uid://d1042g45vblt7" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.tscn" id="9_caballero"]
+[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoEsqueletoArquero.tscn" id="9_arquero"]
 [ext_resource type="PackedScene" uid="uid://vwdfflyout3b" path="res://escenas/niveles/PortalNivel.tscn" id="10_u3oy8"]
 [ext_resource type="Script" uid="uid://dyloetpnctmqy" path="res://escenas/enemigos/SpawnerMobs.gd" id="11_spawner"]
 
@@ -338,10 +339,25 @@ y_sort_enabled = true
 
 [node name="SpawnerMobs" type="Node2D" parent="Enemigos"]
 script = ExtResource("11_spawner")
-lista_mobs = Array[PackedScene]([ExtResource("4_56iyc"), ExtResource("6_fhb07"), ExtResource("8_fc1o5"), ExtResource("9_caballero")])
+lista_mobs = Array[PackedScene]([ExtResource("4_56iyc"), ExtResource("6_fhb07"), ExtResource("8_fc1o5"), ExtResource("9_caballero"), ExtResource("9_arquero")])
 maximo_mobs = 10
 radio_spawn = 1000.0
 cantidad_inicial = 10
+
+[node name="EsqueletoArquero1" parent="Enemigos" instance=ExtResource("9_arquero")]
+position = Vector2(-540, 300)
+
+[node name="EsqueletoArquero2" parent="Enemigos" instance=ExtResource("9_arquero")]
+position = Vector2(-280, 40)
+
+[node name="EsqueletoArquero3" parent="Enemigos" instance=ExtResource("9_arquero")]
+position = Vector2(240, -90)
+
+[node name="EsqueletoArquero4" parent="Enemigos" instance=ExtResource("9_arquero")]
+position = Vector2(630, 40)
+
+[node name="EsqueletoArquero5" parent="Enemigos" instance=ExtResource("9_arquero")]
+position = Vector2(890, 300)
 
 [node name="PortalACueva" parent="." instance=ExtResource("10_u3oy8")]
 position = Vector2(1080, 0)

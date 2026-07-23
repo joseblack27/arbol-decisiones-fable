@@ -1,0 +1,21 @@
+[gd_scene load_steps=4 format=3 uid="uid://bnbalhdhosly4"]
+
+[ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
+[ext_resource type="Texture2D" uid="uid://dhln3t7wbjxx5" path="res://assets/flecha.png" id="2_lxesq"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_flecha"]
+radius = 8.0
+
+[node name="ProyectilFlecha" type="Area2D"]
+collision_mask = 4294967295
+monitorable = false
+script = ExtResource("1_proy")
+mostrar_debug = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_flecha")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
+scale = Vector2(0.75, 0.75)
+texture = ExtResource("2_lxesq")

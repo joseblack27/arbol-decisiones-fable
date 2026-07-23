@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=3 uid="uid://dggfn7ht480ck"]
 
-[ext_resource type="Script" uid="uid://cminfdfxq522x" path="res://escenas/habilidades/muro/muro.gd" id="1_muro"]
+[ext_resource type="Script" path="res://escenas/habilidades/muro/Muro.gd" id="1_muro"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_hitbox"]
 size = Vector2(16, 16)
@@ -9,9 +9,10 @@ size = Vector2(16, 16)
 size = Vector2(16, 16)
 
 [node name="Muro" type="Area2D"]
-collision_mask = 10
 y_sort_enabled = true
+collision_mask = 10
 script = ExtResource("1_muro")
+duracion = 10.0
 grupo_objetivo = "enemigos"
 
 [node name="Hitbox" type="CollisionShape2D" parent="."]

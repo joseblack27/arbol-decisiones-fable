@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="EnemigoDatos" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://cf0ay13lmqkho" path="res://recursos/enemigos/EnemigoDatos.gd" id="1_ed"]
+
+[resource]
+script = ExtResource("1_ed")
+nombre_tipo = "Esqueleto Arquero"
+color = Color(0.75, 0.9, 0.6, 1)
+vida_maxima = 70.0
+velocidad_base = 90.0
+energia_maxima = 100.0
+regeneracion_energia = 10.0

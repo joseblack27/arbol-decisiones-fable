@@ -757,22 +757,32 @@ func resetear_camara() -> void:
 
 var _tween_parpadeo: Tween = null
 
-func parpadear(veces: int = 3, duracion: float = 0.1) -> void:
-	# Matar el parpadeo anterior antes de arrancar uno nuevo: con golpes
-	# más frecuentes que la duración del parpadeo (p. ej. la araña pegando
-	# cada segundo), varios tweens quedaban vivos a la vez peleándose por
-	# el mismo modulate — el jugador quedaba parpadeando sin parar (y a
-	# veces teñido de rojo permanente si un tween moría a mitad de ciclo).
+## Un solo parpadeo por golpe (antes eran 3 seguidos — pedido del usuario,
+## mismo cambio en Enemigo.gd). Mata cualquier tween anterior antes de
+## arrancar uno nuevo: con golpes más frecuentes que la duración del
+## parpadeo (p. ej. la araña pegando cada segundo), dos tweens vivos a la
+## vez se peleaban por el mismo modulate — el jugador quedaba parpadeando
+## sin parar (y a veces teñido de rojo permanente si un tween moría a
+## mitad de ciclo).
+func parpadear(duracion: float = 0.1) -> void:
 	if _tween_parpadeo and _tween_parpadeo.is_valid():
 		_tween_parpadeo.kill()
 		sprite.modulate = Color.WHITE
 	_tween_parpadeo = create_tween()
-	for i in veces:
-		_tween_parpadeo.tween_property(sprite, "modulate", Color(1, 0.2, 0.2), duracion)
-		_tween_parpadeo.tween_property(sprite, "modulate", Color.WHITE,        duracion)
+	_tween_parpadeo.tween_property(sprite, "modulate", Color(1, 0.2, 0.2), duracion)
+	_tween_parpadeo.tween_property(sprite, "modulate", Color.WHITE,        duracion)
 
 
+## _es_dueño_local(): "cambio_valor_vida" se emite en TODOS los peers que
+## tienen a este jugador replicado (ver VidaComponente._recibir_vida_red,
+## que la dispara al final sin importar quién la reciba) — sin este
+## chequeo, cuando un jugador recibía daño, CUALQUIERA que lo tuviera en
+## pantalla lo veía parpadear también. Pedido del usuario: que sea un
+## feedback solo para quien de verdad recibe el golpe, no algo que vean
+## los demás jugadores mirando a ese jugador. Mismo criterio que el
+## parpadeo "por mi propio golpe" en Enemigo.gd, pero del lado de quien
+## RECIBE en vez de quien pega.
 func _on_vida_cambiada(nueva_vida: float) -> void:
-	if nueva_vida < _vida_anterior:
+	if nueva_vida < _vida_anterior and _es_dueño_local():
 		parpadear()
 	_vida_anterior = nueva_vida

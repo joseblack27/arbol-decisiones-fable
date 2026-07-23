@@ -387,8 +387,16 @@ func _process(delta: float) -> void:
 		_emitir_apunte()
 
 
+## OJO: el bus de eventos es global — dispara igual para réplicas de
+## jugadores AJENOS (visibles en pantalla, pero no el propio). Sin este
+## chequeo, un jugador remoto gastando SU energía o entrando en cooldown
+## bloqueaba (o desbloqueaba) el botón de ESTE jugador (bug reportado:
+## "cuando gasto toda la energía en un jugador, los demás jugadores no
+## pueden lanzar habilidades por falta de energía" — mismo patrón que ya
+## se había arreglado para slot_habilidades_local, ver el comentario de
+## Utils.jugador_local()).
 func _on_recarga_iniciada(entidad: Node, slot_idx: int, duracion: float) -> void:
-	if entidad == null or not entidad.is_in_group("jugadores"):
+	if entidad == null or entidad != Utils.jugador_local():
 		return
 	if slot_idx != slot_index:
 		return
@@ -399,7 +407,7 @@ func _on_recarga_iniciada(entidad: Node, slot_idx: int, duracion: float) -> void
 
 
 func _on_recarga_terminada(entidad: Node, slot_idx: int) -> void:
-	if entidad == null or not entidad.is_in_group("jugadores"):
+	if entidad == null or entidad != Utils.jugador_local():
 		return
 	if slot_idx != slot_index:
 		return
@@ -409,7 +417,7 @@ func _on_recarga_terminada(entidad: Node, slot_idx: int) -> void:
 
 
 func _on_energia_cambiada(entidad: Node, nueva: float, _maxima: float) -> void:
-	if entidad == null or not entidad.is_in_group("jugadores"):
+	if entidad == null or entidad != Utils.jugador_local():
 		return
 	var hab := _get_habilidad()
 	var bloqueado := hab != null and nueva < hab.costo_energia

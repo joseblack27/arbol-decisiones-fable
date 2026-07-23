@@ -37,6 +37,13 @@ func _montar() -> void:
 	_contenedor_piscina = root.get_node("/root/GestorPiscinas/InstanciasPiscina")
 
 	_entidad = Node2D.new()
+	# GestorNumerosDano ahora solo muestra el número si el jugador LOCAL
+	# está involucrado (objetivo o fuente — pedido del usuario: nada de
+	# golpes ajenos). Utils.jugador_local() sin red busca el primer nodo
+	# del grupo "jugadores" — sin este grupo, el gate de abajo bloquearía
+	# TODO número, incluido el de esta prueba (que usa _entidad como
+	# objetivo Y fuente a la vez).
+	_entidad.add_to_group("jugadores")
 	root.add_child(_entidad)
 	_vida = (load("res://componentes/VidaComponente.gd") as GDScript).new()
 	_entidad.add_child(_vida)

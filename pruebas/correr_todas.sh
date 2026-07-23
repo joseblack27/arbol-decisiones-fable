@@ -19,11 +19,34 @@ cd "$(dirname "$0")/.."
 GODOT="${GODOT:-/d/Programas/Godot_v4.5.1/Godot_v4.5.1-stable_win64_console.exe}"
 TIMEOUT_S="${TIMEOUT_S:-150}"
 
+# Pruebas que necesitan rendering real (Vulkan) para tener sentido — chequean
+# algo que se salta a propósito en DisplayServer "headless" (ver el propio
+# comentario de cada una). Correrlas acá con --headless no las hace fallar
+# por un bug real, sino porque nunca corre el código que están probando —
+# repórtalas como fallas confundiría más de lo que ayuda. Se corren a mano:
+#   "$GODOT" --path . --script res://pruebas/<nombre>.gd
+PRUEBAS_SIN_HEADLESS=(
+	"prueba_lanzallamas_visual_chorro"
+	"prueba_lanzallamas_visual_remoto"
+)
+
 total=0
 fallas=()
 for f in pruebas/prueba_*.gd; do
 	nombre=$(basename "$f" .gd)
 	total=$((total + 1))
+	omitir=false
+	for excluida in "${PRUEBAS_SIN_HEADLESS[@]}"; do
+		if [ "$nombre" = "$excluida" ]; then
+			omitir=true
+			break
+		fi
+	done
+	if [ "$omitir" = true ]; then
+		echo "OMITIDA $nombre (necesita rendering real, ver PRUEBAS_SIN_HEADLESS)"
+		total=$((total - 1))
+		continue
+	fi
 	salida=$(timeout "$TIMEOUT_S" "$GODOT" --headless --path . --script "res://pruebas/$nombre.gd" 2>&1)
 	codigo=$?
 	# Criterio doble: quit(0) Y el "OK" impreso — exit 0 sin OK significa

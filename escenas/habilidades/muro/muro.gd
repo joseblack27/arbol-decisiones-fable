@@ -131,7 +131,22 @@ func obtener_vida_maxima() -> float:
 ## INVOCÓ este muro (_fuente), el golpe no hace nada (ver _bloqueado_por_
 ## equipo). Sin fuente_ataque (null: daño ambiental sin atacante
 ## identificable) no se bloquea nada, igual que antes.
+##
+## Gate de red (nuevo): a diferencia de VidaComponente, este muro se
+## invoca por PREDICCIÓN LOCAL en cada peer (ver HabilidadBase._disparar:
+## el dueño, el servidor Y cada espectador vía _reproducir_visual_red
+## corren _ejecutar() cada uno por su cuenta) — así que cada uno tenía su
+## PROPIA copia de _salud_actual, sin sincronizar nunca entre sí. Con
+## suficientes golpes de por medio (cada peer tirando su propio crítico al
+## azar), un mismo muro terminaba roto para un jugador y vivo para otro —
+## reportado por el usuario. Ahora la vida/destrucción real SOLO la decide
+## el servidor (o un jugador solo); en un cliente puro esto es no-op — el
+## dueño de la habilidad (ver HabilidadMuroJugador) es quien avisa por RPC
+## cuando el servidor de verdad lo rompe, para que todos destruyan su
+## propia copia local a la vez.
 func quitar_vida(cantidad: float, fuente_ataque: Node = null, _tipo: int = 2, _critico: bool = false) -> float:
+	if Utils.en_red() and not multiplayer.is_server():
+		return _salud_actual
 	if _bloqueado_por_equipo(fuente_ataque):
 		return _salud_actual
 	if cantidad <= 0.0:
@@ -149,7 +164,18 @@ func quitar_vida(cantidad: float, fuente_ataque: Node = null, _tipo: int = 2, _c
 ## Devuelve true si el muro se rompió, false si lo absorbió sin más (en ese
 ## caso el daño normal ya lo aplica quien llamó, vía quitar_vida()) o si el
 ## golpe se bloqueó por ser del mismo equipo que quien invocó el muro.
+##
+## Mismo gate de red que quitar_vida() (ver ese comentario): en un cliente
+## puro esto SIEMPRE da false — el muro se ve como un obstáculo sólido
+## hasta que el servidor avisa lo contrario, nunca "adivinado" localmente.
+## Antes esto era la mitad del bug reportado: el proyectil seguía de largo
+## en la pantalla de un jugador (creyó que rompió el muro) pero chocaba en
+## la del otro (su copia local decidió lo contrario) — ahora TODOS los
+## clientes ven exactamente el mismo resultado (el proyectil se frena acá)
+## hasta que llegue el aviso real.
 func recibir_impacto(impacto: float, fuente_ataque: Node = null) -> bool:
+	if Utils.en_red() and not multiplayer.is_server():
+		return false
 	if _bloqueado_por_equipo(fuente_ataque):
 		return false
 	if impacto > _defensa:

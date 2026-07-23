@@ -292,6 +292,7 @@ radius = 200.30228
 radius = 8.0
 
 [sub_resource type="Resource" id="Resource_atributos"]
+resource_local_to_scene = true
 script = ExtResource("34_iuxaj")
 regeneracion_vida = 1.0
 regeneracion_energia = 5.0

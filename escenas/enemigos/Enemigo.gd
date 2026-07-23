@@ -75,6 +75,10 @@ var _ultimo_atacante: Node = null
 var _muerto: bool = false
 
 @onready var habilidades: Marker2D = $Habilidades
+## Para el parpadeo de "recibí daño" (ver parpadear()) — mismo nodo que ya
+## usa cada subclase para su propia animación (AnimacionComponente).
+@onready var sprite: Sprite2D = $Sprite2D
+var _tween_parpadeo: Tween = null
 
 
 ## Fase 6: lo que se replica NO es global_position directo — es esta
@@ -304,9 +308,49 @@ func _on_vida_cambiada(nuevo_valor: float) -> void:
 	memoria.establecer("vida", nuevo_valor)
 
 
+## En el cliente REAL (a diferencia del servidor/single-player, donde esto
+## dispara al instante desde la propia habilidad) esta señal solo llega acá
+## cuando VidaComponente._recibir_vida_red() confirma el daño replicado por
+## el servidor — no antes. Por eso alcanza con este único chequeo para
+## cumplir las dos condiciones pedidas: "esperar la confirmación real" Y
+## "que sea mi propio golpe" (ver _es_mi_propio_golpe) — ambas ya vienen
+## resueltas por cómo funciona esta señal, sin tocar Proyectil/Arañazo/
+## HabilidadCarga/Combate para nada.
 func _on_daño_aplicado(objetivo: Node, _cantidad: float, fuente: Node, _tipo: int = 2, _critico: bool = false) -> void:
 	if objetivo == self:
 		_ultimo_atacante = fuente
+		if _es_mi_propio_golpe(fuente):
+			parpadear()
+
+
+## true si "fuente" es el jugador que controla ESTE cliente — el parpadeo
+## de abajo es local a propósito (pedido del usuario: feedback de "mi
+## golpe conectó" sin confundirse con los golpes de otros jugadores). Sin
+## red (un solo jugador) cualquier golpe es siempre "propio".
+func _es_mi_propio_golpe(fuente: Node) -> bool:
+	if not is_instance_valid(fuente):
+		return false
+	if not Utils.en_red():
+		return true
+	if not ("peer_id_dueño" in fuente):
+		return false
+	return fuente.peer_id_dueño == multiplayer.get_unique_id()
+
+
+## Un solo parpadeo (pedido del usuario — antes eran varios seguidos, ver
+## el mismo cambio en Jugador.gd). Mata cualquier tween anterior antes de
+## arrancar uno nuevo: con golpes más frecuentes que la duración del
+## parpadeo, dos tweens vivos a la vez se pelean por el mismo modulate y
+## el sprite queda trabado en rojo en vez de volver a blanco.
+func parpadear(duracion: float = 0.1) -> void:
+	if not sprite:
+		return
+	if _tween_parpadeo and _tween_parpadeo.is_valid():
+		_tween_parpadeo.kill()
+		sprite.modulate = Color.WHITE
+	_tween_parpadeo = create_tween()
+	_tween_parpadeo.tween_property(sprite, "modulate", Color(1, 0.2, 0.2), duracion)
+	_tween_parpadeo.tween_property(sprite, "modulate", Color.WHITE, duracion)
 
 
 func _on_muerte(_valor: float) -> void:

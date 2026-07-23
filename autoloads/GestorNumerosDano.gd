@@ -16,9 +16,17 @@ func _ready() -> void:
 	BusEventos.daño_aplicado.connect(_al_aplicar_daño)
 
 
-func _al_aplicar_daño(objetivo: Node, cantidad: float, _fuente: Node,
+func _al_aplicar_daño(objetivo: Node, cantidad: float, fuente: Node,
 		tipo: int = Enums.Habilidad.TipoDano.FISICO, critico: bool = false) -> void:
 	if objetivo == null or not is_instance_valid(objetivo) or not (objetivo is Node2D):
+		return
+	# Pedido del usuario: el número flotante es para MI jugador — el daño
+	# que recibo o el que yo mismo provoco, nunca el de otros jugadores
+	# peleando con lo suyo (esta señal llega igual a TODOS los que tienen a
+	# objetivo/fuente replicados en pantalla, ver VidaComponente._recibir_
+	# vida_red, que la emite sin filtrar por peer).
+	var jugador := Utils.jugador_local()
+	if jugador == null or (objetivo != jugador and fuente != jugador):
 		return
 	# Reutiliza un número ya creado en vez de instanciar uno nuevo cada golpe
 	# (object pooling: ver GestorPiscinas).

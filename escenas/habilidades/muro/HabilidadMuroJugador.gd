@@ -48,12 +48,29 @@ func aplicar_datos(d: DatosHabilidad) -> void:
 		alcance_maximo = float(d.alcance_metros) * ESCALA_METROS_PIXEL
 
 
+## Identidad de red de cada muro invocado por ESTA habilidad — hace falta
+## porque el propio Muro es un objeto efímero de una piscina LOCAL (sin
+## nombre/ruta estable entre peers, a diferencia de Jugador/Enemigo): no
+## se le puede avisar "este nodo murió" por RPC apuntándole directo. Se
+## identifica por un contador propio de la habilidad — como las
+## activaciones viajan por el mismo canal reliable y en el mismo orden en
+## todos los peers (ver HabilidadBase._disparar/_activar_red/_reproducir_
+## visual_red), el número de muro coincide en todos lados para la MISMA
+## invocación real. Puede haber más de un muro vivo a la vez (confirmado
+## por el usuario), por eso un Dictionary y no una sola referencia.
+var _contador_muros := 0
+var _muros_activos: Dictionary = {}  # id (int) -> Muro
+
+
 func _ejecutar(direccion: Vector2, poder: float) -> void:
 	if direccion.length() < 0.1:
 		return
 	var dir := direccion.normalized()
 	var distancia := alcance_maximo * clampf(poder, 0.2, 1.0)
 	var centro: Vector2 = (entidad_dueña as Node2D).global_position + dir * distancia
+
+	_contador_muros += 1
+	var id_muro := _contador_muros
 
 	# Reutiliza un muro ya creado en vez de instanciar uno nuevo cada vez
 	# (object pooling: ver GestorPiscinas).
@@ -76,6 +93,43 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 		escena_pilar,
 		tipo_dano,
 	)
+	_muros_activos[id_muro] = muro
+	# CONNECT_ONE_SHOT: esta misma instancia vuelve a la piscina y se
+	# reutiliza en una invocación FUTURA con otro id — sin esto, la
+	# conexión vieja seguiría viva y dispararía con el id equivocado la
+	# próxima vez que ese muro reciclado muera.
+	muro.muerte.connect(_on_muro_muerte.bind(id_muro), CONNECT_ONE_SHOT)
+
+
+## El muro murió DE VERDAD (Muro.quitar_vida()/recibir_impacto() ya están
+## gateados a solo servidor/un jugador solo — ver esos comentarios): esta
+## señal nunca dispara ya por la predicción de un cliente puro. Acá es
+## donde el servidor avisa a los demás peers cercanos para que destruyan
+## su propia copia local — antes cada uno decidía esto por su cuenta con
+## su propia simulación, y terminaban en desacuerdo (bug reportado: el
+## muro vivía para un jugador y no para otro).
+func _on_muro_muerte(_valor: float, id_muro: int) -> void:
+	var posicion := Vector2.ZERO
+	if _muros_activos.has(id_muro) and is_instance_valid(_muros_activos[id_muro]):
+		posicion = (_muros_activos[id_muro] as Muro).global_position
+	_muros_activos.erase(id_muro)
+	if Utils.en_red() and multiplayer.is_server():
+		for peer_id in InteresEspacial.peers_cercanos(posicion):
+			rpc_id(peer_id, "_recibir_destruccion_muro_red", id_muro)
+
+
+## CLIENTE: el servidor confirma que este muro (identificado por su
+## número, ver _contador_muros de arriba) se rompió de verdad — destruye
+## la copia LOCAL correspondiente. Puede volver a disparar _on_muro_muerte
+## en este mismo cliente (la conexión de arriba sigue viva acá, nunca se
+## gastó por predicción local) pero es inofensivo: ese chequeo de
+## multiplayer.is_server() corta antes de volver a mandar nada.
+@rpc("authority", "reliable")
+func _recibir_destruccion_muro_red(id_muro: int) -> void:
+	var muro: Muro = _muros_activos.get(id_muro)
+	_muros_activos.erase(id_muro)
+	if is_instance_valid(muro):
+		muro._romper()
 
 
 ## La vida del muro no es un valor fijo: depende de las defensas actuales

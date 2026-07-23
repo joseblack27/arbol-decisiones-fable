@@ -41,6 +41,7 @@ region = Rect2(0, 0, 192, 360)
 radius = 8.0
 
 [sub_resource type="Resource" id="Resource_81a1h"]
+resource_local_to_scene = true
 script = ExtResource("16_su64b")
 regeneracion_vida = 10.0
 regeneracion_energia = 20.0

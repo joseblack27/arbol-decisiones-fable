@@ -641,6 +641,7 @@ states/IDLE/position = Vector2(403, 101)
 transitions = ["Start", "IDLE", SubResource("AnimationNodeStateMachineTransition_c08fa"), "IDLE", "CAMINAR", SubResource("AnimationNodeStateMachineTransition_fslt1"), "CAMINAR", "IDLE", SubResource("AnimationNodeStateMachineTransition_igt8w")]
 
 [sub_resource type="Resource" id="ef6ga"]
+resource_local_to_scene = true
 script = ExtResource("22_araña")
 regeneracion_vida = 1.0
 regeneracion_energia = 10.0

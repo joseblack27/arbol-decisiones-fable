@@ -51,24 +51,38 @@ func _ready() -> void:
 	area_oclusion.body_exited.connect(_al_salir_cuerpo)
 
 
+## Pedido del usuario: la oclusión es para que VOS te veas a vos mismo
+## detrás del objeto — no un rayo X que revela a los DEMÁS jugadores que
+## pasan por ahí. Antes miraba a cualquier cuerpo del grupo "jugadores"
+## (get_overlapping_bodies()), así que el mismo sprite (compartido, se ve
+## igual en todas las pantallas) se transparentaba para todo el que
+## pudiera ver este árbol apenas OTRO jugador quedaba detrás — mostrándole
+## su posición a cualquiera con línea de vista al árbol, sin que ese
+## jugador lo pidiera. Ahora solo reacciona a Utils.jugador_local(): cada
+## cliente decide el desvanecido mirando nada más que a su propio jugador,
+## exactamente igual que el parpadeo/números de daño ya arreglados antes.
 func _physics_process(delta: float) -> void:
 	var objetivo := 1.0
-	for cuerpo in area_oclusion.get_overlapping_bodies():
-		if cuerpo.is_in_group(&"jugadores") and global_position.y > cuerpo.global_position.y:
-			objetivo = opacidad_oculto
-			break
+	var jugador := Utils.jugador_local()
+	if is_instance_valid(jugador) and area_oclusion.overlaps_body(jugador) \
+			and global_position.y > jugador.global_position.y:
+		objetivo = opacidad_oculto
 	sprite.modulate.a = move_toward(sprite.modulate.a, objetivo, velocidad_fundido * delta)
 	# Nadie dentro y ya opaco: volver a dormir.
 	if _cuerpos_dentro == 0 and is_equal_approx(sprite.modulate.a, 1.0):
 		set_physics_process(false)
 
 
+## Solo despierta el procesamiento por el jugador LOCAL entrando/saliendo
+## — que un jugador AJENO pase por acá no debe costar nada (ver comentario
+## de arriba: ya no afecta el resultado, así que tampoco vale la pena
+## despertar por eso).
 func _al_entrar_cuerpo(cuerpo: Node2D) -> void:
-	if cuerpo.is_in_group(&"jugadores"):
+	if cuerpo == Utils.jugador_local():
 		_cuerpos_dentro += 1
 		set_physics_process(true)
 
 
 func _al_salir_cuerpo(cuerpo: Node2D) -> void:
-	if cuerpo.is_in_group(&"jugadores"):
+	if cuerpo == Utils.jugador_local():
 		_cuerpos_dentro = maxi(0, _cuerpos_dentro - 1)

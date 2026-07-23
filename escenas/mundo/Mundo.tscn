@@ -192,6 +192,7 @@ script = ExtResource("15_bos")
 [node name="OsPrincipal" parent="CanvasLayer" instance=ExtResource("14_os")]
 
 [node name="Jugadores" type="Node2D" parent="."]
+y_sort_enabled = true
 
 [node name="GeneradorJugadores" type="MultiplayerSpawner" parent="Jugadores"]
 _spawnable_scenes = PackedStringArray("uid://ce0idfghf3qmv")

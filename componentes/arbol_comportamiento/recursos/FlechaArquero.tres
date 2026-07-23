@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="1_bt"]
+
+[resource]
+script = ExtResource("1_bt")
+nombre = "Flecha"
+prioridad = 1
+rango_maximo = 380.0
+duracion_cooldown = 0.0
+requiere_acercarse = true
+ruta_nodo = NodePath("Habilidades/HabilidadFlecha")
+metadata/_custom_type_script = "uid://fr6tavpigufc"
