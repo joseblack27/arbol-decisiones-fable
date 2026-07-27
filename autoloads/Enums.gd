@@ -34,6 +34,17 @@ class Habilidad:
 		AIRE
 	}
 
+	## Rol de la habilidad — usado por PanelDetalleHabilidad.gd para mostrar
+	## solo la información relevante (daño/tipo/rango no significan nada en
+	## una habilidad que no ataca, p. ej. un buff o un muro que solo bloquea:
+	## mostraban "Daño: 0-0" sin sentido, reportado por el usuario).
+	enum Categoria {
+		ATAQUE,       ## Inflige daño real — muestra daño/tipo/rango.
+		DEFENSA,      ## Protege (escudo, parpadeo para escapar...).
+		POTENCIADOR,  ## Buff propio o de aliados (curación, grito de guerra...).
+		CONTROL,      ## Inmoviliza/arrastra sin dañar (red, gancho...).
+	}
+
 	## Color (nombre CSS o hex) para mostrar el daño de cada elemento en la
 	## descripción de una habilidad — ver PanelDetalleHabilidad.gd. Un solo
 	## enum de elemento (TipoDano) para gameplay Y color: antes había un

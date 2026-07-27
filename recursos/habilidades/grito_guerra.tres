@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://bgritoguerra1"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_grito_guerra_32x32.png" id="2_icono"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/buff_equipo/HabilidadBuffEquipo.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Grito de guerra"
+icono = ExtResource("2_icono")
+descripcion = "Aumenta en {valor1} el daño tuyo y el de tus aliados cercanos durante {duracion} segundos"
+categoria = 2
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 30
+alcance_metros = 0
+enfriamiento = 12.0

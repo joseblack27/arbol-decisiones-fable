@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_vampirico/GolpeVampirico.gd" id="1_golpe"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_golpe"]
+radius = 60.0
+
+[node name="GolpeVampirico" type="Area2D"]
+monitoring = false
+monitorable = true
+script = ExtResource("1_golpe")
+porcentaje_robo = 0.5
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_golpe")

@@ -13,6 +13,7 @@ script = ExtResource("1_dh")
 nombre = "Parpadeo"
 icono = SubResource("AtlasTexture_parpadeo1")
 descripcion = "Teletransporte corto e instantáneo en la dirección apuntada, sin daño"
+categoria = 1
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 15

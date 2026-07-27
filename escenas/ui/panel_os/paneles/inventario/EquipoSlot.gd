@@ -71,9 +71,43 @@ func _notificar_equipo_cambiado() -> void:
 		panel.notificar_equipo_cambiado()
 
 
-func _obtener_panel_inventario() -> Node:
-	return get_tree().get_root().find_child("PanelInventario", true, false)
-
+## Red de seguridad final: soltar un ítem equipado en cualquier lugar que
+## NINGÚN _can_drop_data haya aceptado (otro EquipoSlot de otro tipo — el
+## anillo reportado —, un ítem de otro tipo en la grilla general, el fondo
+## del panel, fuera de la ventana...) debe desequiparlo igual, sin importar
+## dónde. Depender de que el rechazo "burbujee" hacia un padre que sí lo
+## acepte NO es confiable acá: mouse_filter por defecto es STOP en todo
+## Control, así que un hijo que rechaza el drop corta la cadena ahí mismo
+## en vez de dejar que el padre lo intente — confirmado, no es solo lectura
+## de código (ver https://github.com/godotengine/godot/issues/104609 y la
+## documentación de mouse_filter). NOTIFICATION_DRAG_END sí llega siempre,
+## pero a TODOS los controles del árbol (no solo al que arrancó el
+## arrastre) — arrastrando_ahora (ver SlotItem._get_drag_data) es lo que
+## permite confirmar que ESTE fue el slot que se estaba arrastrando antes
+## de reaccionar. Reportado dos veces: "trate de mover el sombrero al
+## inventario sobre un anillo y no se desequipó" / "arrastro desde un
+## equiposlot hacia el flowItems... sin importar donde caiga... y no se
+## desequipó".
 func _notification(what):
-	if what == NOTIFICATION_DRAG_END:
-		modulate = Color(1, 1, 1, 1)
+	if what != NOTIFICATION_DRAG_END:
+		return
+	modulate = Color(1, 1, 1, 1)
+	var era_mi_arrastre := arrastrando_ahora == self
+	super._notification(what)
+	if era_mi_arrastre and item_data != null and not get_viewport().gui_is_drag_successful():
+		_desequipar()
+
+
+## Extraído de _notification para poder probarlo directo, sin depender de
+## gui_is_drag_successful() (solo tiene sentido durante un arrastre real de
+## mouse, no en una prueba headless que llama a las funciones sin pasar por
+## el sistema de arrastre de Godot).
+func _desequipar() -> void:
+	var item := item_data
+	item_data = null
+	update_item()
+	GestorInventario.agregar_item(item)
+	var panel := _obtener_panel_inventario()
+	if panel:
+		panel.refrescar()
+	_notificar_equipo_cambiado()

@@ -99,3 +99,83 @@ static func golpear_area(
 		if Utils.debe_mostrar_dano_local():
 			BusEventos.daño_aplicado.emit(objetivo, dano_final, fuente, tipo_dano, fue_critico)
 		BusEventos.habilidad_impacto.emit(nombre_evento, objetivo)
+
+
+## Devuelve los ALIADOS de "fuente" (mismo equipo, ver mismo_equipo) dentro
+## de un radio alrededor de "area" — para habilidades de apoyo (buffs,
+## curación en área...) en vez de daño. Es el espejo de golpear_area(): en
+## vez de excluir aliados, se queda SOLO con ellos.
+## incluir_fuente=true (default): la propia fuente cuenta como su propio
+## aliado, para que un buff de equipo también alcance a quien lo lanza.
+static func buscar_aliados_cercanos(
+		area: Node2D, radio: float, fuente: Node, incluir_fuente: bool = true) -> Array[Node]:
+	var forma := CircleShape2D.new()
+	forma.radius = radio
+	var espacio := area.get_world_2d().direct_space_state
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape               = forma
+	query.transform           = area.global_transform
+	query.collision_mask      = 0xFFFFFFFF
+	query.collide_with_areas  = true
+	query.collide_with_bodies = true
+	var resultados := espacio.intersect_shape(query)
+	var encontrados: Array[Node] = []
+	for r in resultados:
+		var col = r.get("collider")
+		var objetivo: Node
+		if col is VidaComponente:
+			objetivo = (col as VidaComponente).get_parent()
+		elif col is Node and (col as Node).has_method("quitar_vida"):
+			objetivo = col
+		else:
+			continue
+		if objetivo in encontrados:
+			continue
+		if objetivo == fuente:
+			if incluir_fuente:
+				encontrados.append(objetivo)
+			continue
+		if mismo_equipo(fuente, objetivo):
+			encontrados.append(objetivo)
+	return encontrados
+
+
+## Devuelve el ENEMIGO más cercano a "origen" (mismo criterio de equipo que
+## mismo_equipo) dentro de "radio", excluyendo a la propia fuente y a
+## cualquiera en "excluidos" — usado por ProyectilRebote para encontrar el
+## próximo blanco de un rebote sin volver a pegarle a quien ya golpeó.
+## Devuelve null si no hay ninguno válido en rango.
+static func buscar_enemigo_mas_cercano(
+		origen: Node2D, radio: float, fuente: Node, excluidos: Array) -> Node:
+	var forma := CircleShape2D.new()
+	forma.radius = radio
+	var espacio := origen.get_world_2d().direct_space_state
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape               = forma
+	query.transform           = origen.global_transform
+	query.collision_mask      = 0xFFFFFFFF
+	query.collide_with_areas  = true
+	query.collide_with_bodies = true
+	var resultados := espacio.intersect_shape(query)
+	var mejor: Node = null
+	var mejor_dist := INF
+	for r in resultados:
+		var col = r.get("collider")
+		var objetivo: Node
+		if col is VidaComponente:
+			objetivo = (col as VidaComponente).get_parent()
+		elif col is Node and (col as Node).has_method("quitar_vida"):
+			objetivo = col
+		else:
+			continue
+		if objetivo == fuente or objetivo in excluidos:
+			continue
+		if mismo_equipo(fuente, objetivo):
+			continue
+		if not (objetivo is Node2D):
+			continue
+		var dist := origen.global_position.distance_squared_to((objetivo as Node2D).global_position)
+		if dist < mejor_dist:
+			mejor_dist = dist
+			mejor = objetivo
+	return mejor

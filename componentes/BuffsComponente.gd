@@ -24,6 +24,12 @@ class Buff:
 	var es_debuff: bool = false
 	var duracion_total: float = 0.0
 	var tiempo_restante: float = 0.0
+	## Nombre/descripción para el panel "Buffs Activos" (ver PanelTablero) —
+	## BarraBuffs/IndicadorBuff (el ícono chico del HUD) no los necesitan,
+	## pero ese panel muestra más detalle. Vacíos por defecto: quien llame
+	## agregar() sin pasarlos simplemente no aparece con texto ahí.
+	var nombre: String = ""
+	var descripcion: String = ""
 
 
 var _buffs: Dictionary[String, Buff] = {}
@@ -43,7 +49,8 @@ func _process(delta: float) -> void:
 
 
 ## Agrega (o renueva) un buff/debuff visible por "duracion" segundos.
-func agregar(id: String, icono: Texture2D, duracion: float, es_debuff: bool = false) -> void:
+func agregar(id: String, icono: Texture2D, duracion: float, es_debuff: bool = false,
+		nombre: String = "", descripcion: String = "") -> void:
 	var es_nuevo := not _buffs.has(id)
 	var buff: Buff = _buffs.get(id, Buff.new())
 	buff.id              = id
@@ -51,6 +58,8 @@ func agregar(id: String, icono: Texture2D, duracion: float, es_debuff: bool = fa
 	buff.es_debuff         = es_debuff
 	buff.duracion_total    = duracion
 	buff.tiempo_restante   = duracion
+	buff.nombre            = nombre
+	buff.descripcion       = descripcion
 	_buffs[id] = buff
 	if es_nuevo:
 		buff_agregado.emit(id)

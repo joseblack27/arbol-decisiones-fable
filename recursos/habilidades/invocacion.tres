@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://binvocacion1"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_invocacion_32x32.png" id="2_icono"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/invocacion/HabilidadInvocacion.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Invocación"
+icono = ExtResource("2_icono")
+categoria = 2
+descripcion = "Invoca un aliado que pelea a tu lado durante {duracion} segundos, golpeando por {valor1}"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 40
+enfriamiento = 20.0

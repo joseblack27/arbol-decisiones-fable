@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://brebotehab01"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_rebote_32x32.png" id="2_icono"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/rebote/HabilidadRebote.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Rebote"
+icono = ExtResource("2_icono")
+descripcion = "Dispara un proyectil que hace {damage1} y rebota hacia el enemigo mas cercano hasta 2 veces mas, buscando nuevos blancos que aun no haya golpeado"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 20
+dano_base_min = 10
+dano_base_max = 14
+alcance_metros = 9
+enfriamiento = 6.0

@@ -44,4 +44,5 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 			buffs = BuffsComponente.new()
 			buffs.name = "BuffsComponente"
 			entidad_dueña.add_child(buffs)
-		buffs.agregar("escudo", icono_buff, duracion_escudo, false)
+		buffs.agregar("escudo", icono_buff, duracion_escudo, false,
+			nombre_habilidad, "Reduce el daño recibido en %d%%" % int(reduccion * 100))

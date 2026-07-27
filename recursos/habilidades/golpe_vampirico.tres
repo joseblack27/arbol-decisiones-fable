@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://bgolpevamp01"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_golpe_vampirico_32x32.png" id="2_icono"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/golpe_vampirico/HabilidadGolpeVampirico.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Golpe Vampírico"
+icono = ExtResource("2_icono")
+descripcion = "Golpea con {damage1} a los enemigos a tu alrededor y te cura el 50% de ese daño"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 15
+dano_base_min = 10
+dano_base_max = 14
+radio_golpe = 60.0
+enfriamiento = 4.0

@@ -9,6 +9,23 @@ extends Panel
 @onready var dmg_calc_label    := $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado/EtiquetaDanoCalculado
 @onready var type_damage_label := $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoDano/EtiquetaTipoDano
 @onready var range_launch_label = $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxRangoLanzamiento/EtiquetaRangoLanzamiento
+## Filas de "solo tiene sentido si la habilidad ATACA" — se esconden como
+## grupo para categorías que no atacan (defensa/potenciador/control, ver
+## Enums.Habilidad.Categoria): mostraban "Daño: 0-0" en habilidades como
+## Gancho o Grito de Guerra, que no significa nada (reportado por el
+## usuario). HBoxEnfriamiento NO entra acá (aplica a cualquier categoría),
+## y HBoxRangoLanzamiento TAMPOCO (ver _fila_rango más abajo): el rango
+## también es relevante fuera de ATAQUE — Parpadeo (distancia del
+## teletransporte) y Gancho (alcance del enganche, categoría CONTROL) SÍ
+## tienen un rango real que mostrar aunque no ataquen.
+@onready var _filas_de_dano: Array[Control] = [
+	$MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoBase,
+	$MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado,
+	$MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoDano,
+]
+## Fila de rango — visible cuando la habilidad DE VERDAD tiene un alcance
+## (alcance_metros > 0), sin importar la categoría (ver comentario arriba).
+@onready var _fila_rango: Control = $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxRangoLanzamiento
 @onready var cool_down_label    = $MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxEnfriamiento/EtiquetaEnfriamiento
 @onready var _equip_btn:   Button        = $MarginContainer/VBoxContainer/HBoxOpciones/MarginContainer/HBoxContainer/BotonEquipar
 @onready var _overlay:     ColorRect     = $SuperposicionSlot
@@ -77,16 +94,21 @@ func show_skill(skill: DatosHabilidad) -> void:
 	name_label.text  = skill.name
 	level_label.text = "Nivel %d" % skill.level
 
+	var es_ataque := skill.categoria == Enums.Habilidad.Categoria.ATAQUE
+	for fila in _filas_de_dano:
+		fila.visible = es_ataque
+	_fila_rango.visible = skill.range_meters > 0
+
 	# "Daño Calculado" = dano_base + los atributos ofensivos ACTUALES del
 	# jugador (bonus plano + potencia; el crítico no entra porque es un roll
-	# aleatorio, no tiene sentido en un número fijo mostrado en pantalla).
-	# Sin AtributosComponente disponible, se muestra el rango base tal cual.
+	# aleatorio, no tiene sentido en un número fijo mostrado en pantalla),
+	# escalado por el factor propio de la habilidad si tiene uno (ver
+	# AtributosComponente.calcular_rango_con_factor — mismo helper que usa
+	# HabilidadAura para la descripción de su buff, así los dos números
+	# siempre coinciden). Sin AtributosComponente disponible, se muestra el
+	# rango base tal cual.
 	var atributos := _obtener_atributos_jugador()
-	var dmg_calc_min := skill.damage_base_min
-	var dmg_calc_max := skill.damage_base_max
-	if atributos:
-		dmg_calc_min = int(atributos.calcular_dano_saliente_vista_previa(skill.damage_base_min))
-		dmg_calc_max = int(atributos.calcular_dano_saliente_vista_previa(skill.damage_base_max))
+	var factor := 1.0
 
 	# Factor propio de la habilidad (p. ej. el lanzallamas solo aplica una
 	# FRACCIÓN de esto por tick, ver HabilidadLanzallamas.multiplicador_
@@ -95,15 +117,62 @@ func show_skill(skill: DatosHabilidad) -> void:
 	# así que cualquier habilidad futura con el mismo patrón se refleja acá
 	# sola, sin tener que tocar este panel de nuevo. instantiate() sin
 	# add_child no dispara _ready() — seguro leer y descartar.
+	# Valores de descripción para habilidades que NO atacan (Escudo,
+	# Curación, Grito de Guerra, Gancho, Inmovilizar): antes su magnitud y
+	# duración estaban escritas A MANO en el texto de "descripcion" —
+	# quedaban desincronizadas apenas alguien tocaba el export real sin
+	# acordarse de actualizar también el .tres (pedido del usuario: que
+	# salgan por parámetro, {valor1}/{duracion}, igual que {damage1} ya
+	# sale del daño real calculado, no de un número pegado en el texto).
+	# Mismo criterio "duck typing" que multiplicador_dano_tick de abajo:
+	# se lee por nombre de propiedad conocido, primero el que exista.
+	var valores_descripcion := {}
+
 	if skill.escena:
 		var tmp := skill.escena.instantiate()
 		if "multiplicador_dano_tick" in tmp:
-			var factor: float = tmp.get("multiplicador_dano_tick")
-			dmg_calc_min = int(dmg_calc_min * factor)
-			dmg_calc_max = int(dmg_calc_max * factor)
+			factor = tmp.get("multiplicador_dano_tick")
+
+		if "duracion_escudo" in tmp:
+			valores_descripcion["duracion"] = "%d" % int(tmp.get("duracion_escudo"))
+		elif "duracion_curacion" in tmp:
+			valores_descripcion["duracion"] = "%d" % int(tmp.get("duracion_curacion"))
+		elif "duracion_buff" in tmp:
+			valores_descripcion["duracion"] = "%d" % int(tmp.get("duracion_buff"))
+		elif "duracion_tiron" in tmp:
+			valores_descripcion["duracion"] = "%.1f" % tmp.get("duracion_tiron")
+		elif "duracion_invocacion" in tmp:
+			valores_descripcion["duracion"] = "%d" % int(tmp.get("duracion_invocacion"))
+
+		if "cantidad_curacion" in tmp:
+			valores_descripcion["valor1"] = "%d" % int(tmp.get("cantidad_curacion"))
+		elif "bono_dano" in tmp:
+			valores_descripcion["valor1"] = "%d" % int(tmp.get("bono_dano"))
+		# HabilidadInvocacion: el daño del aliado invocado, no de la propia
+		# habilidad (categoria POTENCIADOR, así que las filas de Daño quedan
+		# escondidas — sin esto no había forma de ver cuánto pega el aliado,
+		# reportado por el usuario: "no puedo ver el daño que hace").
+		elif "dano_ataque" in tmp:
+			valores_descripcion["valor1"] = "%d" % int(tmp.get("dano_ataque"))
+		elif "reduccion" in tmp:
+			valores_descripcion["valor1"] = "%d%%" % int(tmp.get("reduccion") * 100.0)
+		elif "escena_proyectil" in tmp and tmp.get("escena_proyectil") != null:
+			# Inmovilizar: la duración real vive dos escenas más adentro
+			# (HabilidadProyectil.escena_proyectil -> Proyectil.escena_al_
+			# impactar -> EfectoAreaBase.duracion) — nada raro, es la misma
+			# cadena que ya arma HabilidadProyectilInmovilizador.tscn.
+			var proy := (tmp.get("escena_proyectil") as PackedScene).instantiate()
+			if "escena_al_impactar" in proy and proy.get("escena_al_impactar") != null:
+				var efecto := (proy.get("escena_al_impactar") as PackedScene).instantiate()
+				if "duracion" in efecto:
+					valores_descripcion["duracion"] = "%.1f" % efecto.get("duracion")
+				efecto.free()
+			proy.free()
 		tmp.free()
 
-	var dmg_calc := "%d - %d" % [dmg_calc_min, dmg_calc_max]
+	var rango_calc := AtributosComponente.calcular_rango_con_factor(
+		atributos, skill.damage_base_min, skill.damage_base_max, factor)
+	var dmg_calc := "%d - %d" % [rango_calc.x, rango_calc.y]
 
 	# El color del número de daño en la descripción sale del elemento real
 	# de la habilidad (Enums.Habilidad.valor_color_dano), no de un
@@ -115,7 +184,8 @@ func show_skill(skill: DatosHabilidad) -> void:
 	# desincronicen, porque los dos salen del mismo dato.
 	var color_dano: String = Enums.Habilidad.valor_color_dano[skill.type_damage]
 	var dmg_calc_coloreado := "[color=%s][b]%s[/b][/color]" % [color_dano, dmg_calc]
-	description_label.text = skill.description.format({"damage1": dmg_calc_coloreado})
+	valores_descripcion["damage1"] = dmg_calc_coloreado
+	description_label.text = skill.description.format(valores_descripcion)
 	cost_label.text = str(skill.cost_energy)
 
 	dmg_base_label.text = "%d - %d" % [skill.damage_base_min, skill.damage_base_max]

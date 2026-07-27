@@ -18,6 +18,12 @@ var _direccion: Vector2         = Vector2.RIGHT
 var _alcance_maximo: float      = 400.0
 var _distancia_recorrida: float = 0.0
 var _ya_impacto: bool           = false
+## Defensor real que recibió el impacto (o null si nunca llegó a impactar
+## a nadie) — subclases custom (p. ej. GanchoProyectil) lo necesitan para
+## actuar sobre el objetivo real, no solo saber "impactó algo". Se limpia
+## en cada configurar() para no arrastrar un valor viejo de un uso
+## anterior de la misma instancia reciclada del pool.
+var _ultimo_defensor_impactado: Node = null
 
 func _ready() -> void:
 	area_entered.connect(_on_area_entrada)
@@ -46,8 +52,9 @@ func configurar(direccion: Vector2, poder: float, cantidad_daño: float, fuente:
 	# Reinicio para reutilización desde la piscina (ver GestorPiscinas):
 	# este proyectil puede llegar aquí recién creado o reciclado de un
 	# disparo anterior, así que hay que rearmarlo por completo.
-	_ya_impacto           = false
-	_distancia_recorrida  = 0.0
+	_ya_impacto              = false
+	_distancia_recorrida     = 0.0
+	_ultimo_defensor_impactado = null
 	set_deferred("monitoring", true)
 
 
@@ -203,12 +210,24 @@ func _resolver_colision(objeto: Object) -> void:
 		return
 	if defensor == entidad_fuente:
 		return
-	if Combate.mismo_equipo(entidad_fuente, defensor):
+	# Quien disparó puede haber muerto y liberado su nodo ANTES de que este
+	# impacto llegara a resolverse — con Rebote, cada rebote es una
+	# oportunidad más para que eso pase, ya que el vuelo total dura muchos
+	# más fotogramas que un proyectil normal. is_instance_valid() lo
+	# detecta, "if entidad_fuente:" no (mismo criterio ya usado en
+	# EfectoDoT._aplicar_tick/AtributosComponente.calcular_pipeline: una
+	# referencia a un nodo liberado no es null). Reportado en juego real:
+	# "Invalid type... argument 1 (previously freed)" en Combate.
+	# mismo_equipo al resolver un rebote.
+	var fuente_valida: Node = entidad_fuente if is_instance_valid(entidad_fuente) else null
+	if Combate.mismo_equipo(fuente_valida, defensor):
+		return
+	if _debe_ignorar_objetivo(defensor):
 		return
 	# Muro ALIADO: atravesarlo como si nada — sin gastarse ni dañarlo (el
 	# muro igual bloquearía el daño por equipo, pero el proyectil moría
 	# contra él de todos modos: disparo desperdiciado contra el muro propio).
-	if defensor.has_method("es_aliado_de") and defensor.es_aliado_de(entidad_fuente):
+	if defensor.has_method("es_aliado_de") and defensor.es_aliado_de(fuente_valida):
 		return
 	# Obstáculos rompibles (p. ej. Muro): si el impacto (penetración de
 	# armadura) de quien disparó supera su defensa, lo revienta y el
@@ -218,18 +237,41 @@ func _resolver_colision(objeto: Object) -> void:
 	# muestra número de daño flotante — ese feedback es para golpes entre
 	# personajes, no para chocar contra una pared.
 	var es_obstaculo_rompible := defensor.has_method("recibir_impacto")
-	if es_obstaculo_rompible and defensor.recibir_impacto(_obtener_impacto_fuente(), entidad_fuente):
+	if es_obstaculo_rompible and defensor.recibir_impacto(_obtener_impacto_fuente(), fuente_valida):
 		return
 	_ya_impacto = true
-	var dano_final := AtributosComponente.calcular_pipeline(entidad_fuente, defensor, daño, tipo_dano)
+	_ultimo_defensor_impactado = defensor
+	var dano_final := AtributosComponente.calcular_pipeline(fuente_valida, defensor, daño, tipo_dano)
 	var fue_critico := AtributosComponente.ultimo_pipeline_critico
 	if vida is VidaComponente:
-		(vida as VidaComponente).quitar_vida(dano_final, entidad_fuente, tipo_dano, fue_critico)
+		(vida as VidaComponente).quitar_vida(dano_final, fuente_valida, tipo_dano, fue_critico)
 	else:
-		vida.quitar_vida(dano_final, entidad_fuente, tipo_dano, fue_critico)
+		vida.quitar_vida(dano_final, fuente_valida, tipo_dano, fue_critico)
 	if not es_obstaculo_rompible and Utils.debe_mostrar_dano_local():
-		BusEventos.daño_aplicado.emit(defensor, dano_final, entidad_fuente, tipo_dano, fue_critico)
+		BusEventos.daño_aplicado.emit(defensor, dano_final, fuente_valida, tipo_dano, fue_critico)
 	BusEventos.habilidad_impacto.emit("proyectil", defensor)
+	_al_impactar_de_verdad(defensor)
+
+## true si este objetivo NO debe volver a resolverse — por defecto nunca
+## (un proyectil normal se libera en su primer impacto real, así que jamás
+## llega a preguntar por un segundo). ProyectilRebote sobreescribe esto
+## para no volver a pegarle a un blanco que ya rebotó: sin este chequeo, el
+## proyectil redirigido (que queda apenas separado del blanco recién
+## golpeado, ver _al_impactar_de_verdad de esa clase) podía volver a
+## disparar la señal area_entered/body_entered contra el MISMO blanco al
+## físico siguiente y aplicar el daño de nuevo (doble/triple golpe
+## observado en pruebas/prueba_rebote.gd antes de este chequeo).
+func _debe_ignorar_objetivo(_defensor: Node) -> bool:
+	return false
+
+## Qué pasa después de un impacto REAL (ya aplicado el daño de arriba) —
+## por defecto, mostrar el efecto de impacto y volver a la piscina (el
+## comportamiento de siempre). ProyectilRebote sobreescribe esto para, en
+## vez de liberarse, buscar el siguiente enemigo cercano y seguir de largo
+## hacia él (ver ese archivo) — extraído a propósito para que ese caso no
+## tenga que duplicar toda la resolución de arriba (equipo, obstáculos
+## rompibles, pipeline de daño...).
+func _al_impactar_de_verdad(defensor: Node) -> void:
 	_spawnear_efecto_impacto(defensor)
 	GestorPiscinas.liberar(self)
 

@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3 uid="uid://d0cdv6qjcyipx"]
+
+[ext_resource type="Script" uid="uid://b0u707m4fu65o" path="res://escenas/habilidades/aura/HabilidadAura.gd" id="1_haura"]
+[ext_resource type="Texture2D" uid="uid://dmuymc1u0jjof" path="res://assets/iconos/icono_aura_32x32.png" id="2_icono"]
+
+[node name="HabilidadAura" type="Node"]
+script = ExtResource("1_haura")
+radio = 75.0
+dano_por_tick = 3.0
+intervalo_tick = 0.5
+icono_buff = ExtResource("2_icono")
+nombre_habilidad = "Aura"
+duracion_recarga = 8.0
+costo_energia = 25.0

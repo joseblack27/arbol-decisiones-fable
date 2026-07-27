@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/gancho/HabilidadGancho.gd" id="1_hgancho"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/gancho/GanchoProyectil.tscn" id="2_proy"]
+
+[node name="HabilidadGancho" type="Node"]
+script = ExtResource("1_hgancho")
+escena_proyectil = ExtResource("2_proy")
+daño_proyectil = 0.0
+nombre_habilidad = "Gancho"
+duracion_recarga = 5.0
+costo_energia = 25.0
+requiere_direccion = true
+duracion_tiron = 0.5
+distancia_frente = 40.0

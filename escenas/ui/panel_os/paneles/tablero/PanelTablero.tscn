@@ -547,40 +547,44 @@ text = "Potencia:"
 layout_mode = 2
 text = "20"
 
-[node name="PanelActividadReciente" type="Panel" parent="VBoxContainer/MarginContainer/HBoxContainer"]
+[node name="PanelBuffsActivos" type="Panel" parent="VBoxContainer/MarginContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente"]
+[node name="MarginContainer" type="MarginContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
 
-[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer"]
+[node name="Encabezado" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer/VBoxContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HSeparator" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer/VBoxContainer/Encabezado"]
 layout_mode = 2
 
-[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer"]
+[node name="Label" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer/VBoxContainer/Encabezado"]
 layout_mode = 2
-text = "Actividad Reciente"
+text = "Buffs Activos"
 horizontal_alignment = 1
 
-[node name="HSeparator2" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer/VBoxContainer/Encabezado"]
 layout_mode = 2
 
-[node name="RegistroActividad" type="RichTextLabel" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer"]
+[node name="Scroll" type="ScrollContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
-bbcode_enabled = true
-scroll_active = true
-scroll_following = true
+horizontal_scroll_mode = 0
+
+[node name="ListaBuffs" type="VBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer/VBoxContainer/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8

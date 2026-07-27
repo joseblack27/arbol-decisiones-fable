@@ -111,6 +111,14 @@ func agregar_vida(cantidad: float) -> float:
 
 
 	cambio_valor_vida.emit(salud_actual)
+	# Número flotante verde "+N": igual que con daño (ver quitar_vida), este
+	# componente solo gestiona salud — GestorNumerosCuracion es quien escucha
+	# BusEventos.curacion_aplicada y dibuja el número. Real (salud_actual -
+	# vida_anterior), no "cantidad": si el golpe de curación pasa el máximo,
+	# lo que de verdad se ganó es menos que lo pedido. Ya con la vida al tope,
+	# la ganancia real es 0 — no emitir, o saldría un "+0" flotando de la nada.
+	if salud_actual > vida_anterior:
+		BusEventos.curacion_aplicada.emit(get_parent(), salud_actual - vida_anterior)
 	if Utils.en_red() and multiplayer.is_server():
 		rpc("_recibir_vida_red", salud_actual, "", salud_maxima)
 
@@ -240,6 +248,12 @@ func _recibir_vida_red(valor: float, ruta_fuente: String = "", maxima: float = -
 			# _recibir_resync_nodo_red más abajo.
 			rpc_id(1, "_pedir_resync_nodo_red", ruta_fuente)
 		BusEventos.daño_replicado.emit(get_parent(), delta, nombre_fuente)
+	elif valor_clamp > salud_actual:
+		# Mismo criterio que arriba pero para curación: el número verde "+N"
+		# en el cliente sale de ACÁ (el delta ya replicado) — agregar_vida()
+		# ya emite su propio curacion_aplicada para el caso servidor/single-
+		# player (ver ese método), esto cubre al resto de los clientes.
+		BusEventos.curacion_aplicada.emit(get_parent(), valor_clamp - salud_actual)
 	salud_actual = valor_clamp
 	cambio_valor_vida.emit(salud_actual)
 

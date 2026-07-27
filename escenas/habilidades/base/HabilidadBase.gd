@@ -90,6 +90,17 @@ func obtener_recarga_restante() -> float:
 func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	if not puede_usarse():
 		return
+	# "Bloquear control" ya significa "no puede hacer nada", no solo "no
+	# se mueve" — sin este chequeo, mientras una habilidad tiene al dueño
+	# bloqueado (el margen de congelamiento de red de CUALQUIER otra, o el
+	# gancho arrastrando/siendo arrastrado, ver HabilidadGancho) igual se
+	# podía activar una habilidad distinta desde otro slot. Corre en
+	# activar() (no en cada _activar_slot de la UI) para proteger también
+	# la copia autoritativa del servidor, que llega acá directo por
+	# _activar_red() sin pasar por la UI.
+	if is_instance_valid(entidad_dueña) and ("_bloqueos_control" in entidad_dueña) \
+			and entidad_dueña._bloqueos_control > 0:
+		return
 	if costo_energia > 0.0:
 		var energia := entidad_dueña.get_node_or_null("EnergiaComponente") as EnergiaComponente
 		if energia and not energia.consumir(costo_energia):

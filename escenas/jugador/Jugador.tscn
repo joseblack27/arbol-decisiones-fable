@@ -30,6 +30,15 @@
 [ext_resource type="Script" path="res://componentes/CuracionComponente.gd" id="34_curc"]
 [ext_resource type="Resource" uid="uid://bm4obwbxriwrr" path="res://recursos/habilidades/lanzallamas.tres" id="35_llamas"]
 [ext_resource type="Resource" uid="uid://d3elulj0pqs7d" path="res://recursos/habilidades/esquirla_helada.tres" id="36_esquirla"]
+[ext_resource type="Resource" uid="uid://cekyubxqgis3r" path="res://recursos/habilidades/gancho.tres" id="37_gancho"]
+[ext_resource type="Resource" uid="uid://bgritoguerra1" path="res://recursos/habilidades/grito_guerra.tres" id="38_grito"]
+[ext_resource type="Resource" uid="uid://btrampahab01" path="res://recursos/habilidades/trampa.tres" id="39_trampa"]
+[ext_resource type="Resource" uid="uid://bvenenohab01" path="res://recursos/habilidades/veneno.tres" id="40_veneno"]
+[ext_resource type="Resource" uid="uid://0sipjyxy3vjl" path="res://recursos/habilidades/aura.tres" id="41_aura"]
+[ext_resource type="Resource" uid="uid://brebotehab01" path="res://recursos/habilidades/rebote.tres" id="42_rebote"]
+[ext_resource type="Resource" uid="uid://bgolpevamp01" path="res://recursos/habilidades/golpe_vampirico.tres" id="43_golpevamp"]
+[ext_resource type="Resource" uid="uid://bondachoque1" path="res://recursos/habilidades/onda_choque.tres" id="44_ondachoque"]
+[ext_resource type="Resource" uid="uid://binvocacion1" path="res://recursos/habilidades/invocacion.tres" id="45_invocacion"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_8vwo7"]
 
@@ -637,7 +646,7 @@ script = ExtResource("30_buffs")
 [node name="SlotHabilidades" type="Node" parent="." node_paths=PackedStringArray("jugador")]
 script = ExtResource("13_sh")
 jugador = NodePath("..")
-catalogo = Array[ExtResource("25_dh")]([ExtResource("20_bf"), ExtResource("21_eh"), ExtResource("36_esquirla"), ExtResource("22_pr"), ExtResource("23_gb"), ExtResource("24_cj"), ExtResource("26_muro"), ExtResource("27_abanico"), ExtResource("29_escudo"), ExtResource("31_parpadeo"), ExtResource("32_curacion"), ExtResource("33_inmov"), ExtResource("35_llamas")])
+catalogo = Array[ExtResource("25_dh")]([ExtResource("20_bf"), ExtResource("21_eh"), ExtResource("36_esquirla"), ExtResource("22_pr"), ExtResource("23_gb"), ExtResource("24_cj"), ExtResource("26_muro"), ExtResource("27_abanico"), ExtResource("29_escudo"), ExtResource("31_parpadeo"), ExtResource("32_curacion"), ExtResource("33_inmov"), ExtResource("35_llamas"), ExtResource("37_gancho"), ExtResource("38_grito"), ExtResource("39_trampa"), ExtResource("40_veneno"), ExtResource("41_aura"), ExtResource("42_rebote"), ExtResource("43_golpevamp"), ExtResource("44_ondachoque"), ExtResource("45_invocacion")])
 
 [node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador")]
 script = ExtResource("3_ukil5")

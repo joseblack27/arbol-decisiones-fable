@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://bondachoque1"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_onda_choque_32x32.png" id="2_icono"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/onda_choque/HabilidadOndaChoque.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Onda de Choque"
+icono = ExtResource("2_icono")
+descripcion = "Golpea con {damage1} y empuja lejos a los enemigos a tu alrededor"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 25
+dano_base_min = 12
+dano_base_max = 16
+radio_golpe = 90.0
+enfriamiento = 7.0

@@ -17,11 +17,35 @@ extends Node2D
 
 
 func _ready() -> void:
+	if Utils.en_red():
+		_configurar_spawner_invocaciones()
 	var generador := _buscar_generador()
 	if generador == null:
 		return
 	for nodo in _puntos_importantes():
 		generador.despejar_alrededor(nodo.global_position, radio_despeje)
+
+
+## Réplica de entidades que un JUGADOR invoca (p. ej. HabilidadInvocacion),
+## no de un SpawnerMobs — vive acá (no en SpawnerMobs.gd) para existir en
+## TODO nivel sin depender de que tenga uno propio. Mismo patrón que
+## SpawnerMobs._configurar_spawner_red(): el MultiplayerSpawner tiene que
+## existir IGUAL en todos los peers (por eso corre sin distinguir servidor/
+## cliente), apuntando al mismo contenedor "Enemigos" que ya usan los mobs
+## — así una invocación se replica y sincroniza posición exactamente igual
+## que cualquier mob (ver Enemigo._physics_process).
+func _configurar_spawner_invocaciones() -> void:
+	var enemigos := get_node_or_null("Enemigos")
+	if enemigos == null:
+		return
+	var spawner := MultiplayerSpawner.new()
+	spawner.name = "SpawnerInvocaciones"
+	# add_child() PRIMERO: mismo motivo que SpawnerMobs._configurar_spawner_
+	# red() — spawn_path necesita que el spawner ya esté dentro del árbol
+	# para resolver la ruta absoluta.
+	enemigos.add_child(spawner)
+	spawner.spawn_path = enemigos.get_path()
+	spawner.add_spawnable_scene("res://escenas/enemigos/AliadoInvocado.tscn")
 
 
 func punto_aparicion() -> Node2D:

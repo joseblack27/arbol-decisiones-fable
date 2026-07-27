@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/buff_equipo/HabilidadBuffEquipo.gd" id="1_buff"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_grito_guerra_32x32.png" id="2_icono"]
+
+[node name="HabilidadBuffEquipo" type="Node"]
+script = ExtResource("1_buff")
+radio_buff = 150.0
+bono_dano = 15.0
+duracion_buff = 10.0
+icono_buff = ExtResource("2_icono")
+nombre_habilidad = "Grito de guerra"
+duracion_recarga = 12.0
+costo_energia = 30.0
+requiere_direccion = false

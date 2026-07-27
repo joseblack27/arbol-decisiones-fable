@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://0sipjyxy3vjl"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" uid="uid://dmuymc1u0jjof" path="res://assets/iconos/icono_aura_32x32.png" id="2_icono"]
+[ext_resource type="PackedScene" uid="uid://d0cdv6qjcyipx" path="res://escenas/habilidades/aura/HabilidadAura.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Aura"
+icono = ExtResource("2_icono")
+descripcion = "Activa un aura de daño a tu alrededor: cualquier enemigo cerca recibe {damage1} cada segundo mientras dure"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 25
+dano_base_min = 6
+dano_base_max = 8
+enfriamiento = 8.0

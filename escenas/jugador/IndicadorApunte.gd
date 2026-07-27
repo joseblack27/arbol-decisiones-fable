@@ -104,8 +104,11 @@ func _draw() -> void:
 	match _tipo:
 		"proyectil":         _draw_proyectil()
 		"rafaga":            _draw_proyectil()  # mismo corredor recto: 5 tiros, una dirección
+		"gancho":            _draw_proyectil()  # mismo corredor recto que cualquier proyectil
+		"rebote":            _draw_proyectil()  # mismo corredor recto; el rebote en sí no se sabe hasta impactar
 		"proyectil_abanico": _draw_proyectil_abanico()
 		"area":              _draw_area_efecto()
+		"trampa":            _draw_trampa()
 		"carga":             _draw_carga()
 		"muro":              _draw_muro()
 		"parpadeo":          _draw_parpadeo()
@@ -174,6 +177,21 @@ func _draw_proyectil_abanico() -> void:
 		var perp  := Vector2(-dir_i.y, dir_i.x)
 		var esq := PackedVector2Array([perp * hw, fin + perp * hw, fin - perp * hw, -perp * hw])
 		_dibujar_area_golpe_poligono(esq)
+
+
+## Mismo esquema que _draw_area_efecto (círculo de rango + zona de golpe
+## en el punto de colocación) — la trampa en sí queda invisible una vez
+## colocada (a propósito, ver Trampa.gd), pero mientras se apunta SÍ
+## conviene ver dónde va a caer y qué radio de detección va a tener.
+func _draw_trampa() -> void:
+	var h              := _hab as HabilidadTrampa
+	var alcance        := h.alcance_maximo   if h else 150.0
+	var radio_deteccion := h.radio_deteccion if h else 40.0
+
+	_dibujar_rango(alcance)
+
+	var offset := _dir * alcance * _poder
+	_dibujar_area_golpe_circulo(offset, radio_deteccion)
 
 
 func _draw_area_efecto() -> void:

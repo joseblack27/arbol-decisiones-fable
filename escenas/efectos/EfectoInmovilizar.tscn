@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://cta6hjswqst71"]
+[gd_scene load_steps=5 format=3 uid="uid://cta6hjswqst71"]
 
 [ext_resource type="Script" uid="uid://p4d0kg8hby80" path="res://escenas/efectos/EfectoInmovilizar.gd" id="1_inmov"]
 [ext_resource type="Texture2D" uid="uid://cy0wcowd7bkx1" path="res://assets/telarana_48x48.png" id="2_yvhug"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_inmovilizar_32x32.png" id="3_icono"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_inmov"]
 radius = 24.0
@@ -10,6 +11,7 @@ radius = 24.0
 collision_mask = 10
 z_index = -1
 script = ExtResource("1_inmov")
+icono_debuff = ExtResource("3_icono")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_inmov")

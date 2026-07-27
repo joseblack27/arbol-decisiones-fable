@@ -185,3 +185,16 @@ func snake_to_pascal(text: String) -> String:
 			result += p.capitalize()
 
 	return result
+
+
+## "0.5s" en vez de "1s": %.0f redondea cualquier valor fraccionario a un
+## entero, así que un intervalo/duración ajustado a algo como 0.5 se
+## mostraba como "1s" (reportado en Aura: "tengo intervalo tick en 0,5 y
+## allá sale 1s"). Compartido por cualquier descripción de buff que
+## muestre segundos (Aura, Veneno, Curación...) para no repetir esta
+## lógica en cada habilidad. Solo se ve el decimal cuando de verdad hace
+## falta — un valor redondo como 1.0 sigue mostrando "1s", no "1.0s".
+func formatear_segundos(valor: float) -> String:
+	if is_equal_approx(valor, roundf(valor)):
+		return "%ds" % int(valor)
+	return "%.1fs" % valor

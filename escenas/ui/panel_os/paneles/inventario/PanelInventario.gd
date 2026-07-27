@@ -279,6 +279,13 @@ func _update_details(item: SlotItem):
 	barra_rapida_button.visible = item.can_use
 	equip_action_button.visible = item.can_equip
 	drop_action_button.visible  = item.can_drop
+	# El botón ya desequipaba de verdad para un ítem puesto (ver
+	# _on_drop_button: item_data_details is EquipoSlot) pero decía "Soltar"
+	# para cualquier ítem — para uno YA EQUIPADO eso no deja claro qué hace
+	# (reportado: "necesito que agregues la accion de desequipar en los
+	# objetos que ya estan equipados", sin saber que ya existía bajo ese
+	# nombre confuso).
+	drop_action_button.text = "Desequipar" if item is EquipoSlot else "Soltar"
 
 
 ## Pinta, debajo de la descripción, una fila por cada característica != 0

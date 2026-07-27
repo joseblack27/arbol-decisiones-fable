@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/invocacion/HabilidadInvocacion.gd" id="1_hab"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_invocacion_32x32.png" id="2_icono"]
+
+[node name="HabilidadInvocacion" type="Node"]
+script = ExtResource("1_hab")
+duracion_invocacion = 15.0
+dano_ataque = 10.0
+rango_ataque = 40.0
+intervalo_ataque = 1.0
+velocidad_persecucion = 140.0
+icono_buff = ExtResource("2_icono")
+duracion_recarga = 20.0
+costo_energia = 40.0

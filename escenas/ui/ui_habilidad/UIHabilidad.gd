@@ -163,6 +163,22 @@ func _apunte_bloqueado_por_cooldown() -> bool:
 	return _cd_restante > 0.0
 
 
+## Muerto no lanza habilidades — HabilidadBase.activar()/_activar_red() ya
+## lo bloquean del lado del EFECTO real (client-side y server-side), pero
+## este botón seguía respondiendo igual al toque mientras tanto: el
+## joystick se armaba, el indicador de apunte se mostraba... como si la
+## habilidad fuera a salir, y en el fondo nunca hacía nada (pedido del
+## usuario: bloquearlas de verdad hasta reaparecer, no solo que no tengan
+## efecto). _slot_habilidades.jugador es la MISMA referencia que ya usa
+## SlotHabilidades (asignada en el Inspector), no hace falta buscarla de
+## nuevo por grupo.
+func _dueño_muerto() -> bool:
+	if not _slot_habilidades or not is_instance_valid(_slot_habilidades.jugador):
+		return false
+	var jugador := _slot_habilidades.jugador
+	return ("_muerto" in jugador) and jugador.get("_muerto")
+
+
 ## Registra por adelantado las señales de otros slots que este botón físico
 ## va a representar más adelante (ver PaginadorHabilidades, que llama esto
 ## para TODAS las páginas apenas arranca) — sin esto, Jugador/IndicadorApunte
@@ -240,7 +256,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
 			if _touch_index == -1 and _toque_en_boton(event.position):
-				if _sin_energia or _apunte_bloqueado_por_cooldown():
+				if _sin_energia or _apunte_bloqueado_por_cooldown() or _dueño_muerto():
 					return
 				if _modo_joystick:
 					# Guardar la posición de press en espacio local relativo al centro
@@ -267,7 +283,7 @@ func _input(event: InputEvent) -> void:
 	elif event is InputEventScreenTouch:
 		if event.pressed:
 			if _touch_index == -1 and _toque_en_boton(event.position):
-				if _sin_energia or _apunte_bloqueado_por_cooldown():
+				if _sin_energia or _apunte_bloqueado_por_cooldown() or _dueño_muerto():
 					return
 				if _modo_joystick:
 					# Posición de press en espacio local relativo al centro
@@ -320,6 +336,18 @@ func _iniciar_joystick(indice: int) -> void:
 static func cancelar_apunte_de_slot(arbol: SceneTree, slot: int) -> void:
 	for boton in arbol.get_nodes_in_group("ui_habilidad"):
 		if boton is UIHabilidad and boton.slot_index == slot and boton._activo:
+			boton._cancelar_apunte_externo()
+
+
+## Igual que cancelar_apunte_de_slot() pero para TODOS los slots a la vez
+## — lo llama Jugador._morir() (ver ese archivo): si te morís con un
+## joystick de habilidad ya sostenido, sin esto seguía "funcionando"
+## visualmente (arrastre, indicador de apunte) como si estuvieras vivo,
+## aunque de fondo nunca hiciera nada (_dueño_muerto() de este archivo
+## solo corta toques NUEVOS, no uno que ya estaba en curso al morir).
+static func cancelar_todos_los_apuntes(arbol: SceneTree) -> void:
+	for boton in arbol.get_nodes_in_group("ui_habilidad"):
+		if boton is UIHabilidad and boton._activo:
 			boton._cancelar_apunte_externo()
 
 

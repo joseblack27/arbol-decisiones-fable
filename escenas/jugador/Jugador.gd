@@ -314,9 +314,66 @@ func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> v
 				)
 			return
 		id_unico = id_cuenta
+		_expulsar_fantasma_de_la_misma_identidad()
 		return
 	if id_limpio != "":
 		id_unico = id_limpio
+		_expulsar_fantasma_de_la_misma_identidad()
+
+
+## SERVIDOR: si YA existe otro Jugador vivo con la MISMA identidad (mismo
+## id_unico, otro peer_id_dueño), esa es una conexión vieja/fantasma —
+## reportado en juego real: "una copia del jugador se crea al spawnear y
+## todos los mobs lo atacan a el mientras yo puedo moverme libremente".
+## Pasa cuando una reconexión deja dos conexiones simultáneas para la misma
+## identidad antes de que ENet detecte la vieja como muerta (confirmado:
+## ocurrió justo tras reiniciar el servidor, cuando el cliente reintenta
+## conectarse solo — ver Mundo._programar_reintento — y una de esas
+## conexiones queda sin limpiar). La IA de los mobs ya tenía al fantasma
+## como objetivo y sigue atacándolo, mientras el jugador de verdad (la
+## conexión nueva) queda libre de aggro.
+##
+## Se desconecta al fantasma acá, apenas se confirma la identidad real (ANTES
+## de cargar la partida) — disconnect_peer() dispara peer_disconnected en el
+## próximo fotograma, y ServidorDedicado._al_desconectar ya hace toda la
+## limpieza correcta (memoria de los mobs, volcar progreso, liberar el nodo):
+## no hace falta duplicar nada de eso acá.
+func _expulsar_fantasma_de_la_misma_identidad() -> void:
+	var fantasma := _buscar_fantasma_de_la_misma_identidad()
+	if fantasma == null:
+		return
+	var peer := multiplayer.multiplayer_peer
+	if peer is ENetMultiplayerPeer and fantasma.peer_id_dueño >= 0:
+		# NO cortar sincrónico acá adentro — mismo problema ya documentado en
+		# _rechazar_cuenta_red (ver ese comentario): esto corre DENTRO del
+		# procesamiento del RPC _registrar_identidad_red de OTRO peer, y
+		# cortar la conexión del fantasma en ese mismo instante deja a ENet
+		# en un estado a medio actualizar por varios fotogramas — cualquier
+		# RPC/replicación que en ese lapso le mande un paquete al fantasma
+		# (equipo, posición de mobs, energía...) revienta con "Unable to
+		# send packet... max channels: 0" (reportado en juego real: "cada
+		# vez que presiono cualquier boton se rompe el juego"). Un timer
+		# real (no call_deferred: eso solo pospone al mismo fotograma, no
+		# alcanza) le da tiempo a ENet de terminar de resolver esta llamada
+		# antes de procesar el corte.
+		var id_a_expulsar: int = fantasma.peer_id_dueño
+		get_tree().create_timer(0.3).timeout.connect(
+			(peer as ENetMultiplayerPeer).disconnect_peer.bind(id_a_expulsar, false)
+		)
+
+
+## Separado de _expulsar_fantasma_de_la_misma_identidad() para poder probar
+## la lógica de detección (la parte propensa a errores: encontrar al
+## fantasma correcto, sin falsos positivos entre jugadores distintos ni
+## falsos negativos consigo mismo) sin necesitar un ENetMultiplayerPeer real
+## — ver pruebas/prueba_expulsar_fantasma_identidad.gd.
+func _buscar_fantasma_de_la_misma_identidad() -> Node:
+	for otro in get_tree().get_nodes_in_group("jugadores"):
+		if otro == self or not ("id_unico" in otro) or not ("peer_id_dueño" in otro):
+			continue
+		if otro.id_unico == id_unico and otro.peer_id_dueño != peer_id_dueño:
+			return otro
+	return null
 
 
 ## CLIENTE (dueño): el servidor rechazó la cuenta (PIN incorrecto). Solo
@@ -586,6 +643,10 @@ func _morir() -> void:
 	modulate = Color(0.35, 0.35, 0.35, 0.6)
 	if _es_dueño_local():
 		_mostrar_aviso_muerte()
+		# Suelta cualquier joystick de habilidad que siguiera sostenido al
+		# morir — ver comentario de UIHabilidad.cancelar_todos_los_apuntes.
+		if is_inside_tree():
+			UIHabilidad.cancelar_todos_los_apuntes(get_tree())
 
 
 ## Solo la autoridad (servidor / un solo jugador): cura, teletransporta al
@@ -645,13 +706,28 @@ func _mostrar_aviso_muerte() -> void:
 	if _aviso_muerte == null:
 		var capa := CanvasLayer.new()
 		capa.layer = 90
+		# CenterContainer, no PRESET_CENTER en el label: ese preset solo
+		# ancla la esquina SUPERIOR IZQUIERDA del label al centro de la
+		# pantalla (el texto quedaba corrido hacia abajo/derecha, no
+		# centrado de verdad — reportado). El CenterContainer sí centra el
+		# tamaño real del label, y se reacomoda solo aunque el texto
+		# cambie de largo (la cuenta regresiva pasa de "Reapareces en 5"
+		# a "en 0", ver más abajo).
+		var centro := CenterContainer.new()
+		centro.set_anchors_preset(Control.PRESET_FULL_RECT)
+		# Ignora mouse/touch: es un cartel de solo lectura tapando toda la
+		# pantalla, no debe robarle el toque al joystick/botones de abajo.
+		centro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_aviso_muerte = Label.new()
 		_aviso_muerte.text = "Has muerto"
+		_aviso_muerte.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		_aviso_muerte.add_theme_font_size_override("font_size", 36)
 		_aviso_muerte.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
-		_aviso_muerte.set_anchors_preset(Control.PRESET_CENTER)
+		_aviso_muerte.add_theme_color_override("font_outline_color", Color.BLACK)
+		_aviso_muerte.add_theme_constant_override("outline_size", 8)
 		_aviso_muerte.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		capa.add_child(_aviso_muerte)
+		centro.add_child(_aviso_muerte)
+		capa.add_child(centro)
 		add_child(capa)
 	_aviso_muerte.show()
 	# Cuenta regresiva simple en el propio label.

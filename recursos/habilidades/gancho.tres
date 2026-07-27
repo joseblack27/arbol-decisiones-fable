@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://cekyubxqgis3r"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" uid="uid://dacfokudk3nq7" path="res://assets/iconos/icono_gancho.png" id="2_piijr"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/gancho/HabilidadGancho.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Gancho"
+icono = ExtResource("2_piijr")
+descripcion = "Dispara un gancho que engancha al primer enemigo en su camino y lo arrastra de un tirón ({duracion}s) hasta dejarlo justo enfrente tuyo"
+categoria = 3
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 25
+alcance_metros = 8
+enfriamiento = 5.0

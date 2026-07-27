@@ -85,6 +85,8 @@ func usar_item(item: DatosItem) -> void:
 		_pedir_curacion(item.curacion)
 	if item.energia > 0.0:
 		_pedir_energia(item.energia)
+	if item.experiencia > 0:
+		_pedir_experiencia(item.experiencia)
 
 
 ## true si usar este ítem tendría algún efecto real ahora mismo. Los ítems
@@ -177,3 +179,42 @@ func _pedir_energia_red(cantidad: float) -> void:
 	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
 		return
 	_energia_local(cantidad)
+
+
+## Consumibles que dan XP (tickets) — a diferencia de vida/energía (que se
+## replican solas cada tanto, ver VidaComponente/EnergiaComponente),
+## ExperienciaComponente no tiene ningún canal de réplica periódica: el
+## único aviso que le llega al cliente dueño de un cambio de XP decidido
+## en el servidor es un RPC explícito (mismo que ya manda Enemigo._otorgar
+## _xp() al matar un mob) — sin reenviarlo acá también, el cliente que usó
+## el ítem vería gastarse el ticket sin que su XP subiera nunca en pantalla.
+func _pedir_experiencia(cantidad: int) -> void:
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_pedir_experiencia_red", cantidad)
+		return
+	_experiencia_local(cantidad)
+
+
+func _experiencia_local(cantidad: int) -> void:
+	var experiencia := get_parent().get_node_or_null("ExperienciaComponente")
+	if experiencia:
+		experiencia.agregar_xp(cantidad)
+
+
+## SERVIDOR: mismas verificaciones de dueño que _pedir_curacion_red. A
+## diferencia de esos dos, acá SÍ hace falta reenviarle la confirmación al
+## cliente dueño (ver comentario de _pedir_experiencia) — Jugador.gd ya
+## expone _recibir_xp_red para esto mismo (lo usa Enemigo.gd al otorgar XP
+## por matar un mob), así que no hace falta un RPC nuevo del lado del
+## cliente, solo llamar al que ya existe.
+@rpc("any_peer", "reliable")
+func _pedir_experiencia_red(cantidad: int) -> void:
+	if not multiplayer.is_server():
+		return
+	var jugador := get_parent()
+	if not jugador or not ("peer_id_dueño" in jugador):
+		return
+	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+		return
+	_experiencia_local(cantidad)
+	jugador.rpc_id(jugador.peer_id_dueño, "_recibir_xp_red", cantidad)

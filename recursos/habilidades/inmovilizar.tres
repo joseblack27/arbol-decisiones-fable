@@ -8,7 +8,8 @@
 script = ExtResource("1_dh")
 nombre = "Red inmovilizadora"
 icono = ExtResource("2_1kehc")
-descripcion = "Dispara una red que inmoviliza al enemigo que impacte durante unos segundos"
+descripcion = "Dispara una red que inmoviliza al enemigo que impacte durante {duracion} segundos"
+categoria = 3
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 20

@@ -1,0 +1,44 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://escenas/ui/panel_os/paneles/tablero/FilaBuff.gd" id="1_fila"]
+
+[node name="FilaBuff" type="HBoxContainer"]
+custom_minimum_size = Vector2(0, 40)
+theme_override_constants/separation = 8
+script = ExtResource("1_fila")
+
+[node name="Icono" type="TextureRect" parent="."]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+layout_mode = 2
+
+[node name="Nombre" type="Label" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Nombre"
+
+[node name="Tiempo" type="Label" parent="VBoxContainer/HBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+horizontal_alignment = 2
+text = "0s"
+
+[node name="Descripcion" type="Label" parent="VBoxContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 2
+text = "Descripción"
+theme_override_font_sizes/font_size = 11
+modulate = Color(1, 1, 1, 0.75)

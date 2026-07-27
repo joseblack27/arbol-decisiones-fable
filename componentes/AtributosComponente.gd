@@ -12,6 +12,13 @@ class_name AtributosComponente
 ## Valores base del personaje. Asignar en el Inspector.
 @export var base: AtributosBase
 
+## Emitida cuando cambia el total de bonos de daño TEMPORALES (se agrega
+## uno nuevo, o vence uno existente) — para que la UI (PanelTablero) se
+## entere al toque sin tener que sondear a cada rato (antes revisaba cada
+## 0.5s aunque nada hubiera cambiado; con la señal solo se refresca
+## cuando de verdad hay algo nuevo que mostrar).
+signal bono_dano_cambiado(nuevo_total: float)
+
 ## Multiplicador BASE de todo golpe crítico (+20%), aplicado siempre que el
 ## crítico acierta — dano_critico (el atributo visible) se SUMA encima de
 ## esto. A propósito NO se muestra en ningún panel de atributos: es parte
@@ -39,9 +46,60 @@ static var ultimo_pipeline_critico := false
 var _base_sin_equipo: AtributosBase
 
 
+## Bonos de daño TEMPORALES (buffs de tiempo limitado, p. ej. HabilidadBuff
+## Equipo) — a propósito NO viven en "base": recalcular_con_equipo()
+## sobreescribe "base" entero desde _base_sin_equipo cada vez que cambia el
+## equipo (ver ese método), así que cualquier bono temporal sumado ahí se
+## perdía apenas alguien reequipaba algo mientras el buff seguía activo.
+## Viven aparte, se evalúan al calcular daño (ver calcular_dano_saliente) y
+## se quitan solos al vencer — nunca hace falta "restar" nada a mano.
+class BonoTemporal:
+	var danos: float = 0.0
+	var tiempo_restante: float = 0.0
+
+var _bonos_temporales: Dictionary[String, BonoTemporal] = {}
+
+
 func _ready() -> void:
 	if base:
 		_base_sin_equipo = base.duplicate() as AtributosBase
+
+
+func _process(delta: float) -> void:
+	if _bonos_temporales.is_empty():
+		return
+	var vencio_alguno := false
+	for id in _bonos_temporales.keys():
+		var bono: BonoTemporal = _bonos_temporales[id]
+		bono.tiempo_restante -= delta
+		if bono.tiempo_restante <= 0.0:
+			_bonos_temporales.erase(id)
+			vencio_alguno = true
+	if vencio_alguno:
+		bono_dano_cambiado.emit(obtener_bono_dano_temporal())
+
+
+## Agrega (o renueva) un bono de daño plano temporal identificado por "id"
+## — reactivar el mismo buff antes de que venza el anterior renueva la
+## duración en vez de sumarse dos veces (mismo criterio que BuffsComponente
+## .agregar()).
+func agregar_bono_dano_temporal(id: String, danos: float, duracion: float) -> void:
+	var bono: BonoTemporal = _bonos_temporales.get(id, BonoTemporal.new())
+	bono.danos            = danos
+	bono.tiempo_restante  = duracion
+	_bonos_temporales[id] = bono
+	bono_dano_cambiado.emit(obtener_bono_dano_temporal())
+
+
+## Público (no solo uso interno de calcular_dano_saliente): PanelTablero lo
+## necesita para sumar el bono al Daño mostrado en las estadísticas del
+## jugador, así en pleno combate se ve el número YA efectivo, sin que el
+## jugador tenga que sumar a mano un buff aparte (pedido del usuario).
+func obtener_bono_dano_temporal() -> float:
+	var total := 0.0
+	for bono in _bonos_temporales.values():
+		total += (bono as BonoTemporal).danos
+	return total
 
 
 ## Recalcula los campos de "base" = atributos de fábrica + la suma de los
@@ -129,8 +187,9 @@ func calcular_dano_saliente(
 	if not base:
 		return dano_base
 
-	# 1. Bonus plano
-	var total: float = dano_base + base.danos
+	# 1. Bonus plano (base de fábrica+equipo, más cualquier buff temporal
+	# activo — ver _bono_dano_temporal_total)
+	var total: float = dano_base + base.danos + obtener_bono_dano_temporal()
 
 	# 2. Multiplicador de potencia
 	total *= 1.0 + base.potencia / 100.0
@@ -154,6 +213,25 @@ func calcular_dano_saliente_vista_previa(dano_base: float) -> float:
 	var total: float = dano_base + base.danos
 	total *= 1.0 + base.potencia / 100.0
 	return maxf(0.0, total)
+
+
+## Rango de "Daño Calculado": dano_min/max pasados por calcular_dano_
+## saliente_vista_previa (o tal cual si no hay atributos disponibles) y
+## RECIÉN ahí escalados por "factor" — el multiplicador_dano_tick propio
+## de habilidades que reparten el golpe en varios ticks (Lanzallamas,
+## Aura). Compartido por PanelDetalleHabilidad ("Daño Calculado" del
+## detalle) y HabilidadAura (descripción del buff activo) para que los
+## dos muestren siempre el mismo número sin duplicar la fórmula en cada
+## lugar que la necesite — antes vivía escrita dos veces y se desincronizó
+## (reportado: "el daño que se muestra no es el calculado para el aura").
+static func calcular_rango_con_factor(
+		atributos: AtributosComponente, dano_min: float, dano_max: float, factor: float = 1.0) -> Vector2i:
+	var final_min := dano_min
+	var final_max := dano_max
+	if atributos:
+		final_min = atributos.calcular_dano_saliente_vista_previa(dano_min)
+		final_max = atributos.calcular_dano_saliente_vista_previa(dano_max)
+	return Vector2i(int(final_min * factor), int(final_max * factor))
 
 
 ## Aplica los atributos defensivos de ESTE personaje al daño entrante.

@@ -6,6 +6,10 @@ class_name DatosHabilidad
 @export var nombre: String = ""
 @export var icono: Texture2D = null
 @export_multiline var descripcion: String = ""
+## Rol de la habilidad — decide qué filas de estadísticas muestra
+## PanelDetalleHabilidad.gd (daño/tipo/rango solo tienen sentido para
+## ATAQUE). Ver Enums.Habilidad.Categoria.
+@export var categoria: Enums.Habilidad.Categoria = Enums.Habilidad.Categoria.ATAQUE
 
 # ── Gameplay ───────────────────────────────────────────────────────────────────
 @export var escena: PackedScene = null

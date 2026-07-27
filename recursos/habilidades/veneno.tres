@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://bvenenohab01"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_veneno_32x32.png" id="2_icono"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/veneno/HabilidadVeneno.tscn" id="3_esc"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Veneno"
+icono = ExtResource("2_icono")
+descripcion = "Dispara una flecha envenenada que hace {damage1} y envenena al enemigo, dañándolo con el correr del tiempo aunque se aleje"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 20
+dano_base_min = 8
+dano_base_max = 10
+alcance_metros = 9
+enfriamiento = 5.0

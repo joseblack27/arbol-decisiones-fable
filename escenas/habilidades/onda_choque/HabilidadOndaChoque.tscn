@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/onda_choque/HabilidadOndaChoque.gd" id="1_hab"]
+
+[node name="HabilidadOndaChoque" type="Node"]
+script = ExtResource("1_hab")
+radio_onda = 90.0
+fuerza_empuje = 400.0
+duracion_empuje = 0.25
+duracion_recarga = 7.0
+costo_energia = 25.0

@@ -43,6 +43,15 @@ func _drop_data(_at_position, data):
 	# grilla desde ahí — añadirlo solo localmente (sin tocar el autoload)
 	# haría que desapareciera la próxima vez que la lista se reconstruya
 	# por otra razón (p. ej. lootear algo nuevo).
+	#
+	# OJO: esto solo se alcanza al soltar en el fondo del panel (sin ningún
+	# SlotItem hijo debajo) — soltar justo sobre una celda ocupada la
+	# intercepta ANTES (ver SlotItem._can_drop_data/_drop_data, que maneja
+	# el reemplazo cuando coincide el tipo). El caso "tipo distinto o vacío,
+	# en cualquier otro punto del panel" lo resuelve EquipoSlot._notification
+	# como red de seguridad final — depender de burbujeo hacia este
+	# contenedor para ESE caso no era confiable (mouse_filter STOP por
+	# defecto en cada SlotItem corta la cadena antes de llegar acá).
 	var item_slot: EquipoSlot = data
 	var item: DatosItem = item_slot.item_data
 	if item == null:

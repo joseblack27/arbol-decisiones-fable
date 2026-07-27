@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/rebote/HabilidadRebote.gd" id="1_hab"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/rebote/ProyectilRebote.tscn" id="2_proy"]
+
+[node name="HabilidadRebote" type="Node"]
+script = ExtResource("1_hab")
+escena_proyectil = ExtResource("2_proy")
+daño_proyectil = 12.0
+duracion_recarga = 6.0
+costo_energia = 20.0
+requiere_direccion = true
+rebotes_maximos = 4
+radio_busqueda_rebote = 200.0

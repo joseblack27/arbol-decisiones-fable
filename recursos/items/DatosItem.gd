@@ -28,6 +28,10 @@ class_name DatosItem
 ## 0 = sin efecto — ver jeringa_adrenalina.tres para el primer ítem que lo usa.
 @export var energia: float = 0.0
 
+## XP que otorga al usarse (solo tiene efecto si can_use == true). 0 = sin
+## efecto — ver ticket_1.tres..ticket_4.tres, los primeros ítems que lo usan.
+@export var experiencia: int = 0
+
 ## Bonos de atributos que aporta este ítem mientras esté equipado (solo
 ## tiene sentido si type == EQUIPABLE). Reutiliza el mismo AtributosBase
 ## que ya usan jugador/enemigos — lo que pongas acá se SUMA a los atributos

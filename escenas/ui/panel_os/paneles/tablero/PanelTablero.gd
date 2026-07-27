@@ -40,21 +40,34 @@ const _DEFENS := _P_PANEL  + "/Container/VBoxContainer/MarginContainer/VBoxConta
 @onready var _lbl_res_fuego  : Label = get_node(_DEFENS + "/HBoxContainer3/ResFireLabel")
 @onready var _lbl_res_tierra : Label = get_node(_DEFENS + "/HBoxContainer4/ResEarthLabel")
 
-# ── Actividad reciente (log de daño) ─────────────────────────────────────────
-@onready var _registro_actividad: RichTextLabel = get_node(
-	"VBoxContainer/MarginContainer/HBoxContainer/PanelActividadReciente/MarginContainer/VBoxContainer/RegistroActividad")
-## Tope de líneas del registro para que no crezca sin límite en partidas largas.
-const _MAX_LINEAS_REGISTRO := 200
-var _lineas_registro: int = 0
+# ── Buffs/debuffs activos (antes "Actividad Reciente", el log de daño se
+# mudó a GestorLogRed/PanelLogRed — ver ese archivo) ─────────────────────────
+const _P_BUFFS := "VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer/VBoxContainer"
+const ESCENA_FILA_BUFF := preload("res://escenas/ui/panel_os/paneles/tablero/FilaBuff.tscn")
+@onready var _lista_buffs: VBoxContainer = get_node(_P_BUFFS + "/Scroll/ListaBuffs")
+## Título + separadores: ocultos cuando no hay ningún buff/debuff activo
+## (pedido del usuario: "quítame el título y ese mensaje de ahí cuando no
+## haya nada") — antes se mostraba un cartel "Ninguno activo" en su lugar;
+## ahora directamente no se muestra nada hasta que aparezca el primero.
+#@onready var _encabezado_buffs: Control = get_node(_P_BUFFS + "/Encabezado")
+var _buffs_comp: BuffsComponente = null
+# Sin tipar como FilaBuff (clase recién creada): referenciarla por tipo
+# estático desde otro script recién editado falla al cargar ("Could not
+# find type FilaBuff") hasta que el proyecto pasa por el editor una vez —
+# mismo artefacto ya visto con otras clases nuevas en este proyecto.
+var _filas_buff: Dictionary = {}
+var _acumulador_reintento_buffs := 0.0
 
 # ── Referencias a componentes del jugador ─────────────────────────────────────
 var _vida_comp    : VidaComponente    = null
 var _energia_comp : EnergiaComponente = null
 var _atributos    : AtributosBase     = null
+var _atrib_comp   : AtributosComponente = null
 var _datos_jugador: DatosJugador      = null
 
 
 func _ready() -> void:
+	#_encabezado_buffs.visible = false
 	_conectar_jugador()
 	visibility_changed.connect(_on_visibilidad_cambiada)
 	# Refresco inmediato al equipar/quitar/reemplazar algo, aunque esta
@@ -64,16 +77,25 @@ func _ready() -> void:
 	# Enemigo._on_muerte) — DatosJugador.experiencia es un campo aparte que
 	# nadie más actualiza, por eso el panel nunca la mostraba subir.
 	BusEventos.xp_agregada.connect(_on_xp_agregada)
-	# Log de daño en "Actividad Reciente": para rastrear el "daño fantasma"
-	# (el jugador pierde vida sin ver quién lo golpeó). Se registra TODO
-	# daño que reciba un jugador, incluso con el panel cerrado — al abrirlo
-	# se ve el historial completo.
-	BusEventos.daño_aplicado.connect(_on_dano_registrado)
-	# En cliente puro el daño real llega por daño_replicado, que trae el
-	# nombre del atacante YA resuelto como texto — incluso si su nodo no
-	# existe en este peer ("EnemigoAraña@5 [invisible]" en vez de "???").
-	# _on_dano_registrado se salta esos casos para no duplicar la línea.
-	BusEventos.daño_replicado.connect(_on_dano_replicado)
+
+
+func _process(delta: float) -> void:
+	# BuffsComponente se crea recién al vuelo (ver BuffsComponente.gd) cuando
+	# el jugador recibe su primer buff/debuff — puede no existir todavía
+	# cuando este panel se conecta la primera vez, así que se reintenta cada
+	# 0.5s hasta encontrarlo (mismo criterio que BarraBuffs.gd).
+	if _buffs_comp == null or not is_instance_valid(_buffs_comp):
+		_acumulador_reintento_buffs += delta
+		if _acumulador_reintento_buffs >= 0.5:
+			_acumulador_reintento_buffs = 0.0
+			_conectar_buffs()
+		return
+	if not visible:
+		return
+	for id in _filas_buff:
+		var buff := _buffs_comp.obtener(id)
+		if buff:
+			_filas_buff[id].actualizar_tiempo(buff.tiempo_restante)
 
 
 # =============================================================================
@@ -97,7 +119,9 @@ func _conectar_jugador() -> void:
 
 	var atrib_comp := jugador.get_node_or_null("AtributosComponente") as AtributosComponente
 	if atrib_comp:
-		_atributos = atrib_comp.base
+		_atributos  = atrib_comp.base
+		_atrib_comp = atrib_comp
+		_atrib_comp.bono_dano_cambiado.connect(_on_bono_dano_cambiado)
 
 	if "datos_jugador" in jugador:
 		_datos_jugador = jugador.get("datos_jugador") as DatosJugador
@@ -108,6 +132,52 @@ func _conectar_jugador() -> void:
 		_energia_comp.energia_cambiada.connect(_on_energia_cambiada)
 
 	_actualizar_todo()
+	_conectar_buffs()
+
+
+## Buscado aparte de _conectar_jugador() (no en esa misma función): a
+## diferencia de VidaComponente/EnergiaComponente/AtributosComponente (ya
+## están en Jugador.tscn de fábrica), BuffsComponente se crea RECIÉN cuando
+## el jugador recibe su primer buff — puede no existir todavía la primera
+## vez que este panel se conecta, así que _process() reintenta llamando
+## esto de nuevo hasta encontrarlo.
+func _conectar_buffs() -> void:
+	if _buffs_comp != null and is_instance_valid(_buffs_comp):
+		return
+	var jugador := Utils.jugador_local()
+	if jugador == null:
+		return
+	_buffs_comp = jugador.get_node_or_null("BuffsComponente") as BuffsComponente
+	if _buffs_comp == null:
+		return
+	_buffs_comp.buff_agregado.connect(_on_buff_agregado)
+	_buffs_comp.buff_quitado.connect(_on_buff_quitado)
+	# Por si ya había buffs activos ANTES de que este panel se conectara
+	# (p. ej. se abre la pestaña a mitad de partida, con un buff ya andando).
+	for id in _buffs_comp.activos():
+		_on_buff_agregado(id)
+
+
+func _on_buff_agregado(id: String) -> void:
+	if _filas_buff.has(id):
+		return
+	var buff := _buffs_comp.obtener(id)
+	if buff == null:
+		return
+	var fila = ESCENA_FILA_BUFF.instantiate()
+	_lista_buffs.add_child(fila)
+	fila.configurar(buff.icono, buff.nombre, buff.descripcion, buff.es_debuff)
+	fila.actualizar_tiempo(buff.tiempo_restante)
+	_filas_buff[id] = fila
+	#_encabezado_buffs.visible = true
+
+
+func _on_buff_quitado(id: String) -> void:
+	if not _filas_buff.has(id):
+		return
+	_filas_buff[id].queue_free()
+	_filas_buff.erase(id)
+	#_encabezado_buffs.visible = not _filas_buff.is_empty()
 
 
 # =============================================================================
@@ -119,6 +189,14 @@ func _on_visibilidad_cambiada() -> void:
 		if _vida_comp == null:
 			_conectar_jugador()
 		_actualizar_todo()
+
+
+## Único disparador de refresco de Daño fuera de equipo_cambiado: un bono
+## temporal (Grito de Guerra) puede aparecer O vencer sin que el jugador
+## haga nada, así que necesita su PROPIO evento (ver AtributosComponente.
+## bono_dano_cambiado) en vez de esperar a equipo_cambiado/xp_agregada.
+func _on_bono_dano_cambiado(_nuevo_total: float) -> void:
+	_actualizar_ofensivas()
 
 func _on_vida_cambiada(_valor: float) -> void:
 	_actualizar_principales()
@@ -134,39 +212,6 @@ func _on_equipo_cambiado(_equipados: Array[DatosItem]) -> void:
 
 func _on_xp_agregada(_cantidad: int, _xp_total: int) -> void:
 	_actualizar_principales()
-
-
-## Escribe "A hizo X daño a B" en el registro de Actividad Reciente cada vez
-## que un JUGADOR recibe daño. A y B son los nombres de nodo de las escenas
-## involucradas; si la fuente no se conoce (p. ej. en un cliente puro, donde
-## el daño real llega replicado desde el servidor sin atacante — ver
-## VidaComponente._recibir_vida_red, que emite fuente=null), se registra
-## "???": justo la firma del "daño fantasma" que se busca rastrear.
-func _on_dano_registrado(objetivo: Node, cantidad: float, fuente: Node, _tipo: int = 2, _critico: bool = false) -> void:
-	# En cliente puro esta misma línea llega (mejor) por daño_replicado —
-	# con el nombre del atacante aunque su nodo no exista en este peer.
-	if Utils.en_red() and not multiplayer.is_server():
-		return
-	# Utils.nombre_visible: para jugadores usa el nombre replicado (el de
-	# nodo es el peer id, un número pelado); para mobs cae al nombre de nodo.
-	var nombre_fuente: String = Utils.nombre_visible(fuente) if is_instance_valid(fuente) else "???"
-	_registrar_linea(objetivo, cantidad, nombre_fuente)
-
-
-func _on_dano_replicado(objetivo: Node, cantidad: float, nombre_fuente: String) -> void:
-	_registrar_linea(objetivo, cantidad, nombre_fuente)
-
-
-func _registrar_linea(objetivo: Node, cantidad: float, nombre_fuente: String) -> void:
-	if objetivo == null or not is_instance_valid(objetivo) or not objetivo.is_in_group("jugadores"):
-		return
-	var nombre_objetivo: String = Utils.nombre_visible(objetivo)
-	if _lineas_registro >= _MAX_LINEAS_REGISTRO:
-		_registro_actividad.remove_paragraph(0)
-	else:
-		_lineas_registro += 1
-	_registro_actividad.append_text(
-		"%s hizo %d daño a %s\n" % [nombre_fuente, int(cantidad), nombre_objetivo])
 
 
 func _actualizar_todo() -> void:
@@ -210,7 +255,11 @@ func _actualizar_regeneracion() -> void:
 func _actualizar_ofensivas() -> void:
 	if not _atributos:
 		return
-	_lbl_danos.text        = str(_atributos.danos)
+	# Suma el bono temporal (buffs como Grito de Guerra) al daño de base —
+	# el jugador ve el número YA efectivo mientras dure, sin tener que
+	# sumarlo a mano en pleno combate (pedido del usuario).
+	var bono_temporal := _atrib_comp.obtener_bono_dano_temporal() if _atrib_comp else 0.0
+	_lbl_danos.text        = str(_atributos.danos + bono_temporal)
 	_lbl_potencia.text     = "%.1f%%" % _atributos.potencia
 	_lbl_impacto.text      = str(_atributos.impacto)
 	_lbl_afliccion.text    = str(_atributos.afliccion)

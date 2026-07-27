@@ -30,6 +30,14 @@ signal daño_aplicado(objetivo: Node, cantidad: float, fuente: Node, tipo: int, 
 signal daño_replicado(objetivo: Node, cantidad: float, nombre_fuente: String)
 ## Emitida cuando una entidad recibe daño (objetivo, cantidad).
 signal daño_recibido(objetivo: Node, cantidad: float)
+## Emitida cuando una entidad se cura de verdad (objetivo, cantidad real
+## aplicada, ya recortada al máximo). VidaComponente.agregar_vida() (y su
+## réplica de red, _recibir_vida_red) es el único punto por el que pasa TODA
+## curación (HoT de Curación, ítems, robo de vida de Golpe Vampírico,
+## regeneración pasiva, full-heal al reaparecer/subir de nivel) — emitirla
+## ahí cubre todos los casos sin tocar cada llamador. Ver
+## GestorNumerosCuracion (pinta el "+N" verde flotante).
+signal curacion_aplicada(objetivo: Node, cantidad: float)
 ## Emitida cuando cualquier entidad muere.
 signal entidad_murio(entidad: Node)
 

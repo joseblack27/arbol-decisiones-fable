@@ -22,15 +22,23 @@ extends Node
 
 var registros = {}
 
+## Sobrescribe en vez de rechazar una segunda registración del mismo
+## nombre: cada nombre pertenece a un solo jugador/UI LOCAL a la vez, así
+## que si ya había una registración previa, quien la puso ya no existe de
+## verdad — es la UI de una partida ANTERIOR liberada al perder la conexión
+## (ver Mundo._al_perder_conexion -> reload_current_scene, que crea un
+## Joystick/UIHabilidad totalmente nuevo con su propio signal_id). Antes
+## esto rechazaba la registración nueva con "ya esta registrada" y dejaba
+## el id VIEJO para siempre: emitir() comparaba contra ese id viejo ("no
+## coincide con la señal registrada") y silenciaba el joystick y las
+## habilidades enteras después de cualquier reconexión (reportado en juego
+## real, justo tras varias reconexiones seguidas al servidor).
 func registrar(nombre: String, id: String, args: Dictionary = {}):
-	if not registros.has(nombre):
-		registros[nombre] = {
-			"args": args,
-			"suscriptores": {},
-			"id": id
-		}
-	else:
-		printerr("Señal '%s' ya esta registrada" % nombre)
+	registros[nombre] = {
+		"args": args,
+		"suscriptores": {},
+		"id": id
+	}
 
 func eliminar(nombre: String):
 	if registros.has(nombre):

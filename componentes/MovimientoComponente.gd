@@ -65,6 +65,15 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	# El empuje (ver aplicar_empuje) TOMA el control del movimiento por
+	# encima de cualquier comando de IA/jugador en curso, mismo criterio de
+	# prioridad que _contador_inmovilizacion — no hace falta liberar_comando()
+	# antes ni después: al vencer, el comando que ya hubiera se retoma solo.
+	if _empuje_restante > 0.0:
+		_empuje_restante -= delta
+		jugador.velocity = _empuje_velocidad
+		jugador.move_and_slide()
+		return
 	match _modo:
 		ModoComando.DIRECCION:
 			physics_process(delta, _direccion_comandada, _velocidad_comandada)
@@ -178,6 +187,12 @@ func _avanzar_hacia_destino(delta: float) -> void:
 func _on_velocity_computed(velocidad_segura: Vector2) -> void:
 	if _modo != ModoComando.DESTINO:
 		return
+	# Un empuje en curso ya está fijando la velocidad este frame (ver
+	# _physics_process) — una respuesta de avoidance ASÍNCRONA que llegue
+	# mientras tanto no debe pisarla, mismo criterio que ya usa este mismo
+	# chequeo contra respuestas viejas de una petición de destino superada.
+	if _empuje_restante > 0.0:
+		return
 	if _contador_inmovilizacion > 0:
 		jugador.velocity = Vector2.ZERO
 	else:
@@ -236,6 +251,26 @@ func agregar_inmovilizacion() -> void:
 
 func quitar_inmovilizacion() -> void:
 	_contador_inmovilizacion = max(0, _contador_inmovilizacion - 1)
+
+
+## Velocidad y tiempo restante de un empuje externo en curso (ver
+## aplicar_empuje) — cero en todo momento salvo mientras dura un knockback
+## (Onda de Choque). No existía ningún mecanismo de fuerza externa antes de
+## esto (confirmado: ni jugador ni mobs podían ser empujados).
+var _empuje_velocidad: Vector2 = Vector2.ZERO
+var _empuje_restante: float = 0.0
+
+
+## Aplica un empuje externo por "duracion" segundos — toma el control total
+## del movimiento mientras dure (ver _physics_process/_on_velocity_computed),
+## por encima de cualquier comando de IA o del jugador en curso. Llamar de
+## nuevo mientras uno ya está activo simplemente lo reemplaza (último empuje
+## gana, no se suman).
+func aplicar_empuje(direccion: Vector2, fuerza: float, duracion: float) -> void:
+	if direccion == Vector2.ZERO or duracion <= 0.0:
+		return
+	_empuje_velocidad = direccion.normalized() * fuerza
+	_empuje_restante = duracion
 
 
 ## Margen (px) antes de considerar que el cuerpo realmente "se salió" del
