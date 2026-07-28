@@ -113,6 +113,7 @@ func _draw() -> void:
 		"muro":              _draw_muro()
 		"parpadeo":          _draw_parpadeo()
 		"lanzallamas":       _draw_lanzallamas()
+		"vortice":           _draw_vortice()
 
 
 ## Dibuja el círculo grande de rango: relleno tenue + borde configurables.
@@ -203,6 +204,20 @@ func _draw_area_efecto() -> void:
 
 	var offset := _dir * desplaz_max * _poder
 	# El círculo en "offset" es la zona de golpe real del área de efecto.
+	_dibujar_area_golpe_circulo(offset, radio)
+
+
+## Igual que _draw_area_efecto (círculo de rango + zona de golpe en el punto
+## de caída) — el Vórtice también se lanza a distancia, solo que la zona
+## real queda un buen rato en vez de desaparecer casi al instante.
+func _draw_vortice() -> void:
+	var h           := _hab as HabilidadVortice
+	var desplaz_max := h.desplazamiento_maximo if h else 150.0
+	var radio       := h.radio_vortice         if h else 90.0
+
+	_dibujar_rango(desplaz_max)
+
+	var offset := _dir * desplaz_max * _poder
 	_dibujar_area_golpe_circulo(offset, radio)
 
 

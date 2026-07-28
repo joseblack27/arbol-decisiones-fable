@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/vortice/HabilidadVortice.gd" id="1_hab"]
+
+[node name="HabilidadVortice" type="Node"]
+script = ExtResource("1_hab")
+radio_vortice = 90.0
+duracion_vortice = 3.5
+fuerza_atraccion = 300.0
+intervalo_atraccion = 0.3
+duracion_recarga = 10.0
+costo_energia = 30.0
+requiere_direccion = true

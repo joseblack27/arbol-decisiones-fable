@@ -1,22 +1,20 @@
-[gd_scene load_steps=6 format=3]
+[gd_scene load_steps=7 format=3 uid="uid://bog4jtpythp44"]
 
-[ext_resource type="Script" path="res://escenas/enemigos/AliadoInvocado.gd" id="1_aliado"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="2_sprite"]
-[ext_resource type="Script" path="res://componentes/MovimientoComponente.gd" id="3_mov"]
-[ext_resource type="Script" path="res://componentes/VidaComponente.gd" id="4_vida"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="5_memoria"]
+[ext_resource type="Script" uid="uid://bnrn4layb2wve" path="res://escenas/enemigos/AliadoInvocado.gd" id="1_aliado"]
+[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="3_mov"]
+[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="4_vida"]
+[ext_resource type="Texture2D" uid="uid://3e713orq0n62" path="res://assets/entidad_invocacion.png" id="5_4g2xf"]
+[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="5_memoria"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_aliado"]
-radius = 10.0
+radius = 16.0
 
 [node name="AliadoInvocado" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "memoria")]
 collision_layer = 2
-collision_mask = 1
 script = ExtResource("1_aliado")
 componente_vida = NodePath("VidaComponente")
 componente_movimiento = NodePath("MovimientoComponente")
 memoria = NodePath("MemoriaBT")
-tabla_botin = Array[LootDrop]([])
 xp_otorgada = 0
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -37,6 +35,6 @@ salud_maxima = 60.0
 script = ExtResource("5_memoria")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-modulate = Color(0.35, 0.65, 1, 1)
-scale = Vector2(0.4, 0.4)
-texture = ExtResource("2_sprite")
+position = Vector2(1.6940659e-21, -15.999992)
+scale = Vector2(0.6666667, 0.6666667)
+texture = ExtResource("5_4g2xf")

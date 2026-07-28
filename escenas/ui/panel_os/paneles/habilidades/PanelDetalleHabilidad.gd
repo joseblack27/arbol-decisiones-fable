@@ -143,6 +143,8 @@ func show_skill(skill: DatosHabilidad) -> void:
 			valores_descripcion["duracion"] = "%.1f" % tmp.get("duracion_tiron")
 		elif "duracion_invocacion" in tmp:
 			valores_descripcion["duracion"] = "%d" % int(tmp.get("duracion_invocacion"))
+		elif "duracion_vortice" in tmp:
+			valores_descripcion["duracion"] = "%.1f" % tmp.get("duracion_vortice")
 
 		if "cantidad_curacion" in tmp:
 			valores_descripcion["valor1"] = "%d" % int(tmp.get("cantidad_curacion"))
