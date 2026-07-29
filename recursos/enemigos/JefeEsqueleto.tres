@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_ed")
 nombre_tipo = "Jefe Esqueleto"
+nivel = 8
 vida_maxima = 400.0
 velocidad_base = 80.0
 energia_maxima = 120.0

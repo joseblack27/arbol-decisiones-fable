@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_ed")
 nombre_tipo = "Rápido"
+nivel = 2
 color = Color(0.4, 1.0, 0.4, 1)
 vida_maxima = 60.0
 velocidad_base = 250.0

@@ -1,4 +1,4 @@
-[gd_scene load_steps=70 format=3 uid="uid://7r1t84krlu7l"]
+[gd_scene load_steps=73 format=3 uid="uid://7r1t84krlu7l"]
 
 [ext_resource type="Script" uid="uid://cf4rph1eqiupl" path="res://escenas/enemigos/EnemigoAraña.gd" id="1_0tb4j"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="2_lgvut"]
@@ -34,6 +34,8 @@
 [ext_resource type="PackedScene" uid="uid://dtw6fvi03aau8" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="24_2vgoe"]
 [ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="28_2vgoe"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
+[ext_resource type="Resource" path="res://recursos/enemigos/Arana.tres" id="0_datos_arana"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/escudo_roca.tres" id="esc_escudo_roca"]
 
 [sub_resource type="Resource" id="Resource_vdkck"]
 script = ExtResource("2_qvumm")
@@ -650,15 +652,22 @@ resistencia_fuego = -25.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_qvumm"]
 radius = 16.0
 
+[sub_resource type="Resource" id="Loot_escudo_roca"]
+script = ExtResource("2_qvumm")
+item = ExtResource("esc_escudo_roca")
+probabilidad = 0.15
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
 [node name="EnemigoAraña" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
 motion_mode = 1
 script = ExtResource("1_0tb4j")
+datos = ExtResource("0_datos_arana")
 componente_vida = NodePath("VidaComponente")
 componente_movimiento = NodePath("MovimientoComponente")
 componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
-tabla_botin = Array[ExtResource("2_qvumm")]([SubResource("Resource_vdkck"), SubResource("Resource_d42sf"), SubResource("Resource_qvumm"), SubResource("Resource_8ri25"), SubResource("Resource_xmh4o"), SubResource("Resource_cwwu6"), SubResource("Resource_hh83h")])
+tabla_botin = Array[ExtResource("2_qvumm")]([SubResource("Resource_vdkck"), SubResource("Resource_d42sf"), SubResource("Resource_qvumm"), SubResource("Resource_8ri25"), SubResource("Resource_xmh4o"), SubResource("Resource_cwwu6"), SubResource("Resource_hh83h"), SubResource("Loot_escudo_roca")])
 xp_otorgada = 50
 metadata/_custom_type_script = "uid://dmntoeg3f84od"
 
@@ -831,9 +840,11 @@ metadata/_custom_type_script = "uid://bjyr6iyvtuirj"
 [node name="Habilidades" type="Marker2D" parent="."]
 
 [node name="HabilidadProyectilBolaTelaraña" parent="Habilidades" instance=ExtResource("11_tj55f")]
+tipo_dano = 0
 daño_proyectil = 47.0
 
 [node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("24_2vgoe")]
+tipo_dano = 0
 daño = 47.0
 costo_energia = 20.0
 

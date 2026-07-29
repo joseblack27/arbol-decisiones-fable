@@ -1,4 +1,4 @@
-[gd_scene load_steps=55 format=3 uid="uid://b7r15dmdjvgww"]
+[gd_scene load_steps=56 format=3 uid="uid://b7r15dmdjvgww"]
 
 [ext_resource type="Script" uid="uid://ccogg3bvxqeb5" path="res://escenas/enemigos/EnemigoRaton.gd" id="1_05pyp"]
 [ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="2_ycc48"]
@@ -22,6 +22,7 @@
 [ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="14_deamb"]
 [ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="15_wufat"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="16_barra"]
+[ext_resource type="Resource" path="res://recursos/enemigos/Raton.tres" id="0_datos_raton"]
 
 [sub_resource type="Resource" id="Resource_0dg2b"]
 script = ExtResource("2_ycc48")
@@ -298,6 +299,7 @@ transitions = ["Start", "IDLE", SubResource("AnimationNodeStateMachineTransition
 [node name="EnemigoRaton" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
 motion_mode = 1
 script = ExtResource("1_05pyp")
+datos = ExtResource("0_datos_raton")
 componente_vida = NodePath("VidaComponente")
 componente_movimiento = NodePath("MovimientoComponente")
 componente_vision = NodePath("VisionComponente")

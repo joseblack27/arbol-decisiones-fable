@@ -1,21 +1,23 @@
-[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3 uid="uid://b3pcsjiq2chp4"]
+[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3]
 
 [ext_resource type="Script" uid="uid://j6y1rt5twmvl" path="res://recursos/items/DatosItem.gd" id="1_scr"]
-[ext_resource type="Texture2D" uid="uid://cif7w36natm6" path="res://assets/items/equippables/escudo_01.png" id="2_ico"]
+[ext_resource type="Texture2D" path="res://assets/items/equippables/escudo_marea.png" id="2_ico"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="3_atr"]
 
 [sub_resource type="Resource" id="AtributosBase_bonos"]
 script = ExtResource("3_atr")
-defensa = 8.0
-resistencia_fisica = 15.0
+defensa = 6.0
+resistencia_agua = 30.0
+resistencia_aire = 12.0
+resistencia_fuego = -35.0
 
 [resource]
 script = ExtResource("1_scr")
-name = "Escudo de Guardia"
+name = "Escudo de Marea"
 icon = ExtResource("2_ico")
-description = "Sólido y sin puntos flacos. No brilla contra nada, pero tampoco te deja expuesto."
+description = "Templado en agua salada. Frena el agua y el aire, pero el fuego lo resquebraja."
 type = 3
 type_equippable = 9
 can_equip = true
 bonos = SubResource("AtributosBase_bonos")
-id_recurso = "res://recursos/items/equipables/escudo.tres"
+id_recurso = "res://recursos/items/equipables/escudo_marea.tres"

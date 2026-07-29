@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_ed")
 nombre_tipo = "Tanque"
+nivel = 3
 color = Color(0.6, 0.3, 1.0, 1)
 vida_maxima = 250.0
 velocidad_base = 80.0

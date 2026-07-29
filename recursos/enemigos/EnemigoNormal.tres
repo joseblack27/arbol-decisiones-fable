@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_ed")
 nombre_tipo = "Normal"
+nivel = 1
 color = Color(1, 1, 1, 1)
 vida_maxima = 100.0
 velocidad_base = 150.0

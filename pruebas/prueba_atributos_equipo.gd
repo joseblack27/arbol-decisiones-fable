@@ -89,8 +89,12 @@ func _informar() -> bool:
 	var escudo := load("res://recursos/items/equipables/escudo.tres") as DatosItem
 	var recursos_ok := armadura3.bonos != null and is_equal_approx(armadura3.bonos.defensa, 10.0) \
 		and escudo.bonos != null and is_equal_approx(escudo.bonos.defensa, 8.0) \
-		and is_equal_approx(escudo.bonos.tenacidad, 4.0)
-	print("Recursos reales (armadura_3=+10 def, escudo=+8 def/+4 ten): %s" % recursos_ok)
+		and is_equal_approx(escudo.bonos.resistencia_fisica, 15.0)
+	# El escudo daba +4 de tenacidad, un atributo documentado como "reservado
+	# para uso futuro" que calcular_dano_entrante() nunca lee: eran 4 puntos
+	# de nada. Se cambió por resistencia_fisica, que sí se siente contra los
+	# mobs de hoy (el set completo lo cubre prueba_escudos_resistencias).
+	print("Recursos reales (armadura_3=+10 def, escudo=+8 def/+15 res.física): %s" % recursos_ok)
 
 	var id_actual: int = _atributos.base.get_instance_id()
 	var identidad_preservada: bool = id_actual == _base_original_id

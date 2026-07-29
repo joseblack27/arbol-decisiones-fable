@@ -4,9 +4,9 @@
 
 [resource]
 script = ExtResource("1_ed")
-nombre_tipo = "Lobo"
-nivel = 2
+nombre_tipo = "Araña"
+nivel = 3
 vida_maxima = 100.0
-velocidad_base = 80.0
+velocidad_base = 50.0
 energia_maxima = 100.0
 regeneracion_energia = 10.0

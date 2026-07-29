@@ -1,4 +1,4 @@
-[gd_scene load_steps=61 format=3 uid="uid://d1042g45vblt7"]
+[gd_scene load_steps=63 format=3 uid="uid://d1042g45vblt7"]
 
 [ext_resource type="Resource" uid="uid://cbkkggbjn6q82" path="res://recursos/enemigos/CaballeroEsqueleto.tres" id="0_datos"]
 [ext_resource type="Script" uid="uid://clnx7q65b85bh" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.gd" id="0_script_caballero"]
@@ -28,6 +28,7 @@
 [ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/escudo_marea.tres" id="esc_escudo_marea"]
 
 [sub_resource type="Resource" id="Resource_qwpms"]
 script = ExtResource("3_3v04n")
@@ -301,6 +302,12 @@ resistencia_fuego = -20.0
 resistencia_tierra = 20.0
 metadata/_custom_type_script = "uid://ddhq5qxvccml7"
 
+[sub_resource type="Resource" id="Loot_escudo_marea"]
+script = ExtResource("3_3v04n")
+item = ExtResource("esc_escudo_marea")
+probabilidad = 0.15
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
 [node name="EnemigoCaballeroEsqueleto" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
 motion_mode = 1
 script = ExtResource("0_script_caballero")
@@ -310,7 +317,7 @@ componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("0_datos")
-tabla_botin = Array[ExtResource("3_3v04n")]([SubResource("Resource_qwpms"), SubResource("Resource_i4fs3"), SubResource("Resource_rjqlh")])
+tabla_botin = Array[ExtResource("3_3v04n")]([SubResource("Resource_qwpms"), SubResource("Resource_i4fs3"), SubResource("Resource_rjqlh"), SubResource("Loot_escudo_marea")])
 xp_otorgada = 100
 
 [node name="EnergiaComponente" type="Node" parent="."]

@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_ed")
 nombre_tipo = "Lobo Feroz"
+nivel = 4
 vida_maxima = 450.0
 velocidad_base = 145.0
 energia_maxima = 150.0

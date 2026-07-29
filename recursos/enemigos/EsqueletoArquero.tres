@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_ed")
 nombre_tipo = "Esqueleto Arquero"
+nivel = 5
 color = Color(0.75, 0.9, 0.6, 1)
 vida_maxima = 70.0
 velocidad_base = 90.0

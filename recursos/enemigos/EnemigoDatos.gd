@@ -17,3 +17,8 @@ class_name EnemigoDatos
 @export_group("Energía")
 @export var energia_maxima: float         = 80.0
 @export var regeneracion_energia: float   = 10.0
+## Nivel del mob, para el nameplate (ver BarraVidaEnergiaComponente). Es solo
+## informativo por ahora: no escala vida ni daño — eso sigue viniendo de los
+## campos de abajo. Sirve para que el jugador sepa de un vistazo si un mob le
+## queda grande antes de meterse.
+@export var nivel: int = 1

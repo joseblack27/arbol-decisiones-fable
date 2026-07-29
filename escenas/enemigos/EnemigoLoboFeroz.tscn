@@ -1,4 +1,4 @@
-[gd_scene load_steps=94 format=3 uid="uid://bmvhspq2lnp3u"]
+[gd_scene load_steps=96 format=3 uid="uid://bmvhspq2lnp3u"]
 
 [ext_resource type="Resource" path="res://recursos/enemigos/LoboFeroz.tres" id="0_datos"]
 [ext_resource type="Script" uid="uid://dalf4xserhqa7" path="res://escenas/enemigos/EnemigoLoboFeroz.gd" id="1_bvf6m"]
@@ -38,6 +38,7 @@
 [ext_resource type="PackedScene" path="res://escenas/habilidades/parpadeo/HabilidadParpadeo.tscn" id="45_parpadeo"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/escudo_tormenta.tres" id="esc_escudo_tormenta"]
 
 [sub_resource type="Resource" id="Resource_iuxaj"]
 script = ExtResource("2_ivj8v")
@@ -1150,6 +1151,12 @@ resistencia_fisica = 10.0
 resistencia_fuego = -10.0
 metadata/_custom_type_script = "uid://ddhq5qxvccml7"
 
+[sub_resource type="Resource" id="Loot_escudo_tormenta"]
+script = ExtResource("2_ivj8v")
+item = ExtResource("esc_escudo_tormenta")
+probabilidad = 0.15
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
 [node name="EnemigoLoboFeroz" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
 motion_mode = 1
 script = ExtResource("1_bvf6m")
@@ -1159,7 +1166,7 @@ componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("0_datos")
-tabla_botin = Array[ExtResource("2_ivj8v")]([SubResource("Resource_iuxaj"), SubResource("Resource_wrpy6"), SubResource("Resource_hu05i"), SubResource("Resource_385uh"), SubResource("Resource_ua77i"), SubResource("Resource_wmgm4")])
+tabla_botin = Array[ExtResource("2_ivj8v")]([SubResource("Resource_iuxaj"), SubResource("Resource_wrpy6"), SubResource("Resource_hu05i"), SubResource("Resource_385uh"), SubResource("Resource_ua77i"), SubResource("Resource_wmgm4"), SubResource("Loot_escudo_tormenta")])
 xp_otorgada = 200
 
 [node name="EnergiaComponente" type="Node" parent="."]
@@ -1340,6 +1347,7 @@ nombre_nodo = "(Acción) Deambular"
 [node name="Habilidades" type="Marker2D" parent="."]
 
 [node name="HabilidadCarga" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
+tipo_dano = 4
 duracion_preparacion = 1.0
 dano_carga = 52.0
 multiplicador_velocidad_carga = 5.5
@@ -1353,6 +1361,7 @@ script = ExtResource("31_vm1f8")
 metadata/_custom_type_script = "uid://cmvtumtuaysdj"
 
 [node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("31_l6bpy")]
+tipo_dano = 4
 daño = 52.0
 duracion_recarga = 0.8
 costo_energia = 10.0
