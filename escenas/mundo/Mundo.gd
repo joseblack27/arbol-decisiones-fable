@@ -27,6 +27,7 @@ const COLOR_CONECTANDO := Color(1.0, 0.9, 0.4)
 
 func _ready() -> void:
 	GestorNiveles.registrar($ContenedorNivel, null)
+	_aplicar_visibilidad_depuracion()
 	if Utils.modo_local_pruebas:
 		_arrancar_modo_prueba_local()
 		return
@@ -36,7 +37,28 @@ func _ready() -> void:
 	# fallo terminaría llamando al handler N veces.
 	multiplayer.connected_to_server.connect(_al_conectar_ok)
 	multiplayer.connection_failed.connect(_al_fallar_conexion)
+	# Pantalla de carga con progreso real: tapa TODO desde acá hasta que el
+	# jugador está de verdad listo (ver _esperar_jugador_propio/_al_listo_
+	# para_jugar). Sin esto, entre la conexión y la aparición del personaje
+	# se veía el mundo a medio armar y un fundido a negro sin explicación.
+	GestorCarga.mostrar()
 	_conectar_como_cliente()
+
+
+## Contadores y paneles de DIAGNÓSTICO: fuera de la vista del jugador salvo
+## que se pidan expresamente (ver Utils.mostrar_depuracion, casilla en
+## MenuInicio). Flotaban sueltos sobre el mapa, sin panel detrás,
+## encimándose entre sí e ilegibles sobre el terreno claro — y el botón de
+## log decía "Log red", vocabulario de desarrollo. El estado de conexión ya
+## no hace falta en pantalla: la pantalla de carga (GestorCarga) cuenta lo
+## mismo y mejor mientras conecta.
+func _aplicar_visibilidad_depuracion() -> void:
+	var mostrar: bool = Utils.mostrar_depuracion
+	for ruta in ["CanvasLayer/ContadorFPS", "CanvasLayer/ContadorLatencia",
+			"CanvasLayer/EstadoConexion", "CanvasLayer/PanelLogRed"]:
+		var nodo := get_node_or_null(ruta)
+		if nodo:
+			nodo.visible = mostrar
 
 
 ## SOLO pruebas (Utils.modo_local_pruebas): jugador local determinista sin
@@ -65,6 +87,8 @@ func _conectar_como_cliente() -> void:
 	GestorLogRed.registrar("Intentando conectar a %s:%d (intento %d)" % [Utils.ip_conexion, Utils.puerto_conexion, _intento])
 	_label_conexion.text = "Conectando a %s:%d... (intento %d)" % [Utils.ip_conexion, Utils.puerto_conexion, _intento]
 	_label_conexion.add_theme_color_override("font_color", COLOR_CONECTANDO)
+	GestorCarga.avanzar(&"conexion", 0.0)
+	GestorCarga.fijar_detalle("%s:%d — intento %d" % [Utils.ip_conexion, Utils.puerto_conexion, _intento])
 	var peer := ENetMultiplayerPeer.new()
 	var error := peer.create_client(Utils.ip_conexion, Utils.puerto_conexion)
 	GestorLogRed.registrar("create_client() devolvió código %d (0 = OK)" % error)
@@ -108,6 +132,7 @@ func _programar_reintento() -> void:
 		return
 	_label_conexion.text = "Sin respuesta, reintentando..."
 	_label_conexion.add_theme_color_override("font_color", COLOR_DESCONECTADO)
+	GestorCarga.fijar_detalle("Sin respuesta del servidor — reintentando en %ds..." % int(RETARDO_REINTENTO))
 	get_tree().create_timer(RETARDO_REINTENTO).timeout.connect(_conectar_como_cliente)
 
 
@@ -119,6 +144,8 @@ func _al_conectar_ok() -> void:
 	multiplayer.server_disconnected.connect(_al_perder_conexion)
 	_label_conexion.text = "Conectado %s:%d" % [Utils.ip_conexion, Utils.puerto_conexion]
 	_label_conexion.add_theme_color_override("font_color", COLOR_CONECTADO)
+	GestorCarga.completar(&"conexion")
+	GestorCarga.fijar_detalle("")
 	GestorNiveles.cambiar_nivel(nivel_inicial)
 	_esperar_jugador_propio()
 
@@ -149,6 +176,7 @@ func _esperar_jugador_propio(intentos: int = 0) -> void:
 		return  # escena recargada mientras el reintento estaba pendiente.
 	var propio := _jugadores.get_node_or_null(str(multiplayer.get_unique_id()))
 	if propio:
+		GestorCarga.completar(&"jugador")
 		GestorNiveles.asignar_jugador(propio)
 		# Habilidad por defecto para poder probar combate ya mismo — el
 		# servidor equipa la misma en su copia de este jugador (ver
@@ -162,11 +190,45 @@ func _esperar_jugador_propio(intentos: int = 0) -> void:
 		# golpe_basico por defecto de arriba, que queda solo para cuentas
 		# nuevas). Si el servidor no tiene partida de este jugador, no
 		# responde nada y se arranca de cero.
+		GestorCarga.avanzar(&"partida", 0.0)
 		GestorGuardado.cargar_partida()
+		_esperar_partida_guardada()
 		return
 	# ~10s de reintento: el servidor ya no spawnea al conectar, sino recién
 	# cuando este cliente confirma que cargó el nivel (más el respaldo de 5s
 	# del servidor) — el margen viejo de 5s quedaba justo.
 	if intentos > 600:
+		# Antes esto se rendía EN SILENCIO: el jugador quedaba mirando una
+		# pantalla quieta, "conectado" pero sin personaje y sin ninguna
+		# explicación. Ahora al menos lo dice, y recarga para reintentar todo
+		# el ciclo desde cero en vez de quedarse trabado para siempre.
+		GestorLogRed.registrar("El servidor nunca creó nuestro jugador -> recargando")
+		GestorCarga.fijar_detalle("El servidor no creó tu personaje. Reintentando...")
+		get_tree().create_timer(1.5).timeout.connect(func():
+			if is_inside_tree():
+				get_tree().reload_current_scene()
+		)
 		return
+	# El progreso de esta etapa no tiene porcentaje real (es esperar a que el
+	# servidor replique el nodo): se muestra el tiempo esperado sobre el tope,
+	# que al menos avanza de forma honesta y deja ver que no está trabado.
+	GestorCarga.avanzar(&"jugador", float(intentos) / 600.0)
+	if intentos == 120:  # ~2s sin aparecer: recién ahí vale la pena avisar.
+		GestorCarga.fijar_detalle("Esperando que el servidor cree tu personaje...")
 	get_tree().create_timer(1.0 / 60.0).timeout.connect(_esperar_jugador_propio.bind(intentos + 1))
+
+
+## Última etapa: la partida guardada llega por RPC desde el servidor
+## (GestorGuardado.partida_cargada). OJO: esa señal NO se emite nunca para
+## una cuenta NUEVA — el servidor sencillamente no responde nada si no tiene
+## partida de este jugador. Por eso no se puede esperar indefinidamente:
+## gana el primero de los dos, la señal o el tope de tiempo.
+func _esperar_partida_guardada() -> void:
+	var terminado := [false]
+	var cerrar := func():
+		if terminado[0]:
+			return
+		terminado[0] = true
+		GestorCarga.terminar()
+	GestorGuardado.partida_cargada.connect(cerrar, CONNECT_ONE_SHOT)
+	get_tree().create_timer(1.5).timeout.connect(cerrar)

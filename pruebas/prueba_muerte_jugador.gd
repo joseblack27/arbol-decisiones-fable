@@ -35,6 +35,10 @@ func _process(_delta: float) -> bool:
 			_capa_original = _jugador.collision_layer
 			# Alejarlo del spawn para poder verificar el teletransporte al revivir.
 			_jugador.global_position = _spawn() + _lejos_del_spawn
+			# Un jugador recién aparecido es invulnerable un rato (ver
+			# Jugador.TIEMPO_INVULNERABILIDAD_APARICION) — acá se prueba la
+			# muerte, no esa protección, así que se la saca antes de golpear.
+			_jugador.get_node("VidaComponente").cancelar_invulnerabilidad()
 			# Matarlo de un golpe.
 			_jugador.get_node("VidaComponente").quitar_vida(99999.0)
 		230:

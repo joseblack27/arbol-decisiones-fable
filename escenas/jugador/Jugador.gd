@@ -45,6 +45,15 @@ const _UMBRAL_CAMINANDO_RED := 0.1
 # ── Muerte / reaparición ─────────────────────────────────────────────────────
 ## Segundos entre morir y reaparecer en el punto de aparición del nivel.
 const TIEMPO_REAPARICION := 5.0
+## Invulnerabilidad al APARECER (conectarse, cambiar de nivel, reaparecer
+## tras morir) — reportado: "al iniciar la conexion al servidor y cargar al
+## jugador recibe daño pero nunca se de que es". El cuerpo ya existe y es
+## atacable en el servidor mientras el cliente todavía está cargando el
+## nivel y fundiendo desde negro, así que los mobs que quedaron cerca del
+## punto de aparición pegan sin que se llegue a ver de dónde vino. Cubre
+## esa ventana con margen (el fundido de GestorNiveles dura 0.3s por lado,
+## más lo que tarde el celular en asentarse).
+const TIEMPO_INVULNERABILIDAD_APARICION := 3.0
 var _muerto := false
 ## Colisiones originales, para restaurarlas al revivir (se apagan al morir
 ## para que los mobs pierdan al "cadáver" — su visión y sus golpes son
@@ -176,6 +185,13 @@ func _ready():
 		componente_vida.muerte.connect(self.manejar_muerte)
 		componente_vida.cambio_valor_vida.connect(_on_vida_cambiada)
 		_vida_anterior = componente_vida.obtener_vida_maxima()
+		# Protección de aparición — ver TIEMPO_INVULNERABILIDAD_APARICION.
+		# Se activa en TODOS los peers, no solo en el servidor: allá es lo
+		# que de verdad bloquea el golpe (quitar_vida corta por acá), y en el
+		# cliente es lo que dispara el destello de "estoy protegido" de
+		# _actualizar_visual_invulnerable(). Ambos arrancan su cuenta al
+		# aparecer el nodo, así que no hace falta replicar nada.
+		componente_vida.activar_invulnerabilidad(TIEMPO_INVULNERABILIDAD_APARICION)
 	
 	# 2. Registrar componentes.
 	componentes_de_acciones["Movimiento"] = componente_movimiento
@@ -530,6 +546,7 @@ func _physics_process(delta: float) -> void:
 ## mirar a la derecha por defecto). _ultima_direccion se actualiza ACÁ,
 ## centralizado, para las tres ramas de _physics_process que llaman esto.
 func _aplicar_presentacion(caminando: bool) -> void:
+	_actualizar_visual_invulnerable()
 	if not componente_animacion:
 		return
 	componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", caminando)
@@ -540,6 +557,33 @@ func _aplicar_presentacion(caminando: bool) -> void:
 	if hacia_donde_mirar != Vector2.ZERO:
 		_ultima_direccion = hacia_donde_mirar
 	componente_animacion.actualizar_blend(hacia_donde_mirar)
+
+
+## Destello mientras dura la protección de aparición (ver
+## TIEMPO_INVULNERABILIDAD_APARICION): sin señal visible, "no recibo daño"
+## es indistinguible de "los mobs no me ven todavía" — y peor, al cortarse
+## la protección el primer golpe llegaría de la nada. Va por alpha del
+## sprite (no por modulate entero) para no pelearse con parpadear(), que ya
+## usa sprite.modulate para el flash rojo de "me pegaron", ni con el
+## modulate del cuerpo que usa _morir() para el cadáver.
+##
+## _muerto corta: un cadáver ya tiene su propio modulate y no debe latir.
+var _estaba_invulnerable := false
+
+func _actualizar_visual_invulnerable() -> void:
+	if not sprite or not componente_vida:
+		return
+	var invulnerable: bool = componente_vida.es_invulnerable() and not _muerto
+	if invulnerable:
+		# Latido rápido y suave (no un on/off duro): 6 ciclos por segundo
+		# entre opaco y semitransparente.
+		sprite.modulate.a = 0.55 + 0.45 * absf(sin(Time.get_ticks_msec() / 1000.0 * TAU * 3.0))
+		_estaba_invulnerable = true
+	elif _estaba_invulnerable:
+		# Una sola vez al terminar (no cada fotograma): devolver el alpha sin
+		# pisar el resto del color, que puede venir de parpadear().
+		sprite.modulate.a = 1.0
+		_estaba_invulnerable = false
 
 
 ## Fase 1 del plan de escalado a MMO (interés espacial): mismo patrón que
@@ -674,6 +718,11 @@ func _revivir() -> void:
 	set_deferred("collision_mask", _mascara_colision_original)
 	if componente_vida:
 		componente_vida.set_deferred("monitorable", true)
+		# Misma protección que al aparecer, y por el mismo motivo: se revive
+		# EN EL PUNTO DE APARICIÓN (ver _reaparecer), donde pueden seguir
+		# los mismos mobs que te mataron — sin esto, morir cerca del spawn
+		# encadena muerte tras muerte sin poder reaccionar.
+		componente_vida.activar_invulnerabilidad(TIEMPO_INVULNERABILIDAD_APARICION)
 	modulate = Color.WHITE
 	if _aviso_muerte:
 		_aviso_muerte.hide()

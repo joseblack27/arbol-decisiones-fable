@@ -1,18 +1,56 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=10 format=3]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tema"]
 [ext_resource type="Script" path="res://escenas/menu_inicio/MenuInicio.gd" id="2_script"]
+[ext_resource type="FontFile" uid="uid://dkajfhggmh7n4" path="res://assets/fonts/jet brain mono/JetBrainsMono-Bold.ttf" id="3_bold"]
+[ext_resource type="FontFile" uid="uid://cswnsiiorquix" path="res://assets/fonts/jet brain mono/JetBrainsMono-Medium.ttf" id="4_medium"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
-content_margin_left = 20.0
-content_margin_top = 16.0
-content_margin_right = 20.0
-content_margin_bottom = 16.0
-bg_color = Color(0.1, 0.1, 0.12, 0.92)
-corner_radius_top_left = 10
-corner_radius_top_right = 10
-corner_radius_bottom_right = 10
-corner_radius_bottom_left = 10
+content_margin_left = 22.0
+content_margin_top = 18.0
+content_margin_right = 22.0
+content_margin_bottom = 18.0
+bg_color = Color(0.058, 0.058, 0.066, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.267, 0.267, 0.267, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_campo"]
+content_margin_left = 8.0
+content_margin_top = 5.0
+content_margin_right = 8.0
+content_margin_bottom = 5.0
+bg_color = Color(0.02, 0.02, 0.025, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.267, 0.267, 0.267, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_campo_focus"]
+content_margin_left = 8.0
+content_margin_top = 5.0
+content_margin_right = 8.0
+content_margin_bottom = 5.0
+bg_color = Color(0.02, 0.02, 0.025, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.949, 0.949, 0.949, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jugar"]
+bg_color = Color(0.949, 0.949, 0.949, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jugar_hover"]
+bg_color = Color(1, 1, 1, 1)
+corner_detail = 1
 
 [node name="MenuInicio" type="Control"]
 layout_mode = 3
@@ -31,75 +69,156 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.05, 0.05, 0.07, 1)
+color = Color(0.039, 0.039, 0.047, 1)
 
-[node name="Panel" type="PanelContainer" parent="."]
-custom_minimum_size = Vector2(280, 0)
+[node name="Margen" type="MarginContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+theme_override_constants/margin_left = 44
+theme_override_constants/margin_top = 30
+theme_override_constants/margin_right = 44
+theme_override_constants/margin_bottom = 30
 
-[node name="VBox" type="VBoxContainer" parent="Panel"]
+[node name="Columnas" type="HBoxContainer" parent="Margen"]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 40
+alignment = 1
 
-[node name="Titulo" type="Label" parent="Panel/VBox"]
+[node name="Marca" type="VBoxContainer" parent="Margen/Columnas"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "Conectar"
-horizontal_alignment = 1
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
 
-[node name="LblIp" type="Label" parent="Panel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "IP del servidor"
-
-[node name="CampoIp" type="LineEdit" parent="Panel/VBox"]
+[node name="Titulo" type="Label" parent="Margen/Columnas/Marca"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.949, 0.949, 1)
+theme_override_fonts/font = ExtResource("3_bold")
+theme_override_font_sizes/font_size = 34
+text = "RPG"
+
+[node name="Regla" type="ColorRect" parent="Margen/Columnas/Marca"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+color = Color(0.949, 0.949, 0.949, 1)
+
+[node name="Respiro" type="Control" parent="Margen/Columnas/Marca"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+
+[node name="Subtitulo" type="Label" parent="Margen/Columnas/Marca"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_constants/line_spacing = 3
+theme_override_font_sizes/font_size = 12
+text = "Aventura multijugador
+en tiempo real"
+
+[node name="Panel" type="PanelContainer" parent="Margen/Columnas"]
+custom_minimum_size = Vector2(356, 0)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_styles/panel = SubResource("StyleBoxFlat_panel")
+
+[node name="VBox" type="VBoxContainer" parent="Margen/Columnas/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 7
+
+[node name="TituloPanel" type="Label" parent="Margen/Columnas/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.949, 0.949, 0.949, 1)
+theme_override_fonts/font = ExtResource("4_medium")
+theme_override_font_sizes/font_size = 15
+text = "CONECTAR"
+
+[node name="Separador" type="HSeparator" parent="Margen/Columnas/Panel/VBox"]
+layout_mode = 2
+
+[node name="LblServidor" type="Label" parent="Margen/Columnas/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "SERVIDOR"
+
+[node name="FilaServidor" type="HBoxContainer" parent="Margen/Columnas/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CampoIp" type="LineEdit" parent="Margen/Columnas/Panel/VBox/FilaServidor"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.45, 0.45, 0.5, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_campo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_campo_focus")
 placeholder_text = "127.0.0.1"
 max_length = 64
 
-[node name="LblPuerto" type="Label" parent="Panel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Puerto"
-
-[node name="CampoPuerto" type="LineEdit" parent="Panel/VBox"]
+[node name="CampoPuerto" type="LineEdit" parent="Margen/Columnas/Panel/VBox/FilaServidor"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(84, 32)
 layout_mode = 2
+theme_override_colors/font_placeholder_color = Color(0.45, 0.45, 0.5, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_campo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_campo_focus")
 placeholder_text = "8920"
+alignment = 1
 max_length = 5
 
-[node name="LblNombre" type="Label" parent="Panel/VBox"]
+[node name="LblJugador" type="Label" parent="Margen/Columnas/Panel/VBox"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "Nombre"
+theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "JUGADOR"
 
-[node name="CampoNombre" type="LineEdit" parent="Panel/VBox"]
+[node name="FilaJugador" type="HBoxContainer" parent="Margen/Columnas/Panel/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="CampoNombre" type="LineEdit" parent="Margen/Columnas/Panel/VBox/FilaJugador"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
-placeholder_text = "Jugador"
+size_flags_horizontal = 3
+theme_override_colors/font_placeholder_color = Color(0.45, 0.45, 0.5, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_campo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_campo_focus")
+placeholder_text = "Nombre"
 
-[node name="LblPin" type="Label" parent="Panel/VBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 12
-text = "PIN (opcional — liga tu partida al nombre)"
-
-[node name="CampoPin" type="LineEdit" parent="Panel/VBox"]
+[node name="CampoPin" type="LineEdit" parent="Margen/Columnas/Panel/VBox/FilaJugador"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(118, 32)
 layout_mode = 2
-placeholder_text = "Sin PIN: partida atada a este dispositivo"
+theme_override_colors/font_placeholder_color = Color(0.45, 0.45, 0.5, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_campo")
+theme_override_styles/focus = SubResource("StyleBoxFlat_campo_focus")
+placeholder_text = "PIN"
 max_length = 12
 secret = true
 
-[node name="EtiquetaError" type="Label" parent="Panel/VBox"]
+[node name="Ayuda" type="Label" parent="Margen/Columnas/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.42, 0.47, 1)
+theme_override_font_sizes/font_size = 10
+text = "El PIN es opcional: liga tu partida al nombre en vez de a este dispositivo."
+autowrap_mode = 3
+
+[node name="CasillaDepuracion" type="CheckBox" parent="Margen/Columnas/Panel/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.42, 0.47, 1)
+theme_override_colors/font_hover_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_colors/font_pressed_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_font_sizes/font_size = 10
+text = "Mostrar datos de desarrollo (FPS, latencia, log)"
+
+[node name="EtiquetaError" type="Label" parent="Margen/Columnas/Panel/VBox"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 2
@@ -108,8 +227,35 @@ theme_override_font_sizes/font_size = 11
 text = "Puerto inválido (1-65535)."
 autowrap_mode = 3
 
-[node name="BotonJugar" type="Button" parent="Panel/VBox"]
+[node name="BotonJugar" type="Button" parent="Margen/Columnas/Panel/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 36)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
-text = "Jugar"
+theme_override_colors/font_color = Color(0.04, 0.04, 0.05, 1)
+theme_override_colors/font_hover_color = Color(0.04, 0.04, 0.05, 1)
+theme_override_colors/font_pressed_color = Color(0.04, 0.04, 0.05, 1)
+theme_override_fonts/font = ExtResource("4_medium")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_jugar")
+theme_override_styles/hover = SubResource("StyleBoxFlat_jugar_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_jugar_hover")
+text = "JUGAR"
+
+[node name="Version" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -200.0
+offset_top = -26.0
+offset_right = -14.0
+offset_bottom = -8.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.32, 0.32, 0.36, 1)
+theme_override_font_sizes/font_size = 10
+text = "v0.1"
+horizontal_alignment = 2

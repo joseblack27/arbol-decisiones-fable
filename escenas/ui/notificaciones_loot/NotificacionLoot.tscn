@@ -1,23 +1,14 @@
 [gd_scene load_steps=3 format=3 uid="uid://b0wjnx6mnnf60"]
 
 [ext_resource type="Script" uid="uid://ch6jy7j443vvq" path="res://escenas/ui/notificaciones_loot/NotificacionLoot.gd" id="1_noti"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fondo"]
-content_margin_left = 6.0
-content_margin_top = 4.0
-content_margin_right = 10.0
-content_margin_bottom = 4.0
-bg_color = Color(0.05, 0.05, 0.08, 0.65)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="2_tema"]
 
 [node name="NotificacionLoot" type="PanelContainer"]
 process_mode = 3
 custom_minimum_size = Vector2(220, 32)
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_fondo")
+theme = ExtResource("2_tema")
+theme_type_variation = &"PanelAviso"
 script = ExtResource("1_noti")
 
 [node name="Margen" type="MarginContainer" parent="."]

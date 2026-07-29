@@ -10,7 +10,7 @@ config_version=5
 
 [application]
 
-config/name="ArbolDecisiones"
+config/name="RPGO"
 run/main_scene="res://escenas/menu_inicio/MenuInicio.tscn"
 config/features=PackedStringArray("4.5")
 run/max_fps=60
@@ -29,6 +29,7 @@ GestorNiveles="*res://autoloads/GestorNiveles.gd"
 GestorPiscinas="*res://autoloads/GestorPiscinas.gd"
 GestorNumerosDano="*res://autoloads/GestorNumerosDano.gd"
 GestorNumerosCuracion="*res://autoloads/GestorNumerosCuracion.gd"
+GestorCarga="*res://escenas/ui/pantalla_carga/PantallaCarga.tscn"
 GestorInventario="*res://autoloads/GestorInventario.gd"
 GestorExperiencia="*res://autoloads/GestorExperiencia.gd"
 GestorEquipo="*res://autoloads/GestorEquipo.gd"

@@ -119,9 +119,9 @@ offset_bottom = 144.0
 
 [node name="PanelNotificacionesLoot" parent="CanvasLayer" instance=ExtResource("17_pnl")]
 offset_left = 16.0
-offset_top = 136.0
+offset_top = 122.0
 offset_right = 16.0
-offset_bottom = 136.0
+offset_bottom = 122.0
 
 [node name="ContadorFPS" parent="CanvasLayer" instance=ExtResource("18_fps")]
 offset_left = 232.0
@@ -157,14 +157,14 @@ offset_right = -44.0
 [node name="HudJugador" parent="CanvasLayer" instance=ExtResource("19_hud")]
 offset_left = 8.0
 offset_top = 8.0
-offset_right = 228.0
-offset_bottom = 92.0
+offset_right = 184.0
+offset_bottom = 80.0
 
 [node name="BarraBuffs" parent="CanvasLayer" instance=ExtResource("23_bb")]
 offset_left = 8.0
-offset_top = 96.0
+offset_top = 84.0
 offset_right = 292.0
-offset_bottom = 124.0
+offset_bottom = 112.0
 
 [node name="BarraConsumibles" parent="CanvasLayer" instance=ExtResource("21_bc")]
 anchors_preset = 3

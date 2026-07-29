@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=22 format=3 uid="uid://ddlr8menttf7k"]
+[gd_resource type="Theme" load_steps=30 format=3 uid="uid://ddlr8menttf7k"]
 
 [ext_resource type="FontFile" uid="uid://53dduvrn2yrw" path="res://assets/fonts/jet brain mono/JetBrainsMono-Light.ttf" id="1_asgch"]
 
@@ -133,6 +133,71 @@ bg_color = Color(1, 1, 1, 0)
 border_color = Color(0, 0, 0, 1)
 corner_detail = 1
 
+[sub_resource type="StyleBoxFlat" id="SB_barra_hud_fondo"]
+bg_color = Color(0.02, 0.02, 0.025, 0.85)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_barra_vida_relleno"]
+bg_color = Color(0.70, 0.13, 0.13, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_barra_energia_relleno"]
+bg_color = Color(0.15, 0.42, 0.72, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_barra_xp_relleno"]
+bg_color = Color(0.72, 0.56, 0.08, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_panel_hud"]
+content_margin_left = 6.0
+content_margin_top = 3.0
+content_margin_right = 6.0
+content_margin_bottom = 4.0
+bg_color = Color(0.05, 0.05, 0.058, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_ranura_hud"]
+bg_color = Color(0.02, 0.02, 0.025, 0.82)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_ranura_hud_hover"]
+bg_color = Color(0.14, 0.14, 0.15, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6666667, 0.6666667, 0.6666667, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_panel_aviso"]
+content_margin_left = 6.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(0.051, 0.051, 0.078, 0.78)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+corner_detail = 1
+
 [resource]
 default_font = ExtResource("1_asgch")
 default_font_size = 12
@@ -163,3 +228,20 @@ VScrollBar/styles/grabber = SubResource("StyleBoxFlat_cwe2x")
 VScrollBar/styles/grabber_highlight = SubResource("StyleBoxFlat_3ltnp")
 VScrollBar/styles/grabber_pressed = SubResource("StyleBoxFlat_xahun")
 VScrollBar/styles/scroll = SubResource("StyleBoxFlat_ab8w7")
+BarraVida/base_type = &"ProgressBar"
+BarraVida/styles/background = SubResource("SB_barra_hud_fondo")
+BarraVida/styles/fill = SubResource("SB_barra_vida_relleno")
+BarraEnergia/base_type = &"ProgressBar"
+BarraEnergia/styles/background = SubResource("SB_barra_hud_fondo")
+BarraEnergia/styles/fill = SubResource("SB_barra_energia_relleno")
+BarraXP/base_type = &"ProgressBar"
+BarraXP/styles/background = SubResource("SB_barra_hud_fondo")
+BarraXP/styles/fill = SubResource("SB_barra_xp_relleno")
+PanelHud/base_type = &"PanelContainer"
+PanelHud/styles/panel = SubResource("SB_panel_hud")
+PanelAviso/base_type = &"PanelContainer"
+PanelAviso/styles/panel = SubResource("SB_panel_aviso")
+RanuraHud/base_type = &"Button"
+RanuraHud/styles/normal = SubResource("SB_ranura_hud")
+RanuraHud/styles/hover = SubResource("SB_ranura_hud_hover")
+RanuraHud/styles/pressed = SubResource("SB_ranura_hud_hover")

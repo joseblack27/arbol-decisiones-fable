@@ -110,7 +110,7 @@ func cambiar_nivel(ruta_escena: String) -> void:
 
 
 func _cargar(ruta_escena: String) -> void:
-	var escena := load(ruta_escena) as PackedScene
+	var escena := await _cargar_escena_con_progreso(ruta_escena)
 	if escena == null:
 		push_error("GestorNiveles: no se pudo cargar '%s'." % ruta_escena)
 		_cargando = false
@@ -134,8 +134,14 @@ func _cargar(ruta_escena: String) -> void:
 	for hijo in _contenedor.get_children():
 		hijo.free()
 
+	# instantiate() + add_child() arman el árbol completo del nivel (terreno,
+	# enemigos, portales, y el _ready() de NivelBase que despeja el terreno):
+	# el segundo paso más caro del arranque, y sin ninguna API de porcentaje
+	# — se informa como hito, entrando a la etapa antes y cerrándola después.
+	GestorCarga.avanzar(&"mundo", 0.0)
 	var nivel := escena.instantiate()
 	_contenedor.add_child(nivel)
+	GestorCarga.completar(&"mundo")
 
 	if _jugador != null and nivel is NivelBase:
 		var punto: Node2D = (nivel as NivelBase).punto_aparicion()
@@ -157,6 +163,35 @@ func _cargar(ruta_escena: String) -> void:
 			rpc_id(1, "_marcar_listo_red", _generacion_nivel)
 
 	await _fundir(0.0)
+
+
+## Carga el PackedScene del nivel EN UN HILO APARTE, reportando el progreso
+## real a GestorCarga mientras tanto. Antes era un load() sincrónico: la
+## etapa más cara de todo el arranque (NivelPradera.tscn pesa ~660 KB) y la
+## única con un porcentaje genuino disponible — con load() el juego se
+## congelaba sin poder informar nada, que es justo lo que la pantalla de
+## carga tiene que evitar.
+##
+## Respaldo a load() sincrónico si la carga en hilo no se puede iniciar o
+## falla: mejor un tirón que no cargar el nivel.
+func _cargar_escena_con_progreso(ruta_escena: String) -> PackedScene:
+	if ResourceLoader.load_threaded_request(ruta_escena) != OK:
+		return load(ruta_escena) as PackedScene
+	var progreso: Array = []
+	while true:
+		var estado := ResourceLoader.load_threaded_get_status(ruta_escena, progreso)
+		match estado:
+			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				if not progreso.is_empty():
+					GestorCarga.avanzar(&"nivel", float(progreso[0]))
+				await get_tree().process_frame
+			ResourceLoader.THREAD_LOAD_LOADED:
+				GestorCarga.completar(&"nivel")
+				return ResourceLoader.load_threaded_get(ruta_escena) as PackedScene
+			_:
+				# THREAD_LOAD_FAILED / INVALID_RESOURCE: que decida load().
+				return load(ruta_escena) as PackedScene
+	return null
 
 
 ## El cliente avisa acá que ya terminó de cargar su copia del nivel actual.

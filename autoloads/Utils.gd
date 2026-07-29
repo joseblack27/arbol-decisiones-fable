@@ -54,6 +54,15 @@ var pin_conexion := ""
 ## lo setea Jugador._rechazar_cuenta_red y lo muestra/limpia MenuInicio.
 var error_conexion := ""
 
+## Muestra en partida los datos de DIAGNÓSTICO (contador de FPS, latencia,
+## estado de conexión y el panel de log de red). Apagado por defecto: son
+## herramientas de desarrollo, no información de juego — flotaban sueltas
+## sobre el mapa, sin panel detrás, encimándose entre sí e ilegibles sobre
+## el terreno claro. Se enciende desde MenuInicio (se guarda junto al resto
+## de la config, ver MenuInicio._guardar_config) para poder diagnosticar en
+## el celular sin recompilar.
+var mostrar_depuracion := false
+
 ## SOLO para pruebas headless (prueba_niveles, prueba_muerte_jugador...): el
 ## juego real es multijugador puro — Mundo reintenta conectarse para siempre
 ## y jamás arranca sin servidor. Las pruebas necesitan lo contrario: un

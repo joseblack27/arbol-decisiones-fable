@@ -1,26 +1,9 @@
-[gd_scene load_steps=6 format=3 uid="uid://da68t2dycxchb"]
+[gd_scene load_steps=5 format=3 uid="uid://da68t2dycxchb"]
 
 [ext_resource type="Script" uid="uid://bae50ib4o1o38" path="res://escenas/ui/hud/BarraConsumibles.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://duvr0em8sjyax" path="res://assets/items/consumables/medicina_frasco_vida.png" id="2_icono"]
 [ext_resource type="PackedScene" uid="uid://b1vgkb46lgx3a" path="res://escenas/ui/hud/SlotConsumibleRapido.tscn" id="3_slot"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fondo_panel"]
-content_margin_left = 4.0
-content_margin_top = 4.0
-content_margin_right = 4.0
-content_margin_bottom = 4.0
-bg_color = Color(0, 0, 0, 0.45)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_boton"]
-bg_color = Color(0, 0, 0, 0.45)
-corner_radius_top_left = 8
-corner_radius_top_right = 8
-corner_radius_bottom_right = 8
-corner_radius_bottom_left = 8
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="4_tema"]
 
 [node name="BarraConsumibles" type="Control"]
 custom_minimum_size = Vector2(58, 288)
@@ -29,13 +12,14 @@ anchors_preset = 0
 offset_right = 58.0
 offset_bottom = 288.0
 mouse_filter = 2
+theme = ExtResource("4_tema")
 script = ExtResource("1_script")
 
 [node name="PanelSlots" type="PanelContainer" parent="."]
 layout_mode = 1
 offset_right = 58.0
 offset_bottom = 220.0
-theme_override_styles/panel = SubResource("StyleBoxFlat_fondo_panel")
+theme_type_variation = &"PanelHud"
 
 [node name="HBoxSlots" type="VBoxContainer" parent="PanelSlots"]
 layout_mode = 2
@@ -63,9 +47,7 @@ layout_mode = 1
 offset_top = 224.0
 offset_right = 44.0
 offset_bottom = 268.0
-theme_override_styles/normal = SubResource("StyleBoxFlat_boton")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_boton")
-theme_override_styles/hover = SubResource("StyleBoxFlat_boton")
+theme_type_variation = &"RanuraHud"
 icon = ExtResource("2_icono")
 icon_alignment = 1
 expand_icon = true

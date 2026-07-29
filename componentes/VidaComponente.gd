@@ -24,13 +24,48 @@ signal muerte(valor: float)
 
 var _acumulador_regen: float = 0.0
 
+## Invulnerabilidad temporal: mientras sea > 0, quitar_vida() no aplica NADA
+## (ver activar_invulnerabilidad). Usada en la aparición del jugador —
+## reportado: "al iniciar la conexion al servidor y cargar al jugador recibe
+## daño pero nunca se de que es": el cuerpo del jugador ya existe y es
+## atacable en el servidor mientras el cliente todavía está cargando/
+## fundiendo desde negro, así que los golpes llegan sin que se vea de dónde.
+var _invulnerable_restante: float = 0.0
+
 # --- Inicialización y Estado ---
 
 func _ready():
 	salud_actual = salud_maxima
 
 
+## Vuelve a esta entidad inmune a TODO daño por "segundos". Nunca acorta una
+## invulnerabilidad ya en curso más larga (maxf): dos fuentes solapadas — la
+## de aparición y, más adelante, cualquier otra — no deben pisarse entre sí.
+func activar_invulnerabilidad(segundos: float) -> void:
+	if segundos <= 0.0:
+		return
+	_invulnerable_restante = maxf(_invulnerable_restante, segundos)
+
+
+func es_invulnerable() -> bool:
+	return _invulnerable_restante > 0.0
+
+
+## Corta la invulnerabilidad ya mismo. Lo usan las pruebas que necesitan
+## golpear a un jugador recién aparecido (la protección de aparición les
+## bloquearía el daño que están probando, ver prueba_muerte_jugador) — y
+## queda disponible por si alguna vez hace falta en juego.
+func cancelar_invulnerabilidad() -> void:
+	_invulnerable_restante = 0.0
+
+
 func _process(delta: float) -> void:
+	# Corre en TODOS los peers (no solo donde el daño es real): en el
+	# servidor es lo que de verdad bloquea el golpe, y en el cliente es lo
+	# que apaga a tiempo el feedback visual de "estoy protegido".
+	if _invulnerable_restante > 0.0:
+		_invulnerable_restante = maxf(0.0, _invulnerable_restante - delta)
+
 	# Regeneración por ticks — SOLO donde el cálculo es el real (servidor o
 	# un jugador); al cliente le llega por la réplica de agregar_vida(). Los
 	# muertos no regeneran (a 0 de vida se espera muerte/reaparición, no
@@ -145,6 +180,14 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 	if Utils.en_red() and not multiplayer.is_server():
 		return salud_actual
 	if cantidad <= 0:
+		return salud_actual
+
+	# Invulnerabilidad (aparición/carga, ver activar_invulnerabilidad): corta
+	# ANTES que nada — ni siquiera gasta el escudo temporal de abajo, que
+	# sería un recurso desperdiciado contra un golpe que igual no iba a
+	# entrar. Al ser este el punto central por el que pasa TODO el daño,
+	# cubre cualquier fuente sin tocar habilidades ni mobs uno por uno.
+	if _invulnerable_restante > 0.0:
 		return salud_actual
 
 	# Escudo temporal (ver EscudoComponente/HabilidadEscudo): reduce o

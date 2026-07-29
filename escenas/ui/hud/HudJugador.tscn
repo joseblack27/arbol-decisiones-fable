@@ -1,54 +1,15 @@
-[gd_scene load_steps=8 format=3 uid="uid://dv6b7h20xpei5"]
+[gd_scene load_steps=3 format=3 uid="uid://dv6b7h20xpei5"]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_8d8fc"]
 [ext_resource type="Script" uid="uid://cx0lher57fxoe" path="res://escenas/ui/hud/HudJugador.gd" id="1_hud"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_fondo"]
-content_margin_left = 8.0
-content_margin_top = 5.0
-content_margin_right = 8.0
-content_margin_bottom = 6.0
-bg_color = Color(0, 0, 0, 0.45)
-corner_radius_top_left = 6
-corner_radius_top_right = 6
-corner_radius_bottom_right = 6
-corner_radius_bottom_left = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_barra_fondo"]
-bg_color = Color(0.15, 0.15, 0.15, 0.9)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_vida_relleno"]
-bg_color = Color(0.78, 0.16, 0.16, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_energia_relleno"]
-bg_color = Color(0.2, 0.55, 0.85, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xp_relleno"]
-bg_color = Color(0.92, 0.78, 0.15, 1)
-corner_radius_top_left = 3
-corner_radius_top_right = 3
-corner_radius_bottom_right = 3
-corner_radius_bottom_left = 3
 
 [node name="HudJugador" type="Control"]
 layout_mode = 3
 anchors_preset = 0
 offset_left = 12.0
 offset_top = 62.0
-offset_right = 202.0
-offset_bottom = 141.0
+offset_right = 188.0
+offset_bottom = 134.0
 mouse_filter = 2
 theme = ExtResource("1_8d8fc")
 script = ExtResource("1_hud")
@@ -61,7 +22,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_fondo")
+theme_type_variation = &"PanelHud"
 
 [node name="VBox" type="VBoxContainer" parent="Fondo"]
 layout_mode = 2
@@ -70,16 +31,16 @@ theme_override_constants/separation = 3
 [node name="Nombre" type="Label" parent="Fondo/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
 text = "Jugador"
 
 [node name="BarraVida" type="ProgressBar" parent="Fondo/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 15)
+custom_minimum_size = Vector2(0, 14)
 layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_barra_fondo")
-theme_override_styles/fill = SubResource("StyleBoxFlat_vida_relleno")
+theme_type_variation = &"BarraVida"
 value = 100.0
 show_percentage = false
 
@@ -91,18 +52,19 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
 text = "100 / 100"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="BarraEnergia" type="ProgressBar" parent="Fondo/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 15)
+custom_minimum_size = Vector2(0, 14)
 layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_barra_fondo")
-theme_override_styles/fill = SubResource("StyleBoxFlat_energia_relleno")
+theme_type_variation = &"BarraEnergia"
 value = 100.0
 show_percentage = false
 
@@ -114,18 +76,19 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 10
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 11
 text = "100 / 100"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="BarraXP" type="ProgressBar" parent="Fondo/VBox"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 10)
+custom_minimum_size = Vector2(0, 11)
 layout_mode = 2
-theme_override_styles/background = SubResource("StyleBoxFlat_barra_fondo")
-theme_override_styles/fill = SubResource("StyleBoxFlat_xp_relleno")
+theme_type_variation = &"BarraXP"
 show_percentage = false
 
 [node name="TextoXP" type="Label" parent="Fondo/VBox/BarraXP"]
@@ -136,8 +99,10 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 8
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 9
 text = "0 / 100"
 horizontal_alignment = 1
 vertical_alignment = 1
