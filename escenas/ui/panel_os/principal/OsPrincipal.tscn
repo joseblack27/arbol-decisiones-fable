@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=3 uid="uid://dfmy15nixg3h3"]
+[gd_scene load_steps=16 format=3 uid="uid://dfmy15nixg3h3"]
 
 [ext_resource type="Script" uid="uid://clnt85k6rmx50" path="res://escenas/ui/panel_os/principal/OsPrincipal.gd" id="1_8r8lf"]
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="2_n01vk"]
@@ -14,6 +14,7 @@
 [ext_resource type="PackedScene" uid="uid://cl33iq5nafsfv" path="res://escenas/ui/panel_os/paneles/correos/PanelCorreos.tscn" id="10_hq1p8"]
 [ext_resource type="PackedScene" uid="uid://vx8rpfo3obau" path="res://escenas/ui/panel_os/paneles/habilidades/PanelHabilidades.tscn" id="11_rxrgu"]
 [ext_resource type="PackedScene" uid="uid://devgqv2nmuytk" path="res://escenas/ui/panel_os/paneles/eventos/PanelEventos.tscn" id="14_rwlrv"]
+[ext_resource type="PackedScene" path="res://escenas/ui/panel_os/paneles/configuracion/PanelConfiguracion.tscn" id="pc_config"]
 
 [node name="OsPrincipal" type="Control"]
 custom_minimum_size = Vector2(720, 360)
@@ -258,6 +259,12 @@ size_flags_horizontal = 3
 toggle_mode = true
 text = "Eventos"
 
+[node name="BtnConfiguracion" type="Button" parent="ColorRect/Margin/VBox/Panel/BarraSuperior"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Configuración"
+
 [node name="TabContainer" type="TabContainer" parent="ColorRect/Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -318,4 +325,12 @@ layout_mode = 2
 metadata/_tab_index = 6
 
 [node name="PanelEventos" parent="ColorRect/Margin/VBox/TabContainer/TabRegistroMundo" instance=ExtResource("14_rwlrv")]
+layout_mode = 1
+
+[node name="TabConfiguracion" type="Control" parent="ColorRect/Margin/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 7
+
+[node name="PanelConfiguracion" parent="ColorRect/Margin/VBox/TabContainer/TabConfiguracion" instance=ExtResource("pc_config")]
 layout_mode = 1

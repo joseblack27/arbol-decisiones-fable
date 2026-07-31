@@ -30,6 +30,7 @@ var direccion_mirada: Vector2 = Vector2.ZERO
 @onready var camara: Camera2D = $Camara
 @onready var componente_atributos: AtributosComponente = $AtributosComponente
 @onready var componente_animacion: AnimacionComponente = $AnimacionComponente
+@onready var componente_energia: EnergiaComponente = $EnergiaComponente
 
 var _ultima_direccion: Vector2 = Vector2.RIGHT
 ## Posición del fotograma anterior — SOLO para inferir "caminando" en la
@@ -54,6 +55,12 @@ const TIEMPO_REAPARICION := 5.0
 ## esa ventana con margen (el fundido de GestorNiveles dura 0.3s por lado,
 ## más lo que tarde el celular en asentarse).
 const TIEMPO_INVULNERABILIDAD_APARICION := 3.0
+## Invulnerabilidad al REVIVIR tras morir — más larga que la de aparición:
+## acá SÍ hay mobs reales y ya identificados alrededor (los que mataron al
+## jugador), no la incertidumbre de un cliente recién cargando. Pedido del
+## usuario: 5 segundos, sin poder ser objetivo de ningún mob mientras dura
+## (ver VisionComponente._intentar_registrar).
+const TIEMPO_INVULNERABILIDAD_REVIVIR := 5.0
 var _muerto := false
 ## Colisiones originales, para restaurarlas al revivir (se apagan al morir
 ## para que los mobs pierdan al "cadáver" — su visión y sus golpes son
@@ -100,6 +107,16 @@ var _posicion_replicada: Vector2 = Vector2.ZERO
 ## "pegado" a la red pero más notorio el salto; más bajo = más suave pero
 ## más "elástico"). 1/seg ≈ alcanza el 63% de la distancia cada segundo.
 const VELOCIDAD_INTERPOLACION_RED := 12.0
+## Segundos que quedan de "copiar la posición del servidor tal cual, sin
+## suavizar" — ver el uso en _physics_process y sincronizar_posicion_dura().
+var _sincronizacion_dura := 0.0
+
+## Llegada a un nivel nuevo: segundos que el jugador queda quieto y sin poder
+## lanzar habilidades (ver bloquear_por_transicion). Acompaña a la
+## invulnerabilidad del mismo largo, así el rato en que no podés defenderte
+## es exactamente el mismo en que no te pueden pegar.
+const TIEMPO_BLOQUEO_TRANSICION := 3.0
+var _bloqueo_transicion := 0.0
 
 
 ## Defensa en profundidad: aunque ahora solo el dueño local se suscribe a
@@ -475,6 +492,15 @@ func _recibir_xp_red(cantidad: int) -> void:
 func _physics_process(delta: float) -> void:
 	# *** ORQUESTACIÓN FÍSICA ***
 
+	# Aterrizando en un nivel nuevo: quieto y sin habilidades (ver
+	# bloquear_por_transicion). Se anula la dirección ACÁ, un único lugar
+	# para las tres ramas de abajo — y corre igual en el servidor, que es
+	# quien de verdad manda la posición.
+	if _bloqueo_transicion > 0.0:
+		_bloqueo_transicion = maxf(0.0, _bloqueo_transicion - delta)
+		direccion = Vector2.ZERO
+		velocity = Vector2.ZERO
+
 	# En red, el cliente que NO es dueño de este cuerpo (la réplica de OTRO
 	# jugador en mi pantalla) no lo mueve directo — solo interpola hacia la
 	# posición replicada (Fase 6: suaviza el "salto" entre actualizaciones de
@@ -489,6 +515,21 @@ func _physics_process(delta: float) -> void:
 			if componente_movimiento:
 				componente_movimiento.physics_process(delta, direccion)
 			_aplicar_presentacion(velocity != Vector2.ZERO)
+			# Ventana de sincronización DURA: se copia la posición
+			# autoritativa tal cual, sin suavizar. Al cruzar un portal el
+			# servidor te teletransporta al punto de aparición y SIGUE
+			# moviendo el cuerpo con la última dirección de joystick que le
+			# mandaste, mientras este cliente todavía está cargando el mapa
+			# nuevo y fundiendo desde negro. Para cuando la pantalla se
+			# levantaba ya había varias decenas de píxeles de diferencia, y
+			# la reconciliación suave de abajo los recorría a la vista:
+			# reportado como "sale unos 70 px a la derecha y después corrige
+			# su posición". Acá la corrección ocurre con la pantalla todavía
+			# tapada, así que no se ve nada.
+			if _sincronizacion_dura > 0.0:
+				_sincronizacion_dura -= delta
+				global_position = _posicion_replicada
+				return
 			# Reconciliación suave con la posición autoritativa (el
 			# servidor manda la real): un muro, un empujón u otra causa
 			# que el cliente no simula igual puede hacer que diverja poco a
@@ -559,13 +600,16 @@ func _aplicar_presentacion(caminando: bool) -> void:
 	componente_animacion.actualizar_blend(hacia_donde_mirar)
 
 
-## Destello mientras dura la protección de aparición (ver
-## TIEMPO_INVULNERABILIDAD_APARICION): sin señal visible, "no recibo daño"
-## es indistinguible de "los mobs no me ven todavía" — y peor, al cortarse
-## la protección el primer golpe llegaría de la nada. Va por alpha del
-## sprite (no por modulate entero) para no pelearse con parpadear(), que ya
-## usa sprite.modulate para el flash rojo de "me pegaron", ni con el
-## modulate del cuerpo que usa _morir() para el cadáver.
+## Destello AMARILLO parpadeante mientras dura la protección de aparición o
+## de revivir (ver TIEMPO_INVULNERABILIDAD_APARICION/_REVIVIR): sin señal
+## visible, "no recibo daño" es indistinguible de "los mobs no me ven
+## todavía" — y peor, al cortarse la protección el primer golpe llegaría de
+## la nada. Pisa el modulate ENTERO (color + alpha) del sprite — a
+## diferencia de antes (que solo tocaba el alpha para no pelearse con
+## parpadear()), esto es seguro porque mientras es invulnerable quitar_vida
+## corta ANTES de aplicar daño, así que cambio_valor_vida nunca dispara con
+## una baja de vida real y parpadear() nunca corre en simultáneo (ver
+## _on_vida_cambiada).
 ##
 ## _muerto corta: un cadáver ya tiene su propio modulate y no debe latir.
 var _estaba_invulnerable := false
@@ -575,14 +619,17 @@ func _actualizar_visual_invulnerable() -> void:
 		return
 	var invulnerable: bool = componente_vida.es_invulnerable() and not _muerto
 	if invulnerable:
-		# Latido rápido y suave (no un on/off duro): 6 ciclos por segundo
-		# entre opaco y semitransparente.
-		sprite.modulate.a = 0.55 + 0.45 * absf(sin(Time.get_ticks_msec() / 1000.0 * TAU * 3.0))
+		# Parpadeo DURO (no un latido suave): cambia de opaco a semitransparente
+		# cada 0.25s en punto — pedido del usuario, más lento y más marcado
+		# que el pulso continuo de antes. Siempre teñido de amarillo.
+		var fase := int(Time.get_ticks_msec() / 250) % 2
+		var alpha := 1.0 if fase == 0 else 0.4
+		sprite.modulate = Color(1.0, 1.0, 0.0, alpha)
 		_estaba_invulnerable = true
 	elif _estaba_invulnerable:
-		# Una sola vez al terminar (no cada fotograma): devolver el alpha sin
-		# pisar el resto del color, que puede venir de parpadear().
-		sprite.modulate.a = 1.0
+		# Una sola vez al terminar (no cada fotograma): devolver el color
+		# normal.
+		sprite.modulate = Color.WHITE
 		_estaba_invulnerable = false
 
 
@@ -698,15 +745,21 @@ func _morir() -> void:
 func _reaparecer() -> void:
 	if not is_inside_tree():
 		return
-	var nivel = GestorNiveles.nivel_actual()
+	# nivel_de_jugador y no nivel_actual(): en el servidor hay varios niveles
+	# cargados a la vez y hay que reaparecer en el propio, no en el primero
+	# que encuentre (te teletransportaría al mapa de otro jugador).
+	var nivel = GestorNiveles.nivel_de_jugador(self)
 	if nivel != null:
 		var punto: Node2D = nivel.punto_aparicion()
 		if punto != null:
 			global_position = punto.global_position
 			_posicion_replicada = global_position
-	# agregar_vida (no restaurar_vida): ya replica el valor al cliente.
+	# agregar_vida/agregar_energia (no restaurar_*): ya replican el valor al
+	# cliente por su cuenta.
 	if componente_vida:
 		componente_vida.agregar_vida(componente_vida.obtener_vida_maxima())
+	if componente_energia:
+		componente_energia.agregar_energia(componente_energia.obtener_energia_maxima())
 	_revivir()
 	if Utils.en_red() and multiplayer.is_server():
 		rpc("_revivir_red", global_position)
@@ -718,11 +771,12 @@ func _revivir() -> void:
 	set_deferred("collision_mask", _mascara_colision_original)
 	if componente_vida:
 		componente_vida.set_deferred("monitorable", true)
-		# Misma protección que al aparecer, y por el mismo motivo: se revive
-		# EN EL PUNTO DE APARICIÓN (ver _reaparecer), donde pueden seguir
-		# los mismos mobs que te mataron — sin esto, morir cerca del spawn
-		# encadena muerte tras muerte sin poder reaccionar.
-		componente_vida.activar_invulnerabilidad(TIEMPO_INVULNERABILIDAD_APARICION)
+		# Misma idea que al aparecer, pero más larga (ver
+		# TIEMPO_INVULNERABILIDAD_REVIVIR): se revive EN EL PUNTO DE
+		# APARICIÓN (ver _reaparecer), donde pueden seguir los mismos mobs
+		# que te mataron — sin esto, morir cerca del spawn encadena muerte
+		# tras muerte sin poder reaccionar.
+		componente_vida.activar_invulnerabilidad(TIEMPO_INVULNERABILIDAD_REVIVIR)
 	modulate = Color.WHITE
 	if _aviso_muerte:
 		_aviso_muerte.hide()
@@ -807,7 +861,8 @@ func _activar_slot(index: int, dir: Vector2 = Vector2.ZERO, poder: float = 1.0) 
 	# pantalla (el propio y los replicados de otros), no solo el mío.
 	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
 		return
-	if _muerto:
+	# Muerto o recién llegado a un nivel nuevo: nada de habilidades.
+	if esta_bloqueado():
 		return
 	var h := slot_habilidades.obtener(index)
 	if h:
@@ -853,6 +908,39 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 
 ## GestorNiveles llama esto tras cada cambio de nivel para que la cámara no
 ## muestre el vacío fuera del mapa. rect vacío (nivel sin Terreno) = sin límite.
+## Copia la posición autoritativa TAL CUAL (sin interpolar) durante "segundos".
+## La usa GestorNiveles al cambiar de nivel, para que el reacomodo ocurra
+## mientras la pantalla está en negro y no se vea el personaje deslizándose.
+## Nunca acorta una ventana ya en curso más larga.
+func sincronizar_posicion_dura(segundos: float) -> void:
+	_sincronizacion_dura = maxf(_sincronizacion_dura, segundos)
+
+
+## Llegada a un nivel nuevo: deja al jugador QUIETO y sin poder lanzar
+## habilidades durante "segundos", y le da invulnerabilidad por el mismo rato.
+##
+## El pedido fue explícito: sin movimiento durante la transición de mapa, y
+## que ese rato sin poder actuar coincida con el rato en que nadie puede
+## pegarte. La invulnerabilidad además te saca de la mira de los mobs (ver
+## VisionComponente._intentar_registrar), así que aterrizás en un mapa nuevo
+## sin que nada te esté pegando mientras la pantalla todavía funde.
+##
+## Se llama en los DOS lados (servidor y cliente dueño): el servidor es la
+## autoridad del movimiento y del daño, el cliente bloquea su propia UI. No
+## hace falta que arranquen en el mismo instante — la ventana es generosa.
+func bloquear_por_transicion(segundos: float = TIEMPO_BLOQUEO_TRANSICION) -> void:
+	_bloqueo_transicion = maxf(_bloqueo_transicion, segundos)
+	if componente_vida:
+		componente_vida.activar_invulnerabilidad(segundos)
+
+
+## true mientras el jugador no puede actuar: muerto, o recién llegado a un
+## nivel nuevo. Único lugar que decide esto — lo consultan la UI de
+## habilidades, el manejo de toques y la autoridad del servidor.
+func esta_bloqueado() -> bool:
+	return _muerto or _bloqueo_transicion > 0.0
+
+
 func aplicar_limites_camara(rect: Rect2) -> void:
 	if camara == null:
 		return

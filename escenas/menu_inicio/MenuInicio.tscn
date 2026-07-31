@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=3 uid="uid://i6fd1rmd2pj"]
+[gd_scene load_steps=8 format=3 uid="uid://i6fd1rmd2pj"]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tema"]
 [ext_resource type="Script" uid="uid://c3mnx8pso7yom" path="res://escenas/menu_inicio/MenuInicio.gd" id="2_script"]
@@ -16,32 +16,6 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.267, 0.267, 0.267, 1)
-corner_detail = 1
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_campo"]
-content_margin_left = 8.0
-content_margin_top = 5.0
-content_margin_right = 8.0
-content_margin_bottom = 5.0
-bg_color = Color(0.02, 0.02, 0.025, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.267, 0.267, 0.267, 1)
-corner_detail = 1
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_campo_focus"]
-content_margin_left = 8.0
-content_margin_top = 5.0
-content_margin_right = 8.0
-content_margin_bottom = 5.0
-bg_color = Color(0.02, 0.02, 0.025, 1)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.949, 0.949, 0.949, 1)
 corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jugar"]
@@ -154,9 +128,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_placeholder_color = Color(0.45, 0.45, 0.5, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_campo")
-theme_override_styles/focus = SubResource("StyleBoxFlat_campo_focus")
 placeholder_text = "127.0.0.1"
 max_length = 64
 
@@ -165,9 +136,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(84, 32)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_placeholder_color = Color(0.45, 0.45, 0.5, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_campo")
-theme_override_styles/focus = SubResource("StyleBoxFlat_campo_focus")
 placeholder_text = "8920"
 alignment = 1
 max_length = 5
@@ -187,9 +155,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 32)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_placeholder_color = Color(0.45, 0.45, 0.5, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_campo")
-theme_override_styles/focus = SubResource("StyleBoxFlat_campo_focus")
 placeholder_text = "Nombre"
 
 [node name="CampoPin" type="LineEdit" parent="Margen/Columnas/Panel/VBox/FilaJugador"]
@@ -197,9 +162,6 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(118, 32)
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_placeholder_color = Color(0.45, 0.45, 0.5, 1)
-theme_override_styles/normal = SubResource("StyleBoxFlat_campo")
-theme_override_styles/focus = SubResource("StyleBoxFlat_campo_focus")
 placeholder_text = "PIN"
 max_length = 12
 secret = true
@@ -210,15 +172,6 @@ theme_override_colors/font_color = Color(0.42, 0.42, 0.47, 1)
 theme_override_font_sizes/font_size = 10
 text = "El PIN es opcional: liga tu partida al nombre en vez de a este dispositivo."
 autowrap_mode = 3
-
-[node name="CasillaDepuracion" type="CheckBox" parent="Margen/Columnas/Panel/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.42, 0.42, 0.47, 1)
-theme_override_colors/font_pressed_color = Color(0.62, 0.62, 0.66, 1)
-theme_override_colors/font_hover_color = Color(0.62, 0.62, 0.66, 1)
-theme_override_font_sizes/font_size = 10
-text = "Mostrar datos de desarrollo (FPS, latencia, log)"
 
 [node name="EtiquetaError" type="Label" parent="Margen/Columnas/Panel/VBox"]
 unique_name_in_owner = true

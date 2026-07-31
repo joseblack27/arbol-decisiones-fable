@@ -33,15 +33,35 @@ func _ready() -> void:
 # Sondeo en vez de body_entered: si el jugador pisa el portal durante la
 # ventana de gracia del gestor, la señal única se perdería; sondeando,
 # el viaje se dispara en cuanto la gracia expira. El gestor deduplica.
+#
+# En red esto corre SOLO en el servidor: es él quien decide el viaje y se lo
+# ordena a todos (ver GestorNiveles.cambiar_nivel). Si cada peer viajara por
+# su cuenta bastaba con que el portal se disparara en uno y no en el otro
+# para que cliente y servidor quedaran en niveles distintos — el bug de "al
+# salir de la cueva se buguea y no me puedo mover".
 func _physics_process(_delta: float) -> void:
+	if Utils.en_red() and not multiplayer.is_server():
+		return
+	# Sin "return" tras el primero: pueden estar dos jugadores parados encima
+	# a la vez, y cada uno viaja por su cuenta.
 	for cuerpo in get_overlapping_bodies():
 		if cuerpo.is_in_group(&"jugadores"):
-			_viajar()
-			return
+			_viajar(cuerpo)
 
 
-func _viajar() -> void:
+## Viaja SOLO el jugador que pisó el portal. Antes esto cambiaba "el nivel del
+## mundo", y como el servidor tenía un único nivel para todos, el primero que
+## cruzaba se llevaba puestos a los demás: al resto se le cambiaba el mapa
+## abajo de los pies sin haber hecho nada.
+func _viajar(cuerpo: Node) -> void:
 	if ruta_nivel_destino.is_empty():
 		push_warning("PortalNivel '%s' sin ruta_nivel_destino." % name)
 		return
-	GestorNiveles.cambiar_nivel(ruta_nivel_destino)
+	if not Utils.en_red():
+		GestorNiveles.cambiar_nivel(ruta_nivel_destino)
+		return
+	# El nombre del nodo Jugador ES el peer id de su dueño (ver Jugador.gd).
+	var nombre := String(cuerpo.name)
+	if not nombre.is_valid_int():
+		return
+	GestorNiveles.mover_peer_a_nivel(int(nombre), ruta_nivel_destino)

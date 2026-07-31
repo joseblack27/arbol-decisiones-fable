@@ -32,13 +32,17 @@ func _ready() -> void:
 
 ## Agrega una línea con hora — y de paso la manda a print() (logcat sigue
 ## funcionando igual que antes para quien tenga cable USB a mano).
-func registrar(texto: String) -> void:
+## imprimir_consola en false deja la línea en el panel EN PANTALLA pero se
+## salta el print(): usado por _registrar_dano para no inundar de una línea
+## por golpe la consola del servidor (Docker) salvo que se pida ver eso.
+func registrar(texto: String, imprimir_consola: bool = true) -> void:
 	var hora := Time.get_time_string_from_system()
 	var linea := "[%s] %s" % [hora, texto]
 	lineas.append(linea)
 	if lineas.size() > MAX_LINEAS:
 		lineas.pop_front()
-	print(linea)
+	if imprimir_consola:
+		print(linea)
 	linea_agregada.emit(linea)
 
 
@@ -65,4 +69,10 @@ func _on_dano_replicado(objetivo: Node, cantidad: float, nombre_fuente: String) 
 func _registrar_dano(objetivo: Node, cantidad: float, nombre_fuente: String) -> void:
 	if objetivo == null or not is_instance_valid(objetivo) or not objetivo.is_in_group("jugadores"):
 		return
-	registrar("%s hizo %d daño a %s" % [nombre_fuente, int(cantidad), Utils.nombre_visible(objetivo)])
+	# Mismo criterio que ya usa el panel para mostrarse/ocultarse (ver
+	# Mundo._aplicar_visibilidad_depuracion): si "datos de desarrollo" está
+	# apagado, la línea igual queda en el historial del panel, pero no se
+	# imprime — pedido del usuario para no llenar los logs del contenedor
+	# con un "X hizo N daño a Y" por cada golpe que recibe cada jugador.
+	registrar("%s hizo %d daño a %s" % [nombre_fuente, int(cantidad), Utils.nombre_visible(objetivo)],
+		Utils.mostrar_depuracion)

@@ -582,8 +582,8 @@ func _pedir_partida_red() -> void:
 ## CLIENTE: llegó la partida guardada — aplicar el espejo local (inventario,
 ## equipo, habilidades, XP: se re-sincronizan solos al servidor por los
 ## canales de siempre) y pedirle al servidor que aplique lo autoritativo
-## (posición y vida — replican de vuelta solas). El nivel guardado se ignora:
-## en red el mundo es uno solo, el del servidor.
+## (posición y vida — replican de vuelta solas). El nivel guardado se respeta
+## pidiéndole la mudanza al servidor (ver más abajo).
 @rpc("authority", "reliable")
 func _recibir_partida_red(texto: String) -> void:
 	var resultado: Variant = JSON.parse_string(texto)
@@ -602,10 +602,29 @@ func _recibir_partida_red(texto: String) -> void:
 	_restaurar_habilidades(datos.get("habilidades", []))
 	_restaurar_barra_rapida(datos.get("barra_rapida", []))
 
+	# El nivel guardado AHORA SÍ se respeta: antes se ignoraba a propósito
+	# porque el servidor tenía un único nivel para todos, así que "volver a
+	# donde estabas" no significaba nada. Ahora cada jugador tiene el suyo
+	# (ver GestorNiveles), así que si te desconectaste en la cueva, volvés a
+	# la cueva.
+	#
+	# Cuando hay mudanza NO se restaura la posición: la guardada está en
+	# coordenadas de ese nivel (cada nivel vive desplazado) y aplicarla
+	# mientras la mudanza está en curso sería una carrera contra el
+	# teletransporte del servidor. Se aparece en el punto de aparición, que
+	# es lo mismo que hace cualquier portal.
+	var se_muda := false
+	var ruta_guardada: String = datos.get("nivel_escena", "")
+	var nivel_puesto := GestorNiveles.nivel_actual()
+	var ruta_puesta := nivel_puesto.scene_file_path if nivel_puesto else ""
+	if ruta_guardada != "" and ruta_guardada != ruta_puesta:
+		GestorNiveles.pedir_mudarse_a(ruta_guardada)
+		se_muda = true
+
 	var datos_jugador: Dictionary = datos.get("jugador", {})
 	var pos: Array = datos_jugador.get("posicion", [])
 	var vida: float = datos_jugador.get("vida_actual", 0.0)
-	if pos.size() == 2:
+	if pos.size() == 2 and not se_muda:
 		var destino := Vector2(pos[0], pos[1])
 		rpc_id(1, "_aplicar_estado_red", destino, vida, datos.get("xp_total", 0))
 		# Salto local inmediato (sin lerp): cargar partida es un

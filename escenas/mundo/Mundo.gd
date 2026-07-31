@@ -146,7 +146,12 @@ func _al_conectar_ok() -> void:
 	_label_conexion.add_theme_color_override("font_color", COLOR_CONECTADO)
 	GestorCarga.completar(&"conexion")
 	GestorCarga.fijar_detalle("")
-	GestorNiveles.cambiar_nivel(nivel_inicial)
+	# NO se carga nivel_inicial a ciegas: se le pregunta al servidor en qué
+	# nivel está parado el mundo, porque puede no ser el inicial (alguien ya
+	# cruzó un portal). Cargar el inicial sin preguntar dejaba a este cliente
+	# en un mapa distinto al del servidor desde el arranque — ver
+	# GestorNiveles._pedir_nivel_actual_red.
+	GestorNiveles.pedir_nivel_actual_al_servidor()
 	_esperar_jugador_propio()
 
 
@@ -161,7 +166,32 @@ func _al_conectar_ok() -> void:
 ## sirve — se reconectaría con el MISMO PIN malo para siempre, sin que el
 ## jugador se enterara nunca de por qué. En ese caso, en vez de reintentar,
 ## se vuelve al menú para que pueda corregirlo.
+## Cierre de sesión VOLUNTARIO (botón del panel de Configuración), distinto
+## de _al_perder_conexion() que reacciona a una caída del servidor. Hace
+## falta un camino aparte: cerrar el peer dispara server_disconnected, y ese
+## handler recarga la escena para volver a conectarse — justo lo contrario
+## de lo que el jugador acaba de pedir. _cerrando_sesion lo desactiva.
+##
+## No hace falta guardar acá: el servidor vuelca el progreso de este peer en
+## cuanto detecta la desconexión (ver ServidorDedicado._al_desconectar).
+var _cerrando_sesion := false
+
+func cerrar_sesion() -> void:
+	if _cerrando_sesion:
+		return
+	_cerrando_sesion = true
+	GestorLogRed.registrar("Cierre de sesión pedido por el jugador.")
+	if Utils.en_red() and multiplayer.multiplayer_peer != null:
+		multiplayer.multiplayer_peer.close()
+	multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+	# El OS queda abierto en modo OS y bloquearía los controles del menú.
+	GestorUI.cerrar_os()
+	get_tree().change_scene_to_file("res://escenas/menu_inicio/MenuInicio.tscn")
+
+
 func _al_perder_conexion() -> void:
+	if _cerrando_sesion:
+		return
 	if Utils.error_conexion != "":
 		multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
 		get_tree().change_scene_to_file("res://escenas/menu_inicio/MenuInicio.tscn")

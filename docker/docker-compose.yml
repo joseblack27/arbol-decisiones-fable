@@ -9,8 +9,19 @@ services:
     # Persistencia de las partidas guardadas (el user:// del proyecto dentro
     # del contenedor): sin este volumen, cada rebuild/recreate del contenedor
     # borraría el progreso guardado de todos los jugadores.
+    #
+    # ⚠ ESTA RUTA DEPENDE DEL NOMBRE DEL PROYECTO. En Linux, user:// resuelve a
+    # ~/.local/share/godot/app_userdata/<application/config/name>. Si se
+    # renombra el proyecto en los Ajustes y NO se actualiza esta línea, el
+    # servidor empieza a escribir partidas.db en una carpeta que NO es el
+    # volumen — y cada `docker compose up --force-recreate` la borra. Pasó de
+    # verdad al renombrar "ArbolDecisiones" -> "RPGO" (reportado: "cada vez que
+    # empiezo, comienzo nuevamente en el nivel 1"): el síntoma es un reinicio
+    # de progreso, y no se nota hasta que alguien pierde su partida.
+    # Al renombrar el proyecto: cambiar el último tramo de esta ruta al nombre
+    # nuevo. El volumen es el MISMO, así que el progreso viaja solo.
     volumes:
-      - datos_partidas:/root/.local/share/godot/app_userdata/ArbolDecisiones
+      - datos_partidas:/root/.local/share/godot/app_userdata/RPGO
 
 volumes:
   datos_partidas:

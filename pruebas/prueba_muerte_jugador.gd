@@ -2,8 +2,11 @@
 # Prueba del ciclo muerte → reaparición del jugador (un solo jugador):
 #   1. Al llegar la vida a 0: queda "muerto" (sin colisión, oscurecido, sin
 #      poder moverse ni lanzar habilidades) en vez de curarse al instante.
-#   2. Pasados TIEMPO_REAPARICION segundos: revive con vida completa, en el
-#      PuntoAparicion del nivel, con colisión y color restaurados.
+#   2. Pasados TIEMPO_REAPARICION segundos: revive con vida Y ENERGÍA
+#      completas, en el PuntoAparicion del nivel, con colisión y color
+#      restaurados, e invulnerable por TIEMPO_INVULNERABILIDAD_REVIVIR (5s)
+#      con el destello AMARILLO del sprite (pedido del usuario, distinto del
+#      simple pulso de alpha que había antes).
 #   godot --headless --path . --script res://pruebas/prueba_muerte_jugador.gd
 # =============================================================================
 extends SceneTree
@@ -14,6 +17,10 @@ var _jugador: CharacterBody2D
 var _capa_original := 0
 var _murio_bien := false
 var _lejos_del_spawn := Vector2(400, 300)
+var _energia_llena_al_revivir := false
+var _invulnerable_al_revivir := false
+var _duracion_invulnerabilidad_correcta := false
+var _sprite_amarillo_al_revivir := false
 
 
 func _process(_delta: float) -> bool:
@@ -39,6 +46,9 @@ func _process(_delta: float) -> bool:
 			# Jugador.TIEMPO_INVULNERABILIDAD_APARICION) — acá se prueba la
 			# muerte, no esa protección, así que se la saca antes de golpear.
 			_jugador.get_node("VidaComponente").cancelar_invulnerabilidad()
+			# Gastar energía para poder comprobar que revivir la rellena
+			# igual que la vida.
+			_jugador.get_node("EnergiaComponente").consumir(40.0)
 			# Matarlo de un golpe.
 			_jugador.get_node("VidaComponente").quitar_vida(99999.0)
 		230:
@@ -64,6 +74,7 @@ func _spawn() -> Vector2:
 
 func _verificar_reaparicion() -> bool:
 	var vida_comp = _jugador.get_node("VidaComponente")
+	var energia_comp = _jugador.get_node("EnergiaComponente")
 	var vida: float = vida_comp.obtener_vida()
 	var vida_llena := is_equal_approx(vida, vida_comp.obtener_vida_maxima())
 	var colision_ok: bool = _jugador.collision_layer == _capa_original
@@ -73,8 +84,33 @@ func _verificar_reaparicion() -> bool:
 	print("Tras revivir: vida=%.0f (llena=%s) | colision=%s | color=%s | vivo=%s | a %.0f px del spawn" % [
 		vida, vida_llena, colision_ok, color_ok, vivo_flag, en_spawn,
 	])
+
+	# Energía llena — mismo criterio que la vida (ver Jugador._reaparecer).
+	_energia_llena_al_revivir = is_equal_approx(
+		energia_comp.obtener_energia(), energia_comp.obtener_energia_maxima())
+	print("Energía llena al revivir (esperado true, %.0f/%.0f): %s" % [
+		energia_comp.obtener_energia(), energia_comp.obtener_energia_maxima(),
+		_energia_llena_al_revivir])
+
+	# Invulnerable al revivir, con la duración PROPIA de revivir (5s), no la
+	# de aparición inicial (3s) — pedido del usuario.
+	_invulnerable_al_revivir = vida_comp.es_invulnerable()
+	_duracion_invulnerabilidad_correcta = is_equal_approx(
+		_jugador.TIEMPO_INVULNERABILIDAD_REVIVIR, 5.0)
+	print("Invulnerable al revivir (esperado true): %s | TIEMPO_INVULNERABILIDAD_REVIVIR=%.1f (esperado 5.0)" % [
+		_invulnerable_al_revivir, _jugador.TIEMPO_INVULNERABILIDAD_REVIVIR])
+
+	# Destello amarillo (no solo alpha) mientras dura la protección.
+	var color_sprite: Color = _jugador.sprite.modulate
+	_sprite_amarillo_al_revivir = is_equal_approx(color_sprite.r, 1.0) \
+		and is_equal_approx(color_sprite.g, 1.0) and is_equal_approx(color_sprite.b, 0.0)
+	print("Sprite amarillo mientras es invulnerable (esperado true, color=%s): %s" % [
+		color_sprite, _sprite_amarillo_al_revivir])
+
 	var exito := _murio_bien and vida_llena and colision_ok and color_ok \
-		and vivo_flag and en_spawn < 50.0
+		and vivo_flag and en_spawn < 50.0 and _energia_llena_al_revivir \
+		and _invulnerable_al_revivir and _duracion_invulnerabilidad_correcta \
+		and _sprite_amarillo_al_revivir
 	print("PRUEBA MUERTE JUGADOR %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

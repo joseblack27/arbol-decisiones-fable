@@ -1,4 +1,4 @@
-[gd_scene load_steps=54 format=3]
+[gd_scene load_steps=56 format=3]
 
 [ext_resource type="Resource" path="res://recursos/enemigos/EsqueletoArquero.tres" id="0_datos"]
 [ext_resource type="Script" path="res://escenas/enemigos/EnemigoEsqueletoArquero.gd" id="0_script_arquero"]
@@ -26,6 +26,7 @@
 [ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/escudo.tres" id="esc_escudo_guardia"]
 
 [sub_resource type="Resource" id="Resource_qwpms"]
 script = ExtResource("3_3v04n")
@@ -40,6 +41,12 @@ metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 [sub_resource type="Resource" id="Resource_rjqlh"]
 script = ExtResource("3_3v04n")
 item = ExtResource("6_0wona")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Loot_escudo_guardia"]
+script = ExtResource("3_3v04n")
+item = ExtResource("esc_escudo_guardia")
+probabilidad = 0.15
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
@@ -304,7 +311,7 @@ componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("0_datos")
-tabla_botin = Array[ExtResource("3_3v04n")]([SubResource("Resource_qwpms"), SubResource("Resource_i4fs3"), SubResource("Resource_rjqlh")])
+tabla_botin = Array[ExtResource("3_3v04n")]([SubResource("Resource_qwpms"), SubResource("Resource_i4fs3"), SubResource("Resource_rjqlh"), SubResource("Loot_escudo_guardia")])
 xp_otorgada = 40
 
 [node name="EnergiaComponente" type="Node" parent="."]

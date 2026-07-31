@@ -172,10 +172,15 @@ func _apunte_bloqueado_por_cooldown() -> bool:
 ## efecto). _slot_habilidades.jugador es la MISMA referencia que ya usa
 ## SlotHabilidades (asignada en el Inspector), no hace falta buscarla de
 ## nuevo por grupo.
+## También cubre la llegada a un nivel nuevo (ver
+## Jugador.bloquear_por_transicion): durante esos segundos el botón no
+## responde, igual que estando muerto.
 func _dueño_muerto() -> bool:
 	if not _slot_habilidades or not is_instance_valid(_slot_habilidades.jugador):
 		return false
 	var jugador := _slot_habilidades.jugador
+	if jugador.has_method(&"esta_bloqueado"):
+		return jugador.call(&"esta_bloqueado")
 	return ("_muerto" in jugador) and jugador.get("_muerto")
 
 

@@ -108,7 +108,8 @@ func _fallar(motivo: String) -> bool:
 
 
 func _esperar_malla() -> bool:
-	var mapa := root.get_world_2d().navigation_map
+	# El mapa del NIVEL, no el del mundo (ver NivelBase._crear_mapa_navegacion).
+	var mapa := _mapa_del_nivel()
 	if not _malla_responde(mapa):
 		if _fisicas < _FISICAS_ESPERA_MALLA:
 			return false
@@ -147,7 +148,7 @@ func _pintar_pared() -> void:
 ## transitable — preguntárselo a la malla es más honesto que contar fotogramas,
 ## que es justo lo que volvía intermitentes a estas pruebas.
 func _esperar_pared() -> bool:
-	var mapa := root.get_world_2d().navigation_map
+	var mapa := _mapa_del_nivel()
 	var cercano := NavigationServer2D.map_get_closest_point(mapa, _centro_pared)
 	if _centro_pared.distance_to(cercano) <= _TOLERANCIA_MALLA:
 		if _fisicas - _fisicas_de_fase < _FISICAS_ESPERA_PARED:
@@ -194,3 +195,15 @@ func _informar() -> bool:
 	print("PRUEBA CAPA NAVEGACION %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true
+
+
+## El mapa de navegación del nivel cargado. Cada nivel tiene el suyo desde que
+## el servidor puede tener varios cargados a la vez, así que el del mundo
+## (get_world_2d().navigation_map) ya no tiene ninguna región.
+func _mapa_del_nivel() -> RID:
+	# El nivel se cuelga directo de root en esta prueba (no hay contenedor
+	# registrado en GestorNiveles), así que se lo busca ahí.
+	for hijo in root.get_children():
+		if hijo.has_method("mapa_navegacion"):
+			return hijo.call("mapa_navegacion")
+	return root.get_world_2d().navigation_map

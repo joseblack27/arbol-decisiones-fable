@@ -8,6 +8,11 @@
 #      ya resuelto como texto, incluso invisible) también agrega su línea.
 #   3. Daño recibido por un NO-jugador (un mob) no se registra — mismo
 #      criterio de siempre, solo interesa el daño que reciben jugadores.
+#   4. Con Utils.mostrar_depuracion en false (default, incluido en el
+#      servidor dedicado), la línea de daño SIGUE quedando en el historial
+#      del panel — lo único que cambia es que registrar() se salta el
+#      print() a consola (pedido: "no llenar los logs del contenedor" con
+#      un renglón por cada golpe que recibe cada jugador).
 #   godot --headless --path . --script res://pruebas/prueba_log_red_dano.gd
 # =============================================================================
 extends SceneTree
@@ -17,11 +22,13 @@ var _jugador
 var _mob
 var _gestor_log_red
 var _bus
+var _utils
 var _lineas_antes := 0
 
 var _registra_dano_aplicado := false
 var _registra_dano_replicado := false
 var _no_registra_dano_a_mob := false
+var _sigue_en_panel_con_depuracion_apagada := false
 
 
 func _process(_delta: float) -> bool:
@@ -50,6 +57,14 @@ func _process(_delta: float) -> bool:
 			var nuevas: Array = _gestor_log_red.lineas.slice(_lineas_antes)
 			_no_registra_dano_a_mob = nuevas.is_empty()
 			print("No registra daño recibido por un mob (esperado true): %s" % _no_registra_dano_a_mob)
+			_utils.mostrar_depuracion = false
+			_lineas_antes = _gestor_log_red.lineas.size()
+			_bus.daño_aplicado.emit(_jugador, 3.0, null, 2, false)
+		6:
+			var nuevas: Array = _gestor_log_red.lineas.slice(_lineas_antes)
+			_sigue_en_panel_con_depuracion_apagada = nuevas.size() == 1 and nuevas[0].contains("3 daño")
+			print("Con datos de desarrollo apagados, la línea igual queda en el panel (esperado true): %s -> %s" % [
+				_sigue_en_panel_con_depuracion_apagada, nuevas])
 			return _informar()
 	return false
 
@@ -57,6 +72,7 @@ func _process(_delta: float) -> bool:
 func _montar() -> void:
 	_gestor_log_red = root.get_node("/root/GestorLogRed")
 	_bus = root.get_node("/root/BusEventos")
+	_utils = root.get_node("/root/Utils")
 	_jugador = CharacterBody2D.new()
 	_jugador.add_to_group("jugadores")
 	root.add_child(_jugador)
@@ -66,7 +82,8 @@ func _montar() -> void:
 
 
 func _informar() -> bool:
-	var exito := _registra_dano_aplicado and _registra_dano_replicado and _no_registra_dano_a_mob
+	var exito := _registra_dano_aplicado and _registra_dano_replicado and _no_registra_dano_a_mob \
+		and _sigue_en_panel_con_depuracion_apagada
 	print("PRUEBA LOG RED DANO %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

@@ -10,7 +10,7 @@ defensa = 14.0
 fortaleza = 5.0
 resistencia_fisica = 20.0
 resistencia_tierra = 20.0
-resistencia_aire = -45.0
+resistencia_aire = -40.0
 
 [resource]
 script = ExtResource("1_scr")

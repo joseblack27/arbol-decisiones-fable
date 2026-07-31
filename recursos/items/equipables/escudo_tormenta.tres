@@ -9,7 +9,7 @@ script = ExtResource("3_atr")
 defensa = 4.0
 resistencia_aire = 30.0
 resistencia_fuego = 12.0
-resistencia_fisica = -30.0
+resistencia_fisica = -23.0
 
 [resource]
 script = ExtResource("1_scr")

@@ -99,6 +99,7 @@ func comandar_destino(destino: Vector2, velocidad_override: float = 0.0) -> void
 		# Agente puesto a mano en la escena (p. ej. para depurar con
 		# debug_enabled): igual se sincroniza a la capa Navegacion dedicada.
 		agente_navegacion.navigation_layers = MASCARA_NAVEGACION
+	_usar_mapa_del_nivel()
 	_modo = ModoComando.DESTINO
 	_velocidad_comandada = velocidad_override
 	if agente_navegacion != null \
@@ -129,12 +130,25 @@ func _crear_agente_navegacion() -> void:
 	agente_navegacion.target_desired_distance = distancia_destino_agente
 	agente_navegacion.navigation_layers = MASCARA_NAVEGACION
 	jugador.add_child(agente_navegacion)
+	_usar_mapa_del_nivel()
 	# Con avoidance_enabled=true en el agente (ver .tscn), asignar
 	# agente_navegacion.velocity dispara el cálculo de evasión (RVO) contra
 	# otros agentes/NavigationObstacle2D cercanos; el resultado "seguro" llega
 	# por esta señal — sin conectarla, avoidance_enabled no tiene ningún
 	# efecto real (antes solo estaba el flag puesto, nunca usado).
 	agente_navegacion.velocity_computed.connect(_on_velocity_computed)
+
+
+## El agente tiene que rutear SOBRE LA MALLA DE SU NIVEL, no sobre la del
+## mundo: con varios niveles cargados a la vez y separados 100.000 px, un mob
+## de un nivel sin malla propia se enganchaba a la malla del OTRO nivel y se
+## iba caminando hacia allá para siempre (ver NivelBase._crear_mapa_navegacion).
+func _usar_mapa_del_nivel() -> void:
+	if agente_navegacion == null or jugador == null or not jugador.is_inside_tree():
+		return
+	var mapa := GestorNiveles.mapa_navegacion_de(jugador)
+	if mapa.is_valid() and agente_navegacion.get_navigation_map() != mapa:
+		agente_navegacion.set_navigation_map(mapa)
 
 
 func _avanzar_hacia_destino(delta: float) -> void:
@@ -303,7 +317,10 @@ const MARGEN_FUERA_DE_MAPA := 6.0
 ## Sin malla en la escena (pruebas sueltas, mobs sin nivel real) esto no
 ## hace nada — se sale solo si de verdad hay una malla contra la cual comparar.
 func contener_dentro_del_mapa() -> void:
-	var mapa: RID = jugador.get_world_2d().navigation_map
+	# El mapa de SU nivel, no el del mundo: con varios niveles a la vez, el
+	# compartido devolvería el punto navegable de otro nivel y este "rescate"
+	# teletransportaría al cuerpo a 100.000 px de distancia.
+	var mapa: RID = GestorNiveles.mapa_navegacion_de(jugador)
 	# iteration_id == 0: el mapa todavía no terminó su primera sincronización
 	# (recién cargado el nivel, mismo fotograma) — consultarlo ya dispara un
 	# ERROR de NavigationServer y, peor, puede devolver un punto sin sentido

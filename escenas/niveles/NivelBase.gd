@@ -17,6 +17,7 @@ extends Node2D
 
 
 func _ready() -> void:
+	_crear_mapa_navegacion()
 	if Utils.en_red():
 		_configurar_spawner_invocaciones()
 	var generador := _buscar_generador()
@@ -24,6 +25,58 @@ func _ready() -> void:
 		return
 	for nodo in _puntos_importantes():
 		generador.despejar_alrededor(nodo.global_position, radio_despeje)
+
+
+## Mapa de navegación PROPIO de este nivel, en vez del compartido del mundo.
+##
+## Hace falta porque en el servidor conviven varios niveles a la vez, separados
+## por 100.000 px (ver GestorNiveles). Con un único mapa compartido, los mobs
+## de un nivel SIN malla propia —la Cueva no tiene— encontraban como "punto
+## navegable más cercano" la malla del OTRO nivel, a 98.000 px, y sus agentes
+## se iban caminando para allá en línea recta para siempre: detectaban al
+## jugador pero jamás se le acercaban. Reportado: "los mobs de la cueva se
+## quedaron quietos y solo reacciona la araña disparando de lejos" (la araña
+## ataca a distancia, así que era la única que parecía viva).
+##
+## Con un mapa por nivel, un nivel sin malla simplemente no tiene rutas y sus
+## mobs caen al respaldo de línea recta hacia el objetivo (ver
+## MovimientoComponente._avanzar_hacia_destino), que es como se comportaban
+## antes de que existieran varios niveles a la vez.
+var _mapa_navegacion: RID
+
+func _crear_mapa_navegacion() -> void:
+	var por_defecto := get_world_2d().navigation_map
+	_mapa_navegacion = NavigationServer2D.map_create()
+	NavigationServer2D.map_set_cell_size(
+		_mapa_navegacion, NavigationServer2D.map_get_cell_size(por_defecto))
+	NavigationServer2D.map_set_active(_mapa_navegacion, true)
+	for nodo in _descendientes():
+		if nodo is TileMapLayer:
+			(nodo as TileMapLayer).set_navigation_map(_mapa_navegacion)
+		elif nodo is NavigationRegion2D:
+			(nodo as NavigationRegion2D).set_navigation_map(_mapa_navegacion)
+
+
+## El mapa de navegación de este nivel. Todo lo que navegue DENTRO del nivel
+## (agentes de los mobs, validación de puntos de aparición, contención dentro
+## del mapa) tiene que usar este y no el del mundo.
+func mapa_navegacion() -> RID:
+	return _mapa_navegacion
+
+
+func _exit_tree() -> void:
+	if _mapa_navegacion.is_valid():
+		NavigationServer2D.free_rid(_mapa_navegacion)
+		_mapa_navegacion = RID()
+
+
+func _descendientes(desde: Node = null) -> Array[Node]:
+	var raiz: Node = desde if desde != null else self
+	var resultado: Array[Node] = []
+	for hijo in raiz.get_children():
+		resultado.append(hijo)
+		resultado.append_array(_descendientes(hijo))
+	return resultado
 
 
 ## Réplica de entidades que un JUGADOR invoca (p. ej. HabilidadInvocacion),

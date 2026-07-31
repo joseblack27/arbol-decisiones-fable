@@ -36,7 +36,8 @@ func _cargar_nivel() -> void:
 	_nivel = (load("res://escenas/niveles/NivelPradera.tscn") as PackedScene).instantiate()
 	root.add_child(_nivel)
 	current_scene = _nivel
-	_mapa = _nivel.get_node("Enemigos").get_world_2d().navigation_map
+	# Mapa propio del nivel (ver NivelBase._crear_mapa_navegacion).
+	_mapa = _nivel.mapa_navegacion()
 
 
 func _montar_spawner() -> void:

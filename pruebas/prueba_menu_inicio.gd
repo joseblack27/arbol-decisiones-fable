@@ -1,8 +1,13 @@
 # =============================================================================
 # Prueba de MenuInicio: al tocar "Jugar", guarda IP/puerto/nombre en Utils
 # (que sobreviven el cambio de escena hacia Mundo.tscn) y valida el puerto.
-# También: persiste a user://config_conexion.cfg (ver MenuInicio._guardar_
-# config) para sobrevivir cerrar la app, y _ready() la relee al arrancar.
+# También: persiste a user://config_conexion.cfg (ver Utils.guardar_config,
+# compartido con el panel de Configuración del OS) para sobrevivir cerrar la
+# app, y _ready() la relee al arrancar.
+#
+# La casilla de "datos de desarrollo" ya NO vive acá: se movió al panel de
+# Configuración del OS, donde además se aplica en vivo. Su cobertura está en
+# pruebas/prueba_panel_configuracion.gd.
 #   godot --headless --path . --script res://pruebas/prueba_menu_inicio.gd
 # =============================================================================
 extends SceneTree
@@ -58,13 +63,6 @@ func _informar() -> bool:
 	campo_ip.text     = "192.168.1.50"
 	campo_puerto.text = "9999"
 	campo_nombre.text = "  Jose  "
-	# Los datos de desarrollo (FPS/latencia/log) están APAGADOS por defecto —
-	# ver Utils.mostrar_depuracion; acá se enciende para comprobar que la
-	# casilla guarda y sobrevive el "cerrar y abrir la app" de más abajo.
-	var casilla: CheckBox = _menu.get_node("%CasillaDepuracion")
-	var arranca_apagada: bool = not casilla.button_pressed
-	print("La casilla de datos de desarrollo arranca apagada (esperado true): %s" % arranca_apagada)
-	casilla.button_pressed = true
 	_menu.call("_on_jugar")
 
 	var ip_guardada: String = _utils.get("ip_conexion")
@@ -91,25 +89,20 @@ func _informar() -> bool:
 	_utils.ip_conexion = "0.0.0.0"
 	_utils.puerto_conexion = 1
 	_utils.nombre_conexion = ""
-	_utils.mostrar_depuracion = false
 	var menu2 := (load("res://escenas/menu_inicio/MenuInicio.tscn") as PackedScene).instantiate()
 	root.add_child(menu2)
 	var ip_tras_reinicio: String = menu2.get_node("%CampoIp").text
 	var puerto_tras_reinicio: String = menu2.get_node("%CampoPuerto").text
 	var nombre_tras_reinicio: String = menu2.get_node("%CampoNombre").text
-	var depuracion_tras_reinicio: bool = menu2.get_node("%CasillaDepuracion").button_pressed
 	var persiste_ok: bool = ip_tras_reinicio == "192.168.1.50" \
 		and puerto_tras_reinicio == "9999" and nombre_tras_reinicio == "Jose"
 	print("Sobrevive 'cerrar y abrir la app' (esperado ip/puerto/nombre guardados): %s" % persiste_ok)
-	print("La casilla de desarrollo también persiste (esperado true): %s" % depuracion_tras_reinicio)
 	menu2.queue_free()
-	_utils.mostrar_depuracion = false
 
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(_RUTA_CONFIG))
 
 	var exito: bool = precargo_ip and precargo_puerto and ip_ok and puerto_ok and nombre_ok \
-		and rechazo_puerto_invalido and persiste_ok \
-		and arranca_apagada and depuracion_tras_reinicio
+		and rechazo_puerto_invalido and persiste_ok
 	print("PRUEBA MENU INICIO %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

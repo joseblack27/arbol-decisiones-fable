@@ -46,8 +46,8 @@ func _process(_delta: float) -> bool:
 			if _probar_retirada():
 				_fase = 3
 		3:
-			_probar_integracion()
-			_fase = 4
+			if _probar_integracion():
+				_fase = 4
 		4:
 			return _informar()
 	return false
@@ -100,29 +100,43 @@ func _probar_retirada() -> bool:
 	return true
 
 
-## Reubica al arquero pegado al jugador (bien dentro de distancia_peligro)
-## y confirma que, tras un par de segundos, YA reaccionó de alguna de las
-## dos formas (no le importa cuál) — la mecánica de "cada 5s" en sí anda.
+## Reubica al arquero pegado al jugador (bien dentro de distancia_peligro) y
+## confirma que reacciona de alguna de las dos formas (no le importa cuál) —
+## la mecánica de "cada 5s" en sí anda.
+##
+## Reestablece memoria["objetivo"]/"jugador_detectado" acá (no solo confiar
+## en lo que dejó _montar()): la retirada de la fase anterior aleja al mob
+## hasta ~700px del jugador (300px iniciales + ~400px de dash), pasando el
+## distancia_abandono (500) de AccionPerseguir — el árbol de comportamiento
+## sigue corriendo DURANTE el dash (_en_retirada solo le saca el control del
+## movimiento, no le apaga el tick), así que en la ventana entre que termina
+## la retirada y que esta fase reubica al mob, un tick de AccionPerseguir
+## puede alcanzar a limpiar memoria["objetivo"] a null. Sin esto la prueba
+## quedaba intermitente por una carrera ajena a lo que quiere probar.
 var _frames_integracion := 0
+const _TOPE_FRAMES_INTEGRACION := 90
 
-func _probar_integracion() -> void:
-	_mob.global_position = _jugador.global_position + Vector2(50, 0)
-	_mob._tiempo_restante_decision = 0.0
-	_mob._estaba_cerca = false
+func _probar_integracion() -> bool:
+	if _frames_integracion == 0:
+		_mob.global_position = _jugador.global_position + Vector2(50, 0)
+		_mob.memoria.establecer("objetivo", _jugador)
+		_mob.memoria.establecer("jugador_detectado", true)
+		_mob._tiempo_restante_decision = 0.0
+		_mob._estaba_cerca = false
+	_frames_integracion += 1
+
+	var reacciono: bool = _mob._en_retirada \
+		or absf(_mob._accion_atacar.duracion_recuperacion - _recuperacion_normal) > 0.001
+	if not reacciono and _frames_integracion < _TOPE_FRAMES_INTEGRACION:
+		return false
+
+	_ok_integracion = reacciono
+	print("Integración: tras estar pegado al jugador, reaccionó (retirada o cadencia)? %s (en %d fotogramas)" % [
+		reacciono, _frames_integracion])
+	return true
 
 
 func _informar() -> bool:
-	_frames_integracion += 1
-	# Un par de fotogramas de margen para que _actualizar_reaccion_cercania
-	# detecte la cercanía y dispare la primera decisión (ver comentario en
-	# EnemigoEsqueletoArquero: reacciona apenas detecta, no espera 5s enteros).
-	if _frames_integracion < 5:
-		return false
-	var reacciono: bool = _mob._en_retirada \
-		or absf(_mob._accion_atacar.duracion_recuperacion - _recuperacion_normal) > 0.001
-	_ok_integracion = reacciono
-	print("Integración: tras estar pegado al jugador, reaccionó (retirada o cadencia)? %s" % reacciono)
-
 	var exito := _ok_cadencia and _ok_retirada and _ok_integracion
 	print("PRUEBA ESQUELETO ARQUERO REACCIÓN CERCANÍA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)

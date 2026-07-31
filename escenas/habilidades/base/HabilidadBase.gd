@@ -201,9 +201,14 @@ func _activar_red(direccion: Vector2, poder: float) -> void:
 		return
 	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
 		return
-	# Un muerto no lanza habilidades — el cliente ya lo bloquea en su UI
-	# (Jugador._activar_slot), pero la autoridad real vive acá.
-	if ("_muerto" in entidad_dueña) and entidad_dueña.get("_muerto"):
+	# Un muerto —o alguien recién llegado a un nivel nuevo, ver
+	# Jugador.bloquear_por_transicion— no lanza habilidades. El cliente ya lo
+	# bloquea en su UI (Jugador._activar_slot), pero la autoridad real vive
+	# acá: un cliente modificado no puede saltárselo.
+	if entidad_dueña.has_method(&"esta_bloqueado"):
+		if entidad_dueña.call(&"esta_bloqueado"):
+			return
+	elif ("_muerto" in entidad_dueña) and entidad_dueña.get("_muerto"):
 		return
 	activar(direccion, poder)
 

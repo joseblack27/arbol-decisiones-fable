@@ -60,11 +60,14 @@ func _process(delta: float) -> void:
 			if debug_rayos:
 				queue_redraw()
 
-	if not _areas_en_rango.is_empty():
-		_timer_poda += delta
-		if _timer_poda >= _INTERVALO_PODA:
-			_timer_poda = 0.0
-			_podar_invalidos()
+	# Corre siempre (no solo con _areas_en_rango no vacío): _detectar_pendientes
+	# necesita revisar el solapamiento físico aunque hoy no haya NADA
+	# detectado todavía (ver ese comentario para el caso real que cubre).
+	_timer_poda += delta
+	if _timer_poda >= _INTERVALO_PODA:
+		_timer_poda = 0.0
+		_podar_invalidos()
+		_detectar_pendientes()
 
 
 func _draw() -> void:
@@ -88,7 +91,19 @@ func _draw() -> void:
 # =============================================================================
 
 func _on_area_entered(area: Area2D) -> void:
+	_intentar_registrar(area)
+
+
+## Filtro + alta compartidos por _on_area_entered (evento real de físicas) y
+## _detectar_pendientes (reconciliación periódica, ver ese comentario). Un
+## área invulnerable (ver VidaComponente.es_invulnerable) NUNCA se registra
+## acá — pedido del usuario: mientras un jugador es inmune (al revivir), no
+## puede ser objetivo de ningún mob. Queda pendiente para _detectar_pendientes
+## en cuanto termine su inmunidad, si sigue solapado.
+func _intentar_registrar(area: Area2D) -> void:
 	if not area is VidaComponente or area.get_parent() == get_parent():
+		return
+	if not area.monitorable or (area as VidaComponente).es_invulnerable():
 		return
 	if not grupos_objetivo.is_empty():
 		var propietario := area.get_parent()
@@ -140,6 +155,21 @@ func _podar_invalidos() -> void:
 			_desregistrar_con_los(area)
 		else:
 			_areas_con_los.erase(key)
+
+
+## Contraparte de _podar_invalidos: agrega objetivos que YA están física-
+## mente solapados (get_overlapping_areas) pero que _intentar_registrar se
+## saltó en su momento por ser inválidos (invulnerable, no monitorable
+## todavía). Caso real: un jugador muere pegado a un mob (se poda de acá
+## arriba), revive invulnerable EN EL MISMO LUGAR — el cuerpo nunca sale
+## físicamente del área, así que Godot no vuelve a disparar area_entered, y
+## sin este re-chequeo el mob nunca lo detectaría de nuevo aunque termine su
+## inmunidad y se quede parado ahí (reportado por el usuario). No hace falta
+## reaccionar en el mismo fotograma en que termina la inmunidad — corre cada
+## _INTERVALO_PODA, igual que la poda.
+func _detectar_pendientes() -> void:
+	for area in get_overlapping_areas():
+		_intentar_registrar(area)
 
 
 # =============================================================================

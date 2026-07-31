@@ -159,7 +159,9 @@ func _esperar_malla_lista() -> void:
 	# si esta función volviera sin ningún await, el nivel arrancaría con CERO
 	# mobs en vez de con cantidad_inicial.
 	await get_tree().physics_frame
-	var mapa := get_world_2d().navigation_map
+	# Mapa de SU nivel (ver NivelBase._crear_mapa_navegacion): el del mundo
+	# mezclaría la malla de todos los niveles cargados a la vez.
+	var mapa := GestorNiveles.mapa_navegacion_de(self)
 	var intentos := 0
 	while not _malla_responde(mapa) and intentos < _FRAMES_ESPERA_MALLA:
 		await get_tree().physics_frame
@@ -185,6 +187,12 @@ func _process(delta: float) -> void:
 		return
 	if not _debe_generar_localmente():
 		return
+	# Nivel sin nadie adentro: no tiene sentido poblarlo (en el servidor
+	# pueden convivir varios niveles a la vez, ver GestorNiveles). Además
+	# evita mandarle a los clientes eventos de spawn de un mapa que no
+	# tienen cargado — el motor los rechazaría con "node not found".
+	if not GestorNiveles.hay_jugadores_en(_nivel_propio()):
+		return
 	_tiempo_restante -= delta
 	if _tiempo_restante <= 0.0:
 		_tiempo_restante = intervalo_spawn
@@ -202,6 +210,16 @@ func desactivar() -> void:
 ## Cuántos mobs generados por ESTE spawner siguen vivos ahora mismo.
 func cantidad_viva() -> int:
 	return _vivos.size()
+
+
+## El nivel al que pertenece este spawner. Se busca hacia arriba en vez de
+## preguntarle a GestorNiveles "cuál es el nivel": en el servidor hay varios
+## cargados a la vez y cada spawner es de UNO solo.
+func _nivel_propio() -> NivelBase:
+	var nodo := get_parent()
+	while nodo != null and not (nodo is NivelBase):
+		nodo = nodo.get_parent()
+	return nodo as NivelBase
 
 
 func _generar_uno() -> void:
@@ -242,7 +260,9 @@ func _generar_uno() -> void:
 ## transitables (agua, huecos) sin duplicar lógica de terreno.
 ## Devuelve null si tras varios intentos no encuentra ninguno válido.
 func _punto_de_generacion_valido() -> Variant:
-	var mapa := get_world_2d().navigation_map
+	# Mapa de SU nivel (ver NivelBase._crear_mapa_navegacion): el del mundo
+	# mezclaría la malla de todos los niveles cargados a la vez.
+	var mapa := GestorNiveles.mapa_navegacion_de(self)
 	if NavigationServer2D.map_get_regions(mapa).is_empty():
 		# Sin malla de navegación en este mundo (p. ej. una prueba aislada sin
 		# nivel real): no hay nada que validar, se mantiene el comportamiento
@@ -288,6 +308,15 @@ func _al_salir_mob(mob: Node) -> void:
 ## spawner que ya estaban vivos ANTES de que se conectara (el lote automático
 ## del MultiplayerSpawner se le perdió mientras cargaba, ver _ready).
 func _al_peer_listo(peer_id: int) -> void:
+	# Sólo a los peers de ESTE nivel: con varios niveles cargados a la vez en
+	# el servidor, mandarle a alguien los mobs de un mapa que no tiene sería
+	# un montón de paquetes que su motor rechaza uno por uno.
+	# Ante la duda (nivel desconocido) se reenvía igual: perderse el resync
+	# deja al cliente sin ningún mob y con el motor rechazándole cada RPC.
+	var mio := _nivel_propio()
+	var suyo := GestorNiveles.nivel_de_peer(peer_id)
+	if mio != null and suyo != null and mio != suyo:
+		return
 	var datos: Array = []
 	var nombres_omitidos: Array = []
 	for mob in _vivos:

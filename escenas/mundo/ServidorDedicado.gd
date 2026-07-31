@@ -42,7 +42,6 @@ var _cola_spawn: Array[int] = []
 func _ready() -> void:
 	get_tree().current_scene = self
 	GestorNiveles.registrar($ContenedorNivel, null)
-	GestorNiveles.cambiar_nivel(nivel_inicial)
 
 	# Tope de conexiones ENet simultáneas — encontrado DEMASIADO bajo (16,
 	# por debajo incluso del default de Godot de 32) durante la prueba de
@@ -64,6 +63,17 @@ func _ready() -> void:
 	multiplayer.peer_disconnected.connect(_al_desconectar)
 	GestorNiveles.peer_listo.connect(_al_peer_listo)
 	print("ServidorDedicado escuchando en el puerto %d." % Utils.PUERTO_JUEGO)
+
+	# El nivel se carga DESPUÉS de asignar multiplayer_peer, nunca antes:
+	# preparar_servidor() instancia la escena en el acto (no diferido), y todo
+	# el cableado de red que hacen los nodos del nivel en su _ready() —
+	# SpawnerMobs._configurar_spawner_red(), NivelBase._configurar_spawner_
+	# invocaciones(), la suscripción a peer_listo — está condicionado a
+	# Utils.en_red(). Cargándolo antes, en_red() todavía daba false y el nivel
+	# nacía SIN red: los mobs no se replicaban, no había resync, y cada cliente
+	# recibía RPCs de mobs que nunca había creado (miles de "Requested node was
+	# not found" hasta perder la conexión).
+	GestorNiveles.preparar_servidor(nivel_inicial)
 	_iniciar_instrumentacion()
 
 
@@ -73,10 +83,19 @@ func _ready() -> void:
 # MEDIR dónde está el límite real). Imprime cada _INTERVALO_REPORTE segundos
 # una línea "[CARGA] ..." fácil de grepear desde el arnés de bots
 # (herramientas/prueba_carga.sh) o desde logs de Docker en producción.
+#
+# Apagada por defecto: no depende de nada que haga un jugador real, corre
+# sola cada 5s las 24 horas y solo sirve durante una corrida de carga —
+# dejarla prendida en producción normal es puro ruido en los logs del
+# contenedor. Para una sesión de medición: poner esta constante en true,
+# reconstruir la imagen, y volver a false al terminar.
 # =============================================================================
+const _INSTRUMENTACION_ACTIVA := false
 const _INTERVALO_REPORTE := 5.0
 
 func _iniciar_instrumentacion() -> void:
+	if not _INSTRUMENTACION_ACTIVA:
+		return
 	var timer := Timer.new()
 	timer.wait_time = _INTERVALO_REPORTE
 	timer.autostart = true
@@ -151,7 +170,8 @@ func _spawnear_jugador(id: int) -> void:
 	var jugador := ESCENA_JUGADOR.instantiate()
 	jugador.name = str(id)
 	_jugadores.add_child(jugador, true)
-	GestorNiveles.asignar_jugador(jugador)
+	# En SU nivel, no en "el del mundo": cada jugador tiene el suyo.
+	GestorNiveles.colocar_jugador_nuevo(id, jugador)
 	# No hace falta equipar nada acá: en cuanto el cliente ve aparecer su
 	# propio jugador (Mundo.gd) equipa golpe_basico localmente, y
 	# SlotHabilidades._sincronizar_equipo_red() manda ese equipo acá por
@@ -162,6 +182,9 @@ func _al_desconectar(id: int) -> void:
 	print("Peer desconectado: %d" % id)
 	_peers_pendientes.erase(id)
 	_cola_spawn.erase(id)
+	# Sin esto sus entradas (nivel, generación, gracia) quedan colgadas para
+	# siempre — y un peer id reciclado heredaría el nivel del anterior.
+	GestorNiveles.olvidar_peer(id)
 	# Volcar YA su último snapshot de progreso a la base — antes de liberar
 	# el nodo (GestorGuardado necesita el Jugador vivo para resolver su
 	# id_unico). Sin esto, cerrar el juego perdía lo posterior a la última

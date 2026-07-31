@@ -52,9 +52,53 @@ func es_relevante_para_peer(posicion: Vector2, peer_id: int) -> bool:
 ## Todos los peer_id conectados cuyo jugador está a RADIO_INTERES o menos de
 ## "posicion". Usado por Enemigo.gd para mandar su estado solo a quien le
 ## importa, en vez de rpc() (broadcast a TODOS) — ver _physics_process ahí.
+## Se saltan los peers que todavía NO confirmaron haber terminado de cargar el
+## nivel actual: sus nodos de mob aún no existen, así que cada RPC que se les
+## mande lo rechaza el motor con "Invalid packet received. Requested node was
+## not found". Eran miles de líneas de error por cada cambio de nivel (peor
+## cuanto más tarda en cargar el aparato — un celular tarda muchísimo más que
+## un PC), y no se perdía nada real: en cuanto el peer avisa que está listo
+## vuelve a entrar acá, y SpawnerMobs le hace un resync completo (ver
+## [RESYNC] en el log del servidor).
 func peers_cercanos(posicion: Vector2) -> Array[int]:
 	var resultado: Array[int] = []
-	for peer_id in multiplayer.get_peers():
+	for peer_id in _peers_enviables():
 		if es_relevante_para_peer(posicion, peer_id):
 			resultado.append(peer_id)
 	return resultado
+
+
+## Peers a los que TIENE SENTIDO mandarles algo ahora mismo, calculado UNA vez
+## por fotograma físico y reusado por todos los mobs (antes cada mob rehacía
+## esta lista entera en cada fotograma).
+##
+## El filtro por estado de ENet no es paranoia: `multiplayer.get_peers()` sigue
+## listando a un peer que ENet ya dio por caído hasta que Godot emite
+## peer_disconnected, y mandarle algo en esa ventana revienta con "Unable to
+## send packet on channel 1, max channels: 0" — MILES de líneas por sesión (se
+## midieron 1524 con sólo dos jugadores quietos, y 9114 en otra corrida). Ese
+## chaparrón de errores por consola es lo bastante caro como para hacer perder
+## la conexión a los demás, así que un jugador cayéndose se llevaba puestos a
+## los otros. Bug viejo, sin relación con los niveles: aparece apenas hay dos
+## jugadores conectados a la vez.
+var _peers_enviables_cache: Array[int] = []
+var _fotograma_cache: int = -1
+
+func _peers_enviables() -> Array[int]:
+	var fotograma := Engine.get_physics_frames()
+	if fotograma == _fotograma_cache:
+		return _peers_enviables_cache
+	_fotograma_cache = fotograma
+	_peers_enviables_cache = []
+	var enet := multiplayer.multiplayer_peer as ENetMultiplayerPeer
+	for peer_id in multiplayer.get_peers():
+		# Todavía cargando su nivel: sus nodos no existen y el motor le
+		# rechazaría cada paquete con "Requested node was not found".
+		if not GestorNiveles.peer_listo_para_nivel_actual(peer_id):
+			continue
+		if enet != null:
+			var par := enet.get_peer(peer_id)
+			if par == null or par.get_state() != ENetPacketPeer.STATE_CONNECTED:
+				continue
+		_peers_enviables_cache.append(peer_id)
+	return _peers_enviables_cache

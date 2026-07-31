@@ -101,7 +101,9 @@ func _montar() -> void:
 
 
 func _esperar_malla_y_comandar() -> bool:
-	var mapa := root.get_world_2d().navigation_map
+	# El mapa del NIVEL, no el del mundo: desde que conviven varios niveles
+	# a la vez cada uno tiene el suyo (ver NivelBase._crear_mapa_navegacion).
+	var mapa := _mapa_del_nivel()
 	if not _malla_responde(mapa):
 		if _fisicas < _FISICAS_ESPERA_MALLA:
 			return false
@@ -156,7 +158,7 @@ func _preparar_lobo(mapa: RID) -> bool:
 
 
 func _informar() -> bool:
-	var mapa := _lobo.get_world_2d().navigation_map
+	var mapa := _mapa_del_nivel()
 	var regiones := NavigationServer2D.map_get_regions(mapa).size()
 	# Desde el componente: funciona igual con agente de escena o auto-creado.
 	var puntos_ruta := _agente.get_current_navigation_path().size()
@@ -171,3 +173,15 @@ func _informar() -> bool:
 	print("PRUEBA NAVEGACIÓN %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true
+
+
+## El mapa de navegación del nivel cargado. Cada nivel tiene el suyo desde que
+## el servidor puede tener varios cargados a la vez, así que el del mundo
+## (get_world_2d().navigation_map) ya no tiene ninguna región.
+func _mapa_del_nivel() -> RID:
+	# El nivel se cuelga directo de root en esta prueba (no hay contenedor
+	# registrado en GestorNiveles), así que se lo busca ahí.
+	for hijo in root.get_children():
+		if hijo.has_method("mapa_navegacion"):
+			return hijo.call("mapa_navegacion")
+	return root.get_world_2d().navigation_map

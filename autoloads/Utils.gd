@@ -59,8 +59,9 @@ var error_conexion := ""
 ## herramientas de desarrollo, no información de juego — flotaban sueltas
 ## sobre el mapa, sin panel detrás, encimándose entre sí e ilegibles sobre
 ## el terreno claro. Se enciende desde MenuInicio (se guarda junto al resto
-## de la config, ver MenuInicio._guardar_config) para poder diagnosticar en
-## el celular sin recompilar.
+## de la config, ver guardar_config()) y desde el panel de Configuración del
+## OS, para poder diagnosticar en el celular sin recompilar.
+
 var mostrar_depuracion := false
 
 ## SOLO para pruebas headless (prueba_niveles, prueba_muerte_jugador...): el
@@ -207,3 +208,38 @@ func formatear_segundos(valor: float) -> String:
 	if is_equal_approx(valor, roundf(valor)):
 		return "%ds" % int(valor)
 	return "%.1fs" % valor
+
+
+# ── Preferencias persistentes ────────────────────────────────────────────────
+## Archivo donde viven las preferencias del jugador entre sesiones. Vivía
+## como método privado de MenuInicio, pero esa escena se libera al entrar al
+## juego (change_scene_to_file), así que el panel de Configuración del OS no
+## podía reusarla: quedaba duplicar la lista de claves en dos lados y que se
+## desincronizaran con el tiempo. Acá, junto a las variables que guarda, hay
+## una sola implementación para los dos.
+const RUTA_CONFIG := "user://config_conexion.cfg"
+
+
+## Vuelca las preferencias actuales al disco. Llamar SOLO al confirmar un
+## cambio (no mientras el jugador escribe).
+func guardar_config() -> void:
+	var config := ConfigFile.new()
+	config.set_value("conexion", "ip", ip_conexion)
+	config.set_value("conexion", "puerto", puerto_conexion)
+	config.set_value("conexion", "nombre", nombre_conexion)
+	config.set_value("conexion", "pin", pin_conexion)
+	config.set_value("conexion", "depuracion", mostrar_depuracion)
+	config.save(RUTA_CONFIG)
+
+
+## Lee las preferencias guardadas. Si no hay archivo (primera vez en este
+## dispositivo), deja los valores de fábrica que ya trae este autoload.
+func cargar_config() -> void:
+	var config := ConfigFile.new()
+	if config.load(RUTA_CONFIG) != OK:
+		return
+	ip_conexion       = config.get_value("conexion", "ip", ip_conexion)
+	puerto_conexion   = config.get_value("conexion", "puerto", puerto_conexion)
+	nombre_conexion   = config.get_value("conexion", "nombre", nombre_conexion)
+	pin_conexion      = config.get_value("conexion", "pin", pin_conexion)
+	mostrar_depuracion = config.get_value("conexion", "depuracion", mostrar_depuracion)
