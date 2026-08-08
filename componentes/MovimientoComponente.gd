@@ -208,10 +208,9 @@ func _on_velocity_computed(velocidad_segura: Vector2) -> void:
 	if _empuje_restante > 0.0:
 		return
 	if _contador_inmovilizacion > 0:
-		jugador.velocity = Vector2.ZERO
+		_mover(Vector2.ZERO)
 	else:
-		jugador.velocity = velocidad_segura
-	jugador.move_and_slide()
+		_mover(velocidad_segura)
 
 
 # --- Lógica de Movimiento ---
@@ -221,8 +220,7 @@ func _on_velocity_computed(velocidad_segura: Vector2) -> void:
 ## Útil para ataques especiales (dash, huida rápida) sin cambiar velocidad_base.
 func physics_process(_delta: float, _direccion: Vector2, velocidad_override: float = 0.0) -> void:
 	if _contador_inmovilizacion > 0:
-		jugador.velocity = Vector2.ZERO
-		jugador.move_and_slide()
+		_mover(Vector2.ZERO)
 		return
 
 	# 1. Elegir velocidad: override si se especifica, base por defecto.
@@ -232,8 +230,20 @@ func physics_process(_delta: float, _direccion: Vector2, velocidad_override: flo
 	var velocidad_aplicada: Vector2 = _direccion.normalized() * vel * _multiplicador_lentitud()
 
 	# 3. Aplicar movimiento físico.
+	_mover(velocidad_aplicada)
+
+
+## move_and_slide() SOLO corre si hay velocidad que resolver: con velocidad
+## ZERO la posición no cambia igual (no hay nada que mover), así que
+## llamarlo es puro trabajo de física tirado a la basura — multiplicado por
+## cada mob quieto (idle, en pausa de deambular, en recuperación tras
+## atacar) en todo el mapa, esto pesaba en el servidor headless de un solo
+## núcleo (ver InteresEspacial para el mismo tipo de optimización del lado
+## de red).
+func _mover(velocidad_aplicada: Vector2) -> void:
 	jugador.velocity = velocidad_aplicada
-	jugador.move_and_slide()
+	if velocidad_aplicada != Vector2.ZERO:
+		jugador.move_and_slide()
 
 
 ## Factores de lentitud activos (0.5 = mitad de velocidad). Lista y no un

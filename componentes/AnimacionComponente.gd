@@ -32,6 +32,14 @@ func _ready() -> void:
 		push_warning("AnimacionComponente: Faltan referencias.")
 		return
 	animation_player.animation_finished.connect(_on_animation_finished)
+	# El servidor headless (Docker) nunca dibuja nada, pero el AnimationTree
+	# evalúa su blend tree / máquina de estados cada fotograma igual si
+	# active=true — por cada mob del mapa. Apagarlo ahí no pierde nada
+	# observable (nadie mira ese lado): establecer_condicion()/actualizar_
+	# blend() siguen fijando parámetros normalmente, y reproducir() sigue
+	# funcionando porque toca animation_player directo, no depende del árbol.
+	if DisplayServer.get_name() == "headless":
+		animation_tree.active = false
 
 
 # =============================================================================

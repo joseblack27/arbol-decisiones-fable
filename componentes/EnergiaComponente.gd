@@ -134,7 +134,14 @@ func _cantidad_regen() -> float:
 # =============================================================================
 
 func _replicar_valor() -> void:
-	rpc("_recibir_energia_red", _energia_actual, energia_maxima)
+	# rpc_id + InteresEspacial en vez de rpc() (broadcast a TODOS) — mismo
+	# criterio que VidaComponente.quitar_vida: esto se llama cada vez que
+	# la energía cambia (gasto, regen), para CUALQUIER entidad con este
+	# componente en todo el mapa.
+	var padre := get_parent()
+	if padre is Node2D:
+		for peer_id in InteresEspacial.peers_cercanos((padre as Node2D).global_position):
+			rpc_id(peer_id, "_recibir_energia_red", _energia_actual, energia_maxima)
 	_ultimo_valor_enviado = _energia_actual
 	_ultima_maxima_enviada = energia_maxima
 

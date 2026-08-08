@@ -245,7 +245,11 @@ func _generar_uno() -> void:
 	# (_recibir_mobs_existentes se salta si el nodo ya llegó por la vía
 	# normal), así que no duplica nada para quien sí lo recibió bien.
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_recibir_mobs_existentes", [[escena.resource_path, String(mob.name), punto]])
+		# rpc_id + InteresEspacial en vez de rpc() (broadcast a TODOS) —
+		# mismo criterio que Enemigo._physics_process: nadie del otro lado
+		# del mapa necesita enterarse de este spawn.
+		for peer_id in InteresEspacial.peers_cercanos(punto):
+			rpc_id(peer_id, "_recibir_mobs_existentes", [[escena.resource_path, String(mob.name), punto]])
 
 
 ## Busca un punto dentro de radio_spawn que esté sobre la malla de

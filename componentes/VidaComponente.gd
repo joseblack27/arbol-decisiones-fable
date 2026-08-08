@@ -225,7 +225,13 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 		# con el MISMO path en todos los peers (así funcionan ya todos los
 		# RPCs por nodo), así que el cliente puede resolverla localmente.
 		var ruta_fuente := str(fuente.get_path()) if is_instance_valid(fuente) else ""
-		rpc("_recibir_vida_red", salud_actual, ruta_fuente, salud_maxima, tipo, critico)
+		# rpc_id + InteresEspacial en vez de rpc() (broadcast a TODOS) —
+		# mismo criterio ya aplicado a la posición de mobs/jugadores (ver
+		# Enemigo._physics_process): cada golpe del juego entero viajaba a
+		# TODOS los peers conectados sin importar dónde estuvieran parados.
+		if padre is Node2D:
+			for peer_id in InteresEspacial.peers_cercanos((padre as Node2D).global_position):
+				rpc_id(peer_id, "_recibir_vida_red", salud_actual, ruta_fuente, salud_maxima, tipo, critico)
 
 	# Emitir señal si la vida es menor o igual a cero
 	if salud_actual <= 0.0:

@@ -193,7 +193,14 @@ func _disparar(direccion: Vector2, poder: float) -> void:
 	# vean el efecto. Solo tiene sentido si esto corrió con autoridad real
 	# (el servidor, o un solo jugador sin red no necesita avisarle a nadie).
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_reproducir_visual_red", direccion, poder)
+		# rpc_id + InteresEspacial en vez de rpc() (broadcast a TODOS) —
+		# mismo criterio que VidaComponente.quitar_vida: esto se dispara en
+		# CADA activación de CUALQUIER habilidad, de cualquier mob o
+		# jugador, en cualquier punto del mapa.
+		if is_instance_valid(entidad_dueña) and entidad_dueña is Node2D:
+			var posicion := (entidad_dueña as Node2D).global_position
+			for peer_id in InteresEspacial.peers_cercanos(posicion):
+				rpc_id(peer_id, "_reproducir_visual_red", direccion, poder)
 
 
 ## true si esto corre en red, la dueña es un jugador con identidad de peer

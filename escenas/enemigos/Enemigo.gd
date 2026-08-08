@@ -47,6 +47,19 @@ const MARGEN_CAMBIO_OBJETIVO := 40.0
 @export var datos: EnemigoDatos
 @export_range(0.0, 1.0, 0.05) var umbral_vida_baja: float = 0.3
 
+@export_group("Objetivo por vida baja")
+## Bajo qué fracción de vida un CANDIDATO/objetivo detectado se vuelve
+## "tentador" para que el mob lo prefiera aunque no sea el más cercano (ver
+## _tienta_por_vida_baja). Es la vida de ese candidato, no la propia del
+## mob (eso es umbral_vida_baja, arriba).
+@export_range(0.0, 1.0, 0.05) var umbral_vida_tentadora: float = 0.35
+## Probabilidad de preferir a un candidato tentador en vez del criterio de
+## distancia de siempre. 0 = nunca tienta (el criterio queda sin efecto),
+## 1 = siempre que haya alguien por debajo del umbral. Pedido de diseño:
+## "atacar por probabilidad a quien tenga menos vida" — se SUMA al
+## criterio de distancia existente, no lo reemplaza.
+@export_range(0.0, 1.0, 0.05) var probabilidad_rematar_vida_baja: float = 0.5
+
 @export_group("Nombre")
 ## "Nv.X Nombre" arriba del mob, leído de EnemigoDatos. Vive ACÁ (no en
 ## BarraVidaEnergiaComponente, donde estaba antes) porque el nombre es una
@@ -377,10 +390,12 @@ func _on_objetivo_detectado(area: Area2D) -> void:
 
 
 ## Sin objetivo todavía, el candidato nuevo se toma directo. Con uno ya
-## puesto, sólo se lo reemplaza si el nuevo está claramente más cerca
-## (MARGEN_CAMBIO_OBJETIVO de histéresis) — sin este margen, dos jugadores a
-## distancia parecida harían temblar al mob entre uno y otro cada vez que
-## alguno entra o sale de rango.
+## puesto, se lo reemplaza si: (a) el nuevo tiene vida baja y "tienta" al
+## mob por probabilidad a rematarlo en vez de seguir con el actual (ver
+## _tienta_por_vida_baja — se SUMA al criterio de distancia, no lo
+## reemplaza), o (b) está claramente más cerca (MARGEN_CAMBIO_OBJETIVO de
+## histéresis) — sin este margen, dos jugadores a distancia parecida harían
+## temblar al mob entre uno y otro cada vez que alguno entra o sale de rango.
 func _evaluar_objetivo(candidato: Area2D) -> void:
 	if not is_instance_valid(candidato) or not (candidato.owner is Node2D):
 		return
@@ -390,6 +405,9 @@ func _evaluar_objetivo(candidato: Area2D) -> void:
 		memoria.establecer("objetivo", nuevo)
 		return
 	if actual == nuevo:
+		return
+	if _tienta_por_vida_baja(candidato):
+		memoria.establecer("objetivo", nuevo)
 		return
 	var dist_actual := global_position.distance_to((actual as Node2D).global_position)
 	var dist_nuevo := global_position.distance_to(nuevo.global_position)
@@ -418,20 +436,40 @@ func _on_objetivo_perdido(area: Area2D) -> void:
 
 
 ## Se llama solo cuando el objetivo actual se acaba de perder Y quedan otros
-## candidatos detectados — recorre lo que queda y se queda con el más cerca.
+## candidatos detectados — recorre lo que queda y se queda con el más cerca,
+## salvo que alguno con vida baja "tiente" por probabilidad (mismo criterio
+## que _evaluar_objetivo, ver _tienta_por_vida_baja); el primero que tienta
+## en el recorrido gana, no hace falta que sea el más tentador de todos.
 func _retomar_mejor_objetivo() -> void:
 	var mejor: Node2D = null
 	var mejor_dist := INF
+	var tentado: Node2D = null
 	for area in componente_vision.areas_detectadas.values():
 		if not is_instance_valid(area) or not (area.owner is Node2D):
 			continue
 		var candidato := area.owner as Node2D
+		if tentado == null and _tienta_por_vida_baja(area):
+			tentado = candidato
 		var dist := global_position.distance_to(candidato.global_position)
 		if dist < mejor_dist:
 			mejor_dist = dist
 			mejor = candidato
-	if mejor:
-		memoria.establecer("objetivo", mejor)
+	if tentado or mejor:
+		memoria.establecer("objetivo", tentado if tentado else mejor)
+
+
+## Un candidato con vida baja tiene una chance (probabilidad_rematar_vida_
+## baja) de "tentar" al mob a preferirlo aunque no sea el más cercano — ver
+## el export de arriba para el porqué. "area" es el Area2D que ya detectó
+## VisionComponente — VidaComponente extends Area2D, así que es la MISMA
+## área, no hace falta ir a buscar al dueño para llegar a su vida.
+func _tienta_por_vida_baja(area: Area2D) -> bool:
+	var vida := area as VidaComponente
+	if vida == null or vida.obtener_vida_maxima() <= 0.0:
+		return false
+	if vida.obtener_vida() / vida.obtener_vida_maxima() > umbral_vida_tentadora:
+		return false
+	return randf() <= probabilidad_rematar_vida_baja
 
 
 ## Reacción a un golpe de alguien que NO es el objetivo actual — depende de

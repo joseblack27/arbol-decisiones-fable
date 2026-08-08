@@ -21,6 +21,16 @@
 #    por MultiplayerSpawner) vuelve a andar sola — ver el comentario de
 #    NivelNidoArañaReina.gd para el porqué completo.
 #
+# 4. "Aparece en la misma posición que la original" salía intermitente
+#    (~1 de cada 2-3 corridas): la verificación vivía en el fotograma
+#    SIGUIENTE al del respawn, y en ese único fotograma físico de por medio
+#    la reina recién nacida ya tiene IA activa — su deambular (con pausa
+#    corta, ver AccionDeambular) a veces alcanza a correrla unos px antes
+#    de que is_equal_approx() la comparara. _respawnear_reina() ya deja
+#    todo resuelto en forma síncrona (posición, árbol, señales) apenas
+#    vuelve, así que no hacía falta ESPERAR nada — se verifica en el MISMO
+#    fotograma en vez de en el siguiente, y la carrera desaparece.
+#
 # No arma una red real de 2 peers conectados (mismo motivo que
 # prueba_arana_reina_invocacion_solo_servidor.gd: lento/flaky) — alcanza con
 # un ENetMultiplayerPeer en modo SERVIDOR (sin que nadie se conecte) para que
@@ -52,7 +62,9 @@ func _process(_delta: float) -> bool:
 			_probar_conexion()
 		2:
 			_matar_reina_y_pedir_respawn()
-		3:
+			# Mismo fotograma, no el siguiente — ver punto 4 del historial
+			# arriba: esperar un fotograma le daba tiempo a la IA de la
+			# reina nueva de moverla antes de este chequeo.
 			return _probar_respawn_y_reconexion()
 	return false
 
