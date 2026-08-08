@@ -4,7 +4,16 @@ class_name VisionComponente
 ## Opcionalmente verifica línea de visión directa con raycast.
 
 # --- Señales ---
+## Un candidato NUEVO entró en "con línea de visión confirmada" — se emite
+## por CADA UNO, no solo el primero (antes solo emitía en la transición
+## vacío→no-vacío, así que un segundo jugador que entraba en rango mientras
+## ya había uno detectado no generaba ningún aviso: Enemigo._on_objetivo_
+## detectado nunca se enteraba de que había otro candidato para comparar
+## distancias — pedido del usuario: "una pequeña capacidad de decisión de a
+## quién atacar" con varios jugadores cerca).
 signal objetivo_detectado(area: Area2D)
+## Simétrico: se emite por CADA candidato que se pierde, no solo cuando ya
+## no queda ninguno.
 signal objetivo_perdido(area: Area2D)
 
 # --- Línea de visión ---
@@ -101,9 +110,7 @@ func _on_area_entered(area: Area2D) -> void:
 ## puede ser objetivo de ningún mob. Queda pendiente para _detectar_pendientes
 ## en cuanto termine su inmunidad, si sigue solapado.
 func _intentar_registrar(area: Area2D) -> void:
-	if not area is VidaComponente or area.get_parent() == get_parent():
-		return
-	if not area.monitorable or (area as VidaComponente).es_invulnerable():
+	if not _es_objetivo_valido(area):
 		return
 	if not grupos_objetivo.is_empty():
 		var propietario := area.get_parent()
@@ -124,6 +131,33 @@ func _intentar_registrar(area: Area2D) -> void:
 		# Modo LoS: solo detectar si hay visión directa.
 		if _tiene_linea_vision(area):
 			_registrar_con_los(area)
+
+
+## ¿Se puede tener a esta área como objetivo AHORA? Lo consultan tanto el alta
+## (_intentar_registrar) como la poda (_podar_invalidos): un objetivo que deja
+## de ser válido mientras ya estaba fichado tiene que soltarse, no sólo
+## dejarse de fichar. Ahí está la diferencia entre "no me pueden ver" y "me
+## dejan de ver": el camuflaje necesita las dos.
+func _es_objetivo_valido(area: Area2D) -> bool:
+	if not is_instance_valid(area) or not (area is VidaComponente):
+		return false
+	if area.get_parent() == get_parent():
+		return false
+	if not area.monitorable:
+		return false
+	if (area as VidaComponente).es_invulnerable():
+		return false
+	# Oculto (ver CamuflajeComponente): deja de existir para los mobs. Se
+	# busca por NOMBRE de nodo y no por tipo a propósito: referenciar la clase
+	# le daría a este script una dependencia dura de otra que usa autoloads, y
+	# eso rompe la compilación en los contextos donde los autoloads todavía no
+	# están resueltos — dejando ciegos a TODOS los mobs, no sólo al camuflaje.
+	var duenio := area.get_parent()
+	if duenio != null:
+		var camuflaje = duenio.get_node_or_null("CamuflajeComponente")
+		if camuflaje != null and camuflaje.esta_activo():
+			return false
+	return true
 
 
 func _on_area_exited(area: Area2D) -> void:
@@ -148,7 +182,7 @@ func _on_area_exited(area: Area2D) -> void:
 func _podar_invalidos() -> void:
 	for key in _areas_en_rango.keys():
 		var area := _areas_en_rango.get(key) as Area2D
-		if is_instance_valid(area) and area.monitorable:
+		if _es_objetivo_valido(area):
 			continue
 		_areas_en_rango.erase(key)
 		if is_instance_valid(area):
@@ -228,8 +262,7 @@ func _registrar_con_los(area: Area2D) -> void:
 	if _areas_con_los.has(key):
 		return
 	_areas_con_los[key] = area
-	if _areas_con_los.size() == 1:
-		objetivo_detectado.emit(area)
+	objetivo_detectado.emit(area)
 
 
 func _desregistrar_con_los(area: Area2D) -> void:
@@ -237,8 +270,7 @@ func _desregistrar_con_los(area: Area2D) -> void:
 	if not _areas_con_los.has(key):
 		return
 	_areas_con_los.erase(key)
-	if _areas_con_los.is_empty():
-		objetivo_perdido.emit(area)
+	objetivo_perdido.emit(area)
 
 
 func _clave(area: Area2D) -> String:

@@ -51,6 +51,13 @@ signal habilidad_impacto(tipo_habilidad: String, objetivo: Node)
 signal recarga_iniciada(entidad: Node, slot_index: int, duracion: float)
 ## Emitida cuando la recarga de una habilidad termina (entidad, slot_index).
 signal recarga_terminada(entidad: Node, slot_index: int)
+## Emitida por habilidades de DOS ETAPAS (activar → esperar → detonar, ver
+## HabilidadAcumulacion) al entrar o salir de la segunda etapa — el botón
+## (ver UIHabilidad._on_fase_cambiada) cambia de color mientras "activa" es
+## true, para que se note a simple vista que la habilidad ya no está en su
+## primer estado (recién presionada) sino esperando la segunda presión o el
+## vencimiento. slot_index = -1 para habilidades sin slot (enemigos, etc.).
+signal habilidad_fase_cambiada(entidad: Node, slot_index: int, activa: bool)
 
 # ── ENERGÍA ──────────────────────────────────────────────────────────────────
 ## Emitida cuando la energía de una entidad cambia (entidad, nueva, maxima).
@@ -76,6 +83,17 @@ signal xp_agregada(cantidad: int, xp_total: int)
 ## ExperienciaComponente). Si una ganancia grande de XP cruza varios
 ## niveles de una vez, se emite una vez por nivel alcanzado.
 signal nivel_subido(nivel_nuevo: int)
+
+# ── PASIVAS ───────────────────────────────────────────────────────────────────
+## Emitida al desbloquear CUALQUIER pasiva (de estadística por nivel, o de
+## gatillo por ítem especial — ver ExperienciaComponente.pasivas_stat y
+## PasivasComponente.desbloquear_gatillo) — para la notificación en pantalla
+## y la UI de solo lectura del panel de habilidades.
+signal pasiva_desbloqueada(entidad: Node, nombre: String, descripcion: String)
+## Emitida al gastar un punto de mejora con éxito (ver MejorasComponente),
+## sea en una pasiva de estadística o en una habilidad activa — para el
+## autoguardado por evento y el refresco de la UI (indicador de puntos).
+signal mejora_comprada(entidad: Node, tipo: String, nombre: String)
 
 # ── JUEGO ─────────────────────────────────────────────────────────────────────
 signal juego_pausado()

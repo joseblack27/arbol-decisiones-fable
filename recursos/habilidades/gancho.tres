@@ -1,8 +1,22 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://cekyubxqgis3r"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=9 format=3 uid="uid://cekyubxqgis3r"]
 
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
 [ext_resource type="Texture2D" uid="uid://dacfokudk3nq7" path="res://assets/iconos/icono_gancho.png" id="2_piijr"]
 [ext_resource type="PackedScene" path="res://escenas/habilidades/gancho/HabilidadGancho.tscn" id="3_esc"]
+[ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="4_base"]
+[ext_resource type="Script" uid="uid://dnwijxa3iibld" path="res://recursos/habilidades/escalado/CampoEscaladoPorcentaje.gd" id="5_porcentaje"]
+[ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="6_escalado"]
+
+[sub_resource type="Resource" id="Resource_rango"]
+script = ExtResource("5_porcentaje")
+campo = 4
+porcentaje_por_nivel = 0.10
+
+[sub_resource type="Resource" id="Resource_escalado"]
+script = ExtResource("6_escalado")
+campos = Array[ExtResource("4_base")]([SubResource("Resource_rango")])
+nivel_maximo = 5
+costo_puntos_por_nivel = 1
 
 [resource]
 script = ExtResource("1_dh")
@@ -15,3 +29,4 @@ nivel = 1
 costo_energia = 25
 alcance_metros = 8
 enfriamiento = 5.0
+escalado = SubResource("Resource_escalado")

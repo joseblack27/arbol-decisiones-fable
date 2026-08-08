@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DatosItem" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" path="res://assets/items/resources/hoja_1.png" id="2_ico"]
+[ext_resource type="PackedScene" path="res://escenas/pasivas/cosecha_de_vida/PasivaCosechaDeVida.tscn" id="3_pasiva"]
+
+[resource]
+script = ExtResource("1_scr")
+name = "Tomo de la Cosecha de Vida"
+icon = ExtResource("2_ico")
+quantity = 1
+description = "Desbloquea la pasiva Cosecha de Vida: al matar a un enemigo, cura un 5% de tu vida máxima."
+type = 7
+type_equippable = 0
+can_use = true
+can_equip = false
+can_drop = true
+escena_pasiva = ExtResource("3_pasiva")

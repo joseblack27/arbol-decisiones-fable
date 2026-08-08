@@ -36,7 +36,9 @@ const _INTERVALO_DECISION := 5.0
 ## "Aumenta la cadencia un 50%" = dispara 1.5x más seguido = el intervalo
 ## entre disparos (duracion_recuperacion) se divide por 1.5.
 const _MULTIPLICADOR_CADENCIA := 1.5
-const _DISTANCIA_RETIRADA := 400.0
+## Cuánto retrocede en el dash. 200 px a pedido del usuario (antes 400): con
+## el salto largo se despegaba demasiado y costaba volver a alcanzarlo.
+const _DISTANCIA_RETIRADA := 200.0
 const _VELOCIDAD_RETIRADA := 350.0
 
 @onready var _accion_atacar: AccionAtacar = $ArbolComportamiento/Selector/Atacar

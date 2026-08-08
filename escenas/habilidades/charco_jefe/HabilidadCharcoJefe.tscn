@@ -1,0 +1,12 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="1_hab"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/charco_jefe/ProyectilCharcoJefe.tscn" id="2_proy"]
+[ext_resource type="Texture2D" uid="uid://b52npawis3en5" path="res://assets/iconos/icono_veneno_32x32.png" id="3_veneno"]
+
+[node name="HabilidadCharcoJefe" type="Node"]
+script = ExtResource("1_hab")
+escena_proyectil = ExtResource("2_proy")
+icono_provisional = ExtResource("3_veneno")
+costo_energia = 0.0
+requiere_direccion = true

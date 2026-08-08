@@ -13,6 +13,23 @@ extends Area2D
 
 var entidad_fuente: Node = null
 var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
+## Ícono de la HABILIDAD que disparó esto (DatosHabilidad.icono) — si el
+## efecto que se crea al impactar (ver _spawnear_efecto_impacto) tiene un
+## campo "icono_debuff", se le pisa con este. Antes cada efecto traía su
+## propio ícono hardcodeado en su .tscn (p. ej. EfectoVenenoFlecha con
+## icono_veneno_32x32.png), suelto de lo que en verdad se ve en el botón de
+## la habilidad — pedido del usuario: que el ícono de buff/debuff sea el
+## mismo que el de la habilidad, no uno aparte para "el proyectil".
+var icono_habilidad: Texture2D = null
+
+## Daño a usar para el TICK de un efecto DoT que se cree al impactar (ver
+## _spawnear_efecto_impacto) — asignado por HabilidadProyectil._ejecutar()
+## SOLO cuando la habilidad tiene daño real configurado (DatosHabilidad.
+## dano_base_min/max > 0). -1.0 = no pisar el dano_por_tick de fábrica del
+## efecto — caso de habilidades armadas a mano sin DatosHabilidad, como los
+## ataques de jefe (ProyectilCharcoJefe): esas deben conservar su propio
+## daño de tick tal cual está en su escena, ajeno a mejoras de jugador.
+var dano_para_efecto_tick: float = -1.0
 
 var _direccion: Vector2         = Vector2.RIGHT
 var _alcance_maximo: float      = 400.0
@@ -55,6 +72,7 @@ func configurar(direccion: Vector2, poder: float, cantidad_daño: float, fuente:
 	_ya_impacto              = false
 	_distancia_recorrida     = 0.0
 	_ultimo_defensor_impactado = null
+	dano_para_efecto_tick   = -1.0
 	set_deferred("monitoring", true)
 
 
@@ -158,6 +176,12 @@ func _spawnear_efecto_impacto(objetivo: Node2D) -> void:
 	var efecto := escena_al_impactar.instantiate()
 	if "fuente" in efecto:
 		efecto.fuente = entidad_fuente
+	if icono_habilidad != null and "icono_debuff" in efecto:
+		efecto.icono_debuff = icono_habilidad
+	# Que el DoT que deje el efecto (ej. EfectoVeneno) escale IGUAL que el
+	# golpe inicial — ver dano_para_efecto_tick más arriba.
+	if dano_para_efecto_tick >= 0.0 and "dano_por_tick" in efecto:
+		efecto.dano_por_tick = dano_para_efecto_tick
 	# Dos sabores de efecto (los distingue su propia interfaz):
 	#  - con propiedad "objetivo" (EfectoLentitud): debuff PEGADO al blanco —
 	#    se agrega como hijo suyo, lo sigue a donde vaya y muere con él.

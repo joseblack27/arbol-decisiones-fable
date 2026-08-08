@@ -37,6 +37,15 @@ func _process(_delta: float) -> bool:
 			# ahora sale por {valor1}, igual que el resto de estas habilidades.
 			_probar("invocacion", "res://recursos/habilidades/invocacion.tres", "golpeando por 10")
 		8:
+			# Reportado por el usuario: la marca vive dos escenas más adentro
+			# (HabilidadMarca.escena_proyectil -> ProyectilMarca.escena_al_
+			# impactar -> EfectoMarcar) y esa escena tiene un "duracion"
+			# heredado de EfectoAreaBase (0.4s, la vida de la zona de
+			# impacto) que NO es duracion_marca (5s, la cuenta atrás real) —
+			# {duracion} y {valor1} se quedaban sin resolver / mal resueltos.
+			_probar("marca_detonable", "res://recursos/habilidades/marca_detonable.tres",
+				"durante 5 segundos", "repartiendo 50%")
+		9:
 			return _informar()
 	return false
 
@@ -45,18 +54,20 @@ func _montar() -> void:
 	var escena := load("res://escenas/ui/panel_os/paneles/habilidades/PanelHabilidades.tscn") as PackedScene
 	var raiz := escena.instantiate()
 	root.add_child(raiz)
-	_panel = raiz.get_node("MarginContainer/HBoxContainer/PanelDetalle")
+	_panel = raiz.get_node("MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle")
 
 
-func _probar(id: String, ruta: String, esperado_contenido: String) -> void:
+func _probar(id: String, ruta: String, esperado_contenido: String, esperado_contenido2: String = "") -> void:
 	var datos := load(ruta) as DatosHabilidad
 	_panel.show_skill(datos)
 	var texto: String = _panel.description_label.text
 	_textos[id] = texto
 	var sin_placeholders_sin_resolver := not texto.contains("{") and not texto.contains("}")
-	var contiene_lo_esperado := texto.contains(esperado_contenido)
+	var contiene_lo_esperado := texto.contains(esperado_contenido) \
+		and (esperado_contenido2 == "" or texto.contains(esperado_contenido2))
 	_resultados[id] = sin_placeholders_sin_resolver and contiene_lo_esperado
-	print("%s -> \"%s\" (esperado que contenga \"%s\"): %s" % [id, texto, esperado_contenido, _resultados[id]])
+	print("%s -> \"%s\" (esperado que contenga \"%s\" y \"%s\"): %s" % [
+		id, texto, esperado_contenido, esperado_contenido2, _resultados[id]])
 
 
 func _informar() -> bool:

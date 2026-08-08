@@ -19,7 +19,7 @@ extends Node2D
 func _ready() -> void:
 	_crear_mapa_navegacion()
 	if Utils.en_red():
-		_configurar_spawner_invocaciones()
+		_configurar_spawner_red()
 	var generador := _buscar_generador()
 	if generador == null:
 		return
@@ -79,26 +79,39 @@ func _descendientes(desde: Node = null) -> Array[Node]:
 	return resultado
 
 
-## Réplica de entidades que un JUGADOR invoca (p. ej. HabilidadInvocacion),
-## no de un SpawnerMobs — vive acá (no en SpawnerMobs.gd) para existir en
-## TODO nivel sin depender de que tenga uno propio. Mismo patrón que
-## SpawnerMobs._configurar_spawner_red(): el MultiplayerSpawner tiene que
-## existir IGUAL en todos los peers (por eso corre sin distinguir servidor/
-## cliente), apuntando al mismo contenedor "Enemigos" que ya usan los mobs
-## — así una invocación se replica y sincroniza posición exactamente igual
-## que cualquier mob (ver Enemigo._physics_process).
-func _configurar_spawner_invocaciones() -> void:
+## UN solo MultiplayerSpawner para todo el contenedor "Enemigos": replica
+## tanto los mobs de los generadores como las entidades que invoca un jugador
+## (HabilidadInvocacion).
+##
+## Godot no admite dos spawners siguiendo al MISMO nodo: el segundo y
+## siguientes fallan con "ERR_ALREADY_IN_USE" en cada alta. Antes cada
+## SpawnerMobs creaba el suyo apuntando al mismo contenedor, y con los 18
+## generadores del Camino eran ~1.500 líneas de error por sesión en la consola
+## del servidor — que corre con un solo núcleo y ya sufrió antes por
+## chaparrones de consola.
+##
+## Se crea ACÁ y no en SpawnerMobs a propósito: _ready() corre de hijos a
+## padres, así que cuando le toca a un SpawnerMobs su contenedor todavía está
+## "ocupado armando hijos" y add_child() sobre él falla. El nivel es el primer
+## punto donde el árbol ya está quieto.
+##
+## Corre en TODOS los peers (no sólo el servidor): el spawner tiene que existir
+## igual en los dos lados para que la réplica funcione.
+func _configurar_spawner_red() -> void:
 	var enemigos := get_node_or_null("Enemigos")
 	if enemigos == null:
 		return
 	var spawner := MultiplayerSpawner.new()
-	spawner.name = "SpawnerInvocaciones"
-	# add_child() PRIMERO: mismo motivo que SpawnerMobs._configurar_spawner_
-	# red() — spawn_path necesita que el spawner ya esté dentro del árbol
-	# para resolver la ruta absoluta.
+	spawner.name = "SpawnerRed"
+	# add_child() ANTES de spawn_path: la ruta se resuelve como NodePath
+	# absoluto y necesita que el spawner ya esté dentro del árbol.
 	enemigos.add_child(spawner)
 	spawner.spawn_path = enemigos.get_path()
 	spawner.add_spawnable_scene("res://escenas/enemigos/AliadoInvocado.tscn")
+	for hijo in enemigos.get_children():
+		if hijo.has_method("escenas_replicables"):
+			for ruta in hijo.call("escenas_replicables"):
+				spawner.add_spawnable_scene(ruta)
 
 
 func punto_aparicion() -> Node2D:

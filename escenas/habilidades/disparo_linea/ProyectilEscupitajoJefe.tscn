@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://b12j1gfo1qphn"]
+
+[ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
+[ext_resource type="Texture2D" uid="uid://jy5qvrtxhjfg" path="res://assets/iconos/icons32x32.png" id="2_1v4rf"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_escupitajo"]
+
+[node name="ProyectilEscupitajoJefe" type="Area2D"]
+collision_mask = 4294967295
+monitorable = false
+script = ExtResource("1_proy")
+velocidad_base = 700.0
+alcance_base = 500.0
+mostrar_debug = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_escupitajo")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_1v4rf")
+region_enabled = true
+region_rect = Rect2(288, 384, 32, 32)

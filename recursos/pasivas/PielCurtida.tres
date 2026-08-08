@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="PasivaStatDesbloqueo" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://recursos/pasivas/PasivaStatDesbloqueo.gd" id="1_script"]
+[ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="2_atrib"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="3_iconos"]
+
+[sub_resource type="Resource" id="Resource_bono"]
+script = ExtResource("2_atrib")
+resistencia_fisica = 5.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_piel"]
+atlas = ExtResource("3_iconos")
+region = Rect2(96, 64, 32, 32)
+
+[resource]
+script = ExtResource("1_script")
+nivel_requerido = 5
+nombre = "Piel Curtida"
+descripcion = "+5 de resistencia física, permanente."
+icono = SubResource("AtlasTexture_piel")
+bono = SubResource("Resource_bono")

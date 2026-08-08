@@ -25,5 +25,5 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 	proy.alcance_base = alcance_maximo
 	var poder_efectivo := poder if alcance_segun_poder else 1.0
 	proy.configurar(direccion, poder_efectivo, _calcular_dano(int(daño_proyectil)), entidad_dueña, tipo_dano)
-	proy.poner_textura_icono(_icono if usar_icono_como_sprite else null)
+	proy.poner_textura_icono(icono_provisional if usar_icono_como_sprite else null)
 	proy.preparar_rebotes(rebotes_maximos, radio_busqueda_rebote)

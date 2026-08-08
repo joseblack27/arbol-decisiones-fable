@@ -1,0 +1,17 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="1_hab"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/marca_jefe/ProyectilMarcaJefe.tscn" id="2_proy"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="3_iconos"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_marca_jefe"]
+atlas = ExtResource("3_iconos")
+region = Rect2(256, 128, 32, 32)
+
+[node name="HabilidadMarcaJefe" type="Node"]
+script = ExtResource("1_hab")
+escena_proyectil = ExtResource("2_proy")
+daño_proyectil = 10.0
+icono_provisional = SubResource("AtlasTexture_marca_jefe")
+costo_energia = 0.0
+requiere_direccion = true

@@ -45,7 +45,7 @@ var puerto_conexion := PUERTO_JUEGO
 ## "" = usar nombre_jugador_local() de siempre (el de Windows/env var, ver
 ## abajo) — MenuInicio solo lo pisa si el jugador escribió algo distinto.
 var nombre_conexion := ""
-## PIN de la cuenta (ver GestorGuardado.resolver_cuenta): con PIN, la
+## PIN de la cuenta (ver GestorCuentas.resolver_cuenta): con PIN, la
 ## partida sigue al NOMBRE (cuenta en el servidor) y no al dispositivo —
 ## cambiar de celular ya no pierde el progreso. "" = sin cuenta, modo
 ## clásico por dispositivo (id_jugador_local).
@@ -186,6 +186,31 @@ func slot_habilidades_local() -> SlotHabilidades:
 	return null
 
 
+## Atajo: el PasivasComponente del jugador propio (ver jugador_local()) —
+## mismo criterio que slot_habilidades_local(), por tipo y no por nombre
+## fijo (pruebas arman uno a mano con load(...).new()).
+func pasivas_componente_local() -> PasivasComponente:
+	var jugador := jugador_local()
+	if jugador == null:
+		return null
+	for hijo in jugador.get_children():
+		if hijo is PasivasComponente:
+			return hijo
+	return null
+
+
+## Atajo: el MejorasComponente del jugador propio (ver jugador_local()) —
+## mismo criterio que pasivas_componente_local().
+func mejoras_componente_local() -> MejorasComponente:
+	var jugador := jugador_local()
+	if jugador == null:
+		return null
+	for hijo in jugador.get_children():
+		if hijo is MejorasComponente:
+			return hijo
+	return null
+
+
 func snake_to_pascal(text: String) -> String:
 	var parts = text.split("_")
 	var result := ""
@@ -208,6 +233,82 @@ func formatear_segundos(valor: float) -> String:
 	if is_equal_approx(valor, roundf(valor)):
 		return "%ds" % int(valor)
 	return "%.1fs" % valor
+
+
+## Fila de íconos de los buffs de estado ACTIVOS de "buffs", centrada en el
+## eje X local de "sobre" (el CanvasItem dueño del _draw que llama a esto),
+## a la altura local "y" — compartido por Enemigo (fila arriba del nombre,
+## por eso "y" != 0: comparte nodo con el texto del nombre) y Jugador (fila
+## propia, "y" = 0.0 de sobra). Antes cada uno tenía su propia copia de este
+## mismo bucle, ligeramente distinta.
+func dibujar_iconos_estado(sobre: CanvasItem, buffs: BuffsComponente, activos: Array[String],
+		tamano: float, separacion: float, color_contorno: Color, y: float = 0.0) -> void:
+	if buffs == null or activos.is_empty():
+		return
+	var iconos: Array[Texture2D] = []
+	for id in activos:
+		var buff := buffs.obtener(id)
+		if buff != null and buff.icono != null:
+			iconos.append(buff.icono)
+	if iconos.is_empty():
+		return
+	var ancho_total := iconos.size() * tamano + (iconos.size() - 1) * separacion
+	var x := -ancho_total / 2.0
+	for icono in iconos:
+		var rect := Rect2(Vector2(x, y), Vector2(tamano, tamano))
+		sobre.draw_rect(rect, color_contorno)
+		sobre.draw_texture_rect(icono, rect, false)
+		x += tamano + separacion
+
+
+## Texto/estado del botón "Mejorar" de una habilidad o pasiva — un estado
+## claro para cada caso (nivel máximo / sin puntos / cuánto cuesta subir),
+## en vez de mostrar siempre el mismo texto de costo sin importar por qué
+## está deshabilitado (pedido del usuario). Compartido por
+## PanelDetalleHabilidad y PanelDetallePasiva — antes cada uno tenía su
+## propia copia de este mismo if/elif/else, y ya se desincronizaron una vez.
+func actualizar_boton_mejorar(boton: Button, al_tope: bool, sin_puntos: bool, costo: int) -> void:
+	if al_tope:
+		boton.text = "Nivel máximo"
+	elif sin_puntos:
+		boton.text = "Sin puntos suficientes"
+	else:
+		boton.text = "Mejorar (%d punto%s)" % [costo, "s" if costo != 1 else ""]
+	boton.disabled = al_tope or sin_puntos
+
+
+## Los dos estilos de fondo que usan las filas seleccionables de la lista
+## de habilidades/pasivas (ItemHabilidad, ItemPasiva): blanco al presionar/
+## enfocar, negro en reposo — antes cada una construía los mismos
+## StyleBoxFlat a mano, por separado.
+func crear_estilos_fila_seleccionable() -> Dictionary:
+	var presionado := StyleBoxFlat.new()
+	presionado.bg_color = Color.WHITE
+	presionado.set_border_width_all(1)
+	presionado.border_color = Color(0, 0, 0)
+
+	var reposo := StyleBoxFlat.new()
+	reposo.bg_color = Color.BLACK
+	reposo.set_border_width_all(1)
+	reposo.border_color = Color(0.267, 0.267, 0.267)
+
+	return {"presionado": presionado, "reposo": reposo}
+
+
+## Colorea todas las etiquetas de "labels" con "color" — usado por las
+## mismas filas seleccionables de arriba para invertir el texto a negro
+## cuando el fondo pasa a blanco (seleccionada/presionada), y de vuelta a
+## blanco sobre fondo negro (reposo).
+func colorear_labels(labels: Array[Label], color: Color) -> void:
+	for label in labels:
+		label.add_theme_color_override("font_color", color)
+
+
+## Aplica "estilo" (ver crear_estilos_fila_seleccionable) a boton, para los
+## estados "pressed" y "focus" — usado por las mismas filas seleccionables.
+func aplicar_fondo_fila(boton: Button, estilo: StyleBoxFlat) -> void:
+	boton.add_theme_stylebox_override("pressed", estilo)
+	boton.add_theme_stylebox_override("focus", estilo)
 
 
 # ── Preferencias persistentes ────────────────────────────────────────────────

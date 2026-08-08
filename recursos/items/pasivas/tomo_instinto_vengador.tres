@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="DatosItem" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" path="res://assets/items/resources/bateria_7.png" id="2_ico"]
+[ext_resource type="PackedScene" path="res://escenas/pasivas/instinto_vengador/PasivaInstintoVengador.tscn" id="3_pasiva"]
+
+[resource]
+script = ExtResource("1_scr")
+name = "Tomo del Instinto Vengador"
+icon = ExtResource("2_ico")
+quantity = 1
+description = "Desbloquea la pasiva Instinto Vengador: al recibir un golpe crítico, aturde 1 segundo a quien lo dio."
+type = 7
+type_equippable = 0
+can_use = true
+can_equip = false
+can_drop = true
+escena_pasiva = ExtResource("3_pasiva")

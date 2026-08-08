@@ -38,6 +38,11 @@ class_name DatosItem
 ## base de quien lo tenga puesto. Dejar vacío (null) = sin bono.
 @export var bonos: AtributosBase
 
+## Escena de PasivaBase que este ítem desbloquea al usarse (solo tiene
+## sentido si type == PASIVA y can_use == true) — ver InventarioComponente
+## .usar_item()/PasivasComponente.desbloquear_gatillo(). null = sin efecto.
+@export var escena_pasiva: PackedScene
+
 ## Ruta del .tres original del que sale este ítem — GestorInventario SIEMPRE
 ## duplica el recurso al guardarlo (ver su comentario), y un Resource
 ## duplicado pierde su resource_path; sin este campo, GestorGuardado no
@@ -55,5 +60,6 @@ const item_description := {
 	Enums.Inventario.TipoItem.RECURSO: "recurso",
 	Enums.Inventario.TipoItem.ARMA: "arma",
 	Enums.Inventario.TipoItem.MISION: "misión",
-	Enums.Inventario.TipoItem.EQUIPABLE: "equipable"
+	Enums.Inventario.TipoItem.EQUIPABLE: "equipable",
+	Enums.Inventario.TipoItem.PASIVA: "pasiva"
 }

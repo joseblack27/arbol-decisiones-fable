@@ -9,7 +9,12 @@ class Inventario:
 		EQUIPABLE,
 		RECURSO,
 		MISION,
-		ARMA
+		ARMA,
+		## Ítem especial que desbloquea una pasiva de GATILLO al usarse (ver
+		## DatosItem.escena_pasiva / PasivasComponente). Tipo propio, no
+		## CONSUMIBLE: así no se puede "apilar como poción" por error si
+		## can_use queda mal configurado.
+		PASIVA
 	}
 
 	enum TipoItemEquipable {
@@ -43,6 +48,24 @@ class Habilidad:
 		DEFENSA,      ## Protege (escudo, parpadeo para escapar...).
 		POTENCIADOR,  ## Buff propio o de aliados (curación, grito de guerra...).
 		CONTROL,      ## Inmoviliza/arrastra sin dañar (red, gancho...).
+	}
+
+	## Campos "conceptuales" que una habilidad puede tener configurados para
+	## crecer con el nivel de mejora (ver HabilidadBase._nombre_campo_escalable
+	## / MejorasComponente / EscaladoHabilidad) — el enum evita errores de
+	## tipeo al elegir qué escalar; la traducción al nombre REAL de la
+	## propiedad vive en cada script de habilidad, porque distintas
+	## habilidades usan distintos nombres para "lo mismo" (alcance_maximo,
+	## alcance_golpe, distancia_parpadeo... todas son "rango").
+	enum CampoEscalable {
+		DANO_MIN,
+		DANO_MAX,
+		RECARGA,
+		COSTO_ENERGIA,
+		RANGO,
+		RADIO,
+		DURACION_EFECTO,
+		PORCENTAJE_EFECTO,
 	}
 
 	## Color (nombre CSS o hex) para mostrar el daño de cada elemento en la

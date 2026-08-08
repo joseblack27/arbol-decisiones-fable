@@ -1,12 +1,26 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://cuul4ymwapaag"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=10 format=3 uid="uid://cuul4ymwapaag"]
 
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
 [ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_eswrt"]
 [ext_resource type="PackedScene" path="res://escenas/habilidades/parpadeo/HabilidadParpadeo.tscn" id="3_esc"]
+[ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="ec_base"]
+[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="ec_tabla"]
+[ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="ec_escalado"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_parpadeo1"]
 atlas = ExtResource("2_eswrt")
 region = Rect2(64, 160, 32, 32)
+
+[sub_resource type="Resource" id="Resource_recarga"]
+script = ExtResource("ec_tabla")
+campo = 2
+valores_por_nivel = Array[float]([4.0, 4.0, 4.0, 4.0, 4.0])
+
+[sub_resource type="Resource" id="Resource_escalado"]
+script = ExtResource("ec_escalado")
+campos = Array[ExtResource("ec_base")]([SubResource("Resource_recarga")])
+nivel_maximo = 5
+costo_puntos_por_nivel = 1
 
 [resource]
 script = ExtResource("1_dh")
@@ -19,3 +33,4 @@ nivel = 1
 costo_energia = 15
 alcance_metros = 5
 enfriamiento = 4.0
+escalado = SubResource("Resource_escalado")

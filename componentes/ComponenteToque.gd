@@ -52,9 +52,20 @@ func touch_movido(index, posicion):
 	if posicion_dentro(posicion):
 		SeñalManager.emitir(str("touch_movido_", signal_id), signal_id, [index, posicion])
 
+## A diferencia de touch_iniciado/touch_movido, esta NO se filtra por
+## posicion_dentro(): soltar el dedo tras arrastrar (p. ej. el joystick de
+## movimiento empujado hasta el borde) termina fácilmente FUERA del rect de
+## este control, y si el evento se descartaba acá nunca llegaba a
+## _on_touch_finalizado — el joystick se quedaba con el último index/
+## dirección de cuando SÍ estaba adentro, y el jugador seguía moviéndose
+## solo en esa dirección para siempre (reportado por el usuario: "presiono
+## el joystick hasta arriba y lo suelto, el jugador sigue subiendo"). Quien
+## escucha ya filtra por índice de touch (ver Joystick._on_touch_finalizado),
+## así que emitir siempre acá es seguro — JoystickDisparo.gd resuelve este
+## mismo problema de la misma forma (_input global, sin filtro de posición
+## al soltar).
 func touch_finalizado(index, posicion):
-	if posicion_dentro(posicion):
-		SeñalManager.emitir(str("touch_finalizado_", signal_id), signal_id, [index, posicion])
+	SeñalManager.emitir(str("touch_finalizado_", signal_id), signal_id, [index, posicion])
 
 func posicion_dentro(posicion):
 	var parent = get_parent()

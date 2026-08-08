@@ -28,6 +28,11 @@ class_name DatosHabilidad
 ## disparo. Apagado: el proyectil siempre viaja hasta el alcance máximo.
 @export var alcance_segun_poder := false
 
+## Configuración de "nivel de mejora" (ver HabilidadBase.aplicar_nivel_
+## mejora / MejorasComponente) — null = esta habilidad todavía no es
+## mejorable (opt-in explícito, no rompe nada de lo existente).
+@export var escalado: EscaladoHabilidad = null
+
 # ── Aliases en inglés (panel OS) ───────────────────────────────────────────────
 var name: String:
 	get:

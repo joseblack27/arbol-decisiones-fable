@@ -12,7 +12,9 @@
 #   y la deambulación puede interrumpirse en cualquier momento.
 #
 # MEMORIA:
-#   lee  "agente", "componente_movimiento"
+#   lee  "agente", "componente_movimiento", "ruido_posicion" (si existe, la
+#        consume y borra: sesga el próximo destino hacia ese punto — ver
+#        Enemigo._priorizar_atacante)
 #   escribe "posicion_origen" (la primera vez, para deambular alrededor de ella)
 # =============================================================================
 class_name AccionDeambular
@@ -22,11 +24,20 @@ extends Accion
 ## Velocidad de paseo (más lenta que la persecución).
 @export var velocidad: float = 60.0
 ## Radio máximo alrededor del origen donde elegir destinos.
-@export var radio_deambulacion: float = 200.0
-## Segundos de pausa al llegar a cada destino.
-@export var espera_en_destino: float = 1.5
+@export var radio_deambulacion: float = 260.0
+## Segundos de pausa al llegar a cada destino — antes 1.5s, que en los
+## destinos más cercanos (hasta 0.3x radio_deambulacion, ~1s de caminata)
+## superaba el propio tiempo caminando: el mob pasaba más tiempo plantado
+## que moviéndose entre destinos, y se sentía "muerto" (reportado por el
+## usuario). Sigue siendo una pausa real (mira alrededor, no un tropezón),
+## solo que ya no domina el ciclo.
+@export var espera_en_destino: float = 0.6
 ## Distancia a la que un destino se considera alcanzado.
 @export var radio_llegada: float = 10.0
+## Dispersión (a cada lado) al sesgar el destino hacia un aviso de "ruido"
+## (ver más abajo) — así no camina en línea perfectamente recta hacia el
+## golpe, se ve más como "fue a fijarse para ese lado".
+@export var dispersion_ruido_grados: float = 35.0
 
 var _destino: Vector2 = Vector2.ZERO
 var _tiene_destino: bool = false
@@ -49,6 +60,16 @@ func _on_ejecutar() -> Estado:
 	# el mob pasearía mirando fijo hacia la última posición del objetivo.
 	if "direccion_mirada" in agente and agente.get("direccion_mirada") != Vector2.ZERO:
 		agente.set("direccion_mirada", Vector2.ZERO)
+
+	# Un aviso de ruido nuevo INTERRUMPE el paseo en curso (destino actual o
+	# pausa entre destinos) — sin esto, un golpe podía quedar esperando en
+	# memoria varios segundos hasta que el mob terminara solo de caminar
+	# hacia un destino viejo sin relación, y la reacción se sentía como si
+	# no pasara nada (reportado: "le pego desde fuera de su visión y no
+	# deambula hacia mi dirección"). Con esto, el próximo tick ya recalcula.
+	if _memoria.existe("ruido_posicion"):
+		_tiene_destino = false
+		_fin_espera = 0.0
 
 	var ahora := Time.get_ticks_msec() / 1000.0
 
@@ -78,9 +99,23 @@ func _on_reiniciar() -> void:
 	_fin_espera = 0.0
 
 
+## "ruido_posicion" la escribe Enemigo._priorizar_atacante cuando golpea al
+## mob alguien que NO tiene detectado (fuera de su visión): en vez de
+## perseguirlo a ciegas (eso sería detectarlo a cualquier distancia con solo
+## golpearlo), el próximo destino se sesga hacia esa dirección — pero sigue
+## acotado al radio_deambulacion normal, nunca más lejos que cualquier otro
+## paseo. Se consume una sola vez: el siguiente destino después de este
+## vuelve a ser al azar, salvo que llegue otro golpe.
 func _elegir_destino() -> void:
 	var origen: Vector2 = _memoria.obtener("posicion_origen", Vector2.ZERO)
-	var angulo := randf_range(0.0, TAU)
+	var angulo: float
+	if _memoria.existe("ruido_posicion"):
+		var punto_ruido: Vector2 = _memoria.obtener("ruido_posicion")
+		_memoria.eliminar("ruido_posicion")
+		var dispersion := deg_to_rad(dispersion_ruido_grados)
+		angulo = origen.direction_to(punto_ruido).angle() + randf_range(-dispersion, dispersion)
+	else:
+		angulo = randf_range(0.0, TAU)
 	var distancia := randf_range(radio_deambulacion * 0.3, radio_deambulacion)
 	_destino = origen + Vector2.from_angle(angulo) * distancia
 	_tiene_destino = true

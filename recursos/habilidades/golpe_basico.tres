@@ -1,8 +1,24 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=5 format=3 uid="uid://qwx3tms4pg2x"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=11 format=3 uid="uid://qwx3tms4pg2x"]
 
 [ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_nfaek"]
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="2_scr"]
 [ext_resource type="PackedScene" uid="uid://j0em8y0y47g7" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.tscn" id="3_esc"]
+[ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="4_base"]
+[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="5_tabla"]
+[ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="6_escalado"]
+
+[sub_resource type="Resource" id="Resource_dano_min"]
+script = ExtResource("5_tabla")
+valores_por_nivel = Array[float]([5.0, 7.0, 9.0, 12.0, 15.0])
+
+[sub_resource type="Resource" id="Resource_dano_max"]
+script = ExtResource("5_tabla")
+valores_por_nivel = Array[float]([8.0, 10.0, 13.0, 16.0, 20.0])
+campo = 1
+
+[sub_resource type="Resource" id="Resource_escalado"]
+script = ExtResource("6_escalado")
+campos = Array[ExtResource("4_base")]([SubResource("Resource_dano_min"), SubResource("Resource_dano_max")])
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_mhui3"]
 atlas = ExtResource("2_nfaek")
@@ -20,3 +36,4 @@ dano_base_min = 5
 dano_base_max = 8
 radio_golpe = 50.0
 enfriamiento = 1.0
+escalado = SubResource("Resource_escalado")

@@ -363,3 +363,9 @@ position = Vector2(890, 300)
 position = Vector2(1080, 0)
 ruta_nivel_destino = "res://escenas/niveles/NivelCueva.tscn"
 etiqueta = "→ Cueva"
+
+
+[node name="PortalACamino" parent="." instance=ExtResource("10_u3oy8")]
+position = Vector2(-500, 0)
+ruta_nivel_destino = "res://escenas/niveles/NivelCamino.tscn"
+etiqueta = "→ Camino"

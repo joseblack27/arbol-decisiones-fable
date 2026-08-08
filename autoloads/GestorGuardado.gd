@@ -105,6 +105,8 @@ func _conectar_eventos_guardado() -> void:
 	BusEventos.equipo_cambiado.connect(func(_e): _guardar_por_evento())
 	BusEventos.habilidad_equipada.connect(func(_e, _s, _h): _guardar_por_evento())
 	GestorBarraRapida.casilla_cambiada.connect(func(_i): _guardar_por_evento())
+	BusEventos.pasiva_desbloqueada.connect(func(_e, _n, _d): _guardar_por_evento())
+	BusEventos.mejora_comprada.connect(func(_e, _t, _n): _guardar_por_evento())
 
 
 func _process(delta: float) -> void:
@@ -177,6 +179,8 @@ func guardar_partida() -> void:
 		"equipo": _serializar_items(GestorEquipo.equipados),
 		"habilidades": _serializar_habilidades(),
 		"barra_rapida": _serializar_barra_rapida(),
+		"pasivas": _serializar_pasivas(),
+		"mejoras": _serializar_mejoras(),
 	}
 
 	# En red (cliente puro) el archivo vive en el SERVIDOR — mandarle el
@@ -254,6 +258,10 @@ func _aplicar_datos_partida(datos: Dictionary) -> void:
 		vida.restaurar_vida(datos_jugador.get("vida_actual", vida.obtener_vida_maxima()))
 
 	GestorExperiencia.xp_total = datos.get("xp_total", 0)
+	# ANTES de _restaurar_habilidades(): SlotHabilidades._instanciar() lee
+	# el nivel de mejora comprado al equipar (ver GestorGuardado
+	# ._restaurar_mejoras para el orden completo).
+	_restaurar_mejoras(datos.get("mejoras", {}))
 
 	GestorInventario.items.clear()
 	for entrada in datos.get("inventario", []):
@@ -264,6 +272,7 @@ func _aplicar_datos_partida(datos: Dictionary) -> void:
 	_restaurar_equipo(datos.get("equipo", []))
 	_restaurar_habilidades(datos.get("habilidades", []))
 	_restaurar_barra_rapida(datos.get("barra_rapida", []))
+	_restaurar_pasivas(datos.get("pasivas", []))
 
 	partida_cargada.emit()
 
@@ -325,6 +334,79 @@ func _serializar_barra_rapida() -> Array:
 	return lista
 
 
+## Pasivas de GATILLO desbloqueadas (ver PasivasComponente) — a diferencia
+## de equipo/inventario, la ruta acá es directamente la de la ESCENA de la
+## pasiva, no la del ítem que la desbloqueó: PasivasComponente
+## .gatillo_desbloqueadas ya guarda rutas reales y nunca duplicadas, sin
+## necesitar el mismo truco de id_recurso que los ítems (mismo criterio que
+## _serializar_habilidades). Las pasivas de ESTADÍSTICA (ver
+## ExperienciaComponente.pasivas_stat) NO se guardan acá — se re-derivan
+## solas del nivel, mismo criterio que vida_maxima/energia_maxima.
+func _serializar_pasivas() -> Array:
+	var pasivas := Utils.pasivas_componente_local()
+	if pasivas == null:
+		return []
+	return pasivas.gatillo_desbloqueadas.duplicate()
+
+
+## [jugador] explícito para el camino SERVIDOR (ver _restaurar_estado_
+## autoritativo): ahí Utils.pasivas_componente_local() resolvería el
+## jugador EQUIVOCADO (el del propio servidor, peer 1), no el que se está
+## reconectando — mismo motivo por el que ese camino recibe "jugador" a
+## mano en vez de usar el atajo. Sin [jugador], resuelve el local de
+## siempre (single-player o cliente puro).
+func _restaurar_pasivas(rutas: Array, jugador: Node = null) -> void:
+	var pasivas: PasivasComponente = null
+	if jugador != null:
+		pasivas = jugador.get_node_or_null("PasivasComponente") as PasivasComponente
+	else:
+		pasivas = Utils.pasivas_componente_local()
+	if pasivas == null:
+		return
+	for ruta in rutas:
+		var ruta_str := str(ruta)
+		if ruta_str != "" and ResourceLoader.exists(ruta_str):
+			pasivas.desbloquear_gatillo(ruta_str, false)
+
+
+## Puntos de mejora (ver MejorasComponente) — a diferencia de las pasivas
+## de gatillo, esto es un Dictionary anidado (no una lista de rutas), así
+## que se persiste directo tal cual: puntos_gastados + los dos
+## diccionarios de tiers/niveles comprados, ya indexados por resource_path.
+func _serializar_mejoras() -> Dictionary:
+	var mejoras := Utils.mejoras_componente_local()
+	if mejoras == null:
+		return {}
+	return {
+		"puntos_gastados": mejoras.puntos_gastados,
+		"niveles_pasivas": mejoras.niveles_pasivas.duplicate(),
+		"niveles_habilidades": mejoras.niveles_habilidades.duplicate(),
+	}
+
+
+## [jugador] explícito para el camino SERVIDOR (ver _restaurar_estado_
+## autoritativo) — mismo motivo que _restaurar_pasivas: Utils.jugador_local()
+## resolvería el jugador equivocado ahí (el del propio servidor, peer 1).
+## IMPORTANTE: llamar DESPUÉS de restaurar la XP y ANTES de
+## _restaurar_habilidades() — SlotHabilidades._instanciar() lee
+## MejorasComponente.nivel_habilidad() al equipar, y los tiers de pasiva
+## comprados necesitan reaplicarse tras el reseteo a línea de base que ya
+## hizo restaurar_xp() (ver MejorasComponente.reaplicar_pasivas_compradas).
+func _restaurar_mejoras(datos: Dictionary, jugador: Node = null) -> void:
+	var jugador_real := jugador if jugador != null else Utils.jugador_local()
+	if jugador_real == null:
+		return
+	var mejoras := jugador_real.get_node_or_null("MejorasComponente") as MejorasComponente
+	if mejoras == null:
+		return
+	mejoras.puntos_gastados = int(datos.get("puntos_gastados", 0))
+	mejoras.niveles_pasivas = (datos.get("niveles_pasivas", {}) as Dictionary).duplicate()
+	mejoras.niveles_habilidades = (datos.get("niveles_habilidades", {}) as Dictionary).duplicate()
+	var experiencia := jugador_real.get_node_or_null("ExperienciaComponente")
+	if experiencia:
+		mejoras.reaplicar_pasivas_compradas(experiencia.pasivas_stat)
+
+
 func _restaurar_barra_rapida(rutas: Array) -> void:
 	for i in GestorBarraRapida.CANTIDAD_CASILLAS:
 		var ruta: String = rutas[i] if i < rutas.size() else ""
@@ -383,7 +465,9 @@ func _obtener_jugador() -> Node2D:
 ## instantiate() en vez de "SQLite.new()" a propósito: evita que GDScript
 ## necesite resolver la clase en tiempo de compilación (ver comentario en
 ## "_bd" arriba), así este autoload compila igual en un build sin el
-## addon nativo (el cliente de Android).
+## addon nativo (el cliente de Android). GestorCuentas.gd también usa esta
+## MISMA conexión (una sola base de datos) para su propia tabla "cuentas" —
+## ver GestorCuentas._asegurar_tabla().
 func _bd_red():
 	if _bd == null:
 		if not ClassDB.class_exists("SQLite"):
@@ -404,68 +488,7 @@ func _bd_red():
 				actualizado TEXT NOT NULL
 			);
 		""")
-		# Cuentas por nombre+PIN: mapean un nombre a un id_unico FIJO, para
-		# que la partida siga al NOMBRE y no al dispositivo (cambiar de
-		# celular o reinstalar ya no pierde el progreso — ver
-		# resolver_cuenta). El PIN nunca se guarda en claro, solo su hash.
-		_bd.query("""
-			CREATE TABLE IF NOT EXISTS cuentas (
-				nombre TEXT PRIMARY KEY,
-				pin_hash TEXT NOT NULL,
-				id_unico TEXT NOT NULL,
-				creada TEXT NOT NULL
-			);
-		""")
 	return _bd
-
-
-## SERVIDOR: resuelve qué id_unico le corresponde a un jugador que se
-## presenta con nombre+PIN (ver Jugador._registrar_identidad_red):
-##   - Nombre nuevo  → crea la cuenta ligada al id del DISPOSITIVO actual
-##     (así el progreso que ya tenía en este aparato queda adoptado por la
-##     cuenta) y devuelve ese id.
-##   - Nombre existente + PIN correcto → devuelve el id_unico de la cuenta:
-##     la partida sigue al nombre, venga del dispositivo que venga.
-##   - Nombre existente + PIN incorrecto → devuelve "" (rechazo).
-## Con PIN vacío no se llama a esto — comportamiento clásico por
-## dispositivo, sin cuenta (ver Jugador._registrar_identidad_red).
-func resolver_cuenta(nombre: String, pin: String, id_dispositivo: String) -> String:
-	var bd = _bd_red()
-	if bd == null:
-		return id_dispositivo  # sin BD no hay cuentas: caer al modo clásico.
-	var clave := _normalizar_nombre_cuenta(nombre)
-	if clave == "":
-		return id_dispositivo
-	var hash_pin := _hash_pin(clave, pin)
-	bd.query_with_bindings("SELECT pin_hash, id_unico FROM cuentas WHERE nombre = ?;", [clave])
-	if bd.query_result.is_empty():
-		bd.query_with_bindings(
-			"INSERT INTO cuentas (nombre, pin_hash, id_unico, creada) VALUES (?, ?, ?, ?);",
-			[clave, hash_pin, id_dispositivo, Time.get_datetime_string_from_system(true)]
-		)
-		print("[CUENTAS] creada '%s' -> %s" % [clave, id_dispositivo])
-		return id_dispositivo
-	var fila: Dictionary = bd.query_result[0]
-	if str(fila["pin_hash"]) != hash_pin:
-		print("[CUENTAS] PIN incorrecto para '%s'" % clave)
-		return ""
-	return str(fila["id_unico"])
-
-
-func _normalizar_nombre_cuenta(nombre: String) -> String:
-	var limpio := ""
-	for c in nombre.strip_edges().to_lower():
-		var seguro: bool = (c >= "a" and c <= "z") or (c >= "0" and c <= "9") \
-			or c == "_" or c == "-"
-		if seguro:
-			limpio += c
-	return limpio.substr(0, 24)
-
-
-func _hash_pin(nombre: String, pin: String) -> String:
-	# Sal fija + nombre en el hash: el mismo PIN en dos cuentas distintas
-	# produce hashes distintos (no delata PINs repetidos entre filas).
-	return ("gorpg|%s|%s" % [nombre, pin]).sha256_text()
 
 
 ## SERVIDOR: recibe el JSON del cliente y lo deja en el buffer en memoria
@@ -567,7 +590,9 @@ func _pedir_partida_red() -> void:
 	# volcado periódico, ahí está su versión más nueva (la de SQLite puede
 	# tener hasta FLUSH_BD_SEGUNDOS de atraso).
 	if _snapshots_pendientes.has(id):
-		rpc_id(quien, "_recibir_partida_red", _snapshots_pendientes[id]["texto"])
+		var pendiente: String = _snapshots_pendientes[id]["texto"]
+		_restaurar_estado_autoritativo(jugador, pendiente)
+		rpc_id(quien, "_recibir_partida_red", pendiente)
 		return
 	var bd = _bd_red()
 	if bd == null:
@@ -576,7 +601,62 @@ func _pedir_partida_red() -> void:
 	if bd.query_result.is_empty():
 		return  # sin partida guardada: el cliente arranca de cero, sin error.
 	var texto: String = bd.query_result[0]["datos_json"]
+	_restaurar_estado_autoritativo(jugador, texto)
 	rpc_id(quien, "_recibir_partida_red", texto)
+
+
+## SERVIDOR: reconstruye acá mismo lo que el jugador autoritativo necesita de
+## la partida guardada — XP (y con ella vida_maxima/energia_maxima, ver
+## ExperienciaComponente.restaurar_xp) y vida actual.
+##
+## Antes esto viajaba de vuelta desde el CLIENTE, con un rpc_id a
+## _aplicar_estado_red disparado al recibir la partida. Dos problemas:
+##   • Ese código vive en el build del cliente. Un APK viejo contra un
+##     servidor nuevo no lo manda nunca, y el servidor se queda con un
+##     jugador de nivel 1 (vida tope 100, energía tope 100) por más que el
+##     servidor esté parchado.
+##   • Es una ida y vuelta innecesaria por algo que el servidor ya tiene
+##     abierto en la mano: el JSON que está por mandarle.
+##
+## Síntoma que provocaba: "no recalcula la nueva vida cuando se loguea y
+## siempre tiene 100, y la energía no crece más de 105". El máximo real vive
+## en el servidor; el cliente sólo lo dibuja.
+##
+## El orden importa: primero la XP (el crecimiento por nivel cura de paso) y
+## después la vida guardada, que pisa esa curación con el valor real ya
+## contra el salud_maxima correcto.
+func _restaurar_estado_autoritativo(jugador: Node2D, texto: String) -> void:
+	if jugador == null:
+		return
+	var resultado: Variant = JSON.parse_string(texto)
+	if typeof(resultado) != TYPE_DICTIONARY:
+		return
+	var datos: Dictionary = resultado
+
+	var experiencia := jugador.get_node_or_null("ExperienciaComponente")
+	if experiencia:
+		experiencia.restaurar_xp(int(datos.get("xp_total", 0)))
+
+	# Puntos de mejora: mismo motivo que las pasivas de gatillo un poco más
+	# abajo — el AUTORITATIVO (el que de verdad calcula daño/recarga) tiene
+	# que tener esto aplicado, no solo el espejo del cliente.
+	_restaurar_mejoras(datos.get("mejoras", {}), jugador)
+
+	# Pasivas de GATILLO: a diferencia de la XP, no se re-derivan de nada
+	# más — sin esto, un jugador reconectado veía sus pasivas en la UI
+	# (restauradas del lado cliente, ver _recibir_partida_red) pero el
+	# servidor AUTORITATIVO —el que de verdad decide daño/curación— no
+	# tenía ninguna instancia real, así que el efecto de la pasiva
+	# simplemente dejaba de pasar tras reconectar.
+	_restaurar_pasivas(datos.get("pasivas", []), jugador)
+
+	var datos_jugador: Dictionary = datos.get("jugador", {})
+	var vida_guardada: float = datos_jugador.get("vida_actual", 0.0)
+	var componente := jugador.get_node_or_null("VidaComponente") as VidaComponente
+	if componente and vida_guardada > 0.0:
+		# Nunca cargar un muerto: mínimo 1 de vida (mismo criterio que
+		# _aplicar_estado_red).
+		componente.restaurar_vida(maxf(vida_guardada, 1.0))
 
 
 ## CLIENTE: llegó la partida guardada — aplicar el espejo local (inventario,
@@ -593,6 +673,8 @@ func _recibir_partida_red(texto: String) -> void:
 	var datos: Dictionary = resultado
 
 	GestorExperiencia.xp_total = datos.get("xp_total", 0)
+	# ANTES de _restaurar_habilidades() — ver GestorGuardado._restaurar_mejoras.
+	_restaurar_mejoras(datos.get("mejoras", {}))
 	GestorInventario.items.clear()
 	for entrada in datos.get("inventario", []):
 		var item := _cargar_item(entrada)
@@ -601,6 +683,7 @@ func _recibir_partida_red(texto: String) -> void:
 	_restaurar_equipo(datos.get("equipo", []))
 	_restaurar_habilidades(datos.get("habilidades", []))
 	_restaurar_barra_rapida(datos.get("barra_rapida", []))
+	_restaurar_pasivas(datos.get("pasivas", []))
 
 	# El nivel guardado AHORA SÍ se respeta: antes se ignoraba a propósito
 	# porque el servidor tenía un único nivel para todos, así que "volver a
@@ -624,9 +707,23 @@ func _recibir_partida_red(texto: String) -> void:
 	var datos_jugador: Dictionary = datos.get("jugador", {})
 	var pos: Array = datos_jugador.get("posicion", [])
 	var vida: float = datos_jugador.get("vida_actual", 0.0)
-	if pos.size() == 2 and not se_muda:
-		var destino := Vector2(pos[0], pos[1])
-		rpc_id(1, "_aplicar_estado_red", destino, vida, datos.get("xp_total", 0))
+	var hay_posicion := pos.size() == 2
+	var destino := Vector2(pos[0], pos[1]) if hay_posicion else Vector2.ZERO
+
+	# El RPC sale SIEMPRE, mudanza o no. Lo que viaja acá no es solo la
+	# posición: la XP también, y de ella dependen vida_maxima/energia_maxima
+	# del jugador AUTORITATIVO (ver _aplicar_estado_red). Cuando esto vivía
+	# dentro del "if ... and not se_muda", cualquiera que se desconectara
+	# fuera del nivel inicial reconectaba con un servidor convencido de que
+	# era nivel 1: la vida se topaba en 100 y la energía también, mientras el
+	# cliente mostraba los máximos reales de su nivel. Síntoma reportado: "la
+	# energía sólo sube hasta 105 de 200 que me muestra el UI y me descuenta
+	# la adrenalina" — la jeringa llegaba al servidor y agregar_energia()
+	# clampeaba contra un máximo de nivel 1. Misma causa para la vida.
+	rpc_id(1, "_aplicar_estado_red", destino, vida,
+		datos.get("xp_total", 0), hay_posicion and not se_muda)
+
+	if hay_posicion and not se_muda:
 		# Salto local inmediato (sin lerp): cargar partida es un
 		# teletransporte, como reaparecer — deslizarse por medio mapa hasta
 		# la posición guardada se vería como un fantasma. El servidor aplica
@@ -660,14 +757,21 @@ func _recibir_partida_red(texto: String) -> void:
 ## cura de paso (ver _aplicar_crecimiento_nivel), y restaurar_vida() de
 ## abajo pisa ese valor con el real guardado, ya con el salud_maxima
 ## correcto.
+##
+## aplicar_posicion en false = el cliente se está MUDANDO de nivel: la
+## posición guardada está en coordenadas del nivel viejo y pisarla acá sería
+## una carrera contra el teletransporte del portal. La XP y la vida sí se
+## aplican igual — no dependen del nivel donde esté parado.
 @rpc("any_peer", "reliable")
-func _aplicar_estado_red(pos: Vector2, vida: float, xp_total: int = 0) -> void:
+func _aplicar_estado_red(pos: Vector2, vida: float, xp_total: int = 0,
+		aplicar_posicion: bool = true) -> void:
 	if not multiplayer.is_server():
 		return
 	var jugador := _jugador_de_peer(multiplayer.get_remote_sender_id())
 	if jugador == null:
 		return
-	jugador.global_position = pos
+	if aplicar_posicion:
+		jugador.global_position = pos
 	var experiencia := jugador.get_node_or_null("ExperienciaComponente")
 	if experiencia:
 		experiencia.restaurar_xp(xp_total)

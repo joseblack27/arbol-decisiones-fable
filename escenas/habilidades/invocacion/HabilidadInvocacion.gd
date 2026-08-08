@@ -51,7 +51,15 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 		aliado.intervalo_ataque       = intervalo_ataque
 		aliado.velocidad_persecucion  = velocidad_persecucion
 		aliado.activar(duracion_invocacion)
-		var nivel := GestorNiveles.nivel_actual()
+		# nivel_de_jugador(), NO nivel_actual(): en el servidor conviven varios
+		# niveles a la vez (uno por cada grupo de jugadores), y nivel_actual()
+		# siempre devuelve el PRIMERO cargado (Pradera) sin importar dónde esté
+		# parado este jugador — invocar en cualquier otro nivel (reportado en
+		# Camino) colgaba al aliado de la malla de navegación de Pradera: se
+		# veía (la posición se fija aparte, más abajo) pero no encontraba
+		# rutas válidas ni enemigos de su propio nivel, así que se quedaba
+		# plantado sin moverse ni atacar.
+		var nivel := GestorNiveles.nivel_de_jugador(entidad_dueña)
 		var contenedor: Node = (nivel.get_node_or_null("Enemigos") if nivel else null)
 		if contenedor == null:
 			contenedor = get_tree().current_scene
@@ -61,6 +69,8 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 		# SpawnerMobs._generar_uno().
 		contenedor.add_child.call_deferred(aliado, true)
 		aliado.set_deferred("global_position", (entidad_dueña as Node2D).global_position + Vector2(30, 0))
+		if Utils.en_red() and multiplayer.is_server():
+			_anunciar_aliado.call_deferred(aliado)
 
 	if icono_buff != null:
 		var buffs := entidad_dueña.get_node_or_null("BuffsComponente") as BuffsComponente
@@ -79,3 +89,69 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 		# actualizaba con el número real.
 		buffs.agregar("invocacion", icono_buff, duracion_invocacion, false,
 			nombre_habilidad, "Tu aliado pelea a tu lado, golpeando por %d" % int(dano_ataque))
+
+
+## SERVIDOR: réplica manual del aliado a TODOS los peers — insurance contra
+## la misma carrera que ya se resolvió para los mobs comunes (ver
+## SpawnerMobs._generar_uno) pero que nunca se extendió a esta habilidad:
+## reproducido contra el servidor real, el MultiplayerSpawner automático de
+## NivelBase._configurar_spawner_red falla apenas conecta un peer cuyo nivel
+## todavía no terminó de cargar ("Enemigos/SpawnerRed" no existe todavía en
+## su árbol) — y a diferencia del resync de mobs, acá nadie reintentaba
+## nunca, así que ese peer se quedaba SIN aliado por el resto de la conexión.
+## Esto explica el reporte "ya no sale la invocación": no es que se rompiera
+## con estos cambios, es que nunca tuvo la misma red de contención que los
+## mobs y la carrera se dispara casi siempre.
+func _anunciar_aliado(aliado: Node) -> void:
+	if not is_instance_valid(aliado):
+		return
+	rpc("_recibir_aliado_invocado", aliado.scene_file_path, String(aliado.name),
+		(aliado as Node2D).global_position)
+	# Simétrico: si al cliente afectado tampoco le llega el despawn automático
+	# (mismo mecanismo roto), la réplica manual de arriba se quedaría pegada
+	# en su pantalla para siempre después de que el aliado real se desvanezca.
+	aliado.tree_exiting.connect(_anunciar_salida_aliado.bind(String(aliado.name)), CONNECT_ONE_SHOT)
+
+
+func _anunciar_salida_aliado(nombre: String) -> void:
+	rpc("_quitar_aliado_invocado", nombre)
+
+
+## CLIENTE: crea la réplica visual a mano si la automática no llegó — mismo
+## patrón que SpawnerMobs._recibir_mobs_existentes. Idempotente: si el nodo
+## ya existe (sí llegó por la vía normal), no hace nada.
+@rpc("authority", "reliable")
+func _recibir_aliado_invocado(ruta: String, nombre: String, pos: Vector2) -> void:
+	if nombre == "":
+		return
+	var nivel := GestorNiveles.nivel_actual()
+	var contenedor: Node = (nivel.get_node_or_null("Enemigos") if nivel else null)
+	if contenedor == null:
+		contenedor = get_tree().current_scene
+	if contenedor == null or contenedor.get_node_or_null(nombre) != null:
+		return
+	var escena := load(ruta) as PackedScene
+	if escena == null:
+		return
+	var replica := escena.instantiate()
+	replica.name = nombre
+	contenedor.add_child(replica)
+	if replica is Node2D:
+		(replica as Node2D).global_position = pos
+		if "_posicion_replicada" in replica:
+			replica.set("_posicion_replicada", pos)
+
+
+## CLIENTE: contraparte de _anunciar_salida_aliado — por si la réplica manual
+## de arriba es la única copia que tiene este peer (el despawn automático del
+## MultiplayerSpawner también depende del mismo registro que falló al
+## conectar). No pasa nada si ya no existe (se fue por la vía normal).
+@rpc("authority", "reliable")
+func _quitar_aliado_invocado(nombre: String) -> void:
+	var nivel := GestorNiveles.nivel_actual()
+	var contenedor: Node = (nivel.get_node_or_null("Enemigos") if nivel else null)
+	if contenedor == null:
+		return
+	var replica := contenedor.get_node_or_null(nombre)
+	if replica != null:
+		replica.queue_free()

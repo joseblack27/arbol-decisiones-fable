@@ -87,6 +87,8 @@ func usar_item(item: DatosItem) -> void:
 		_pedir_energia(item.energia)
 	if item.experiencia > 0:
 		_pedir_experiencia(item.experiencia)
+	if item.escena_pasiva != null:
+		_pedir_desbloqueo_pasiva(item.escena_pasiva.resource_path)
 
 
 ## true si usar este ítem tendría algún efecto real ahora mismo. Los ítems
@@ -218,3 +220,37 @@ func _pedir_experiencia_red(cantidad: int) -> void:
 		return
 	_experiencia_local(cantidad)
 	jugador.rpc_id(jugador.peer_id_dueño, "_recibir_xp_red", cantidad)
+
+
+## Desbloqueo de una pasiva de GATILLO (ítem especial, ver DatosItem
+## .escena_pasiva) — mismo patrón que _pedir_experiencia: PasivaBase tiene
+## que existir de verdad en el cliente dueño (no solo en el servidor) para
+## que su predicción visual funcione (ver PasivaBase), así que hace falta
+## la confirmación de vuelta, igual que con la XP.
+func _pedir_desbloqueo_pasiva(ruta_escena: String) -> void:
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_pedir_desbloqueo_pasiva_red", ruta_escena)
+		return
+	_desbloquear_pasiva_local(ruta_escena)
+
+
+func _desbloquear_pasiva_local(ruta_escena: String) -> void:
+	var pasivas := get_parent().get_node_or_null("PasivasComponente") as PasivasComponente
+	if pasivas:
+		pasivas.desbloquear_gatillo(ruta_escena)
+
+
+## SERVIDOR: mismas verificaciones de dueño que _pedir_curacion_red.
+@rpc("any_peer", "reliable")
+func _pedir_desbloqueo_pasiva_red(ruta_escena: String) -> void:
+	if not multiplayer.is_server():
+		return
+	var jugador := get_parent()
+	if not jugador or not ("peer_id_dueño" in jugador):
+		return
+	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+		return
+	_desbloquear_pasiva_local(ruta_escena)
+	var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
+	if confirmaciones:
+		confirmaciones.rpc_id(jugador.peer_id_dueño, "_recibir_pasiva_red", ruta_escena)

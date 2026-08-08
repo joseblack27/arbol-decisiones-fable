@@ -41,7 +41,7 @@ func _montar() -> void:
 
 	_panel_habilidades = (load("res://escenas/ui/panel_os/paneles/habilidades/PanelHabilidades.tscn") as PackedScene).instantiate()
 	root.add_child(_panel_habilidades)
-	_panel_detalle = _panel_habilidades.get_node("MarginContainer/HBoxContainer/PanelDetalle")
+	_panel_detalle = _panel_habilidades.get_node("MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle")
 
 	_datos = DatosHabilidad.new()
 	_datos.nombre       = "Prueba"

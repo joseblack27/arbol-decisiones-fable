@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/pasivas/instinto_vengador/PasivaInstintoVengador.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_iconos"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_aturdir"]
+atlas = ExtResource("2_iconos")
+region = Rect2(192, 32, 32, 32)
+
+[node name="PasivaInstintoVengador" type="Node"]
+script = ExtResource("1_script")
+nombre_pasiva = "Instinto Vengador"
+descripcion = "Al recibir un golpe crítico, aturde 1 segundo a quien lo dio."
+icono = SubResource("AtlasTexture_aturdir")
+icono_debuff = SubResource("AtlasTexture_aturdir")

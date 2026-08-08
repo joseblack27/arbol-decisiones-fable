@@ -70,6 +70,30 @@ var _mascara_colision_original: int = 0
 ## Cartel "Has muerto" — solo se crea para el dueño local (ver _morir).
 var _aviso_muerte: Label = null
 
+@export_group("Íconos de estado")
+## Fila de íconos (veneno, lentitud, aturdido...) ENCIMA del jugador — mismo
+## criterio visual que Enemigo._dibujar_iconos_estado_mob. Pedido del
+## usuario: a veces no se daba cuenta de estar aturdido hasta mirar
+## BarraBuffs (la fila fija de la esquina) y lo confundía con lag — esto
+## vive EN EL MUNDO, pegado al propio personaje (y visible para cualquiera
+## que lo mire, réplicas incluidas), así que se nota de un vistazo sin
+## desviar la mirada a la esquina.
+@export var tamano_icono_estado: float = 10.0
+@export var separacion_iconos_estado: float = 2.0
+## Y local donde se apoya la fila (negativo = arriba del sprite).
+@export var altura_iconos_estado: float = -50.0
+const _COLOR_CONTORNO_ICONOS_ESTADO := Color(0.0, 0.0, 0.0, 0.9)
+
+var _nodo_iconos_estado: Node2D = null
+## BuffsComponente puede no existir todavía cuando el jugador arranca (recién
+## se crea con el PRIMER debuff, ver EfectoVeneno/EfectoAturdir._anotar_
+## icono) — mismo criterio de reintento que ya usan Enemigo.gd y BarraBuffs.gd
+## para el mismo problema.
+var _buffs_estado: BuffsComponente = null
+var _buffs_activos_estado: Array[String] = []
+const _INTERVALO_REINTENTO_BUFFS_ESTADO := 0.5
+var _acumulador_reintento_buffs_estado := 0.0
+
 ## Fase 2 del plan de multijugador: si esto corre bajo un MultiplayerPeer de
 ## red real (ENet, no el OfflineMultiplayerPeer que Godot asigna por
 ## defecto — ver Utils.en_red()), el nombre del nodo ES el peer id dueño (lo
@@ -238,6 +262,11 @@ func _ready():
 			SeñalManager.conectar("slot_%d_activar" % i, self, "_on_slot_%d_activar" % i)
 			SeñalManager.conectar("slot_%d_lanzar"  % i, self, "_on_slot_%d_lanzar"  % i)
 
+	# Corre para CUALQUIER jugador (dueño local y réplicas): igual que el
+	# nombre de un mob, es visible para cualquiera que lo mire, no solo el
+	# dueño (ver _crear_iconos_estado).
+	_crear_iconos_estado()
+
 	# Los bonos de atributos del equipo (armas, armaduras, anillos…) se
 	# recalculan directo desde EquipoComponente.actualizar() (su propio
 	# hermano AtributosComponente, ver ese archivo) — YA NO por acá vía
@@ -276,6 +305,52 @@ func bloquear_control() -> void:
 
 func desbloquear_control() -> void:
 	_bloqueos_control = maxi(0, _bloqueos_control - 1)
+
+
+## Solo reintenta encontrar BuffsComponente (ver _intentar_conectar_buffs_
+## estado) — se crea recién con el primer debuff, no siempre existe todavía
+## cuando el jugador arranca. Mismo criterio que Enemigo.gd/BarraBuffs.gd.
+func _process(delta: float) -> void:
+	if _buffs_estado != null or _nodo_iconos_estado == null:
+		return
+	_acumulador_reintento_buffs_estado += delta
+	if _acumulador_reintento_buffs_estado >= _INTERVALO_REINTENTO_BUFFS_ESTADO:
+		_acumulador_reintento_buffs_estado = 0.0
+		_intentar_conectar_buffs_estado()
+
+
+func _crear_iconos_estado() -> void:
+	_nodo_iconos_estado = Node2D.new()
+	_nodo_iconos_estado.name = "IconosEstadoJugador"
+	_nodo_iconos_estado.position = Vector2(0.0, altura_iconos_estado)
+	add_child(_nodo_iconos_estado)
+	_nodo_iconos_estado.draw.connect(_dibujar_iconos_estado)
+	_intentar_conectar_buffs_estado()
+
+
+func _intentar_conectar_buffs_estado() -> void:
+	if _buffs_estado != null:
+		return
+	var comp := get_node_or_null("BuffsComponente") as BuffsComponente
+	if comp == null:
+		return
+	_buffs_estado = comp
+	_buffs_estado.buff_agregado.connect(_al_cambiar_buffs_estado)
+	_buffs_estado.buff_quitado.connect(_al_cambiar_buffs_estado)
+	_al_cambiar_buffs_estado("")
+
+
+## Se relee la lista completa en vez de agregar/quitar un id puntual —
+## mismo criterio que Enemigo._al_cambiar_buffs_estado.
+func _al_cambiar_buffs_estado(_id: String) -> void:
+	_buffs_activos_estado = _buffs_estado.activos()
+	if _nodo_iconos_estado:
+		_nodo_iconos_estado.queue_redraw()
+
+
+func _dibujar_iconos_estado() -> void:
+	Utils.dibujar_iconos_estado(_nodo_iconos_estado, _buffs_estado, _buffs_activos_estado,
+		tamano_icono_estado, separacion_iconos_estado, _COLOR_CONTORNO_ICONOS_ESTADO)
 
 
 func _joystick_movimiento(_direccion: Vector2):
@@ -323,10 +398,10 @@ func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> v
 		nombre_visible = nombre_limpio
 	# Con PIN, la identidad real la resuelve la CUENTA (nombre+PIN), no el
 	# dispositivo: así el progreso sigue al nombre aunque cambie de celular
-	# (ver GestorGuardado.resolver_cuenta). Sin PIN, comportamiento clásico:
+	# (ver GestorCuentas.resolver_cuenta). Sin PIN, comportamiento clásico:
 	# el id del dispositivo tal cual.
 	if pin.strip_edges() != "" and nombre_limpio != "":
-		var id_cuenta: String = GestorGuardado.resolver_cuenta(nombre_limpio, pin.strip_edges(), id_limpio)
+		var id_cuenta: String = GestorCuentas.resolver_cuenta(nombre_limpio, pin.strip_edges(), id_limpio)
 		if id_cuenta == "":
 			# PIN incorrecto: avisar al dueño y desconectarlo — jugar con la
 			# identidad "equivocada" (la del dispositivo) sería peor, porque
@@ -464,31 +539,6 @@ func _pedir_detener_red() -> void:
 	direccion = Vector2.ZERO
 
 
-## Fase 4 del plan de multijugador: el SERVIDOR ya le dio este botín/XP de
-## verdad a la copia autoritativa (ver Enemigo._otorgar_item_al_atacante) —
-## esto es el aviso al cliente dueño para que su copia espejo (inventario/
-## XP que ve en su propia UI) se entere. "authority" = solo el servidor
-## puede llamarlo. Se usa self.get_node(...) en vez de la fachada
-## GestorInventario/GestorExperiencia a propósito: el RPC ya llegó al nodo
-## correcto por su ruta, no hace falta (ni conviene) volver a adivinar "cuál
-## jugador" con la búsqueda por grupo que usa la fachada.
-@rpc("authority", "reliable")
-func _recibir_botin_red(ruta_item: String, cantidad: int) -> void:
-	var item := load(ruta_item) as DatosItem
-	if item == null:
-		return
-	var inventario := get_node_or_null("InventarioComponente")
-	if inventario:
-		inventario.agregar_item(item, cantidad)
-
-
-@rpc("authority", "reliable")
-func _recibir_xp_red(cantidad: int) -> void:
-	var experiencia := get_node_or_null("ExperienciaComponente")
-	if experiencia:
-		experiencia.agregar_xp(cantidad)
-
-
 func _physics_process(delta: float) -> void:
 	# *** ORQUESTACIÓN FÍSICA ***
 
@@ -617,7 +667,17 @@ var _estaba_invulnerable := false
 func _actualizar_visual_invulnerable() -> void:
 	if not sprite or not componente_vida:
 		return
+	# Camuflado: translúcido y estable (no late). Va ANTES de la protección
+	# porque son estados distintos y no deben mezclarse en un mismo color; si
+	# se solapan, manda el destello amarillo de la protección, que es el que
+	# avisa de algo con tiempo crítico.
+	var camuflaje = get_node_or_null("CamuflajeComponente")
+	var oculto: bool = camuflaje != null and camuflaje.esta_activo() and not _muerto
 	var invulnerable: bool = componente_vida.es_invulnerable() and not _muerto
+	if oculto and not invulnerable:
+		sprite.modulate = Color(0.75, 0.85, 1.0, 0.35)
+		_estaba_invulnerable = true  # para que al salir se restaure el color
+		return
 	if invulnerable:
 		# Parpadeo DURO (no un latido suave): cambia de opaco a semitransparente
 		# cada 0.25s en punto — pedido del usuario, más lento y más marcado
@@ -934,11 +994,18 @@ func bloquear_por_transicion(segundos: float = TIEMPO_BLOQUEO_TRANSICION) -> voi
 		componente_vida.activar_invulnerabilidad(segundos)
 
 
-## true mientras el jugador no puede actuar: muerto, o recién llegado a un
-## nivel nuevo. Único lugar que decide esto — lo consultan la UI de
-## habilidades, el manejo de toques y la autoridad del servidor.
+## true mientras el jugador no puede actuar: muerto, recién llegado a un
+## nivel nuevo, o con el control tomado (aturdido, canal de Ráfaga/
+## Lanzallamas en curso...). Único lugar que decide esto — lo consultan la
+## UI de habilidades, el manejo de toques y la autoridad del servidor.
+## _bloqueos_control se sumó acá porque, sin esto, un toque NUEVO mientras
+## el jugador estaba aturdido armaba igual el joystick de apuntado
+## (UIHabilidad._dueño_muerto ya consultaba esta función) — se veía como si
+## la habilidad fuera a salir, y en el fondo HabilidadBase.activar() ya lo
+## iba a bloquear igual (mismo bug que ya se había resuelto para _muerto,
+## pedido del usuario: "bloquear las habilidades mientras siga aturdido").
 func esta_bloqueado() -> bool:
-	return _muerto or _bloqueo_transicion > 0.0
+	return _muerto or _bloqueo_transicion > 0.0 or _bloqueos_control > 0
 
 
 func aplicar_limites_camara(rect: Rect2) -> void:

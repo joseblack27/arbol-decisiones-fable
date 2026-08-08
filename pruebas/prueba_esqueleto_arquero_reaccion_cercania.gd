@@ -12,7 +12,7 @@
 # el árbol de comportamiento completo):
 #   1. Cadencia rápida: duracion_recuperacion baja a normal/1.5 y
 #      _restablecer_cadencia_normal() la devuelve.
-#   2. Retirada: dash en dirección contraria al jugador, hasta ~400px, y
+#   2. Retirada: dash en dirección contraria al jugador, hasta ~200px, y
 #      duracion_recuperacion queda en la normal al terminar ("sigue
 #      atacando normal" — pedido explícito del usuario).
 # Por separado, un chequeo de integración confirma que estar "demasiado
@@ -92,9 +92,11 @@ func _probar_retirada() -> bool:
 		return false
 	var distancia_recorrida: float = _mob.global_position.distance_to(_pos_inicio_retirada)
 	var cadencia_ok: bool = absf(_mob._accion_atacar.duracion_recuperacion - _recuperacion_normal) < 0.001
-	_ok_retirada = distancia_recorrida > 350.0 and distancia_recorrida < 450.0 \
+	# Margen holgado alrededor de _DISTANCIA_RETIRADA (200): el dash corta al
+	# superarla, así que siempre se pasa un poco del valor exacto.
+	_ok_retirada = distancia_recorrida > 170.0 and distancia_recorrida < 250.0 \
 		and not _mob._en_retirada and cadencia_ok
-	print("Retirada: recorrió %.1fpx (esperado ~400) en %d fotogramas, en_retirada=%s, cadencia normal=%s" % [
+	print("Retirada: recorrió %.1fpx (esperado ~200) en %d fotogramas, en_retirada=%s, cadencia normal=%s" % [
 		distancia_recorrida, _frames_retirada, _mob._en_retirada, cadencia_ok
 	])
 	return true
@@ -106,7 +108,7 @@ func _probar_retirada() -> bool:
 ##
 ## Reestablece memoria["objetivo"]/"jugador_detectado" acá (no solo confiar
 ## en lo que dejó _montar()): la retirada de la fase anterior aleja al mob
-## hasta ~700px del jugador (300px iniciales + ~400px de dash), pasando el
+## hasta ~500px del jugador (300px iniciales + ~200px de dash), pasando el
 ## distancia_abandono (500) de AccionPerseguir — el árbol de comportamiento
 ## sigue corriendo DURANTE el dash (_en_retirada solo le saca el control del
 ## movimiento, no le apaga el tick), así que en la ventana entre que termina

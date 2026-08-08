@@ -305,6 +305,7 @@ componente_movimiento = NodePath("MovimientoComponente")
 componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
+altura_nombre = -27.0
 tabla_botin = Array[ExtResource("2_ycc48")]([SubResource("Resource_0dg2b"), SubResource("Resource_pdtu5"), SubResource("Resource_7620f"), SubResource("Resource_t82ah"), SubResource("Resource_127ox")])
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
@@ -392,8 +393,8 @@ nombre_nodo = "(Acción) Alejarse trotando"
 [node name="Deambular" type="Node" parent="ArbolComportamiento/Selector"]
 script = ExtResource("14_deamb")
 velocidad = 55.0
-radio_deambulacion = 140.0
-espera_en_destino = 1.0
+radio_deambulacion = 170.0
+espera_en_destino = 0.4
 nombre_nodo = "(Acción) Deambular"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]

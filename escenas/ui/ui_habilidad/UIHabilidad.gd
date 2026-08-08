@@ -24,6 +24,15 @@ class_name UIHabilidad
 @export var color_reposo: Color  = Color(0.60, 0.20, 0.80, 0.70)
 @export var color_activo: Color  = Color(0.80, 0.50, 1.00, 0.90)
 @export var color_dir: Color     = Color(1.00, 1.00, 0.40, 0.90)
+## Color del ÍCONO (no del fondo del botón) mientras la habilidad equipada
+## está en su SEGUNDA etapa (ver BusEventos.habilidad_fase_cambiada /
+## HabilidadAcumulacion) — para que se note a simple vista que ya no es
+## "recién presionada" sino "esperando la segunda presión".
+@export var color_icono_fase_activa: Color = Color(1.00, 0.55, 0.20, 1.00)
+
+## Color/alfa normal del ícono fuera de la segunda etapa — mismo valor que
+## ya usaba _actualizar_icono() antes de que existiera esto.
+const _COLOR_ICONO_NORMAL := Color(1, 1, 1, 0.9)
 
 # ── Nodos de presentación ─────────────────────────────────────────────────────
 @onready var _base: Sprite2D = $Base
@@ -70,6 +79,9 @@ var _cd_restante: float = 0.0
 var _sin_energia: bool                 = false
 var _slot_habilidades: SlotHabilidades = null
 
+# ── Fase (habilidades de dos etapas, ver HabilidadAcumulacion) ──────────────────
+var _fase_activa: bool = false
+
 
 func _get_centro() -> Vector2:
 	return size / 2.0
@@ -98,6 +110,7 @@ func _ready() -> void:
 	BusEventos.recarga_iniciada.connect(_on_recarga_iniciada)
 	BusEventos.recarga_terminada.connect(_on_recarga_terminada)
 	BusEventos.energia_cambiada.connect(_on_energia_cambiada)
+	BusEventos.habilidad_fase_cambiada.connect(_on_fase_cambiada)
 
 	resized.connect(_disponer_nodos)
 	_linea_direccion.default_color = color_dir
@@ -131,20 +144,45 @@ func _actualizar_desde_habilidad() -> void:
 	if hab:
 		_modo_joystick = hab.requiere_direccion
 		texto = ""  # El icono reemplaza el texto
+		# Este botón físico puede pasar a representar OTRA habilidad (otra
+		# página, reequipar) — no alcanza con apagar la fase a ciegas: si la
+		# que ahora le toca mostrar ya estaba en su segunda etapa (ver
+		# HabilidadAcumulacion), tiene que pintarse así DESDE YA, sin esperar
+		# a una nueva señal habilidad_fase_cambiada que no va a llegar (esa
+		# solo se emite en la transición, no de nuevo por cada botón que
+		# empiece a representarla). Duck-typed: cualquier habilidad de dos
+		# etapas puede sumarse solo con implementar este método.
+		_fase_activa = hab.has_method(&"esta_en_fase_activa") and hab.esta_en_fase_activa()
+		# Mismo criterio que la fase, mismo reporte: el pastel/etiqueta de
+		# recarga tiene que reflejar el estado REAL de la habilidad que le
+		# toca mostrar ahora — antes se reseteaba a cero a ciegas en cada
+		# cambio de página, así que una habilidad que seguía en recarga de
+		# verdad se veía lista para usar hasta que llegara la próxima señal
+		# de recarga (que podía tardar segundos, o nunca si ya estaba a
+		# mitad de camino cuando se cambió de página).
+		_cd_duracion = hab.duracion_recarga
+		_cd_restante = hab.obtener_recarga_restante()
+		_cd_ratio    = hab.obtener_ratio_recarga()
 	else:
 		_modo_joystick = false
 		texto = ""
+		_fase_activa = false
+		_cd_duracion = 0.0
+		_cd_restante = 0.0
+		_cd_ratio    = 0.0
 	_actualizar_icono()
 	_refrescar_visual()
+	_actualizar_cooldown_visual()
 
 
 func _on_slot_cambiado(index: int, _hab: HabilidadBase) -> void:
 	if index != slot_index:
 		return
+	# _fase_activa y el cooldown los resuelve _actualizar_desde_habilidad()
+	# (consulta a la habilidad NUEVA, no un apagado a ciegas — ver esa
+	# función). Una habilidad recién equipada normalmente empieza sin
+	# recarga de todas formas, así que esto también cubre ese caso solo.
 	_actualizar_desde_habilidad()
-	_cd_ratio    = 0.0
-	_cd_restante = 0.0
-	_refrescar_visual()
 
 
 func _get_habilidad() -> HabilidadBase:
@@ -245,10 +283,12 @@ func cambiar_slot(nuevo_index: int) -> void:
 		SeñalManager.registrar(_sig_cancelar, _signal_id, {})
 		SeñalManager.registrar(_sig_activar,  _signal_id, {})
 
-	_cd_ratio    = 0.0
-	_cd_restante = 0.0
+	# La fase y el cooldown los resuelve _actualizar_desde_habilidad()
+	# (consulta a la habilidad que le toca mostrar ahora, no un apagado a
+	# ciegas — así, si esa habilidad YA estaba en su segunda etapa
+	# (Acumulación) o en recarga de verdad cuando volvés a esta página, se
+	# ve así de una, no en blanco).
 	_actualizar_desde_habilidad()
-	_actualizar_cooldown_visual()
 
 
 # ── Input ─────────────────────────────────────────────────────────────────────
@@ -449,6 +489,19 @@ func _on_recarga_terminada(entidad: Node, slot_idx: int) -> void:
 	_actualizar_cooldown_visual()
 
 
+## Mismo filtro que _on_recarga_iniciada/_on_energia_cambiada: el bus es
+## global, dispara igual para réplicas de jugadores ajenos visibles en
+## pantalla — sin este chequeo, la fase de OTRO jugador pintaba el botón
+## propio.
+func _on_fase_cambiada(entidad: Node, slot_idx: int, activa: bool) -> void:
+	if entidad == null or entidad != Utils.jugador_local():
+		return
+	if slot_idx != slot_index:
+		return
+	_fase_activa = activa
+	_refrescar_visual()
+
+
 func _on_energia_cambiada(entidad: Node, nueva: float, _maxima: float) -> void:
 	if entidad == null or entidad != Utils.jugador_local():
 		return
@@ -479,6 +532,8 @@ func _disponer_nodos() -> void:
 ## Refleja el estado lógico en los nodos (antes era _draw()).
 func _refrescar_visual() -> void:
 	_base.self_modulate = color_activo if (_activo or _presionado) else color_reposo
+	if _icono.texture != null:
+		_icono.modulate = color_icono_fase_activa if _fase_activa else _COLOR_ICONO_NORMAL
 
 	var mostrar_direccion := _modo_joystick and _activo and _drag_offset.length() > 5.0
 	_linea_direccion.visible = mostrar_direccion
@@ -501,7 +556,9 @@ func _actualizar_icono() -> void:
 	var datos := _slot_habilidades.obtener_datos(slot_index) if _slot_habilidades else null
 	if datos and datos.icono:
 		_icono.texture = datos.icono
-		_icono.modulate = Color(1, 1, 1, 0.9)
+		# El color real (normal o fase activa) lo decide _refrescar_visual();
+		# acá alcanza con un valor de partida por si tarda en llamarse.
+		_icono.modulate = _COLOR_ICONO_NORMAL
 		_escalar_sprite(_icono, radio_boton * 1.2)
 	else:
 		_icono.texture = null

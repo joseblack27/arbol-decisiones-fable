@@ -62,7 +62,8 @@ func _ready() -> void:
 	# arma acá por código en vez de a mano en cada nivel. Quien de verdad
 	# decide CUÁNDO generar (más abajo) sigue siendo solo el servidor.
 	if Utils.en_red():
-		_configurar_spawner_red()
+		# El MultiplayerSpawner NO se crea acá: lo arma el nivel una sola vez
+		# para todo el contenedor (ver NivelBase._configurar_spawner_red).
 		# El MultiplayerSpawner replica el lote de mobs YA EXISTENTES a un
 		# peer nuevo apenas conecta — cuando ese cliente todavía está
 		# cargando el nivel y su SpawnerRed no existe: el lote se pierde y
@@ -81,21 +82,14 @@ func _ready() -> void:
 	_listo = true
 
 
-func _configurar_spawner_red() -> void:
-	var spawner := MultiplayerSpawner.new()
-	spawner.name = "SpawnerRed"
-	# add_child() PRIMERO: spawn_path se resuelve con get_node_or_null() contra
-	# un NodePath absoluto — si spawner todavía no está dentro del árbol de
-	# escena, esa resolución falla ("Can't use get_node() with absolute paths
-	# from outside the active scene tree") y spawn_path queda mal configurado.
-	# Con el spawner replicador roto, cada mob que este spawner genera existe
-	# en el servidor (puede golpear) pero nunca se replica a los clientes —
-	# el mob invisible reportado en juego real.
-	add_child(spawner)
-	spawner.spawn_path = _contenedor.get_path()
+## Escenas que ESTE generador puede llegar a crear, para que el nivel las
+## registre en el spawner compartido (ver NivelBase._configurar_spawner_red).
+func escenas_replicables() -> Array[String]:
+	var rutas: Array[String] = []
 	for escena in lista_mobs:
 		if escena:
-			spawner.add_spawnable_scene(escena.resource_path)
+			rutas.append(escena.resource_path)
+	return rutas
 
 
 ## true si acá corresponde generar/decidir mobs de verdad: sin multiplayer
@@ -370,3 +364,16 @@ func _recibir_mobs_existentes(datos: Array) -> void:
 			_contenedor.add_child(mob)
 		if mob is Node2D:
 			(mob as Node2D).global_position = pos
+			# También la posición REPLICADA, no sólo la real: el cliente
+			# interpola hacia _posicion_replicada cada fotograma (ver
+			# Enemigo._physics_process), y ese campo se fija en _enter_tree()
+			# — o sea, con el mob todavía en el origen del nivel, antes de que
+			# este resync le diera su lugar. Sin esto el mob se deslizaba de
+			# vuelta al centro del mapa y se quedaba ahí hasta que el jugador
+			# se le acercaba lo suficiente como para que empezara a recibir
+			# posiciones reales (fuera del radio de interés no se le manda
+			# ninguna). En la Pradera casi no se notaba porque el radio de
+			# interés cubre medio mapa; en un nivel largo como el Camino
+			# quedaban decenas de mobs amontonados en el centro.
+			if "_posicion_replicada" in mob:
+				mob.set("_posicion_replicada", pos)

@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/fervor/HabilidadFervor.gd" id="1_fervor"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_iconos"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fervor_buff"]
+atlas = ExtResource("2_iconos")
+region = Rect2(192, 32, 32, 32)
+
+[node name="HabilidadFervor" type="Node"]
+script = ExtResource("1_fervor")
+costo_energia = 25.0
+requiere_direccion = false
+duracion_recarga = 20.0
+duracion_fervor = 6.0
+multiplicador_velocidad = 2.0
+icono_buff = SubResource("AtlasTexture_fervor_buff")

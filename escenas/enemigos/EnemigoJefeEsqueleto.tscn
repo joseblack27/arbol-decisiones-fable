@@ -320,6 +320,7 @@ componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("0_datos")
+color_nombre = Color(1, 0.85, 0.3, 1)
 tabla_botin = Array[ExtResource("3_3v04n")]([SubResource("Resource_qwpms"), SubResource("Resource_i4fs3"), SubResource("Resource_rjqlh"), SubResource("Loot_escudo_brasas")])
 xp_otorgada = 150
 
@@ -396,25 +397,6 @@ region_rect = Rect2(0, 0, 96, 192)
 [node name="BarraVidaEnergia" type="Node2D" parent="."]
 position = Vector2(0, -50)
 script = ExtResource("barra_vida_energia")
-
-[node name="Label" type="Label" parent="."]
-custom_minimum_size = Vector2(140, 0)
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -70.0
-offset_top = -80.0
-offset_right = 70.0
-offset_bottom = -57.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.3, 1)
-theme_override_font_sizes/font_size = 14
-text = "Jefe Esqueleto"
-horizontal_alignment = 1
-vertical_alignment = 1
 
 [node name="ArbolComportamiento" type="Node" parent="."]
 script = ExtResource("12_psl2x")

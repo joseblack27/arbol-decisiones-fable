@@ -69,23 +69,10 @@ func _on_vida_cambiada_jefe(valor: float) -> void:
 
 func _entrar_fase_2() -> void:
 	_en_fase_2 = true
-	var arbol := get_node_or_null("ArbolComportamiento") as ArbolComportamiento
-	if arbol:
-		arbol.activo = false
-	if componente_movimiento:
-		componente_movimiento.detener()
-	if componente_animacion:
-		componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", false)
-		componente_animacion.establecer_condicion("parameters/conditions/debeIdle", true)
-	get_tree().create_timer(pausa_cambio_fase).timeout.connect(_reanudar_tras_pausa)
+	_telegrafiar_pausa_de_fase(pausa_cambio_fase, _agregar_abanico)
 
 
-func _reanudar_tras_pausa() -> void:
-	if not is_inside_tree() or _muerto:
-		return
-	var arbol := get_node_or_null("ArbolComportamiento") as ArbolComportamiento
-	if arbol:
-		arbol.activo = true
+func _agregar_abanico() -> void:
 	if habilidad_abanico_bt:
 		var selector := get_node_or_null("ArbolComportamiento/Selector/Atacar/SelectorHabilidades")
 		if selector and not selector.habilidades.has(habilidad_abanico_bt):

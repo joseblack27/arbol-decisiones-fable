@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3 uid="uid://ccehrc360fiov"]
 
 [ext_resource type="Script" uid="uid://j6y1rt5twmvl" path="res://recursos/items/DatosItem.gd" id="1_scr"]
-[ext_resource type="Texture2D" path="res://assets/items/equippables/escudo_roca.png" id="2_ico"]
+[ext_resource type="Texture2D" uid="uid://ccqaqfj71o7us" path="res://assets/items/equippables/escudo_roca.png" id="2_ico"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="3_atr"]
 
 [sub_resource type="Resource" id="AtributosBase_bonos"]
@@ -9,8 +9,8 @@ script = ExtResource("3_atr")
 defensa = 14.0
 fortaleza = 5.0
 resistencia_fisica = 20.0
-resistencia_tierra = 20.0
 resistencia_aire = -40.0
+resistencia_tierra = 20.0
 
 [resource]
 script = ExtResource("1_scr")

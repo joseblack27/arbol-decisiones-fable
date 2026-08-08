@@ -21,14 +21,8 @@ func _ready() -> void:
 
 
 # =============================================================================
-# SEÑALES DE HABILIDADES
+# SEÑALES DE HABILIDADES (_on_arañazo_activado vive en Enemigo.gd, compartida)
 # =============================================================================
-
-## El daño ya lo aplica Arañazo.gd internamente — aquí solo notificamos al BT.
-func _on_arañazo_activado(_habilidad: HabilidadBase) -> void:
-	componente_animacion.establecer_condicion("parameters/conditions/debeIdle", true)
-	memoria.establecer("habilidad_lanzada", true)
-
 
 func _on_carga_preparacion() -> void:
 	pass

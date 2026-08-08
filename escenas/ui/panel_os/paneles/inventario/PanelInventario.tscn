@@ -420,9 +420,10 @@ layout_mode = 2
 [node name="NombreItem" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 12
+theme_override_font_sizes/font_size = 10
 text = "Godot Engine"
 vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="BotonCerrar" type="Button" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre"]
 custom_minimum_size = Vector2(28, 28)

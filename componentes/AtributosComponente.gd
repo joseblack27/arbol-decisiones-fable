@@ -118,20 +118,56 @@ func recalcular_con_equipo(items_equipados: Array[DatosItem]) -> void:
 			_sumar_bonos(base, item.bonos)
 
 
-## Aplica un crecimiento PERMANENTE (p. ej. al subir de nivel — ver
-## ExperienciaComponente._aplicar_crecimiento_nivel) a la línea de base "de
-## fábrica" — NO alcanza con tocar "base" directo: recalcular_con_equipo()
-## SOBREESCRIBE base entero desde _base_sin_equipo cada vez que el equipo
-## cambia, así que un bono aplicado solo a "base" desaparecía en cuanto se
+## Aplica un crecimiento PERMANENTE (p. ej. al subir de nivel, o al
+## desbloquear una pasiva de estadística — ver ExperienciaComponente
+## ._aplicar_crecimiento_nivel) a la línea de base "de fábrica" — NO
+## alcanza con tocar "base" directo: recalcular_con_equipo() SOBREESCRIBE
+## base entero desde _base_sin_equipo cada vez que el equipo cambia, así
+## que un bono aplicado solo a "base" desaparecía en cuanto se
 ## equipaba/desequipaba algo — incluido el propio flujo de carga de
 ## partida, que restaura el equipo justo después de la XP (bug reportado:
 ## "al cargar la partida las estadísticas no se reflejan en el daño").
 ## Tocar ambos a la vez da efecto inmediato Y sobrevive al próximo recálculo.
-func agregar_crecimiento_permanente(danos_extra: float = 0.0) -> void:
+## Recibe un AtributosBase completo (no solo daños) para que las pasivas de
+## estadística puedan sumar cualquier campo — reusa _sumar_bonos, que ya
+## itera los 17 campos, en vez de repetir esa lista acá.
+func agregar_crecimiento_permanente(bono: AtributosBase) -> void:
+	if not bono:
+		return
 	if _base_sin_equipo:
-		_base_sin_equipo.danos += danos_extra
+		_sumar_bonos(_base_sin_equipo, bono)
 	if base:
-		base.danos += danos_extra
+		_sumar_bonos(base, bono)
+
+
+## Copia congelada de "_base_sin_equipo" tal como está AHORA MISMO. Usado
+## por ExperienciaComponente para capturar el punto de partida de nivel 1
+## antes de aplicar ningún crecimiento, y más tarde poder volver exacto a
+## él (ver restablecer_linea_base) sin importar cuántos campos distintos
+## haya tocado agregar_crecimiento_permanente() desde entonces — antes solo
+## "danos" crecía; con las pasivas de estadística cualquier campo puede
+## hacerlo, y resetear solo "danos" dejaría los demás acumulándose de
+## nuevo en cada reconexión (restaurar_xp() reaplica todo el crecimiento
+## desde nivel 1 cada vez que se llama).
+func capturar_linea_base() -> AtributosBase:
+	if not _base_sin_equipo:
+		return null
+	return _base_sin_equipo.duplicate() as AtributosBase
+
+
+## Inverso de agregar_crecimiento_permanente(): vuelve _base_sin_equipo (y
+## "base") al snapshot de capturar_linea_base(). Si se pasan
+## items_equipados, "base" se reconstruye vía recalcular_con_equipo (fábrica
+## + equipo actual); si no, se copia el snapshot directo a "base".
+func restablecer_linea_base(linea_base: AtributosBase, items_equipados: Array[DatosItem] = []) -> void:
+	if not linea_base or not _base_sin_equipo:
+		return
+	_copiar_bonos(_base_sin_equipo, linea_base)
+	if items_equipados.is_empty():
+		if base:
+			_copiar_bonos(base, linea_base)
+	else:
+		recalcular_con_equipo(items_equipados)
 
 
 func _copiar_bonos(destino: AtributosBase, origen: AtributosBase) -> void:

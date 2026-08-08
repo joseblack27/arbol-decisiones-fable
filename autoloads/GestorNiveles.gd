@@ -28,6 +28,14 @@ signal nivel_cargado(nivel: NivelBase)
 ## entonces spawnear su Jugador — así el cliente carga el mapa completo ANTES
 ## de que exista su personaje.
 signal peer_listo(peer_id: int)
+## SERVIDOR: un peer dejó su nivel anterior por otro (cruzó un portal) — se
+## emite ANTES de que ese nivel anterior se quede sin jugadores y
+## _actualizar_actividad_niveles() le ponga PROCESS_MODE_DISABLED a todo su
+## subárbol. Cualquier cosa "atada" a ese jugador en concreto que viva
+## colgada del nivel viejo (por ejemplo un AliadoInvocado) tiene que
+## reaccionar acá — una vez desactivado el subárbol, su propio
+## _physics_process deja de correr y ya no puede notar el cambio solo.
+signal jugador_cambio_de_nivel(peer_id: int)
 
 ## Segundos tras cambiar de nivel en los que se ignoran nuevas peticiones
 ## (evita rebotes si el jugador aparece cerca de un portal).
@@ -41,6 +49,8 @@ const DURACION_FUNDIDO := 0.3
 const NIVELES := [
 	"res://escenas/niveles/NivelPradera.tscn",
 	"res://escenas/niveles/NivelCueva.tscn",
+	"res://escenas/niveles/NivelCamino.tscn",
+	"res://escenas/niveles/NivelNidoArañaReina.tscn",
 ]
 ## Separación entre niveles. Enorme a propósito: tiene que superar de sobra
 ## el tamaño de cualquier mapa y el radio de interés (1400 px), para que dos
@@ -371,10 +381,13 @@ func mover_peer_a_nivel(peer_id: int, ruta: String) -> void:
 	var nivel := _asegurar_nivel_cargado(ruta)
 	if nivel == null:
 		return
+	jugador_cambio_de_nivel.emit(peer_id)
 	_nivel_por_peer[peer_id] = ruta
 	_gracia_por_peer[peer_id] = GRACIA_TRAS_CARGA
 	_colocar_peer_en_aparicion(peer_id, nivel)
 	_ordenar_nivel_a_peer(peer_id, ruta)
+	# El nivel que deja puede quedar vacío y el nuevo tiene que despertar.
+	_actualizar_actividad_niveles()
 
 
 ## SERVIDOR: coloca a un jugador recién creado en el punto de aparición del
@@ -388,6 +401,7 @@ func colocar_jugador_nuevo(peer_id: int, jugador: Node2D) -> void:
 	if nivel == null:
 		return
 	_colocar_peer_en_aparicion(peer_id, nivel, jugador)
+	_actualizar_actividad_niveles()
 
 
 func _colocar_peer_en_aparicion(peer_id: int, nivel: NivelBase, jugador: Node2D = null) -> void:
@@ -434,6 +448,8 @@ func olvidar_peer(peer_id: int) -> void:
 	_generacion_por_peer.erase(peer_id)
 	_gracia_por_peer.erase(peer_id)
 	_peers_listos.erase(peer_id)
+	# Si era el último de su nivel, ese nivel se duerme.
+	_actualizar_actividad_niveles()
 
 
 ## El mapa de navegación que le corresponde a un nodo cualquiera.
@@ -463,6 +479,31 @@ func mapa_navegacion_de(nodo: Node) -> RID:
 	if nivel_puesto != null:
 		return nivel_puesto.mapa_navegacion()
 	return nodo.get_viewport().world_2d.navigation_map
+
+
+## Apaga el procesamiento de los niveles SIN jugadores y lo enciende en los que
+## sí tienen. Los niveles se quedan cargados (volver a instanciarlos en cada
+## viaje sería peor), pero un nivel vacío no tiene por qué seguir pensando.
+##
+## Sin esto, el servidor seguía simulando la IA de TODOS los mobs de TODOS los
+## niveles que alguien hubiera visitado alguna vez: con el Camino (90 mobs)
+## medía 62-72% de CPU con NADIE conectado, y el contenedor tiene un solo
+## núcleo. Apagando los vacíos, ese costo desaparece hasta que alguien entre.
+##
+## PROCESS_MODE_DISABLED corta _process y _physics_process de todo el subárbol
+## (mobs, árboles de comportamiento, generadores, portales) sin sacar nada de
+## la escena: la colisión y la malla de navegación siguen ahí, y al reactivarlo
+## todo sigue donde estaba.
+func _actualizar_actividad_niveles() -> void:
+	if not _es_servidor or _contenedor == null:
+		return
+	for hijo in _contenedor.get_children():
+		if not (hijo is NivelBase):
+			continue
+		var activo := hay_jugadores_en(hijo as NivelBase)
+		var modo := Node.PROCESS_MODE_INHERIT if activo else Node.PROCESS_MODE_DISABLED
+		if hijo.process_mode != modo:
+			hijo.process_mode = modo
 
 
 ## true si hay al menos un jugador dentro de ese nivel. Lo usa SpawnerMobs
@@ -518,6 +559,7 @@ func _pedir_nivel_actual_red() -> void:
 	_nivel_por_peer[quien] = ruta
 	_asegurar_nivel_cargado(ruta)
 	_ordenar_nivel_a_peer(quien, ruta)
+	_actualizar_actividad_niveles()
 
 
 ## La llama el cliente apenas se conecta, en vez de cargar nivel_inicial.

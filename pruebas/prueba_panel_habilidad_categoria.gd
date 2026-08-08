@@ -69,7 +69,7 @@ func _montar() -> void:
 	var escena := load("res://escenas/ui/panel_os/paneles/habilidades/PanelHabilidades.tscn") as PackedScene
 	var raiz := escena.instantiate()
 	root.add_child(raiz)
-	_panel = raiz.get_node("MarginContainer/HBoxContainer/PanelDetalle")
+	_panel = raiz.get_node("MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle")
 
 
 func _informar() -> bool:

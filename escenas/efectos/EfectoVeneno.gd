@@ -1,4 +1,4 @@
-extends Node
+extends EfectoTemporalPegado
 class_name EfectoVeneno
 ## Veneno PEGADO al objetivo (no es una zona, a diferencia de EfectoDoT):
 ## se agrega como hijo del enemigo golpeado y le hace daño por tick
@@ -26,8 +26,8 @@ class_name EfectoVeneno
 ## contra un jugador).
 @export var icono_debuff: Texture2D = null
 
-## Asignados por Proyectil._spawnear_efecto_impacto() antes de add_child.
-var objetivo: Node = null
+## Asignado por Proyectil._spawnear_efecto_impacto() antes de add_child
+## (comparte "objetivo" con EfectoTemporalPegado, la base).
 var fuente: Node = null
 
 var _restante: float = 0.0
@@ -36,6 +36,9 @@ var _aplicado := false
 
 
 func _ready() -> void:
+	super._ready()
+	if is_queued_for_deletion():
+		return  # abortado por inmunidad (ver EfectoTemporalPegado._ready())
 	if objetivo == null or not is_instance_valid(objetivo):
 		queue_free()
 		return
@@ -51,6 +54,19 @@ func _ready() -> void:
 	_restante = duracion
 	_acumulador_tick = 0.0
 	_anotar_icono()
+
+
+## La limpieza del ícono vive acá (no solo en el vencimiento natural del
+## timer de BuffsComponente) para que cancelar() (ver EfectoTemporalPegado,
+## usado por HabilidadPurga) lo saque de la barra AL INSTANTE — antes, un
+## veneno cancelado a mano dejaba el ícono puesto hasta que BuffsComponente
+## vencía por su cuenta, mostrando un debuff que ya no existía.
+func _exit_tree() -> void:
+	if not _aplicado or objetivo == null or not is_instance_valid(objetivo):
+		return
+	var buffs := objetivo.get_node_or_null("BuffsComponente") as BuffsComponente
+	if buffs:
+		buffs.quitar(id_debuff)
 
 
 func _process(delta: float) -> void:

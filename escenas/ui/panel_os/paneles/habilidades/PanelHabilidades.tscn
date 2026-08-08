@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://vx8rpfo3obau"]
+[gd_scene load_steps=8 format=3 uid="uid://vx8rpfo3obau"]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_0mcs0"]
 [ext_resource type="Script" uid="uid://5o5nkqaq5sd6" path="res://escenas/ui/panel_os/paneles/habilidades/PanelHabilidades.gd" id="2_f1m4p"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" uid="uid://cw0y20foyo2vt" path="res://escenas/ui/panel_os/paneles/habilidades/PanelDetalleHabilidad.gd" id="7_ldkid"]
 [ext_resource type="PackedScene" uid="uid://detnq67ilbdn4" path="res://escenas/ui/panel_os/comunes/barra_desplazamiento_v/BarraDesplazamientoV.tscn" id="7_mhbd6"]
 [ext_resource type="PackedScene" uid="uid://blonr1diymsui" path="res://escenas/ui/panel_os/paneles/habilidades/selector_slot/SelectorSlot.tscn" id="8_ss"]
+[ext_resource type="Script" uid="uid://1h2nxarf770u" path="res://escenas/ui/panel_os/paneles/habilidades/PanelDetallePasiva.gd" id="9_pdp"]
 
 [node name="PanelHabilidades" type="Control"]
 layout_mode = 3
@@ -29,15 +30,72 @@ theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 2
 theme_override_constants/margin_bottom = 2
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 2
 
-[node name="PanelListaHabilidades" type="Panel" parent="MarginContainer/HBoxContainer"]
+[node name="BarraTabs" type="HBoxContainer" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BtnActivas" type="Button" parent="MarginContainer/VBoxContainer/BarraTabs"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+toggle_mode = true
+text = "Activas"
+
+[node name="BtnPasivas" type="Button" parent="MarginContainer/VBoxContainer/BarraTabs"]
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+toggle_mode = true
+text = "Pasivas"
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/BarraTabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/margin_right = 2
+
+[node name="EtiquetaPuntos" type="Label" parent="MarginContainer/VBoxContainer/BarraTabs/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Puntos: 0"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="BotonReiniciarPuntos" type="Button" parent="MarginContainer/VBoxContainer/BarraTabs"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+size_flags_horizontal = 0
+tooltip_text = "Devuelve todos los puntos gastados en pasivas y habilidades"
+text = "Reiniciar"
+
+[node name="TabContainer" type="TabContainer" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+current_tab = 0
+tabs_visible = false
+
+[node name="TabActivas" type="Control" parent="MarginContainer/VBoxContainer/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 2
+
+[node name="PanelListaHabilidades" type="Panel" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer"]
 custom_minimum_size = Vector2(250, 0)
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelListaHabilidades"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelListaHabilidades"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -49,38 +107,38 @@ theme_override_constants/margin_top = 3
 theme_override_constants/margin_right = 1
 theme_override_constants/margin_bottom = 3
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelListaHabilidades/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelListaHabilidades/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBoxContainer/PanelListaHabilidades/MarginContainer/HBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelListaHabilidades/MarginContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 horizontal_scroll_mode = 0
 vertical_scroll_mode = 3
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelListaHabilidades/MarginContainer/HBoxContainer/ScrollContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelListaHabilidades/MarginContainer/HBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/margin_right = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelListaHabilidades/MarginContainer/HBoxContainer/ScrollContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelListaHabilidades/MarginContainer/HBoxContainer/ScrollContainer/MarginContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 2
 
-[node name="BarraDesplazamientoV" parent="MarginContainer/HBoxContainer/PanelListaHabilidades/MarginContainer/HBoxContainer" node_paths=PackedStringArray("scroll_container") instance=ExtResource("7_mhbd6")]
+[node name="BarraDesplazamientoV" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelListaHabilidades/MarginContainer/HBoxContainer" node_paths=PackedStringArray("scroll_container") instance=ExtResource("7_mhbd6")]
 layout_mode = 2
 scroll_container = NodePath("../ScrollContainer")
 
-[node name="PanelDetalle" type="Panel" parent="MarginContainer/HBoxContainer"]
+[node name="PanelDetalle" type="Panel" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 script = ExtResource("7_ldkid")
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelDetalle"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -92,63 +150,99 @@ theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 2
 theme_override_constants/margin_bottom = 3
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="TextureRect" type="TextureRect" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer"]
 custom_minimum_size = Vector2(64, 64)
 layout_mode = 2
 texture = ExtResource("3_evrgr")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="EtiquetaNombre" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="FilaNombre" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EtiquetaNombre" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/FilaNombre"]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "Nombre habilidad"
 vertical_alignment = 1
 
-[node name="EtiquetaNivel" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+[node name="EtiquetaEquipada" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/FilaNombre"]
+visible = false
 layout_mode = 2
-text = "Nivel 0"
+text = "(equipada)"
+vertical_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
+[node name="FilaNivelPersonaje" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/FilaNivelPersonaje"]
+layout_mode = 2
+text = "Nivel de personaje:"
+
+[node name="EtiquetaNivelPersonaje" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/FilaNivelPersonaje"]
+layout_mode = 2
+text = "0"
+
+[node name="FilaNivelMejora" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/FilaNivelMejora"]
+layout_mode = 2
+text = "Nivel de mejora:"
+vertical_alignment = 1
+
+[node name="EtiquetaNivelMejora" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/FilaNivelMejora"]
+layout_mode = 2
+text = "0/0"
+vertical_alignment = 1
+
+[node name="ContenedorPuntosMejora" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer/FilaNivelMejora"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme_override_constants/separation = 4
 
-[node name="MargenDescripcion" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="MargenDescripcion" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 2
 theme_override_constants/margin_right = 2
 
-[node name="VBoxDescripcion" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion"]
+[node name="VBoxDescripcion" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
 layout_mode = 2
 text = "Descripción:"
 
-[node name="EtiquetaDescripcion" type="RichTextLabel" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
+[node name="EtiquetaDescripcion" type="RichTextLabel" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 bbcode_enabled = true
@@ -157,126 +251,168 @@ fit_content = true
 scroll_active = false
 autowrap_mode = 2
 
-[node name="HSeparator" type="HSeparator" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="MargenCosto" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="MargenCosto" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 2
 theme_override_constants/margin_right = 2
 
-[node name="HBoxCosto" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenCosto"]
+[node name="HBoxCosto" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenCosto"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenCosto/HBoxCosto"]
+[node name="Icono" type="ColorRect" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenCosto/HBoxCosto"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.15, 0.42, 0.72, 1)
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenCosto/HBoxCosto"]
 layout_mode = 2
 text = "Costo:"
 
-[node name="EtiquetaCosto" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenCosto/HBoxCosto"]
+[node name="EtiquetaCosto" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenCosto/HBoxCosto"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "100 Energia"
 
-[node name="HSeparator2" type="HSeparator" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="MargenEstadisticas" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+[node name="MargenEstadisticas" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
 layout_mode = 2
 theme_override_constants/margin_left = 2
 theme_override_constants/margin_right = 2
 
-[node name="VBoxEstadisticas" type="VBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas"]
+[node name="VBoxEstadisticas" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas"]
 layout_mode = 2
 
-[node name="HBoxDanoBase" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
+[node name="HBoxDanoBase" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoBase"]
+[node name="Icono" type="ColorRect" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoBase"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.7, 0.13, 0.13, 1)
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoBase"]
 layout_mode = 2
 text = "Daño base:"
 
-[node name="EtiquetaDanoBase" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoBase"]
+[node name="EtiquetaDanoBase" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoBase"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "10 - 12"
 
-[node name="HBoxDanoCalculado" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
+[node name="HBoxDanoCalculado" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
 visible = false
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado"]
+[node name="Icono" type="ColorRect" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.7, 0.13, 0.13, 1)
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado"]
 layout_mode = 2
 text = "Daño calculado:"
 
-[node name="EtiquetaDanoCalculado" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado"]
+[node name="EtiquetaDanoCalculado" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "40 - 48"
 
-[node name="HBoxTipoDano" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
+[node name="HBoxTipoDano" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoDano"]
+[node name="Icono" type="ColorRect" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoDano"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoDano"]
 layout_mode = 2
 text = "Tipo de daño:"
 
-[node name="EtiquetaTipoDano" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoDano"]
+[node name="EtiquetaTipoDano" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxTipoDano"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Physic"
 
-[node name="HBoxRangoLanzamiento" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
+[node name="HBoxRangoLanzamiento" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxRangoLanzamiento"]
+[node name="Icono" type="ColorRect" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxRangoLanzamiento"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.6666667, 0.6666667, 0.6666667, 1)
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxRangoLanzamiento"]
 layout_mode = 2
 text = "Alcance de lanzamiento:"
 
-[node name="EtiquetaRangoLanzamiento" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxRangoLanzamiento"]
+[node name="EtiquetaRangoLanzamiento" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxRangoLanzamiento"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "10 Metros"
 
-[node name="HBoxEnfriamiento" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
+[node name="HBoxEnfriamiento" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxEnfriamiento"]
+[node name="Icono" type="ColorRect" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxEnfriamiento"]
+custom_minimum_size = Vector2(8, 8)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.72, 0.56, 0.08, 1)
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxEnfriamiento"]
 layout_mode = 2
 text = "Tiempo de enfriamiento:"
 
-[node name="EtiquetaEnfriamiento" type="Label" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxEnfriamiento"]
+[node name="EtiquetaEnfriamiento" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxEnfriamiento"]
 layout_mode = 2
 size_flags_horizontal = 3
 text = "5 segundos"
 
-[node name="HSeparator2" type="HSeparator" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
+[node name="HSeparator2" type="HSeparator" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
 layout_mode = 2
 
-[node name="HBoxOpciones" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
+[node name="HBoxOpciones" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer"]
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxOpciones"]
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxOpciones"]
 layout_mode = 2
 theme_override_constants/margin_left = 1
 theme_override_constants/margin_top = 0
 theme_override_constants/margin_right = 0
 theme_override_constants/margin_bottom = 0
 
-[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxOpciones/MarginContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxOpciones/MarginContainer"]
 layout_mode = 2
 
-[node name="UpLevelButton" type="Button" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxOpciones/MarginContainer/HBoxContainer"]
-custom_minimum_size = Vector2(100, 0)
-layout_mode = 2
-text = "Subir nivel"
-
-[node name="BotonEquipar" type="Button" parent="MarginContainer/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxOpciones/MarginContainer/HBoxContainer"]
+[node name="BotonEquipar" type="Button" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxOpciones/MarginContainer/HBoxContainer"]
 custom_minimum_size = Vector2(100, 0)
 layout_mode = 2
 text = "Equipar"
 
-[node name="SuperposicionSlot" type="ColorRect" parent="MarginContainer/HBoxContainer/PanelDetalle"]
+[node name="UpLevelButton" type="Button" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle/MarginContainer/VBoxContainer/HBoxOpciones/MarginContainer/HBoxContainer"]
+custom_minimum_size = Vector2(100, 0)
+layout_mode = 2
+text = "Mejorar"
+
+[node name="SuperposicionSlot" type="ColorRect" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle"]
 visible = false
 layout_mode = 1
 anchors_preset = 8
@@ -289,9 +425,175 @@ grow_vertical = 2
 mouse_filter = 1
 color = Color(0, 0, 0, 0.55)
 
-[node name="SelectorSlot" parent="MarginContainer/HBoxContainer/PanelDetalle" instance=ExtResource("8_ss")]
+[node name="SelectorSlot" parent="MarginContainer/VBoxContainer/TabContainer/TabActivas/HBoxContainer/PanelDetalle" instance=ExtResource("8_ss")]
 layout_mode = 1
 offset_left = -160.0
 offset_top = -91.5
 offset_right = 160.0
 offset_bottom = 91.5
+
+[node name="TabPasivas" type="Control" parent="MarginContainer/VBoxContainer/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 2
+
+[node name="PanelListaPasivas" type="Panel" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer"]
+custom_minimum_size = Vector2(250, 0)
+layout_mode = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelListaPasivas"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 3
+theme_override_constants/margin_top = 3
+theme_override_constants/margin_right = 1
+theme_override_constants/margin_bottom = 3
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelListaPasivas/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelListaPasivas/MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+vertical_scroll_mode = 3
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelListaPasivas/MarginContainer/HBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_right = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelListaPasivas/MarginContainer/HBoxContainer/ScrollContainer/MarginContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="BarraDesplazamientoV" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelListaPasivas/MarginContainer/HBoxContainer" node_paths=PackedStringArray("scroll_container") instance=ExtResource("7_mhbd6")]
+layout_mode = 2
+scroll_container = NodePath("../ScrollContainer")
+
+[node name="PanelDetallePasiva" type="Panel" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+script = ExtResource("9_pdp")
+
+[node name="MarginContainer" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 2
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 3
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TextureRect" type="TextureRect" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/HBoxContainer"]
+custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="EtiquetaNombre" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/HBoxContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="HSeparator" type="HSeparator" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="MargenDescripcion" type="MarginContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 2
+
+[node name="VBoxDescripcion" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion"]
+layout_mode = 2
+
+[node name="EtiquetaDescripcion" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
+layout_mode = 2
+text = "Seleccioná una pasiva de la lista para ver su descripción."
+autowrap_mode = 3
+
+[node name="EtiquetaTituloActuales" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
+visible = false
+layout_mode = 2
+text = "Efectos actuales:"
+
+[node name="ListaEfectosActuales" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="EtiquetaTituloProximo" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
+visible = false
+layout_mode = 2
+text = "Efectos en el siguiente nivel:"
+
+[node name="ListaEfectosProximo" type="VBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenDescripcion/VBoxDescripcion"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HBoxMejorar" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer"]
+visible = false
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EtiquetaNivelMejora" type="Label" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/HBoxMejorar"]
+layout_mode = 2
+text = "Nivel"
+vertical_alignment = 1
+
+[node name="ContenedorPuntosMejora" type="HBoxContainer" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/HBoxMejorar"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+alignment = 1
+
+[node name="BotonMejorar" type="Button" parent="MarginContainer/VBoxContainer/TabContainer/TabPasivas/HBoxContainer/PanelDetallePasiva/MarginContainer/VBoxContainer/HBoxMejorar"]
+custom_minimum_size = Vector2(140, 0)
+layout_mode = 2
+text = "Mejorar (1 punto)"

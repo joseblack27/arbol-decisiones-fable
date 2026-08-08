@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/pasivas/cosecha_de_vida/PasivaCosechaDeVida.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/items/consumables/medicina_frasco_vida.png" id="2_ico"]
+
+[node name="PasivaCosechaDeVida" type="Node"]
+script = ExtResource("1_script")
+nombre_pasiva = "Cosecha de Vida"
+descripcion = "Al matar a un enemigo, cura un 5% de tu vida máxima."
+icono = ExtResource("2_ico")

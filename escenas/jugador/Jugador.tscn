@@ -1,4 +1,4 @@
-[gd_scene load_steps=60 format=3 uid="uid://ce0idfghf3qmv"]
+[gd_scene load_steps=73 format=3 uid="uid://ce0idfghf3qmv"]
 
 [ext_resource type="Script" uid="uid://dgmateor552fo" path="res://escenas/jugador/Jugador.gd" id="1_omvyu"]
 [ext_resource type="Texture2D" uid="uid://c6uo706eo6eio" path="res://assets/JugadorBase.png" id="2_vwuu0"]
@@ -12,7 +12,20 @@
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="16_su64b"]
 [ext_resource type="Script" uid="uid://b06badl4dbciy" path="res://componentes/EquipoComponente.gd" id="17_eqpc"]
 [ext_resource type="Script" uid="uid://bupy2t5ntk7cg" path="res://componentes/ExperienciaComponente.gd" id="18_xpc"]
+[ext_resource type="Script" path="res://componentes/PasivasComponente.gd" id="18_pasivas_comp"]
+[ext_resource type="Script" path="res://componentes/MejorasComponente.gd" id="18_mejoras_comp"]
+[ext_resource type="Script" path="res://recursos/pasivas/PasivaStatDesbloqueo.gd" id="18_pasiva_script"]
+[ext_resource type="Resource" path="res://recursos/pasivas/PielCurtida.tres" id="18_pasiva_piel"]
+[ext_resource type="Resource" path="res://recursos/pasivas/OjoCertero.tres" id="18_pasiva_ojo"]
+[ext_resource type="Resource" path="res://recursos/pasivas/MetabolismoAcelerado.tres" id="18_pasiva_metabolismo"]
+[ext_resource type="Resource" path="res://recursos/pasivas/Fortaleza.tres" id="18_pasiva_fortaleza"]
 [ext_resource type="Resource" uid="uid://c6t4kbl6xo405" path="res://recursos/habilidades/bola_de_fuego.tres" id="20_bf"]
+[ext_resource type="Resource" path="res://recursos/habilidades/camuflaje.tres" id="47_camuflaje"]
+[ext_resource type="Resource" path="res://recursos/habilidades/marca_detonable.tres" id="48_marca"]
+[ext_resource type="Resource" path="res://recursos/habilidades/purga.tres" id="49_purga"]
+[ext_resource type="Resource" path="res://recursos/habilidades/fervor.tres" id="50_fervor"]
+[ext_resource type="Resource" path="res://recursos/habilidades/sacudida.tres" id="51_sacudida"]
+[ext_resource type="Resource" path="res://recursos/habilidades/acumulacion.tres" id="52_acumulacion"]
 [ext_resource type="Resource" uid="uid://drafagadatos1" path="res://recursos/habilidades/rafaga.tres" id="21_eh"]
 [ext_resource type="Resource" uid="uid://dm8bip261qqn" path="res://recursos/habilidades/picos_rocosos.tres" id="22_pr"]
 [ext_resource type="Resource" uid="uid://qwx3tms4pg2x" path="res://recursos/habilidades/golpe_basico.tres" id="23_gb"]
@@ -28,6 +41,7 @@
 [ext_resource type="Resource" uid="uid://cuulrkmhcuj8g" path="res://recursos/habilidades/curacion.tres" id="32_curacion"]
 [ext_resource type="Resource" uid="uid://cxq8minmov01" path="res://recursos/habilidades/inmovilizar.tres" id="33_inmov"]
 [ext_resource type="Script" path="res://componentes/CuracionComponente.gd" id="34_curc"]
+[ext_resource type="Script" path="res://componentes/ComponenteConfirmacionesRed.gd" id="35_confred"]
 [ext_resource type="Resource" uid="uid://bm4obwbxriwrr" path="res://recursos/habilidades/lanzallamas.tres" id="35_llamas"]
 [ext_resource type="Resource" uid="uid://d3elulj0pqs7d" path="res://recursos/habilidades/esquirla_helada.tres" id="36_esquirla"]
 [ext_resource type="Resource" uid="uid://cekyubxqgis3r" path="res://recursos/habilidades/gancho.tres" id="37_gancho"]
@@ -635,6 +649,9 @@ vframes = 5
 [node name="EnergiaComponente" type="Node" parent="."]
 script = ExtResource("12_ec")
 
+[node name="ComponenteConfirmacionesRed" type="Node" parent="."]
+script = ExtResource("35_confred")
+
 [node name="EscudoComponente" type="Node" parent="."]
 script = ExtResource("28_esc")
 
@@ -647,7 +664,7 @@ script = ExtResource("30_buffs")
 [node name="SlotHabilidades" type="Node" parent="." node_paths=PackedStringArray("jugador")]
 script = ExtResource("13_sh")
 jugador = NodePath("..")
-catalogo = Array[ExtResource("25_dh")]([ExtResource("20_bf"), ExtResource("21_eh"), ExtResource("36_esquirla"), ExtResource("22_pr"), ExtResource("23_gb"), ExtResource("24_cj"), ExtResource("26_muro"), ExtResource("27_abanico"), ExtResource("29_escudo"), ExtResource("31_parpadeo"), ExtResource("32_curacion"), ExtResource("33_inmov"), ExtResource("35_llamas"), ExtResource("37_gancho"), ExtResource("38_grito"), ExtResource("39_trampa"), ExtResource("40_veneno"), ExtResource("41_aura"), ExtResource("42_rebote"), ExtResource("43_golpevamp"), ExtResource("44_ondachoque"), ExtResource("45_invocacion"), ExtResource("46_vortice")])
+catalogo = Array[ExtResource("25_dh")]([ExtResource("20_bf"), ExtResource("21_eh"), ExtResource("36_esquirla"), ExtResource("22_pr"), ExtResource("23_gb"), ExtResource("24_cj"), ExtResource("26_muro"), ExtResource("27_abanico"), ExtResource("29_escudo"), ExtResource("31_parpadeo"), ExtResource("32_curacion"), ExtResource("33_inmov"), ExtResource("35_llamas"), ExtResource("37_gancho"), ExtResource("38_grito"), ExtResource("39_trampa"), ExtResource("40_veneno"), ExtResource("41_aura"), ExtResource("42_rebote"), ExtResource("43_golpevamp"), ExtResource("44_ondachoque"), ExtResource("45_invocacion"), ExtResource("46_vortice"), ExtResource("47_camuflaje"), ExtResource("48_marca"), ExtResource("49_purga"), ExtResource("50_fervor"), ExtResource("51_sacudida"), ExtResource("52_acumulacion")])
 
 [node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador")]
 script = ExtResource("3_ukil5")
@@ -679,6 +696,13 @@ script = ExtResource("17_eqpc")
 
 [node name="ExperienciaComponente" type="Node" parent="."]
 script = ExtResource("18_xpc")
+pasivas_stat = Array[ExtResource("18_pasiva_script")]([ExtResource("18_pasiva_piel"), ExtResource("18_pasiva_ojo"), ExtResource("18_pasiva_metabolismo"), ExtResource("18_pasiva_fortaleza")])
+
+[node name="PasivasComponente" type="Node" parent="."]
+script = ExtResource("18_pasivas_comp")
+
+[node name="MejorasComponente" type="Node" parent="."]
+script = ExtResource("18_mejoras_comp")
 
 [node name="Sync" type="MultiplayerSynchronizer" parent="."]
 

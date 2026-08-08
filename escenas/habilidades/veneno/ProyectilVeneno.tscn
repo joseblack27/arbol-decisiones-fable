@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=5 format=3 uid="uid://b65libqk3p6ml"]
 
-[ext_resource type="Script" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
+[ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
 [ext_resource type="PackedScene" path="res://escenas/efectos/EfectoVenenoFlecha.tscn" id="2_efecto"]
+[ext_resource type="Texture2D" uid="uid://b52npawis3en5" path="res://assets/iconos/icono_veneno_32x32.png" id="3_f7fnm"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_veneno"]
 radius = 8.0
@@ -10,10 +11,14 @@ radius = 8.0
 collision_mask = 4294967295
 monitorable = false
 script = ExtResource("1_proy")
-velocidad_base = 450.0
 alcance_base = 350.0
 mostrar_debug = false
 escena_al_impactar = ExtResource("2_efecto")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CircleShape2D_veneno")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(2.3841858e-07, -8)
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("3_f7fnm")

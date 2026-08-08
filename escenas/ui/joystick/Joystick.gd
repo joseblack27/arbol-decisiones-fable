@@ -20,6 +20,19 @@ func _ready():
 	SeñalManager.conectar(str("touch_movido_",get_instance_id()), self, "_on_touch_movido")
 	radio = radio * scale.x
 
+
+## Red de seguridad: si la app pierde el foco (p. ej. el SO intercepta el
+## gesto — arrastrar el joystick "hasta arriba" puede entrar en la franja
+## donde Android interpreta un gesto propio, como bajar la barra de
+## notificaciones) el touch en curso puede quedar sin su evento normal de
+## "soltado", y el jugador seguía moviéndose solo para siempre con la
+## última dirección (reportado por el usuario). Sin esto, nada volvía a
+## soltar el joystick hasta el próximo toque.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
+		if index != -1:
+			_on_touch_finalizado(index, palanca.global_position)
+
 func _on_touch_iniciado(indice, posicion):
 	if index == -1 and habilitado == true:
 		distancia = global_position.distance_to(posicion)

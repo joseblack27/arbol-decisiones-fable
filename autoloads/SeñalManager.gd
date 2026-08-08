@@ -5,15 +5,15 @@ extends Node
 ### Emisor
 
 ## - Registrar
-#	SignalManager.registrar(str("nombre_señal_",signal_id), signal_id, {"nombre": tipo_variable})
+#	SeñalManager.registrar(str("nombre_señal_",signal_id), signal_id, {"nombre": tipo_variable})
 
 ## - Emitir
-#	SignalManager.emitir(str("nombre_señal_",signal_id), signal_id, [valor])
+#	SeñalManager.emitir(str("nombre_señal_",signal_id), signal_id, [valor])
 
 ### Receptor
 
 ## - Conectar
-#	SignalManager.conectar(str("nombre_señal",get_instance_id()), self, "funcion_receptor")
+#	SeñalManager.conectar(str("nombre_señal",get_instance_id()), self, "funcion_receptor")
 
 ## - Función para recibir la señal
 #	func funcion_receptor(parametros):

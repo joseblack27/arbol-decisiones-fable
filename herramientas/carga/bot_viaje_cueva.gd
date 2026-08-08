@@ -24,6 +24,8 @@ var _quedarse := false
 ## No se mueve nunca: sólo informa en qué nivel está. Es la "víctima" que
 ## antes era arrastrada a la cueva por el primero que cruzaba un portal.
 var _quieto := false
+## Viaja al Camino en vez de a la Cueva.
+var _al_camino := false
 var _duracion := 60.0
 var _mundo: Node2D
 var _jugador: CharacterBody2D
@@ -47,6 +49,8 @@ func _init() -> void:
 			_quedarse = true
 		elif arg == "--quieto":
 			_quieto = true
+		elif arg == "--camino":
+			_al_camino = true
 		elif arg.begins_with("--duracion="):
 			_duracion = float(arg.substr(11))
 
@@ -100,9 +104,10 @@ func _process(delta: float) -> bool:
 				return true
 			return false
 		"yendo_a_la_cueva":
-			_mover(_hacia_portal("PortalACueva", Vector2.RIGHT))
-			if _nivel() == "Cueva":
-				print("[BOT] ENTRÓ a la Cueva en %s" % _jugador.global_position)
+			_mover(_hacia_portal("PortalACamino" if _al_camino else "PortalACueva",
+				Vector2.LEFT if _al_camino else Vector2.RIGHT))
+			if _nivel() == ("Camino" if _al_camino else "Cueva"):
+				print("[BOT] ENTRÓ a %s en %s" % [_nivel(), _jugador.global_position])
 				if _solo_ida:
 					# Deja al SERVIDOR con la Cueva puesta y se va: sirve para
 					# comprobar que el que se conecte después cargue la Cueva y

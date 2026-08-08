@@ -1,15 +1,15 @@
-[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3 uid="uid://bjaee2cp6ww76"]
 
 [ext_resource type="Script" uid="uid://j6y1rt5twmvl" path="res://recursos/items/DatosItem.gd" id="1_scr"]
-[ext_resource type="Texture2D" path="res://assets/items/equippables/escudo_tormenta.png" id="2_ico"]
+[ext_resource type="Texture2D" uid="uid://xaageprw1jne" path="res://assets/items/equippables/escudo_tormenta.png" id="2_ico"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="3_atr"]
 
 [sub_resource type="Resource" id="AtributosBase_bonos"]
 script = ExtResource("3_atr")
 defensa = 4.0
+resistencia_fisica = -23.0
 resistencia_aire = 30.0
 resistencia_fuego = 12.0
-resistencia_fisica = -23.0
 
 [resource]
 script = ExtResource("1_scr")

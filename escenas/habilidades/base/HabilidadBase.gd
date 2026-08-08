@@ -53,6 +53,26 @@ var _recarga_restante: float = 0.0
 var _dano_min: int = 0
 var _dano_max: int = 0
 
+## Velocidad de la RECARGA — 1.0 = normal, 2.0 = la mitad de tiempo. Lo toca
+## HabilidadFervor mientras dura su buff (afecta a las OTRAS habilidades del
+## dueño, nunca a sí misma) — nadie más debería escribir esto a mano.
+var multiplicador_recarga: float = 1.0
+
+## Puntos de mejora invertidos en ESTA habilidad (ver MejorasComponente) —
+## 1 = base, sin invertir nada. QUÉ escala y CÓMO (fórmula porcentual o
+## tabla de valores exactos) lo define datos.escalado, no esta clase — ver
+## EscaladoHabilidad/CampoEscalado y preparar_escalado()/aplicar_nivel_
+## mejora() más abajo. null = esta habilidad no es mejorable todavía.
+var nivel_mejora: int = 1
+var _escalado: EscaladoHabilidad = null
+## Valores de FÁBRICA (antes de cualquier nivel de mejora) de los campos
+## que datos.escalado configuró para ESTA habilidad, indexados por su
+## nombre REAL de propiedad — capturados en preparar_escalado(). Sin esto,
+## comprar un segundo nivel compondría el escalado sobre un valor ya
+## escalado en vez de recalcular desde cero (mismo criterio que
+## AtributosComponente._base_sin_equipo).
+var _valores_base_campos: Dictionary = {}
+
 func _ready() -> void:
 	# Fallback para habilidades que no pasan por SlotHabilidades (ej: enemigos).
 	# SlotHabilidades asigna entidad_dueña antes de add_child, así que aquí
@@ -62,7 +82,7 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if _recarga_restante > 0.0:
-		_recarga_restante -= delta
+		_recarga_restante -= delta * multiplicador_recarga
 		if _recarga_restante <= 0.0:
 			_recarga_restante = 0.0
 			recarga_terminada.emit(self)
@@ -255,6 +275,59 @@ func _calcular_dano(fallback: int) -> int:
 	if _dano_min > 0 or _dano_max > 0:
 		return randi_range(_dano_min, _dano_max)
 	return fallback
+
+
+## Traduce un campo CONCEPTUAL (ver Enums.Habilidad.CampoEscalable) al
+## nombre REAL de la propiedad de instancia que le corresponde en ESTA
+## habilidad — "" si esta habilidad no tiene ese campo. La base cubre lo
+## que ya es común a toda habilidad (daño, recarga, costo); las subclases
+## sobreescriben (llamando a super() para lo que no reconozcan) para
+## agregar las suyas propias — ver HabilidadProyectil (RANGO) o
+## HabilidadEscudo (DURACION_EFECTO/PORCENTAJE_EFECTO) como ejemplo.
+func _nombre_campo_escalable(campo: Enums.Habilidad.CampoEscalable) -> String:
+	match campo:
+		Enums.Habilidad.CampoEscalable.DANO_MIN: return "_dano_min"
+		Enums.Habilidad.CampoEscalable.DANO_MAX: return "_dano_max"
+		Enums.Habilidad.CampoEscalable.RECARGA: return "duracion_recarga"
+		Enums.Habilidad.CampoEscalable.COSTO_ENERGIA: return "costo_energia"
+		_: return ""
+
+
+## Captura los valores de FÁBRICA de los campos que [escalado] configuró
+## para esta habilidad — llamar DESPUÉS de que aplicar_datos() (base +
+## TODA subclase) haya terminado del todo. aplicar_datos() de la base
+## corre PRIMERO (vía super(), al principio del override de la subclase),
+## así que capturar acá adentro daría un valor viejo/cero para cualquier
+## campo que la subclase recién asigna después (rango, duración de
+## efecto...) — por eso este es un paso APARTE, llamado por
+## SlotHabilidades._instanciar() justo después de aplicar_datos().
+func preparar_escalado(escalado: EscaladoHabilidad) -> void:
+	_escalado = escalado
+	_valores_base_campos.clear()
+	if not escalado:
+		return
+	for c in escalado.campos:
+		var nombre := _nombre_campo_escalable(c.campo)
+		if nombre != "":
+			_valores_base_campos[nombre] = get(nombre)
+
+
+## Aplica un nivel de mejora (ver MejorasComponente) — SlotHabilidades lo
+## llama al equipar (con lo que el jugador ya tenga comprado) y
+## MejorasComponente lo vuelve a llamar si la habilidad está equipada
+## ahora mismo cuando se compra un nivel nuevo. SIEMPRE recalcula desde
+## _valores_base_campos (capturados en preparar_escalado) para no
+## componer el escalado sobre un valor ya escalado.
+func aplicar_nivel_mejora(nivel: int) -> void:
+	if _escalado == null:
+		nivel_mejora = 1
+		return
+	nivel_mejora = clampi(nivel, 1, _escalado.nivel_maximo)
+	for c in _escalado.campos:
+		var nombre := _nombre_campo_escalable(c.campo)
+		if nombre == "" or not _valores_base_campos.has(nombre):
+			continue
+		set(nombre, c.valor_para_nivel(nivel_mejora, _valores_base_campos[nombre]))
 
 ## Lógica específica de la habilidad. Sobreescribir en cada subclase.
 func _ejecutar(_direccion: Vector2, _poder: float) -> void:

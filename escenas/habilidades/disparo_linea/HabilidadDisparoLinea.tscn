@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/disparo_linea/HabilidadDisparoLinea.gd" id="1_dl"]
+
+[node name="HabilidadDisparoLinea" type="Node"]
+script = ExtResource("1_dl")
+costo_energia = 0.0
+congela_movimiento_en_red = false

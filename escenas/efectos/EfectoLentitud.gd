@@ -1,4 +1,4 @@
-extends Node
+extends EfectoTemporalPegado
 class_name EfectoLentitud
 ## Debuff de lentitud PEGADO al objetivo (no es una zona): se agrega como
 ## hijo del objetivo golpeado, reduce su velocidad por factor_lentitud
@@ -24,8 +24,8 @@ class_name EfectoLentitud
 ## Ícono que muestra BarraBuffs. Null = sin indicador visual.
 @export var icono_debuff: Texture2D = null
 
-## Asignados por Proyectil._spawnear_efecto_impacto() antes de add_child.
-var objetivo: Node = null
+## Asignado por Proyectil._spawnear_efecto_impacto() antes de add_child
+## (comparte "objetivo" con EfectoTemporalPegado, la base).
 var fuente: Node = null
 
 var _restante: float = 0.0
@@ -33,6 +33,9 @@ var _aplicado := false
 
 
 func _ready() -> void:
+	super._ready()
+	if is_queued_for_deletion():
+		return  # abortado por inmunidad (ver EfectoTemporalPegado._ready())
 	if objetivo == null or not is_instance_valid(objetivo):
 		queue_free()
 		return

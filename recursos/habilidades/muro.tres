@@ -1,8 +1,22 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://bnfbgtfnwrf54"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=9 format=3 uid="uid://bnfbgtfnwrf54"]
 
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_scr"]
 [ext_resource type="PackedScene" uid="uid://21vcn1mtpoit" path="res://escenas/habilidades/muro/HabilidadMuroJugador.tscn" id="2_esc"]
 [ext_resource type="Texture2D" uid="uid://trwq6shh2a0d" path="res://assets/iconos/buttons/skills/boton_5.png" id="2_uyudi"]
+[ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="4_base"]
+[ext_resource type="Script" uid="uid://dnwijxa3iibld" path="res://recursos/habilidades/escalado/CampoEscaladoPorcentaje.gd" id="5_porcentaje"]
+[ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="6_escalado"]
+
+[sub_resource type="Resource" id="Resource_recarga"]
+script = ExtResource("5_porcentaje")
+campo = 2
+porcentaje_por_nivel = -0.05
+
+[sub_resource type="Resource" id="Resource_escalado"]
+script = ExtResource("6_escalado")
+campos = Array[ExtResource("4_base")]([SubResource("Resource_recarga")])
+nivel_maximo = 5
+costo_puntos_por_nivel = 1
 
 [resource]
 script = ExtResource("1_scr")
@@ -16,3 +30,4 @@ dano_base_min = 3
 dano_base_max = 6
 alcance_metros = 4
 enfriamiento = 1.0
+escalado = SubResource("Resource_escalado")

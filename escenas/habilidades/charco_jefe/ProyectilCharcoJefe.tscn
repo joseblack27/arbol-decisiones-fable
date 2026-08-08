@@ -1,0 +1,19 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
+[ext_resource type="PackedScene" path="res://escenas/efectos/EfectoCharcoJefe.tscn" id="2_efecto"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_charco_proy"]
+radius = 10.0
+
+[node name="ProyectilCharcoJefe" type="Area2D"]
+collision_mask = 4294967295
+monitorable = false
+script = ExtResource("1_proy")
+velocidad_base = 220.0
+alcance_base = 400.0
+mostrar_debug = false
+escena_al_impactar = ExtResource("2_efecto")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_charco_proy")

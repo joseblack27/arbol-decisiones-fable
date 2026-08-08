@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
+[ext_resource type="Texture2D" path="res://assets/proyectil_marca_32x32.png" id="2_tex"]
+[ext_resource type="PackedScene" path="res://escenas/efectos/EfectoMarcar.tscn" id="3_efecto"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_marca"]
+radius = 16.0
+
+[node name="ProyectilMarca" type="Area2D"]
+collision_mask = 4294967295
+monitorable = false
+script = ExtResource("1_proy")
+velocidad_base = 480.0
+alcance_base = 400.0
+mostrar_debug = false
+escena_al_impactar = ExtResource("3_efecto")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_marca")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -8)
+scale = Vector2(0.125, 0.125)
+texture = ExtResource("2_tex")

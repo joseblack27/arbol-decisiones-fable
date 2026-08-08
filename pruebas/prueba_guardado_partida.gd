@@ -9,6 +9,15 @@
 #   3. Los ítems restaurados vienen de sus .tres reales (vía id_recurso, que
 #      GestorInventario estampa al duplicar) y GestorEquipo/AtributosComponente
 #      quedan sincronizados con lo reequipado.
+#   4. Una pasiva de GATILLO desbloqueada (ver PasivasComponente) también
+#      sobrevive al ciclo: la ruta queda en gatillo_desbloqueadas Y la
+#      instancia real de PasivaBase vuelve a existir como hijo — a
+#      diferencia de las pasivas de ESTADÍSTICA (se re-derivan solas del
+#      nivel, sin necesitar persistencia propia).
+#   5. Un punto de mejora gastado en una habilidad activa equipada (ver
+#      MejorasComponente) también sobrevive: puntos_gastados/niveles_
+#      habilidades vuelven, Y la instancia recién reequipada (vía
+#      _restaurar_habilidades) sale YA con el nivel_mejora comprado.
 #   godot --headless --path . --script res://pruebas/prueba_guardado_partida.gd
 # =============================================================================
 extends SceneTree
@@ -27,6 +36,9 @@ var _gestor_barra: Node
 var _pocion: DatosItem
 var _casco: DatosItem
 var _datos_muro: DatosHabilidad
+var _pasivas: Node
+var _mejoras: Node
+const _RUTA_PASIVA_PRUEBA := "res://pruebas/fixtures/PasivaDePrueba.tscn"
 
 
 func _process(_delta: float) -> bool:
@@ -115,11 +127,24 @@ func _montar() -> void:
 	# referencia BusEventos (autoload) desde su propia clase, y el análisis
 	# estático del --script de esta prueba lo compilaría antes de que los
 	# autoloads existan (mismo artefacto de siempre, ver otras pruebas).
+	# MejorasComponente ANTES de equipar la habilidad: SlotHabilidades
+	# ._instanciar() lo busca por nombre al equipar (nivel_mejora comprado).
+	_mejoras = (load("res://componentes/MejorasComponente.gd") as GDScript).new()
+	_mejoras.name = "MejorasComponente"
+	_jugador.add_child(_mejoras)
+
 	_slots_habilidades = (load("res://componentes/SlotHabilidades.gd") as GDScript).new()
+	_slots_habilidades.name = "SlotHabilidades"
 	_slots_habilidades.jugador = _jugador
 	_jugador.add_child(_slots_habilidades)
 	_datos_muro = load("res://recursos/habilidades/muro.tres") as DatosHabilidad
 	_slots_habilidades.equipar(0, _datos_muro)
+	_mejoras.gastar_en_habilidad(_datos_muro.resource_path)  # nivel 1, 1 punto disponible
+
+	_pasivas = (load("res://componentes/PasivasComponente.gd") as GDScript).new()
+	_pasivas.name = "PasivasComponente"
+	_jugador.add_child(_pasivas)
+	_pasivas.desbloquear_gatillo(_RUTA_PASIVA_PRUEBA)
 
 
 func _mutar_estado_en_memoria() -> void:
@@ -132,6 +157,11 @@ func _mutar_estado_en_memoria() -> void:
 	_panel.restaurar_equipo(vacio)
 	_atributos.base.defensa = 0.0
 	_slots_habilidades.equipar(0, null)
+	_pasivas.gatillo_desbloqueadas.clear()
+	for hijo in _pasivas.get_children():
+		hijo.queue_free()
+	_mejoras.niveles_habilidades.clear()
+	_mejoras.puntos_gastados = 0
 
 
 func _primer_tres_en(carpeta: String) -> DatosItem:
@@ -201,6 +231,18 @@ func _informar() -> bool:
 
 	var barra_ok: bool = _gestor_barra.casillas[0] != null and _gestor_barra.casillas[0].name == _pocion.name
 
+	var pasiva_ruta_ok: bool = _RUTA_PASIVA_PRUEBA in _pasivas.gatillo_desbloqueadas
+	var pasiva_instancia_ok := false
+	for hijo in _pasivas.get_children():
+		if hijo is PasivaBase:
+			pasiva_instancia_ok = true
+
+	var mejoras_puntos_ok: bool = _mejoras.puntos_gastados == 1
+	var mejoras_nivel_ok: bool = _mejoras.nivel_habilidad(_datos_muro.resource_path) == 1
+	# La instancia RECIÉN reequipada por _restaurar_habilidades() tiene que
+	# salir YA con el nivel de mejora comprado, sin esperar un segundo gasto.
+	var mejoras_instancia_ok: bool = instancia_habilidad != null and instancia_habilidad.nivel_mejora == 2
+
 	print("Posición restaurada (111,222): %s" % pos_ok)
 	print("Vida restaurada (65.0): %s" % vida_ok)
 	print("XP restaurada (30): %s" % xp_ok)
@@ -210,9 +252,15 @@ func _informar() -> bool:
 	print("Habilidad 'Muro' restaurada en slot 0 (datos): %s" % habilidad_ok)
 	print("Habilidad 'Muro' restaurada en slot 0 (instancia real): %s" % instancia_ok)
 	print("Barra rápida restaurada en casilla 0: %s" % barra_ok)
+	print("Pasiva de gatillo restaurada (ruta en gatillo_desbloqueadas): %s" % pasiva_ruta_ok)
+	print("Pasiva de gatillo restaurada (instancia real de PasivaBase): %s" % pasiva_instancia_ok)
+	print("Puntos de mejora gastados restaurados (esperado 1): %s" % mejoras_puntos_ok)
+	print("Nivel de mejora de la habilidad restaurado (esperado 1 comprado): %s" % mejoras_nivel_ok)
+	print("Instancia reequipada sale YA con el nivel de mejora (esperado nivel_mejora=2): %s" % mejoras_instancia_ok)
 
 	var exito := pos_ok and vida_ok and xp_ok and pocion_ok and casco_ok and atributos_ok \
-		and habilidad_ok and instancia_ok and barra_ok
+		and habilidad_ok and instancia_ok and barra_ok and pasiva_ruta_ok and pasiva_instancia_ok \
+		and mejoras_puntos_ok and mejoras_nivel_ok and mejoras_instancia_ok
 	print("PRUEBA GUARDADO PARTIDA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

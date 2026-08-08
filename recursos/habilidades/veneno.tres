@@ -1,13 +1,36 @@
-[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=4 format=3 uid="uid://bvenenohab01"]
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=11 format=3 uid="uid://ywbknvvan0dv"]
 
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
-[ext_resource type="Texture2D" path="res://assets/iconos/icono_veneno_32x32.png" id="2_icono"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/veneno/HabilidadVeneno.tscn" id="3_esc"]
+[ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="1_in3vv"]
+[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="2_ajump"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_umlps"]
+[ext_resource type="PackedScene" uid="uid://dpof5ivpau8ag" path="res://escenas/habilidades/veneno/HabilidadVeneno.tscn" id="3_esc"]
+[ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="3_q2ou8"]
+
+[sub_resource type="Resource" id="Resource_d6f3c"]
+script = ExtResource("2_ajump")
+valores_por_nivel = Array[float]([8.0, 10.0, 12.0, 14.0, 16.0])
+metadata/_custom_type_script = "uid://dpr1es1plim6g"
+
+[sub_resource type="Resource" id="Resource_gq1ru"]
+script = ExtResource("2_ajump")
+valores_por_nivel = Array[float]([10.0, 12.0, 14.0, 16.0, 18.0])
+campo = 1
+metadata/_custom_type_script = "uid://dpr1es1plim6g"
+
+[sub_resource type="Resource" id="Resource_vi0by"]
+script = ExtResource("3_q2ou8")
+campos = Array[ExtResource("1_in3vv")]([SubResource("Resource_d6f3c"), SubResource("Resource_gq1ru")])
+metadata/_custom_type_script = "uid://df3h2j8ow37gk"
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pnoij"]
+atlas = ExtResource("2_umlps")
+region = Rect2(64, 0, 32, 32)
 
 [resource]
 script = ExtResource("1_dh")
 nombre = "Veneno"
-icono = ExtResource("2_icono")
+icono = SubResource("AtlasTexture_pnoij")
 descripcion = "Dispara una flecha envenenada que hace {damage1} y envenena al enemigo, dañándolo con el correr del tiempo aunque se aleje"
 escena = ExtResource("3_esc")
 nivel = 1
@@ -16,3 +39,4 @@ dano_base_min = 8
 dano_base_max = 10
 alcance_metros = 9
 enfriamiento = 5.0
+escalado = SubResource("Resource_vi0by")

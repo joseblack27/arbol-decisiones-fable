@@ -36,7 +36,7 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 	proy.alcance_base = alcance_maximo
 	var poder_efectivo := poder if alcance_segun_poder else 1.0
 	proy.configurar(_direccion_lanzada, poder_efectivo, _calcular_dano(int(daño_proyectil)), entidad_dueña, tipo_dano)
-	proy.poner_textura_icono(_icono if usar_icono_como_sprite else null)
+	proy.poner_textura_icono(icono_provisional if usar_icono_como_sprite else null)
 	proy.habilidad_dueña = self
 	# Bloqueo EXTENDIDO más allá del margen fijo de HabilidadBase.activar()
 	# (que ya se soltó ANTES de llegar acá, ver ese archivo): se vuelve a

@@ -64,6 +64,16 @@ func _instanciar(index: int, escena: PackedScene, datos: DatosHabilidad = null) 
 	_instancias[index] = hab
 	if datos:
 		hab.aplicar_datos(datos)
+		# preparar_escalado() DESPUÉS de aplicar_datos() (base + subclase ya
+		# terminaron del todo) — ver la "trampa de orden" documentada en
+		# HabilidadBase.preparar_escalado(). Nivel de mejora YA COMPRADO con
+		# puntos (ver MejorasComponente) — sin esto, equipar de nuevo
+		# (reconexión, cambio de slot) volvía a nivel_mejora=1 sin importar
+		# cuánto hubiera invertido el jugador.
+		hab.preparar_escalado(datos.escalado)
+		var mejoras := jugador.get_node_or_null("MejorasComponente") if jugador else null
+		if mejoras:
+			hab.aplicar_nivel_mejora(1 + mejoras.nivel_habilidad(datos.resource_path))
 
 
 ## Devuelve los DatosHabilidad equipados en el slot, o null.

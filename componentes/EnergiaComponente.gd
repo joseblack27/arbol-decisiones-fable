@@ -33,6 +33,13 @@ var _acumulador_regen: float = 0.0
 const _INTERVALO_REPLICA := 0.5
 var _acumulador_replica: float = 0.0
 var _ultimo_valor_enviado: float = -1.0
+## El MÁXIMO también se replica (igual que VidaComponente con salud_maxima).
+## Sin esto el cliente se quedaba con el suyo, y como _recibir_energia_red
+## clampea contra él, un desfasaje entre los dos lados no se veía como error:
+## la barra mostraba un techo (200) que el servidor no respetaba (105) y
+## cualquier jeringa se gastaba sin efecto. Replicarlo hace que la UI no
+## pueda mentir aunque el máximo del servidor esté mal por otra razón.
+var _ultima_maxima_enviada: float = -1.0
 
 
 func _ready() -> void:
@@ -57,7 +64,8 @@ func _process(delta: float) -> void:
 		_acumulador_replica += delta
 		if _acumulador_replica >= _INTERVALO_REPLICA:
 			_acumulador_replica = 0.0
-			if not is_equal_approx(_ultimo_valor_enviado, _energia_actual):
+			if not is_equal_approx(_ultimo_valor_enviado, _energia_actual) \
+					or not is_equal_approx(_ultima_maxima_enviada, energia_maxima):
 				_replicar_valor()
 
 
@@ -126,14 +134,20 @@ func _cantidad_regen() -> float:
 # =============================================================================
 
 func _replicar_valor() -> void:
-	rpc("_recibir_energia_red", _energia_actual)
+	rpc("_recibir_energia_red", _energia_actual, energia_maxima)
 	_ultimo_valor_enviado = _energia_actual
+	_ultima_maxima_enviada = energia_maxima
 
 
 ## unreliable_ordered: es un valor que se autocorrige solo — si un paquete
 ## se pierde, el siguiente reenvío periódico (o el próximo gasto) lo trae.
+##
+## maxima con valor por defecto para no romper a un cliente viejo que reciba
+## el paquete corto: -1 = "el emisor no lo mandó, quedate con el tuyo".
 @rpc("authority", "unreliable_ordered")
-func _recibir_energia_red(valor: float) -> void:
+func _recibir_energia_red(valor: float, maxima: float = -1.0) -> void:
+	if maxima > 0.0 and not is_equal_approx(maxima, energia_maxima):
+		energia_maxima = maxima
 	_energia_actual = clampf(valor, 0.0, energia_maxima)
 	energia_cambiada.emit(_energia_actual, energia_maxima)
 	BusEventos.energia_cambiada.emit(get_parent(), _energia_actual, energia_maxima)

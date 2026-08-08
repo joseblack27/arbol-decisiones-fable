@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemigoDatos" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://recursos/enemigos/EnemigoDatos.gd" id="1_ed"]
+
+[resource]
+script = ExtResource("1_ed")
+nombre_tipo = "Araña Reina"
+color = Color(0.65, 0.25, 0.75, 1)
+nivel = 15
+vida_maxima = 950.0
+velocidad_base = 55.0
+energia_maxima = 200.0
+regeneracion_energia = 8.0

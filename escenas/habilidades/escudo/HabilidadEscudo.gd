@@ -23,6 +23,15 @@ func _ready() -> void:
 	requiere_direccion = false
 
 
+## DURACION_EFECTO/PORCENTAJE_EFECTO: cuánto dura el escudo y qué tanto
+## reduce — ver HabilidadBase._nombre_campo_escalable/preparar_escalado.
+func _nombre_campo_escalable(campo: Enums.Habilidad.CampoEscalable) -> String:
+	match campo:
+		Enums.Habilidad.CampoEscalable.DURACION_EFECTO: return "duracion_escudo"
+		Enums.Habilidad.CampoEscalable.PORCENTAJE_EFECTO: return "reduccion"
+		_: return super._nombre_campo_escalable(campo)
+
+
 func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 	if not is_instance_valid(entidad_dueña):
 		return

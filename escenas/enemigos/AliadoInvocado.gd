@@ -40,6 +40,17 @@ func _ready() -> void:
 	remove_from_group("enemigos")
 	add_to_group("jugadores")
 	queue_redraw()
+	# Pedido del usuario: el aliado no debe sobrevivir a que el dueño cambie
+	# de zona (portal a otro nivel). Un chequeo dentro de _physics_process no
+	# alcanza: en cuanto el nivel viejo se queda sin jugadores,
+	# GestorNiveles._actualizar_actividad_niveles() le pone
+	# PROCESS_MODE_DISABLED a TODO su subárbol (este aliado incluido) para
+	# ahorrar CPU en el servidor — su propio _physics_process deja de correr
+	# antes de poder notar el cambio. Por eso esto reacciona a la señal en el
+	# momento exacto en que el servidor mueve al peer, todavía con el nivel
+	# viejo despierto. Inofensivo en el cliente/un jugador: esa señal nunca
+	# se emite fuera del servidor (ver GestorNiveles.mover_peer_a_nivel).
+	GestorNiveles.jugador_cambio_de_nivel.connect(_al_dueño_cambiar_de_nivel)
 
 
 ## Arranca la cuenta regresiva de vida útil — llamar apenas se instancia,
@@ -57,11 +68,25 @@ func _physics_process(delta: float) -> void:
 	# replicada (ya resuelto arriba, en Enemigo._physics_process).
 	if Utils.en_red() and not multiplayer.is_server():
 		return
+	if not is_instance_valid(dueño):
+		_al_vencer_duracion()
+		return
 	_restante -= delta
 	if _restante <= 0.0:
 		_al_vencer_duracion()
 		return
 	_actualizar_ia(delta)
+
+
+## SERVIDOR: el dueño acaba de cambiar de nivel — el nombre del nodo Jugador
+## ES el peer id (ver Jugador.gd/GestorNiveles.nivel_de_jugador), así que
+## comparar por nombre no depende de peer_id_dueño (que en single-player/
+## pruebas sueltas se queda en -1 por no pasar nunca por Utils.en_red()).
+func _al_dueño_cambiar_de_nivel(peer_id: int) -> void:
+	if _muerto or not is_instance_valid(dueño):
+		return
+	if String(dueño.name) == str(peer_id):
+		_al_vencer_duracion()
 
 
 func _actualizar_ia(delta: float) -> void:

@@ -58,9 +58,19 @@ func _process(delta: float) -> void:
 				var nueva_dir := (_posicion_objetivo - (entidad_dueña as Node2D).global_position).normalized()
 				if nueva_dir.length() > 0.1:
 					_direccion_carga = nueva_dir
-					# Actualizar la dirección visible del enemigo
+					# Actualizar la dirección visible del enemigo. Hay que
+					# tocar LAS DOS: Enemigo._aplicar_presentacion prioriza
+					# "direccion_mirada" sobre "direccion", y mientras hay un
+					# ataque en curso AccionAtacar deja de refrescarla (corta
+					# antes). O sea que poner sólo "direccion" no se veía: el
+					# lobo se quedaba mirando hacia donde te vio por primera
+					# vez, aunque siguiera reapuntando la embestida hacia vos.
+					# Reportado: "se queda mirando hacia arriba y lanza el
+					# ataque hacia abajo".
 					if "direccion" in entidad_dueña:
 						entidad_dueña.set("direccion", _direccion_carga)
+					if "direccion_mirada" in entidad_dueña:
+						entidad_dueña.set("direccion_mirada", _direccion_carga)
 
 			if _timer_preparacion >= duracion_preparacion:
 				_iniciar_dash()
@@ -155,8 +165,23 @@ func _physics_process(delta: float) -> void:
 # API pública
 # =============================================================================
 
+## Reportado por el usuario: "el Caballero embiste mirando a la derecha, de
+## vez en cuando" — intermitente, no se pudo reproducir con el objetivo fijo
+## (probado apuntando arriba y a la izquierda, a mano y con la IA real, sin
+## fallar ni una vez). La sospecha que SÍ explica un fallo ocasional: "direccion"
+## viene de SelectorHabilidades leyendo agente.direccion_mirada un instante
+## ANTES de que esta función corra — si "objetivo" cambió justo en el medio
+## (p. ej. por la nueva selección de objetivo entre varios jugadores, o un
+## golpe recién llegado reprioriza al atacante), ese valor podía llegar
+## desactualizado. Antes, sin un objetivo confiable, "direccion" en cero caía
+## directo a Vector2.RIGHT — el "mirando a la derecha" del reporte.
+##
+## Ahora la dirección se recalcula ACÁ, en el mismo instante en que la carga
+## arranca de verdad, directo desde la posición real del objetivo — no
+## depende de que el llamador la haya calculado bien un tick antes. El
+## parámetro "direccion" queda solo como último respaldo si no hay objetivo
+## válido en este instante (debería ser rarísimo, no el caso normal).
 func _ejecutar(direccion: Vector2, _poder: float) -> void:
-	_direccion_carga     = direccion if direccion.length() > 0.1 else Vector2.RIGHT
 	_timer_preparacion   = 0.0
 	_timer_seguridad     = 0.0
 	_distancia_recorrida = 0.0
@@ -165,6 +190,11 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	var objetivo := _obtener_objetivo()
 	if objetivo and is_instance_valid(objetivo):
 		_posicion_objetivo = objetivo.global_position
+		var hacia_objetivo := (_posicion_objetivo - (entidad_dueña as Node2D).global_position)
+		if hacia_objetivo.length() > 0.1:
+			direccion = hacia_objetivo.normalized()
+
+	_direccion_carga = direccion if direccion.length() > 0.1 else Vector2.RIGHT
 
 	_ya_impacto = false
 	# Avisar al BT que hay un ataque en curso (antes lo hacía el wrapper en EnemigoLobo).
@@ -194,6 +224,13 @@ func obtener_multiplicador_velocidad() -> float:
 func _iniciar_dash() -> void:
 	_fase            = Fase.DASH
 	_timer_seguridad = 0.0
+	# Se fija la mirada en la dirección DEFINITIVA del dash y ahí queda: a
+	# partir de acá el mob vuela en línea recta, y seguir girando hacia el
+	# jugador lo dejaría "mirando hacia atrás" en pleno vuelo al rebasarlo.
+	# Nadie la vuelve a tocar durante el dash porque AccionAtacar no refresca
+	# la mirada mientras hay un ataque en curso.
+	if entidad_dueña and "direccion_mirada" in entidad_dueña:
+		entidad_dueña.set("direccion_mirada", _direccion_carga)
 	carga_iniciada.emit(_direccion_carga, multiplicador_velocidad_carga)
 
 

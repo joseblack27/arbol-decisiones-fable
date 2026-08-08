@@ -667,6 +667,7 @@ componente_movimiento = NodePath("MovimientoComponente")
 componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
+altura_nombre = -37.0
 tabla_botin = Array[ExtResource("2_qvumm")]([SubResource("Resource_vdkck"), SubResource("Resource_d42sf"), SubResource("Resource_qvumm"), SubResource("Resource_8ri25"), SubResource("Resource_xmh4o"), SubResource("Resource_cwwu6"), SubResource("Resource_hh83h"), SubResource("Loot_escudo_roca")])
 xp_otorgada = 50
 metadata/_custom_type_script = "uid://dmntoeg3f84od"
@@ -823,7 +824,7 @@ nombre_nodo = "(Acción) Acercarse a rango"
 [node name="Deambular" type="Node" parent="ArbolComportamiento/Selector"]
 script = ExtResource("9_deamb")
 velocidad = 50.0
-radio_deambulacion = 150.0
+radio_deambulacion = 180.0
 nombre_nodo = "(Acción) Deambular"
 
 [node name="AgenteNavegacion" type="NavigationAgent2D" parent="."]

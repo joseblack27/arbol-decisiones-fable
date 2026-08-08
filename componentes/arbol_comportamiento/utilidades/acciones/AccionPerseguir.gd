@@ -49,7 +49,12 @@ func _on_ejecutar() -> Estado:
 	# Mismo criterio que AccionAtacar: un jugador muerto sigue siendo un
 	# nodo válido (reaparece, no se libera) — sin esto, un mob perseguía el
 	# cadáver indefinidamente en vez de abandonar.
-	if "_muerto" in objetivo_raw and objetivo_raw.get("_muerto"):
+	# Muerto U OCULTO: en los dos casos deja de ser objetivo. Sin el corte por
+	# camuflaje, un mob que ya te tenía fichado seguía persiguiendo tu última
+	# posición conocida unos segundos, o seguía pegándote si te tenía a
+	# distancia — y el camuflaje no serviría para lo único que se hizo:
+	# despegarte de una pelea.
+	if _objetivo_perdido(objetivo_raw):
 		_memoria.establecer("objetivo", null)
 		_memoria.establecer("jugador_detectado", false)
 		return Estado.FALLIDO
@@ -80,3 +85,15 @@ func _on_ejecutar() -> Estado:
 func _on_entrar() -> void:
 	super._on_entrar()
 	_ultima_vision = Time.get_ticks_msec() / 1000.0
+
+
+## true si el objetivo dejó de contar: muerto (sigue siendo un nodo válido
+## porque reaparece, no se libera) u oculto (ver CamuflajeComponente).
+func _objetivo_perdido(objetivo) -> bool:
+	if "_muerto" in objetivo and objetivo.get("_muerto"):
+		return true
+	# Por nombre de nodo, no por tipo: ver la nota en
+	# VisionComponente._es_objetivo_valido sobre por qué no se referencia la
+	# clase CamuflajeComponente desde acá.
+	var camuflaje = objetivo.get_node_or_null("CamuflajeComponente")
+	return camuflaje != null and camuflaje.esta_activo()
