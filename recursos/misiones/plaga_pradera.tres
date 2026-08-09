@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="DatosMision" load_steps=9 format=3 uid="uid://s1ubfq0qf1o2"]
+
+[ext_resource type="Script" uid="uid://cnbn4r5xl0la4" path="res://recursos/misiones/DatosObjetivoMision.gd" id="1_4yvat"]
+[ext_resource type="Script" uid="uid://crq0m3y4sn1uj" path="res://recursos/misiones/ItemRecompensaMision.gd" id="2_noafy"]
+[ext_resource type="Script" uid="uid://b61prh1haaj7b" path="res://recursos/misiones/DatosRecompensaMision.gd" id="3_xe24e"]
+[ext_resource type="Script" uid="uid://cdc7yr5obip6t" path="res://recursos/misiones/DatosMision.gd" id="4_t8ynk"]
+
+[sub_resource type="Resource" id="Resource_4yvat"]
+script = ExtResource("1_4yvat")
+id = "matar_ratones"
+descripcion = "Matar 3 ratones"
+id_meta = "Ratón"
+cantidad_meta = 3
+
+[sub_resource type="Resource" id="Resource_noafy"]
+script = ExtResource("1_4yvat")
+id = "matar_aranas_plaga"
+descripcion = "Matar 2 arañas"
+id_meta = "Araña"
+cantidad_meta = 2
+
+[sub_resource type="Resource" id="Resource_xe24e"]
+script = ExtResource("1_4yvat")
+id = "matar_lobos_plaga"
+descripcion = "Matar 2 lobos"
+id_meta = "Lobo"
+cantidad_meta = 2
+
+[sub_resource type="Resource" id="Resource_t8ynk"]
+script = ExtResource("3_xe24e")
+xp = 150
+creditos = 75
+
+[resource]
+script = ExtResource("4_t8ynk")
+id = "plaga_pradera"
+titulo = "Plaga en la Pradera"
+tipo = 1
+region = "Pradera"
+descripcion = "Ratones, arañas y lobos se multiplicaron cerca del puesto. Hay que reducir su número antes de que ahuyenten a los compradores."
+objetivos = Array[ExtResource("1_4yvat")]([SubResource("Resource_4yvat"), SubResource("Resource_noafy"), SubResource("Resource_xe24e")])
+recompensas = SubResource("Resource_t8ynk")
+repetible = true

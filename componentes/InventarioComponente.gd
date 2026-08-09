@@ -39,6 +39,7 @@ func agregar_item(item: DatosItem, cantidad: int = -1, silencioso: bool = false)
 				existente.quantity += cantidad_real
 				if not silencioso:
 					BusEventos.item_agregado.emit(existente, cantidad_real)
+					_notificar_recolectar(item)
 				return
 
 	var copia := item.duplicate() as DatosItem
@@ -53,6 +54,17 @@ func agregar_item(item: DatosItem, cantidad: int = -1, silencioso: bool = false)
 	items.append(copia)
 	if not silencioso:
 		BusEventos.item_agregado.emit(copia, cantidad_real)
+		_notificar_recolectar(item)
+
+
+## Objetivos de misión tipo RECOLECTAR (ver MisionesComponente.notificar_
+## recolectar) — gateado por el mismo "not silencioso" que BusEventos.
+## item_agregado: al restaurar una partida guardada estos ítems ya eran
+## tuyos, no son botín nuevo, así que no deben re-acreditar progreso.
+func _notificar_recolectar(item: DatosItem) -> void:
+	var misiones := get_parent().get_node_or_null("MisionesComponente") if get_parent() else null
+	if misiones:
+		misiones.notificar_recolectar(item)
 
 
 func quitar_item(item: DatosItem) -> void:
@@ -188,8 +200,9 @@ func _pedir_energia_red(cantidad: float) -> void:
 ## ExperienciaComponente no tiene ningún canal de réplica periódica: el
 ## único aviso que le llega al cliente dueño de un cambio de XP decidido
 ## en el servidor es un RPC explícito (mismo que ya manda Enemigo._otorgar
-## _xp() al matar un mob) — sin reenviarlo acá también, el cliente que usó
-## el ítem vería gastarse el ticket sin que su XP subiera nunca en pantalla.
+## _xp() al matar un mob, vía ComponenteConfirmacionesRed) — sin reenviarlo
+## acá también, el cliente que usó el ítem vería gastarse el ticket sin que
+## su XP subiera nunca en pantalla.
 func _pedir_experiencia(cantidad: int) -> void:
 	if Utils.en_red() and not multiplayer.is_server():
 		rpc_id(1, "_pedir_experiencia_red", cantidad)
@@ -205,10 +218,10 @@ func _experiencia_local(cantidad: int) -> void:
 
 ## SERVIDOR: mismas verificaciones de dueño que _pedir_curacion_red. A
 ## diferencia de esos dos, acá SÍ hace falta reenviarle la confirmación al
-## cliente dueño (ver comentario de _pedir_experiencia) — Jugador.gd ya
-## expone _recibir_xp_red para esto mismo (lo usa Enemigo.gd al otorgar XP
-## por matar un mob), así que no hace falta un RPC nuevo del lado del
-## cliente, solo llamar al que ya existe.
+## cliente dueño (ver comentario de _pedir_experiencia) — ComponenteConfirm
+## acionesRed ya expone _recibir_xp_red para esto mismo (lo usa Enemigo.gd
+## al otorgar XP por matar un mob), así que no hace falta un RPC nuevo del
+## lado del cliente, solo llamar al que ya existe.
 @rpc("any_peer", "reliable")
 func _pedir_experiencia_red(cantidad: int) -> void:
 	if not multiplayer.is_server():
@@ -219,7 +232,9 @@ func _pedir_experiencia_red(cantidad: int) -> void:
 	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
 		return
 	_experiencia_local(cantidad)
-	jugador.rpc_id(jugador.peer_id_dueño, "_recibir_xp_red", cantidad)
+	var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
+	if confirmaciones:
+		confirmaciones.rpc_id(jugador.peer_id_dueño, "_recibir_xp_red", cantidad)
 
 
 ## Desbloqueo de una pasiva de GATILLO (ítem especial, ver DatosItem

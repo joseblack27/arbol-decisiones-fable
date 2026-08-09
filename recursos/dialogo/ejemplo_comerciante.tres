@@ -1,0 +1,146 @@
+[gd_resource type="Resource" script_class="DatosDialogo" load_steps=26 format=3 uid="uid://p3blph453nhe"]
+
+[ext_resource type="Script" uid="uid://h8sp86evtiwo" path="res://recursos/dialogo/LineaDialogo.gd" id="1_jcljp"]
+[ext_resource type="Script" uid="uid://eo3ue0800wem" path="res://recursos/dialogo/OpcionDialogo.gd" id="2_5coma"]
+[ext_resource type="Resource" uid="uid://b8eij2suefwix" path="res://recursos/misiones/ejemplo_cazar_lobos.tres" id="3_l2m8g"]
+[ext_resource type="Resource" uid="uid://s1ubfq0qf1o2" path="res://recursos/misiones/plaga_pradera.tres" id="4_qkyxc"]
+[ext_resource type="Resource" uid="uid://blkilbtbt2cbo" path="res://recursos/misiones/reina_nido.tres" id="5_2nhb2"]
+[ext_resource type="Script" uid="uid://cd5fr4ev2vijj" path="res://recursos/dialogo/DatosDialogo.gd" id="6_4ih7u"]
+
+[sub_resource type="Resource" id="Resource_hbhd1"]
+script = ExtResource("2_5coma")
+texto = "Ver mercancía"
+accion = 1
+categoria = 3
+
+[sub_resource type="Resource" id="Resource_ppb5y"]
+script = ExtResource("2_5coma")
+texto = "Tengo una misión para vos"
+siguiente_linea = 1
+condicion = 1
+mision_condicion = ExtResource("3_l2m8g")
+categoria = 1
+
+[sub_resource type="Resource" id="Resource_o2tbh"]
+script = ExtResource("2_5coma")
+texto = "Ya me encargué de los lobos"
+accion = 3
+mision_objetivo = ExtResource("3_l2m8g")
+condicion = 3
+mision_condicion = ExtResource("3_l2m8g")
+categoria = 2
+
+[sub_resource type="Resource" id="Resource_8g1s3"]
+script = ExtResource("2_5coma")
+texto = "También hay una plaga que atender"
+siguiente_linea = 3
+condicion = 1
+mision_condicion = ExtResource("4_qkyxc")
+categoria = 1
+
+[sub_resource type="Resource" id="Resource_a5ved"]
+script = ExtResource("2_5coma")
+texto = "Ya me encargué de la plaga"
+accion = 3
+mision_objetivo = ExtResource("4_qkyxc")
+condicion = 3
+mision_condicion = ExtResource("4_qkyxc")
+categoria = 2
+
+[sub_resource type="Resource" id="Resource_lfnj0"]
+script = ExtResource("2_5coma")
+texto = "¿Alguien se anima a la Araña Reina?"
+siguiente_linea = 4
+condicion = 1
+mision_condicion = ExtResource("5_2nhb2")
+categoria = 1
+
+[sub_resource type="Resource" id="Resource_cerhb"]
+script = ExtResource("2_5coma")
+texto = "Acabé con la Araña Reina"
+accion = 3
+mision_objetivo = ExtResource("5_2nhb2")
+condicion = 3
+mision_condicion = ExtResource("5_2nhb2")
+categoria = 2
+
+[sub_resource type="Resource" id="Resource_upooc"]
+script = ExtResource("2_5coma")
+texto = "Nada, gracias"
+categoria = 5
+
+[sub_resource type="Resource" id="Resource_fy2ug"]
+script = ExtResource("1_jcljp")
+hablante = "Comerciante"
+texto = "Bienvenido a mi puesto, viajero. ¿En qué te puedo ayudar?"
+opciones = Array[ExtResource("2_5coma")]([SubResource("Resource_hbhd1"), SubResource("Resource_ppb5y"), SubResource("Resource_o2tbh"), SubResource("Resource_8g1s3"), SubResource("Resource_a5ved"), SubResource("Resource_lfnj0"), SubResource("Resource_cerhb"), SubResource("Resource_upooc")])
+
+[sub_resource type="Resource" id="Resource_lres8"]
+script = ExtResource("2_5coma")
+texto = "Acepto"
+siguiente_linea = 2
+accion = 2
+mision_objetivo = ExtResource("3_l2m8g")
+condicion = 1
+mision_condicion = ExtResource("3_l2m8g")
+
+[sub_resource type="Resource" id="Resource_pub16"]
+script = ExtResource("2_5coma")
+texto = "Ahora no"
+categoria = 5
+
+[sub_resource type="Resource" id="Resource_ptm7a"]
+script = ExtResource("1_jcljp")
+hablante = "Comerciante"
+texto = "Los lobos están atacando mis carretas. ¿Podés encargarte de 3 de ellos?"
+opciones = Array[ExtResource("2_5coma")]([SubResource("Resource_lres8"), SubResource("Resource_pub16")])
+
+[sub_resource type="Resource" id="Resource_o4l4i"]
+script = ExtResource("1_jcljp")
+hablante = "Comerciante"
+texto = "¡Gracias! Volvé cuando termines."
+siguiente_linea = 0
+
+[sub_resource type="Resource" id="Resource_hbstb"]
+script = ExtResource("2_5coma")
+texto = "Acepto"
+siguiente_linea = 2
+accion = 2
+mision_objetivo = ExtResource("4_qkyxc")
+condicion = 1
+mision_condicion = ExtResource("4_qkyxc")
+
+[sub_resource type="Resource" id="Resource_peibu"]
+script = ExtResource("2_5coma")
+texto = "Ahora no"
+categoria = 5
+
+[sub_resource type="Resource" id="Resource_8vlo6"]
+script = ExtResource("1_jcljp")
+hablante = "Comerciante"
+texto = "Ratones, arañas y lobos se multiplicaron cerca. ¿Podés encargarte de unos cuantos de cada uno?"
+opciones = Array[ExtResource("2_5coma")]([SubResource("Resource_hbstb"), SubResource("Resource_peibu")])
+
+[sub_resource type="Resource" id="Resource_u3x3a"]
+script = ExtResource("2_5coma")
+texto = "Acepto"
+siguiente_linea = 2
+accion = 2
+mision_objetivo = ExtResource("5_2nhb2")
+condicion = 1
+mision_condicion = ExtResource("5_2nhb2")
+
+[sub_resource type="Resource" id="Resource_somat"]
+script = ExtResource("2_5coma")
+texto = "Ahora no"
+categoria = 5
+
+[sub_resource type="Resource" id="Resource_t4e5o"]
+script = ExtResource("1_jcljp")
+hablante = "Comerciante"
+texto = "En el nido cercano hay algo peor que arañas comunes: una Reina. Primero limpiá el camino, después encargate de ella."
+opciones = Array[ExtResource("2_5coma")]([SubResource("Resource_u3x3a"), SubResource("Resource_somat")])
+
+[resource]
+script = ExtResource("6_4ih7u")
+lineas = Array[ExtResource("1_jcljp")]([SubResource("Resource_fy2ug"), SubResource("Resource_ptm7a"), SubResource("Resource_o4l4i"), SubResource("Resource_8vlo6"), SubResource("Resource_t4e5o")])

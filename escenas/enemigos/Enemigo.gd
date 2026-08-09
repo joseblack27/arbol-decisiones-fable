@@ -594,6 +594,7 @@ func _procesar_muerte() -> void:
 	_otorgar_botin()
 	if xp_otorgada > 0:
 		_otorgar_xp(xp_otorgada)
+	_notificar_objetivo_matar()
 	_desvanecer_y_eliminar()
 
 
@@ -624,6 +625,17 @@ func _otorgar_item_al_atacante(item: DatosItem) -> void:
 		var confirmaciones := _componente_del_atacante("ComponenteConfirmacionesRed")
 		if confirmaciones:
 			confirmaciones.rpc_id(dueño, "_recibir_botin_red", item.resource_path, item.quantity)
+
+
+## Objetivos de misión tipo MATAR (ver MisionesComponente.notificar_matar)
+## — mismo despacho DIRECTO que _otorgar_botin/_otorgar_xp, al
+## MisionesComponente del atacante correcto, no un broadcast.
+func _notificar_objetivo_matar() -> void:
+	if datos == null:
+		return
+	var componente := _componente_del_atacante("MisionesComponente")
+	if componente:
+		componente.notificar_matar(datos)
 
 
 func _otorgar_xp(cantidad: int) -> void:

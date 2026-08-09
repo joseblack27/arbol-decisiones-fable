@@ -116,13 +116,67 @@ class Mision:
 		FALLIDA
 	}
 
-	func _get_type_text(tipo: Mision.Tipo) -> String:
+	## Qué acredita cada objetivo de una misión (ver DatosObjetivoMision) —
+	## MATAR/RECOLECTAR se acreditan solos (Enemigo._notificar_objetivo_
+	## matar / InventarioComponente.agregar_item), HABLAR se completa al
+	## elegir la opción de diálogo correspondiente (ver Enums.Dialogo.Accion).
+	enum TipoObjetivo {
+		MATAR,
+		RECOLECTAR,
+		HABLAR
+	}
+
+	## static: antes era un método de instancia de una clase interna, lo
+	## que en la práctica lo volvía imposible de llamar (Enums.Mision no
+	## es una instancia, es la clase interna misma) — nadie lo usaba.
+	static func get_type_text(tipo: Mision.Tipo) -> String:
 		match tipo:
 			Mision.Tipo.HISTORIA: return "Historia"
 			Mision.Tipo.SECUNDARIA: return "Secundaria"
 			Mision.Tipo.EVENTO: return "Evento"
 			Mision.Tipo.DIARIA: return "Diaria"
 		return "-"
+
+class Dialogo:
+	## Qué dispara una opción de diálogo (ver OpcionDialogo.accion) — además
+	## de avanzar a siguiente_linea, una opción puede abrir la tienda del NPC
+	## o aceptar/entregar una de sus misiones ofrecidas. 100% data-driven: no
+	## hace falta código propio por NPC para estos casos comunes.
+	enum Accion {
+		NINGUNA,
+		ABRIR_TIENDA,
+		ACEPTAR_MISION,
+		ENTREGAR_MISION,
+		CERRAR
+	}
+
+	## Bajo qué estado de una misión se muestra una opción (ver
+	## OpcionDialogo.condicion/mision_condicion) — para que un NPC no
+	## ofrezca "tengo una misión para vos" si ya la diste, ni "ya me
+	## encargué" antes de haber cumplido los objetivos de verdad.
+	enum CondicionMision {
+		SIEMPRE,               ## Sin condición — no mira ninguna misión.
+		NO_ACEPTADA,           ## Nunca se aceptó (ni está en progreso ni completada).
+		EN_PROGRESO,           ## Aceptada, pero con objetivos todavía sin cumplir.
+		LISTA_PARA_ENTREGAR,   ## Aceptada Y todos los objetivos ya cumplidos.
+		COMPLETADA,            ## Ya se completó (no repetible, o repetible recién terminada).
+	}
+
+	## Ícono que acompaña el texto de una opción (ver OpcionDialogo.
+	## categoria y PanelDialogo._ICONOS_CATEGORIA) — puramente visual, no
+	## afecta a condicion/accion. Pedido explícito del usuario para poder
+	## reconocer de un vistazo qué tipo de opción es cada botón. Agregar
+	## SIEMPRE al final: el valor numérico ya está guardado en los .tres
+	## de contenido (ver ejemplo_comerciante.tres), insertar en el medio
+	## correría esos índices y cambiaría el ícono de opciones existentes.
+	enum CategoriaOpcion {
+		NINGUNA,        ## Sin ícono.
+		MISION,         ## "!" — ofrece una misión nueva.
+		MISION_HABLAR,  ## "?" — hablar sobre una misión ya aceptada (en curso o lista para entregar).
+		MERCADO,        ## "$" — abre la tienda.
+		HABLAR,         ## Burbuja de chat — diálogo/lore genérico, sin misión de por medio.
+		VOLVER,         ## Opción de volver/salir/rechazar (ej. "Ahora no", "Nada, gracias").
+	}
 
 class ColorInterfaz:
 	enum UI {

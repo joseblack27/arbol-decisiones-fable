@@ -38,6 +38,8 @@ GestorCuentas="*res://autoloads/GestorCuentas.gd"
 GestorBarraRapida="*res://autoloads/GestorBarraRapida.gd"
 InteresEspacial="*res://autoloads/InteresEspacial.gd"
 GestorLogRed="*res://autoloads/GestorLogRed.gd"
+GestorMisiones="*res://autoloads/GestorMisiones.tscn"
+GestorInteraccion="*res://autoloads/GestorInteraccion.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [display]

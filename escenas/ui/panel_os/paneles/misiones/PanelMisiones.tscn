@@ -257,3 +257,10 @@ text = "Rastrear"
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Abandonar"
+
+[node name="ConfirmarAbandonar" type="ConfirmationDialog" parent="."]
+title = "Abandonar misión"
+initial_position = 1
+size = Vector2i(320, 120)
+ok_button_text = "Sí, abandonar"
+cancel_button_text = "Cancelar"

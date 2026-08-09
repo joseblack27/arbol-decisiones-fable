@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="DatosMision" load_steps=7 format=3 uid="uid://b8eij2suefwix"]
+
+[ext_resource type="Script" uid="uid://cnbn4r5xl0la4" path="res://recursos/misiones/DatosObjetivoMision.gd" id="1_xyu08"]
+[ext_resource type="Script" uid="uid://crq0m3y4sn1uj" path="res://recursos/misiones/ItemRecompensaMision.gd" id="2_i2bm1"]
+[ext_resource type="Script" uid="uid://b61prh1haaj7b" path="res://recursos/misiones/DatosRecompensaMision.gd" id="3_aun4k"]
+[ext_resource type="Script" uid="uid://cdc7yr5obip6t" path="res://recursos/misiones/DatosMision.gd" id="4_qcmq3"]
+
+[sub_resource type="Resource" id="Resource_xyu08"]
+script = ExtResource("1_xyu08")
+id = "matar_lobos"
+descripcion = "Matar 3 lobos"
+id_meta = "Lobo"
+cantidad_meta = 3
+
+[sub_resource type="Resource" id="Resource_i2bm1"]
+script = ExtResource("3_aun4k")
+xp = 100
+creditos = 50
+
+[resource]
+script = ExtResource("4_qcmq3")
+id = "cazar_lobos"
+titulo = "Cazador de Lobos"
+tipo = 1
+region = "Pradera"
+descripcion = "Los lobos están atacando las carretas del comerciante. Elimina 3 lobos para ayudarlo."
+objetivos = Array[ExtResource("1_xyu08")]([SubResource("Resource_xyu08")])
+recompensas = SubResource("Resource_i2bm1")
+repetible = true

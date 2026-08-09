@@ -1,4 +1,4 @@
-[gd_scene load_steps=33 format=4 uid="uid://b2bnfitcpfcum"]
+[gd_scene load_steps=36 format=4 uid="uid://b2bnfitcpfcum"]
 
 [ext_resource type="Script" uid="uid://buv25r2fvbcxs" path="res://escenas/niveles/NivelBase.gd" id="1_fupr0"]
 [ext_resource type="TileSet" uid="uid://srcylgoba2ge" path="res://escenas/niveles/tileset_juego.tres" id="2_af08k"]
@@ -12,6 +12,9 @@
 [ext_resource type="PackedScene" uid="uid://d1042g45vblt7" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.tscn" id="9_caballero"]
 [ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoEsqueletoArquero.tscn" id="9_arquero"]
 [ext_resource type="PackedScene" uid="uid://vwdfflyout3b" path="res://escenas/niveles/PortalNivel.tscn" id="10_u3oy8"]
+[ext_resource type="PackedScene" path="res://escenas/npc/Npc.tscn" id="12_npc"]
+[ext_resource type="Resource" path="res://recursos/dialogo/ejemplo_comerciante.tres" id="12_npc_dialogo"]
+[ext_resource type="Resource" path="res://recursos/tienda/ejemplo_tienda_comerciante.tres" id="12_npc_tienda"]
 [ext_resource type="Script" uid="uid://dyloetpnctmqy" path="res://escenas/enemigos/SpawnerMobs.gd" id="11_spawner"]
 
 [sub_resource type="AtlasTexture" id="textura_arbol"]
@@ -358,6 +361,18 @@ position = Vector2(630, 40)
 
 [node name="EsqueletoArquero5" parent="Enemigos" instance=ExtResource("9_arquero")]
 position = Vector2(890, 300)
+
+[node name="NPCs" type="Node2D" parent="."]
+y_sort_enabled = true
+
+[node name="Comerciante" parent="NPCs" instance=ExtResource("12_npc")]
+position = Vector2(-700, -80)
+id = "comerciante_pradera"
+datos_dialogo = ExtResource("12_npc_dialogo")
+datos_tienda = ExtResource("12_npc_tienda")
+
+[node name="Nombre" parent="NPCs/Comerciante" index="2"]
+text = "Comerciante"
 
 [node name="PortalACueva" parent="." instance=ExtResource("10_u3oy8")]
 position = Vector2(1080, 0)

@@ -16,10 +16,12 @@ extends Control
 @onready var _texto_energia: Label = %TextoEnergia
 @onready var _barra_xp: ProgressBar = %BarraXP
 @onready var _texto_xp: Label = %TextoXP
+@onready var _texto_creditos: Label = %Creditos
 
 var _jugador: Node2D = null
 var _vida: VidaComponente = null
 var _energia: EnergiaComponente = null
+var _creditos: CreditosComponente = null
 var _acumulador := 0.0
 
 ## Cada cuánto se re-lee "nombre + nivel" mientras ya está conectado — no
@@ -70,6 +72,9 @@ func _conectar_jugador() -> void:
 	_energia = jugador.get_node_or_null("EnergiaComponente") as EnergiaComponente
 	if _energia:
 		_energia.energia_cambiada.connect(_on_energia)
+	_creditos = jugador.get_node_or_null("CreditosComponente") as CreditosComponente
+	if _creditos:
+		_creditos.creditos_cambiados.connect(_on_creditos)
 	visible = true
 	_refrescar_todo()
 
@@ -83,6 +88,8 @@ func _refrescar_todo() -> void:
 		_on_vida(_vida.obtener_vida())
 	if _energia:
 		_on_energia(_energia.obtener_energia(), _energia.obtener_energia_maxima())
+	if _creditos:
+		_on_creditos(_creditos.obtener_creditos())
 
 
 func _actualizar_nombre() -> void:
@@ -105,6 +112,10 @@ func _on_energia(nueva: float, maxima: float) -> void:
 	_barra_energia.max_value = maxima
 	_barra_energia.value = nueva
 	_texto_energia.text = "%d / %d" % [int(nueva), int(maxima)]
+
+
+func _on_creditos(nuevo: int) -> void:
+	_texto_creditos.text = "%d créditos" % nuevo
 
 
 func _on_xp(_cantidad: int, _xp_total: int) -> void:

@@ -73,3 +73,49 @@ func _recibir_reinicio_puntos_red() -> void:
 	var mejoras := get_parent().get_node_or_null("MejorasComponente")
 	if mejoras:
 		mejoras._reiniciar_puntos_local()
+
+
+## Confirmación del servidor tras TiendaComponente._pedir_comprar_red — el
+## cliente dueño aplica el mismo ítem a su copia de InventarioComponente y
+## fija el saldo de créditos EXACTO que ya descontó el servidor (no lo
+## vuelve a restar de su lado, evita cualquier desfasaje).
+@rpc("authority", "reliable")
+func _recibir_compra_red(ruta_item: String, cantidad: int, nuevos_creditos: int) -> void:
+	var item := load(ruta_item) as DatosItem
+	if item == null:
+		return
+	var inventario := get_parent().get_node_or_null("InventarioComponente")
+	if inventario:
+		inventario.agregar_item(item, cantidad)
+	var creditos := get_parent().get_node_or_null("CreditosComponente") as CreditosComponente
+	if creditos:
+		creditos._fijar_creditos_local(nuevos_creditos)
+
+
+## Confirmación del servidor tras MisionesComponente._pedir_aceptar_mision_
+## red — el cliente dueño aplica el mismo progreso inicial a su propia copia.
+@rpc("authority", "reliable")
+func _recibir_mision_aceptada_red(id_mision: String) -> void:
+	var misiones := get_parent().get_node_or_null("MisionesComponente") as MisionesComponente
+	if misiones:
+		misiones._aceptar_mision_por_id(id_mision)
+
+
+## Confirmación del servidor tras MisionesComponente._pedir_completar_
+## mision_red — el cliente dueño aplica las mismas recompensas a su propia
+## copia (mismo motivo que _recibir_botin_red/_recibir_xp_red: necesita su
+## propio estado actualizado, no solo el del servidor).
+@rpc("authority", "reliable")
+func _recibir_mision_completada_red(id_mision: String) -> void:
+	var misiones := get_parent().get_node_or_null("MisionesComponente") as MisionesComponente
+	if misiones:
+		misiones._completar_mision_por_id(id_mision)
+
+
+## Confirmación del servidor tras acreditar un objetivo de misión (matar/
+## recolectar) — ver MisionesComponente._avisar_progreso_al_dueño.
+@rpc("authority", "reliable")
+func _recibir_progreso_mision_red(id_mision: String, id_objetivo: String, actual: int) -> void:
+	var misiones := get_parent().get_node_or_null("MisionesComponente") as MisionesComponente
+	if misiones:
+		misiones._aplicar_progreso_local(id_mision, id_objetivo, actual)

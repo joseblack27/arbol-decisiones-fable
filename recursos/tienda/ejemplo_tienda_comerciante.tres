@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="DatosTienda" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://recursos/tienda/ItemTienda.gd" id="1_utp3b"]
+[ext_resource type="Resource" path="res://recursos/items/consumibles/botiquin.tres" id="2_767sc"]
+[ext_resource type="Resource" path="res://recursos/items/consumibles/pocion_vida.tres" id="3_1xo2x"]
+[ext_resource type="Script" path="res://recursos/tienda/DatosTienda.gd" id="4_irwbs"]
+
+[sub_resource type="Resource" id="Resource_x8bc6"]
+script = ExtResource("1_utp3b")
+item = ExtResource("2_767sc")
+precio = 15
+
+[sub_resource type="Resource" id="Resource_ndrfy"]
+script = ExtResource("1_utp3b")
+item = ExtResource("3_1xo2x")
+precio = 25
+
+[resource]
+script = ExtResource("4_irwbs")
+items_en_venta = Array[ExtResource("1_utp3b")]([SubResource("Resource_x8bc6"), SubResource("Resource_ndrfy")])

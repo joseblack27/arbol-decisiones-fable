@@ -181,6 +181,8 @@ func guardar_partida() -> void:
 		"barra_rapida": _serializar_barra_rapida(),
 		"pasivas": _serializar_pasivas(),
 		"mejoras": _serializar_mejoras(),
+		"creditos": _serializar_creditos(),
+		"misiones": _serializar_misiones(),
 	}
 
 	# En red (cliente puro) el archivo vive en el SERVIDOR — mandarle el
@@ -262,6 +264,8 @@ func _aplicar_datos_partida(datos: Dictionary) -> void:
 	# el nivel de mejora comprado al equipar (ver GestorGuardado
 	# ._restaurar_mejoras para el orden completo).
 	_restaurar_mejoras(datos.get("mejoras", {}))
+	_restaurar_creditos(datos.get("creditos", {}))
+	_restaurar_misiones(datos.get("misiones", {}))
 
 	GestorInventario.items.clear()
 	for entrada in datos.get("inventario", []):
@@ -405,6 +409,55 @@ func _restaurar_mejoras(datos: Dictionary, jugador: Node = null) -> void:
 	var experiencia := jugador_real.get_node_or_null("ExperienciaComponente")
 	if experiencia:
 		mejoras.reaplicar_pasivas_compradas(experiencia.pasivas_stat)
+
+
+func _serializar_creditos() -> Dictionary:
+	var creditos := Utils.creditos_componente_local()
+	if creditos == null:
+		return {}
+	return {"valor": creditos.obtener_creditos()}
+
+
+## [jugador] explícito para el camino SERVIDOR — mismo motivo que
+## _restaurar_mejoras (Utils.jugador_local() resolvería el jugador
+## equivocado ahí, el del propio servidor).
+func _restaurar_creditos(datos: Dictionary, jugador: Node = null) -> void:
+	var jugador_real := jugador if jugador != null else Utils.jugador_local()
+	if jugador_real == null:
+		return
+	var creditos := jugador_real.get_node_or_null("CreditosComponente") as CreditosComponente
+	if creditos == null:
+		return
+	creditos._fijar_creditos_local(int(datos.get("valor", 0)))
+
+
+## .duplicate(true) (deep copy), a diferencia de _serializar_mejoras/
+## _serializar_creditos: "progreso" tiene un Dictionary ANIDADO
+## (objetivos) — una copia superficial dejaría el snapshot serializado
+## compartiendo la MISMA referencia al sub-dict que el componente en vivo.
+func _serializar_misiones() -> Dictionary:
+	var misiones := Utils.misiones_componente_local()
+	if misiones == null:
+		return {}
+	return misiones.progreso.duplicate(true)
+
+
+## [jugador] explícito para el camino SERVIDOR — mismo motivo que
+## _restaurar_mejoras/_restaurar_creditos.
+func _restaurar_misiones(datos: Dictionary, jugador: Node = null) -> void:
+	var jugador_real := jugador if jugador != null else Utils.jugador_local()
+	if jugador_real == null:
+		return
+	var misiones := jugador_real.get_node_or_null("MisionesComponente") as MisionesComponente
+	if misiones == null:
+		return
+	misiones.progreso = datos.duplicate(true)
+	# Misiones completadas ANTES de marcarse repetible (o antes de que
+	# existiera este mecanismo) quedaron con estado COMPLETADA congelado —
+	# sin esto, el NPC nunca las volvía a ofrecer aunque la definición
+	# actual diga repetible=true (ver el comentario completo en
+	# MisionesComponente.reparar_completadas_repetibles).
+	misiones.reparar_completadas_repetibles()
 
 
 func _restaurar_barra_rapida(rutas: Array) -> void:
@@ -641,6 +694,8 @@ func _restaurar_estado_autoritativo(jugador: Node2D, texto: String) -> void:
 	# abajo — el AUTORITATIVO (el que de verdad calcula daño/recarga) tiene
 	# que tener esto aplicado, no solo el espejo del cliente.
 	_restaurar_mejoras(datos.get("mejoras", {}), jugador)
+	_restaurar_creditos(datos.get("creditos", {}), jugador)
+	_restaurar_misiones(datos.get("misiones", {}), jugador)
 
 	# Pasivas de GATILLO: a diferencia de la XP, no se re-derivan de nada
 	# más — sin esto, un jugador reconectado veía sus pasivas en la UI
@@ -675,6 +730,8 @@ func _recibir_partida_red(texto: String) -> void:
 	GestorExperiencia.xp_total = datos.get("xp_total", 0)
 	# ANTES de _restaurar_habilidades() — ver GestorGuardado._restaurar_mejoras.
 	_restaurar_mejoras(datos.get("mejoras", {}))
+	_restaurar_creditos(datos.get("creditos", {}))
+	_restaurar_misiones(datos.get("misiones", {}))
 	GestorInventario.items.clear()
 	for entrada in datos.get("inventario", []):
 		var item := _cargar_item(entrada)

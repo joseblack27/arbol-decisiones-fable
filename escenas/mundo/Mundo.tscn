@@ -1,11 +1,14 @@
-[gd_scene load_steps=17 format=3 uid="uid://brkcchgxseadn"]
+[gd_scene load_steps=20 format=3 uid="uid://brkcchgxseadn"]
 
 [ext_resource type="Script" uid="uid://b1k567eamw383" path="res://escenas/mundo/Mundo.gd" id="2_mundo"]
 [ext_resource type="PackedScene" uid="uid://cjw4ul4uo1qyp" path="res://escenas/ui/joystick/joystick.tscn" id="3_xywc0"]
 [ext_resource type="PackedScene" uid="uid://k23y3qpaht01" path="res://escenas/ui/zona_cancelacion/ZonaCancelacion.tscn" id="5_zc"]
 [ext_resource type="PackedScene" uid="uid://6fwc7y8i8y77" path="res://escenas/ui/ui_habilidad/UIHabilidad.tscn" id="6_uih"]
 [ext_resource type="PackedScene" uid="uid://dfmy15nixg3h3" path="res://escenas/ui/panel_os/principal/OsPrincipal.tscn" id="14_os"]
+[ext_resource type="PackedScene" path="res://escenas/ui/panel_dialogo/PanelDialogo.tscn" id="26_dialogo"]
+[ext_resource type="PackedScene" path="res://escenas/ui/panel_tienda/PanelTienda.tscn" id="27_tienda"]
 [ext_resource type="Script" uid="uid://c51cbomf7oq2h" path="res://escenas/ui/boton_os/BotonOS.gd" id="15_bos"]
+[ext_resource type="Script" path="res://escenas/ui/boton_interaccion/BotonInteraccion.gd" id="28_boton_int"]
 [ext_resource type="Script" uid="uid://dpmgf5u2u5w0y" path="res://escenas/ui/ControlJuego.gd" id="16_cj"]
 [ext_resource type="PackedScene" path="res://escenas/ui/notificaciones_loot/PanelNotificacionesLoot.tscn" id="17_pnl"]
 [ext_resource type="PackedScene" path="res://escenas/ui/contador_fps/ContadorFPS.tscn" id="18_fps"]
@@ -109,6 +112,23 @@ text = "1"
 script = ExtResource("24_pag")
 rutas_botones = Array[NodePath]([NodePath("../UIHabilidadSlot0"), NodePath("../UIHabilidadSlot1"), NodePath("../UIHabilidadSlot2"), NodePath("../UIHabilidadSlot3"), NodePath("../UIHabilidadSlot4")])
 
+[node name="BotonInteraccion" type="Button" parent="CanvasLayer/Control"]
+visible = false
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -116.0
+offset_top = -296.0
+offset_right = -72.0
+offset_bottom = -257.0
+grow_horizontal = 0
+grow_vertical = 0
+text = "Hablar"
+script = ExtResource("28_boton_int")
+
 [node name="ZonaCancelacion" parent="CanvasLayer/Control" instance=ExtResource("5_zc")]
 layout_mode = 1
 anchors_preset = 1
@@ -190,6 +210,10 @@ text = "OS"
 script = ExtResource("15_bos")
 
 [node name="OsPrincipal" parent="CanvasLayer" instance=ExtResource("14_os")]
+
+[node name="PanelDialogo" parent="CanvasLayer" instance=ExtResource("26_dialogo")]
+
+[node name="PanelTienda" parent="CanvasLayer" instance=ExtResource("27_tienda")]
 
 [node name="Jugadores" type="Node2D" parent="."]
 y_sort_enabled = true

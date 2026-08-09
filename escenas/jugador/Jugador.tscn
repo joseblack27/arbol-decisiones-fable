@@ -14,6 +14,9 @@
 [ext_resource type="Script" uid="uid://bupy2t5ntk7cg" path="res://componentes/ExperienciaComponente.gd" id="18_xpc"]
 [ext_resource type="Script" path="res://componentes/PasivasComponente.gd" id="18_pasivas_comp"]
 [ext_resource type="Script" path="res://componentes/MejorasComponente.gd" id="18_mejoras_comp"]
+[ext_resource type="Script" path="res://componentes/CreditosComponente.gd" id="18_creditos_comp"]
+[ext_resource type="Script" path="res://componentes/TiendaComponente.gd" id="18_tienda_comp"]
+[ext_resource type="Script" path="res://componentes/MisionesComponente.gd" id="18_misiones_comp"]
 [ext_resource type="Script" path="res://recursos/pasivas/PasivaStatDesbloqueo.gd" id="18_pasiva_script"]
 [ext_resource type="Resource" path="res://recursos/pasivas/PielCurtida.tres" id="18_pasiva_piel"]
 [ext_resource type="Resource" path="res://recursos/pasivas/OjoCertero.tres" id="18_pasiva_ojo"]
@@ -703,6 +706,15 @@ script = ExtResource("18_pasivas_comp")
 
 [node name="MejorasComponente" type="Node" parent="."]
 script = ExtResource("18_mejoras_comp")
+
+[node name="CreditosComponente" type="Node" parent="."]
+script = ExtResource("18_creditos_comp")
+
+[node name="TiendaComponente" type="Node" parent="."]
+script = ExtResource("18_tienda_comp")
+
+[node name="MisionesComponente" type="Node" parent="."]
+script = ExtResource("18_misiones_comp")
 
 [node name="Sync" type="MultiplayerSynchronizer" parent="."]
 

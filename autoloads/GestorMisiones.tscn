@@ -1,0 +1,11 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://autoloads/GestorMisiones.gd" id="1_gm"]
+[ext_resource type="Script" path="res://recursos/misiones/DatosMision.gd" id="2_dm_script"]
+[ext_resource type="Resource" path="res://recursos/misiones/ejemplo_cazar_lobos.tres" id="3_ejemplo"]
+[ext_resource type="Resource" path="res://recursos/misiones/plaga_pradera.tres" id="4_plaga"]
+[ext_resource type="Resource" path="res://recursos/misiones/reina_nido.tres" id="5_reina"]
+
+[node name="GestorMisiones" type="Node"]
+script = ExtResource("1_gm")
+catalogo = Array[ExtResource("2_dm_script")]([ExtResource("3_ejemplo"), ExtResource("4_plaga"), ExtResource("5_reina")])

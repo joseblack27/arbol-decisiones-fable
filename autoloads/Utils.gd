@@ -211,6 +211,42 @@ func mejoras_componente_local() -> MejorasComponente:
 	return null
 
 
+## Atajo: el CreditosComponente del jugador propio (ver jugador_local()) —
+## mismo criterio que mejoras_componente_local().
+func creditos_componente_local() -> CreditosComponente:
+	var jugador := jugador_local()
+	if jugador == null:
+		return null
+	for hijo in jugador.get_children():
+		if hijo is CreditosComponente:
+			return hijo
+	return null
+
+
+## Atajo: el TiendaComponente del jugador propio (ver jugador_local()) —
+## mismo criterio que mejoras_componente_local().
+func tienda_componente_local() -> TiendaComponente:
+	var jugador := jugador_local()
+	if jugador == null:
+		return null
+	for hijo in jugador.get_children():
+		if hijo is TiendaComponente:
+			return hijo
+	return null
+
+
+## Atajo: el MisionesComponente del jugador propio (ver jugador_local()) —
+## mismo criterio que mejoras_componente_local().
+func misiones_componente_local() -> MisionesComponente:
+	var jugador := jugador_local()
+	if jugador == null:
+		return null
+	for hijo in jugador.get_children():
+		if hijo is MisionesComponente:
+			return hijo
+	return null
+
+
 func snake_to_pascal(text: String) -> String:
 	var parts = text.split("_")
 	var result := ""

@@ -95,6 +95,33 @@ signal pasiva_desbloqueada(entidad: Node, nombre: String, descripcion: String)
 ## autoguardado por evento y el refresco de la UI (indicador de puntos).
 signal mejora_comprada(entidad: Node, tipo: String, nombre: String)
 
+# ── CRÉDITOS ──────────────────────────────────────────────────────────────────
+## Emitida cuando cambian los créditos de una entidad (entidad, nuevo total).
+signal creditos_cambiados(entidad: Node, nuevo: int)
+
+# ── MISIONES ──────────────────────────────────────────────────────────────────
+## Informativas para UI/autoguardado — NO son la fuente de verdad del
+## progreso (eso vive en MisionesComponente.progreso, por jugador). El
+## acreditado real de objetivos usa despacho directo, no este bus: BusEventos
+## es una única instancia de autoload compartida por TODOS los Jugador.tscn
+## que vive el servidor a la vez, así que un listener acá no puede saber a
+## CUÁL jugador corresponde un evento (ver Enemigo._notificar_objetivo_matar
+## / InventarioComponente.agregar_item para el mecanismo real de crédito).
+signal mision_aceptada(jugador: Node, id_mision: String)
+signal mision_completada(jugador: Node, id_mision: String)
+signal mision_progreso_actualizado(jugador: Node, id_mision: String, id_objetivo: String, actual: int, requerido: int)
+
+# ── DIÁLOGO ───────────────────────────────────────────────────────────────────
+## Un NPC pide abrir el panel de diálogo con estos datos — PanelDialogo se
+## autosuscribe a esta señal (mismo patrón que PanelInventario con el resto
+## del bus) en vez de que el NPC necesite una referencia directa al panel.
+signal dialogo_solicitado(npc: Node, datos: DatosDialogo)
+
+# ── TIENDA ────────────────────────────────────────────────────────────────────
+## Emitida por PanelDialogo al ejecutar una opción con action ABRIR_TIENDA
+## — PanelTienda se autosuscribe (mismo patrón que dialogo_solicitado).
+signal tienda_solicitada(datos: DatosTienda)
+
 # ── JUEGO ─────────────────────────────────────────────────────────────────────
 signal juego_pausado()
 signal juego_reanudado()

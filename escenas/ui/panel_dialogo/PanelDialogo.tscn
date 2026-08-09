@@ -1,0 +1,71 @@
+[gd_scene load_steps=3 format=3 uid="uid://mjltr15o3nbc"]
+
+[ext_resource type="Script" uid="uid://h8vgfkbovdar" path="res://escenas/ui/panel_dialogo/PanelDialogo.gd" id="1_dialogo"]
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tema"]
+
+[node name="PanelDialogo" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("1_tema")
+script = ExtResource("1_dialogo")
+
+[node name="Fondo" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -150.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="Fondo"]
+layout_mode = 2
+theme_override_constants/margin_left = 2
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 2
+theme_override_constants/margin_bottom = 2
+
+[node name="VBox" type="VBoxContainer" parent="Fondo/MarginContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Speaker" type="Label" parent="Fondo/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "NPC"
+
+[node name="MarginContainer" type="MarginContainer" parent="Fondo/MarginContainer/VBox"]
+layout_mode = 2
+theme_override_constants/margin_right = 4
+
+[node name="Texto" type="Label" parent="Fondo/MarginContainer/VBox/MarginContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_font_sizes/font_size = 12
+text = "..."
+autowrap_mode = 2
+
+[node name="BotonContinuar" type="Button" parent="Fondo/MarginContainer/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(100, 30)
+layout_mode = 2
+size_flags_horizontal = 8
+size_flags_vertical = 8
+text = "Continuar"
+
+[node name="HSeparator" type="HSeparator" parent="Fondo/MarginContainer/VBox"]
+layout_mode = 2
+
+[node name="Opciones" type="VBoxContainer" parent="Fondo/MarginContainer/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
