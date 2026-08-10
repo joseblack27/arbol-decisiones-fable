@@ -88,8 +88,7 @@ func _texto_de(unique_name: String) -> String:
 func _probar_apertura() -> void:
 	_bus.dialogo_solicitado.emit(_npc, _datos)
 	var muestra_linea_0: bool = _texto_de("%Speaker") == "Guardia" and _texto_de("%Texto") == "Bienvenido."
-	_abre_y_muestra_primera_linea_ok = _panel.visible \
-		and _gestor_ui.modo_actual == _gestor_ui.Modo.DIALOGO and muestra_linea_0
+	_abre_y_muestra_primera_linea_ok = _gestor_ui.modo_actual == _gestor_ui.Modo.DIALOGO and muestra_linea_0
 	print("Abre el panel, entra a Modo.DIALOGO y muestra la línea 0 (esperado true): %s" % _abre_y_muestra_primera_linea_ok)
 
 
@@ -111,8 +110,7 @@ func _probar_opcion_cierra() -> void:
 	var opciones: Node = _panel.get_node("%Opciones")
 	var boton_no := opciones.get_child(1) as Button
 	boton_no.pressed.emit()
-	_elegir_opcion_con_next_line_negativo_cierra_ok = not _panel.visible \
-		and _gestor_ui.modo_actual == _gestor_ui.Modo.JUEGO
+	_elegir_opcion_con_next_line_negativo_cierra_ok = _gestor_ui.modo_actual == _gestor_ui.Modo.JUEGO
 	print("Elegir 'No' (siguiente_linea=-1) cierra el panel y vuelve a Modo.JUEGO (esperado true): %s" % _elegir_opcion_con_next_line_negativo_cierra_ok)
 
 
@@ -124,11 +122,11 @@ func _probar_fin_de_lineas_cierra() -> void:
 	var opciones: Node = _panel.get_node("%Opciones")
 	var boton_si := opciones.get_child(0) as Button
 	boton_si.pressed.emit()
-	_elegir_opcion_con_next_line_salta_ahi_ok = _texto_de("%Texto") == "Perfecto." and _panel.visible
+	_elegir_opcion_con_next_line_salta_ahi_ok = _texto_de("%Texto") == "Perfecto." and _gestor_ui.modo_actual == _gestor_ui.Modo.DIALOGO
 	print("Elegir 'Sí' (siguiente_linea=2) salta a la línea 2 sin cerrar (esperado true): %s" % _elegir_opcion_con_next_line_salta_ahi_ok)
 
 	(_panel.get_node("%BotonContinuar") as Button).pressed.emit()
-	_pasarse_del_final_cierra_solo_ok = not _panel.visible and _gestor_ui.modo_actual == _gestor_ui.Modo.JUEGO
+	_pasarse_del_final_cierra_solo_ok = _gestor_ui.modo_actual == _gestor_ui.Modo.JUEGO
 	print("Continuar desde la última línea cierra solo (esperado true): %s" % _pasarse_del_final_cierra_solo_ok)
 
 

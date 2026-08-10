@@ -14,6 +14,7 @@ script = ExtResource("1_scr")
 name = "Escudo de Guardia"
 icon = ExtResource("2_ico")
 description = "Sólido y sin puntos flacos. No brilla contra nada, pero tampoco te deja expuesto."
+valor = 70
 type = 3
 type_equippable = 9
 can_equip = true

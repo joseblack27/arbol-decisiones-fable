@@ -4,18 +4,33 @@ class_name PanelDialogo
 ## PanelInventario con el resto del bus) — el NPC no necesita ninguna
 ## referencia directa a este panel. Mientras está abierto, GestorUI.Modo.
 ## DIALOGO bloquea el resto del juego (ver ControlJuego.gd).
+##
+## A propósito NUNCA se toca "visible" acá (ver _ready/_abrir/_ocultar):
+## un Control oculto con visible=false deja de recibir notificaciones de
+## layout, y Texto (autowrap) necesita conocer su ancho real para medir
+## cuántas líneas ocupa. Al volver a mostrarlo con visible=true, esa
+## primera medición se hace "en frío" (comprobado a mano: el mismo texto
+## midió 197px y 20px de alto entre dos aperturas seguidas, sin que nada
+## lo pidiera) y Fondo — anclado abajo, ver PanelDialogo.tscn — terminaba
+## con otro tamaño/posición cada vez que se reabría el mismo diálogo. En
+## vez de forzar un tamaño fijo, se evita apagar el layout: el panel
+## queda SIEMPRE en el árbol activo (Texto sigue midiéndose cada
+## fotograma, con o sin diálogo abierto) y solo se oculta visualmente
+## (modulate) y se desactiva como blanco de toques (mouse_filter).
 
 @onready var _speaker: Label = %Speaker
 @onready var _texto: Label = %Texto
 @onready var _opciones_vbox: VBoxContainer = %Opciones
 @onready var _boton_continuar: Button = %BotonContinuar
+@onready var _fondo: PanelContainer = $Fondo
 
 const _ICONOS_CATEGORIA := {
 	Enums.Dialogo.CategoriaOpcion.MISION: preload("res://assets/iconos/buttons/dialogo/dialogo_mision_aceptable.png"),
-	Enums.Dialogo.CategoriaOpcion.MISION_HABLAR: preload("res://assets/iconos/buttons/dialogo/dialogo_hablar.png"),
+	Enums.Dialogo.CategoriaOpcion.MISION_HABLAR: preload("res://assets/iconos/buttons/dialogo/dialogo_mision_hablar.png"),
 	Enums.Dialogo.CategoriaOpcion.MERCADO: preload("res://assets/iconos/buttons/dialogo/dialogo_intercambio.png"),
-	Enums.Dialogo.CategoriaOpcion.HABLAR: preload("res://assets/iconos/buttons/dialogo/dialogo_mision_hablar.png"),
+	Enums.Dialogo.CategoriaOpcion.HABLAR: preload("res://assets/iconos/buttons/dialogo/dialogo_hablar.png"),
 	Enums.Dialogo.CategoriaOpcion.VOLVER: preload("res://assets/iconos/buttons/dialogo/dialogo_volver.png"),
+	Enums.Dialogo.CategoriaOpcion.ACEPTAR: preload("res://assets/iconos/buttons/dialogo/dialogo_aceptar.png"),
 }
 
 var _datos: DatosDialogo = null
@@ -24,7 +39,8 @@ var _indice: int = 0
 
 
 func _ready() -> void:
-	visible = false
+	modulate.a = 0.0
+	_fondo.mouse_filter = MOUSE_FILTER_IGNORE
 	BusEventos.dialogo_solicitado.connect(_abrir)
 	_boton_continuar.pressed.connect(_avanzar)
 
@@ -35,7 +51,8 @@ func _abrir(npc: Node, datos: DatosDialogo) -> void:
 	_npc = npc
 	_datos = datos
 	_indice = 0
-	visible = true
+	modulate.a = 1.0
+	_fondo.mouse_filter = MOUSE_FILTER_STOP
 	GestorUI.abrir_dialogo()
 	_mostrar_linea()
 
@@ -54,7 +71,9 @@ func _mostrar_linea() -> void:
 		# ninguna aplica ahora mismo" — sin este respaldo, la línea se
 		# quedaría sin ningún botón, un diálogo sin salida.
 		_boton_continuar.visible = true
+		_opciones_vbox.visible = false
 	else:
+		_opciones_vbox.visible = true
 		_boton_continuar.visible = false
 		for opcion in opciones_visibles:
 			var boton := Button.new()
@@ -123,7 +142,8 @@ func _ejecutar_accion(opcion: OpcionDialogo) -> void:
 			# El diálogo se cierra (ver _elegir_opcion) — comprar pasa a ser
 			# su propia interacción, ya no hace falta seguir hablando.
 			if _npc and "datos_tienda" in _npc and _npc.datos_tienda:
-				BusEventos.tienda_solicitada.emit(_npc.datos_tienda)
+				var nombre_comerciante: String = _npc.nombre() if _npc.has_method("nombre") else "Comerciante"
+				BusEventos.tienda_solicitada.emit(_npc.datos_tienda, nombre_comerciante)
 		Enums.Dialogo.Accion.ACEPTAR_MISION:
 			if opcion.mision_objetivo:
 				Utils.misiones_componente_local().aceptar_mision(opcion.mision_objetivo)
@@ -151,7 +171,9 @@ func _limpiar_opciones() -> void:
 
 
 func _ocultar() -> void:
-	visible = false
+	modulate.a = 0.0
+	_fondo.mouse_filter = MOUSE_FILTER_IGNORE
+	_boton_continuar.visible = false
 	_limpiar_opciones()
 	_npc = null
 	_datos = null

@@ -10,6 +10,7 @@ extends SceneTree
 
 var _bus: Node
 var _panel: Control
+var _gestor_ui: Node
 var _jugador
 var _misiones
 var _npc: Node2D
@@ -21,6 +22,7 @@ var _plaga_completa_habilita_entrega_ok := false
 var _reina_secuencial_no_ofrece_entrega_antes_ok := false
 var _reina_secuencial_ofrece_entrega_al_final_ok := false
 var _aceptar_mision_vuelve_al_menu_ok := false
+var _entregar_mision_vuelve_al_menu_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -28,6 +30,7 @@ func _process(_delta: float) -> bool:
 	_probar_catalogo()
 	_probar_estado_inicial()
 	_probar_plaga()
+	_probar_entregar_vuelve_al_menu()
 	_probar_reina()
 	_probar_aceptar_mision_vuelve_al_menu()
 	return _informar()
@@ -35,6 +38,7 @@ func _process(_delta: float) -> bool:
 
 func _montar() -> void:
 	_bus = root.get_node("/root/BusEventos")
+	_gestor_ui = root.get_node("/root/GestorUI")
 	_panel = (load("res://escenas/ui/panel_dialogo/PanelDialogo.tscn") as PackedScene).instantiate()
 	root.add_child(_panel)
 	_jugador = (load("res://escenas/jugador/Jugador.tscn") as PackedScene).instantiate()
@@ -107,6 +111,33 @@ func _probar_plaga() -> void:
 	print("Plaga con los 3 tipos de enemigo cumplidos: aparece 'ya me encargué', no la oferta (esperado true): %s" % _plaga_completa_habilita_entrega_ok)
 
 
+## Bug real reportado dos veces: primero cerraba el diálogo entero al
+## entregar (a las 3 opciones de entrega les faltaba siguiente_linea,
+## quedaba en el -1 por defecto que _elegir_opcion interpreta como
+## "cerrar"). Pedido explícito de corrección: no saltar directo al menú —
+## debe mostrarse antes una línea de agradecimiento con SOLO el botón
+## Continuar (mismo criterio que "Acepto" -> "¡Gracias! Volvé cuando
+## termines."), y RECIÉN al tocar Continuar volver al menú. Sigue directo
+## del estado que deja _probar_plaga (misión lista para entregar, diálogo
+## ya abierto en el menú).
+func _probar_entregar_vuelve_al_menu() -> void:
+	_click_opcion_por_texto("Ya me encargué de la plaga")
+	var opciones: Node = _panel.get_node("%Opciones")
+	var boton_continuar := _panel.get_node("%BotonContinuar") as Button
+	var texto_agradecimiento := (_panel.get_node("%Texto") as Label).text
+	var _muestra_agradecimiento_solo_continuar_ok := \
+		texto_agradecimiento == "¡Muchas gracias por tu ayuda!" \
+		and opciones.get_child_count() == 0 and boton_continuar.visible
+
+	boton_continuar.pressed.emit()
+	var texto_menu := (_panel.get_node("%Texto") as Label).text
+	_entregar_mision_vuelve_al_menu_ok = _muestra_agradecimiento_solo_continuar_ok \
+		and _gestor_ui.modo_actual == _gestor_ui.Modo.DIALOGO \
+		and texto_menu == "Bienvenido a mi puesto, viajero. ¿En qué te puedo ayudar?"
+	print("Entregar muestra agradecimiento con solo Continuar, y ESE lleva al menú (esperado true): %s (agradecimiento: %s, tras continuar: %s)" % [
+		_entregar_mision_vuelve_al_menu_ok, texto_agradecimiento, texto_menu])
+
+
 func _probar_reina() -> void:
 	var mision_reina: DatosMision = root.get_node("/root/GestorMisiones").obtener_por_id("reina_nido")
 	# reina_nido pide nivel_requerido=8 a propósito (es la mazmorra del
@@ -160,7 +191,7 @@ func _probar_aceptar_mision_vuelve_al_menu() -> void:
 
 func _informar() -> bool:
 	var exito := _catalogo_tiene_3_misiones_ok and _estado_inicial_ok \
-		and _plaga_completa_habilita_entrega_ok \
+		and _plaga_completa_habilita_entrega_ok and _entregar_mision_vuelve_al_menu_ok \
 		and _reina_secuencial_no_ofrece_entrega_antes_ok and _reina_secuencial_ofrece_entrega_al_final_ok \
 		and _aceptar_mision_vuelve_al_menu_ok
 	print("PRUEBA NPC COMERCIANTE CONTENIDO REAL %s" % ("OK" if exito else "FALLIDA"))

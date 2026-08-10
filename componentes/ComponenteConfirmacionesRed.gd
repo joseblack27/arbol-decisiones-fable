@@ -92,6 +92,22 @@ func _recibir_compra_red(ruta_item: String, cantidad: int, nuevos_creditos: int)
 		creditos._fijar_creditos_local(nuevos_creditos)
 
 
+## Confirmación del servidor tras TiendaComponente._pedir_vender_red — el
+## cliente dueño saca la misma cantidad de su copia de InventarioComponente
+## y fija el saldo de créditos EXACTO que ya sumó el servidor.
+@rpc("authority", "reliable")
+func _recibir_venta_red(ruta_item: String, cantidad: int, nuevos_creditos: int) -> void:
+	var inventario := get_parent().get_node_or_null("InventarioComponente")
+	if inventario:
+		for item: DatosItem in inventario.items:
+			if item.id_recurso == ruta_item:
+				inventario.quitar_cantidad(item, cantidad)
+				break
+	var creditos := get_parent().get_node_or_null("CreditosComponente") as CreditosComponente
+	if creditos:
+		creditos._fijar_creditos_local(nuevos_creditos)
+
+
 ## Confirmación del servidor tras MisionesComponente._pedir_aceptar_mision_
 ## red — el cliente dueño aplica el mismo progreso inicial a su propia copia.
 @rpc("authority", "reliable")
@@ -119,3 +135,12 @@ func _recibir_progreso_mision_red(id_mision: String, id_objetivo: String, actual
 	var misiones := get_parent().get_node_or_null("MisionesComponente") as MisionesComponente
 	if misiones:
 		misiones._aplicar_progreso_local(id_mision, id_objetivo, actual)
+
+
+## Confirmación del servidor tras MisionesComponente._pedir_abandonar_
+## mision_red — el cliente dueño borra la misma entrada en su propia copia.
+@rpc("authority", "reliable")
+func _recibir_mision_abandonada_red(id_mision: String) -> void:
+	var misiones := get_parent().get_node_or_null("MisionesComponente") as MisionesComponente
+	if misiones:
+		misiones._abandonar_mision_local(id_mision)

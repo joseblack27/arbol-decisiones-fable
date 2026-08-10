@@ -737,6 +737,17 @@ func _recibir_partida_red(texto: String) -> void:
 		var item := _cargar_item(entrada)
 		if item:
 			GestorInventario.agregar_item(item, entrada.get("cantidad", 1), true)
+	# El equipo y las habilidades se re-sincronizan solos al pasar por sus
+	# propios flujos normales (_restaurar_equipo → GestorEquipo.actualizar →
+	# EquipoComponente._sincronizar_equipo_red, y análogo en
+	# _restaurar_habilidades) — el inventario SUELTO no tiene un flujo
+	# equivalente que lo dispare solo, así que hay que pedirlo a mano acá
+	# (ver InventarioComponente.sincronizar_con_servidor, bug real: "el
+	# botón de vender no hace nada" porque el servidor se quedaba sin saber
+	# qué había en este inventario tras reconectar).
+	var inventario_local := Utils.inventario_componente_local()
+	if inventario_local:
+		inventario_local.sincronizar_con_servidor()
 	_restaurar_equipo(datos.get("equipo", []))
 	_restaurar_habilidades(datos.get("habilidades", []))
 	_restaurar_barra_rapida(datos.get("barra_rapida", []))

@@ -8,6 +8,7 @@ script = ExtResource("1_scr")
 name = "Hoja Seca"
 icon = ExtResource("2_ico")
 quantity = 3
+valor = 2
 description = "Una hoja seca y quebradiza."
 type = 4
 type_equippable = 0

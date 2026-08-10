@@ -16,6 +16,7 @@ script = ExtResource("1_scr")
 name = "Escudo de Brasas"
 icon = ExtResource("2_ico")
 description = "Forjado entre ascuas. Aguanta el fuego y la tierra, pero el agua lo apaga."
+valor = 85
 type = 3
 type_equippable = 9
 can_equip = true

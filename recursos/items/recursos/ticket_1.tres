@@ -8,6 +8,7 @@ script = ExtResource("1_scr")
 name = "Ticket Común"
 icon = ExtResource("2_ico")
 quantity = 5
+valor = 10
 description = "Canjeable por 100 de experiencia al usarse."
 type = 2
 type_equippable = 0

@@ -42,9 +42,6 @@ const _TOLERANCIA_NAVEGACION := 6.0
 ## jugador (incluida su zona de aparición al entrar al nivel), que lo
 ## atacaban antes de que pudiera reaccionar ("el golpe al iniciar").
 const _DISTANCIA_MINIMA_JUGADOR := 350.0
-## Punto-sonda deliberadamente fuera de cualquier mapa, para preguntarle a la
-## malla si ya está sincronizada (ver _malla_responde).
-const _DISTANCIA_SONDA := 1_000_000.0
 
 var _vivos: Array[Node] = []
 var _tiempo_restante: float = 0.0
@@ -75,7 +72,7 @@ func _ready() -> void:
 		if multiplayer.is_server():
 			GestorNiveles.peer_listo.connect(_al_peer_listo)
 	if cantidad_inicial > 0 and (not Utils.en_red() or multiplayer.is_server()):
-		await _esperar_malla_lista()
+		await Utils.esperar_malla_de_nivel_lista(self)
 		for _i in cantidad_inicial:
 			_generar_uno()
 	_tiempo_restante = intervalo_spawn
@@ -117,63 +114,6 @@ func _debe_generar_localmente() -> bool:
 	if not Utils.en_red():
 		return true
 	return multiplayer.is_server()
-
-
-## Si este mundo tiene una malla de navegación (nivel real con capa
-## "Navegacion"), espera a que sincronice antes de generar nada: recién
-## cargado el nivel tarda unos physics_frame en terminar de bakear/sincronizar
-## y hasta entonces cualquier consulta de posición devolvería "inválido".
-## El nivel ya tiene su propio fundido a negro, así que esta espera no se
-## nota en pantalla. Si no hay malla configurada (p. ej. una prueba aislada
-## sin nivel), no hay nada que esperar.
-##
-## OJO: map_get_iteration_id() != 0 NO basta, y "que el iteration_id no cambie
-## durante N físicas" TAMPOCO — en un nivel grande (miles de celdas) el motor
-## hace VARIAS pasadas de sincronización y se queda quieto ENTRE pasada y
-## pasada: en Pradera el id se mantiene en 1 unas 7 físicas seguidas antes de
-## saltar a 2 (la sincronización real y completa), así que cualquier contador
-## de estabilidad corto corta justo en esa meseta y cree estar listo.
-## Con la malla a medio hornear, map_get_closest_point() devuelve Vector2.ZERO
-## ("no encontrado") para CUALQUIER punto: _punto_de_generacion_valido()
-## fallaba sus 8 intentos y caía siempre al mismo fallback (la posición del
-## spawner) — los mobs aparecían todos amontonados en el mismo punto en vez
-## de repartidos por radio_spawn (reportado en juego real; y de paso era la
-## causa de que prueba_navegacion fallara ~1 de cada 3 corridas, porque el
-## lobo nacía dentro del montón y la evasión RVO lo empujaba en círculos en
-## lugar de dejarlo ir hacia su destino).
-##
-## Así que en vez de adivinar con contadores se le pregunta a la malla lo
-## único que de verdad importa: ¿ya contesta consultas? (ver _malla_responde).
-const _FRAMES_ESPERA_MALLA := 90
-
-func _esperar_malla_lista() -> void:
-	# Ceder SIEMPRE al menos una física, aunque la malla ya estuviera lista:
-	# _ready() corre mientras el padre todavía está armando sus hijos, y ahí
-	# add_child() falla en seco ("Parent node is busy setting up children") —
-	# si esta función volviera sin ningún await, el nivel arrancaría con CERO
-	# mobs en vez de con cantidad_inicial.
-	await get_tree().physics_frame
-	# Mapa de SU nivel (ver NivelBase._crear_mapa_navegacion): el del mundo
-	# mezclaría la malla de todos los niveles cargados a la vez.
-	var mapa := GestorNiveles.mapa_navegacion_de(self)
-	var intentos := 0
-	while not _malla_responde(mapa) and intentos < _FRAMES_ESPERA_MALLA:
-		await get_tree().physics_frame
-		intentos += 1
-
-
-## true cuando la malla ya responde consultas de posición de verdad.
-## Se sondea un punto absurdamente lejano: con la malla lista devuelve el
-## vértice transitable más cercano a esa esquina (jamás el origen del mundo);
-## a medio sincronizar devuelve el Vector2.ZERO de "no encontrado", que es
-## justo el valor que hay que dejar de creerse.
-func _malla_responde(mapa: RID) -> bool:
-	if NavigationServer2D.map_get_regions(mapa).is_empty():
-		# Mundo sin malla (p. ej. una prueba aislada sin nivel real): no hay
-		# nada que esperar, _punto_de_generacion_valido() ya lo contempla.
-		return true
-	var sonda := Vector2(_DISTANCIA_SONDA, _DISTANCIA_SONDA)
-	return NavigationServer2D.map_get_closest_point(mapa, sonda) != Vector2.ZERO
 
 
 func _process(delta: float) -> void:

@@ -176,6 +176,7 @@ class Dialogo:
 		MERCADO,        ## "$" — abre la tienda.
 		HABLAR,         ## Burbuja de chat — diálogo/lore genérico, sin misión de por medio.
 		VOLVER,         ## Opción de volver/salir/rechazar (ej. "Ahora no", "Nada, gracias").
+		ACEPTAR,        ## Aceptar una misión ofrecida (ej. "Acepto").
 	}
 
 class ColorInterfaz:

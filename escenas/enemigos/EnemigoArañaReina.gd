@@ -64,6 +64,28 @@ func _ready() -> void:
 	super._ready()
 	if componente_vida and not componente_vida.cambio_valor_vida.is_connected(_on_vida_cambiada):
 		componente_vida.cambio_valor_vida.connect(_on_vida_cambiada)
+	await _esperar_malla_antes_de_actuar()
+
+
+## Único enemigo del juego "colocado a mano" en su nivel (ver
+## NivelNidoArañaReina.gd) en vez de generado por SpawnerMobs — arranca viva
+## desde el primer fotograma del nivel, sin la espera a que la malla de
+## navegación termine de sincronizar que SpawnerMobs sí les da a todos los
+## demás mobs (ver Utils.esperar_malla_de_nivel_lista). Si detecta al
+## jugador y decide moverse/atacar en esa ventana (recién cargado el nivel,
+## la malla puede tardar unos physics_frame), queda "no se mueve, no ataca"
+## (reportado en juego real). Se pausa su propio árbol mientras se espera —
+## a propósito NO en Enemigo.gd (afectaría a TODOS los enemigos): varias
+## pruebas apagan el árbol de un mob a mano para conducirlo manualmente
+## (ver prueba_navegacion.gd), y esta reactivación tardía les pisaba ese
+## apagado si corría para cualquier enemigo.
+func _esperar_malla_antes_de_actuar() -> void:
+	var arbol := get_node_or_null("ArbolComportamiento") as ArbolComportamiento
+	if arbol:
+		arbol.activo = false
+	await Utils.esperar_malla_de_nivel_lista(self)
+	if arbol and not _muerto:
+		arbol.activo = true
 
 
 ## Corre en TODOS los peers (cambio_valor_vida se emite igual en el servidor

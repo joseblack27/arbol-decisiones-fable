@@ -20,20 +20,22 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -150.0
+offset_top = -92.0
 grow_horizontal = 2
 grow_vertical = 0
 
 [node name="MarginContainer" type="MarginContainer" parent="Fondo"]
 layout_mode = 2
-theme_override_constants/margin_left = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 4
 theme_override_constants/margin_top = 0
-theme_override_constants/margin_right = 2
-theme_override_constants/margin_bottom = 2
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
 
 [node name="VBox" type="VBoxContainer" parent="Fondo/MarginContainer"]
 layout_mode = 2
-theme_override_constants/separation = 4
+mouse_filter = 2
+theme_override_constants/separation = 10
 
 [node name="Speaker" type="Label" parent="Fondo/MarginContainer/VBox"]
 unique_name_in_owner = true
@@ -43,6 +45,7 @@ text = "NPC"
 
 [node name="MarginContainer" type="MarginContainer" parent="Fondo/MarginContainer/VBox"]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/margin_right = 4
 
 [node name="Texto" type="Label" parent="Fondo/MarginContainer/VBox/MarginContainer"]
@@ -61,11 +64,9 @@ size_flags_horizontal = 8
 size_flags_vertical = 8
 text = "Continuar"
 
-[node name="HSeparator" type="HSeparator" parent="Fondo/MarginContainer/VBox"]
-layout_mode = 2
-
 [node name="Opciones" type="VBoxContainer" parent="Fondo/MarginContainer/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 2
+mouse_filter = 2
+theme_override_constants/separation = 0

@@ -43,3 +43,23 @@ func _on_carga_terminada() -> void:
 	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaDash", false)
 	componente_animacion.establecer_condicion("parameters/conditions/debeSalirMordida", true)
 	componente_animacion.establecer_condicion("parameters/conditions/debeIdle", true)
+
+
+## Defensivo: reportado en juego real (solo en el servidor multijugador,
+## nunca en local/un jugador — no se pudo reproducir con pruebas locales,
+## que corren la MISMA HabilidadCarga sin red y siempre completan bien las
+## 3 fases) que a veces la embestida se queda fija en la pose de
+## preparación para siempre, sin llegar nunca a debeMordidaDash/
+## debeSalirMordida (ver _on_carga_iniciada/_on_carga_terminada arriba).
+## La sospecha es la réplica visual al cliente (HabilidadBase._reproducir_
+## visual_red llama _ejecutar() directo en la copia del cliente, sin pasar
+## por el chequeo de recarga de activar()) — pero sin poder reproducirlo
+## en un servidor real de prueba, esto no ataca la causa de raíz, solo el
+## síntoma: un Arañazo nuevo es la señal más clara de que el lobo YA NO
+## sigue en esa embestida vieja, así que fuerza la salida de esa pose
+## aunque HabilidadCarga nunca haya avisado que terminó.
+func _on_arañazo_activado(habilidad: HabilidadBase) -> void:
+	super._on_arañazo_activado(habilidad)
+	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaPrep", false)
+	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaDash", false)
+	componente_animacion.establecer_condicion("parameters/conditions/debeSalirMordida", true)

@@ -18,6 +18,7 @@ shape = SubResource("CircleShape2D_npc")
 texture = ExtResource("2_icon")
 
 [node name="Nombre" type="Label" parent="."]
+unique_name_in_owner = true
 offset_left = -40.0
 offset_top = -60.0
 offset_right = 40.0

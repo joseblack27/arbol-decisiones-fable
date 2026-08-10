@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DatosDialogo" load_steps=26 format=3 uid="uid://p3blph453nhe"]
+[gd_resource type="Resource" script_class="DatosDialogo" load_steps=27 format=3 uid="uid://p3blph453nhe"]
 
 [ext_resource type="Script" uid="uid://h8sp86evtiwo" path="res://recursos/dialogo/LineaDialogo.gd" id="1_jcljp"]
 [ext_resource type="Script" uid="uid://eo3ue0800wem" path="res://recursos/dialogo/OpcionDialogo.gd" id="2_5coma"]
@@ -24,6 +24,7 @@ categoria = 1
 [sub_resource type="Resource" id="Resource_o2tbh"]
 script = ExtResource("2_5coma")
 texto = "Ya me encargué de los lobos"
+siguiente_linea = 5
 accion = 3
 mision_objetivo = ExtResource("3_l2m8g")
 condicion = 3
@@ -41,6 +42,7 @@ categoria = 1
 [sub_resource type="Resource" id="Resource_a5ved"]
 script = ExtResource("2_5coma")
 texto = "Ya me encargué de la plaga"
+siguiente_linea = 5
 accion = 3
 mision_objetivo = ExtResource("4_qkyxc")
 condicion = 3
@@ -58,6 +60,7 @@ categoria = 1
 [sub_resource type="Resource" id="Resource_cerhb"]
 script = ExtResource("2_5coma")
 texto = "Acabé con la Araña Reina"
+siguiente_linea = 5
 accion = 3
 mision_objetivo = ExtResource("5_2nhb2")
 condicion = 3
@@ -83,10 +86,12 @@ accion = 2
 mision_objetivo = ExtResource("3_l2m8g")
 condicion = 1
 mision_condicion = ExtResource("3_l2m8g")
+categoria = 6
 
 [sub_resource type="Resource" id="Resource_pub16"]
 script = ExtResource("2_5coma")
 texto = "Ahora no"
+siguiente_linea = 0
 categoria = 5
 
 [sub_resource type="Resource" id="Resource_ptm7a"]
@@ -109,10 +114,12 @@ accion = 2
 mision_objetivo = ExtResource("4_qkyxc")
 condicion = 1
 mision_condicion = ExtResource("4_qkyxc")
+categoria = 6
 
 [sub_resource type="Resource" id="Resource_peibu"]
 script = ExtResource("2_5coma")
 texto = "Ahora no"
+siguiente_linea = 0
 categoria = 5
 
 [sub_resource type="Resource" id="Resource_8vlo6"]
@@ -129,10 +136,12 @@ accion = 2
 mision_objetivo = ExtResource("5_2nhb2")
 condicion = 1
 mision_condicion = ExtResource("5_2nhb2")
+categoria = 6
 
 [sub_resource type="Resource" id="Resource_somat"]
 script = ExtResource("2_5coma")
 texto = "Ahora no"
+siguiente_linea = 0
 categoria = 5
 
 [sub_resource type="Resource" id="Resource_t4e5o"]
@@ -141,6 +150,12 @@ hablante = "Comerciante"
 texto = "En el nido cercano hay algo peor que arañas comunes: una Reina. Primero limpiá el camino, después encargate de ella."
 opciones = Array[ExtResource("2_5coma")]([SubResource("Resource_u3x3a"), SubResource("Resource_somat")])
 
+[sub_resource type="Resource" id="Resource_graciasentrega"]
+script = ExtResource("1_jcljp")
+hablante = "Comerciante"
+texto = "¡Muchas gracias por tu ayuda!"
+siguiente_linea = 0
+
 [resource]
 script = ExtResource("6_4ih7u")
-lineas = Array[ExtResource("1_jcljp")]([SubResource("Resource_fy2ug"), SubResource("Resource_ptm7a"), SubResource("Resource_o4l4i"), SubResource("Resource_8vlo6"), SubResource("Resource_t4e5o")])
+lineas = Array[ExtResource("1_jcljp")]([SubResource("Resource_fy2ug"), SubResource("Resource_ptm7a"), SubResource("Resource_o4l4i"), SubResource("Resource_8vlo6"), SubResource("Resource_t4e5o"), SubResource("Resource_graciasentrega")])

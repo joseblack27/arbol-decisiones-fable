@@ -19,6 +19,8 @@ var _completada_oculta_ambos_ok := false
 var _presionar_abandonar_no_abandona_de_una_ok := false
 var _confirmar_abandona_de_verdad_ok := false
 var _abandonar_en_progreso_vuelve_a_disponible_ok := false
+var _abandonar_oculta_panel_detalle_ok := false
+var _sin_seleccion_oculta_panel_detalle_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -27,6 +29,7 @@ func _process(_delta: float) -> bool:
 	_probar_en_progreso()
 	_probar_completada()
 	_probar_abandonar_pide_confirmacion()
+	_probar_sin_seleccion_oculta_panel()
 	return _informar()
 
 
@@ -103,23 +106,36 @@ func _probar_abandonar_pide_confirmacion() -> void:
 	_panel.show_mission(mision2)
 
 	_abandon_button().pressed.emit()
-	_presionar_abandonar_no_abandona_de_una_ok = _misiones.estado_de(mision2.id) == Enums.Mision.Estado.EN_PROGRESO
-	print("Presionar Abandonar NO abandona sin confirmar (esperado true, sigue EN_PROGRESO): %s" % _presionar_abandonar_no_abandona_de_una_ok)
+	_presionar_abandonar_no_abandona_de_una_ok = _misiones.estado_de(mision2.id) == Enums.Mision.Estado.EN_PROGRESO \
+		and _panel.confirmar_abandonar.visible
+	print("Presionar Abandonar NO abandona sin confirmar, y muestra el panel propio (esperado true, sigue EN_PROGRESO): %s" % _presionar_abandonar_no_abandona_de_una_ok)
 
-	_panel.confirmar_abandonar.confirmed.emit()
-	_confirmar_abandona_de_verdad_ok = _misiones.estado_de(mision2.id) == Enums.Mision.Estado.BLOQUEADA
-	print("Confirmar abandona de verdad (esperado true, ya no hay entrada): %s" % _confirmar_abandona_de_verdad_ok)
+	_panel.confirmar_abandonar_boton_si.pressed.emit()
+	_confirmar_abandona_de_verdad_ok = _misiones.estado_de(mision2.id) == Enums.Mision.Estado.BLOQUEADA \
+		and not _panel.confirmar_abandonar.visible
+	print("Confirmar abandona de verdad y oculta el panel propio (esperado true, ya no hay entrada): %s" % _confirmar_abandona_de_verdad_ok)
 
 	# BLOQUEADA (sin entrada) es justo lo que _estado_efectivo() de
 	# PanelMisiones reclasifica como DISPONIBLE/"pendiente" para mostrar.
 	_abandonar_en_progreso_vuelve_a_disponible_ok = _panel._estado_efectivo(mision2.id) == Enums.Mision.Estado.DISPONIBLE
 	print("Misión abandonada vuelve a mostrarse como pendiente (esperado true): %s" % _abandonar_en_progreso_vuelve_a_disponible_ok)
 
+	_abandonar_oculta_panel_detalle_ok = not _panel.mission_detail_panel.visible
+	print("Abandonar oculta el panel de detalle (esperado true): %s" % _abandonar_oculta_panel_detalle_ok)
+
+
+func _probar_sin_seleccion_oculta_panel() -> void:
+	_panel.show_mission(_datos_mision)
+	_panel.show_mission(null)
+	_sin_seleccion_oculta_panel_detalle_ok = not _panel.mission_detail_panel.visible
+	print("Sin misión seleccionada, el panel de detalle queda oculto (esperado true): %s" % _sin_seleccion_oculta_panel_detalle_ok)
+
 
 func _informar() -> bool:
 	var exito := _disponible_oculta_abandonar_muestra_rastrear_ok and _en_progreso_muestra_ambos_ok \
 		and _completada_oculta_ambos_ok and _presionar_abandonar_no_abandona_de_una_ok \
-		and _confirmar_abandona_de_verdad_ok and _abandonar_en_progreso_vuelve_a_disponible_ok
+		and _confirmar_abandona_de_verdad_ok and _abandonar_en_progreso_vuelve_a_disponible_ok \
+		and _abandonar_oculta_panel_detalle_ok and _sin_seleccion_oculta_panel_detalle_ok
 	print("PRUEBA UI MISIONES BOTONES %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

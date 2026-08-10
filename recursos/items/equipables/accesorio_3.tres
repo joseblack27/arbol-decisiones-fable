@@ -13,6 +13,7 @@ script = ExtResource("1_scr")
 name = "Anillo de Ópalo"
 icon = ExtResource("2_ico")
 description = "Un anillo con una piedra de ópalo."
+valor = 50
 type = 3
 type_equippable = 6
 can_equip = true

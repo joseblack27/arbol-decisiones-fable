@@ -8,6 +8,7 @@ script = ExtResource("1_scr")
 name = "Poción de Vida"
 icon = ExtResource("2_ico")
 quantity = 1
+valor = 25
 description = "Restaura vida al beberla."
 type = 2
 type_equippable = 0

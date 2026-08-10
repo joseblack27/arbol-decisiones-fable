@@ -13,6 +13,7 @@ script = ExtResource("1_scr")
 name = "Armadura Ligera"
 icon = ExtResource("2_ico")
 description = "Protección básica para el torso."
+valor = 30
 type = 3
 type_equippable = 1
 can_equip = true

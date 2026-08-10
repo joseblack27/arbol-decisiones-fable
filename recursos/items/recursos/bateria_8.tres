@@ -8,6 +8,7 @@ script = ExtResource("1_scr")
 name = "Batería Grande"
 icon = ExtResource("2_ico")
 quantity = 1
+valor = 18
 description = "Material de crafteo: una batería grande."
 type = 4
 type_equippable = 0

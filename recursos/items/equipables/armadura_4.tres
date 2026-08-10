@@ -14,6 +14,7 @@ script = ExtResource("1_scr")
 name = "Armadura Real"
 icon = ExtResource("2_ico")
 description = "Coraza ornamentada de la guardia real."
+valor = 140
 type = 3
 type_equippable = 4
 can_equip = true

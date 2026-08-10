@@ -109,6 +109,7 @@ signal creditos_cambiados(entidad: Node, nuevo: int)
 ## / InventarioComponente.agregar_item para el mecanismo real de crédito).
 signal mision_aceptada(jugador: Node, id_mision: String)
 signal mision_completada(jugador: Node, id_mision: String)
+signal mision_abandonada(jugador: Node, id_mision: String)
 signal mision_progreso_actualizado(jugador: Node, id_mision: String, id_objetivo: String, actual: int, requerido: int)
 
 # ── DIÁLOGO ───────────────────────────────────────────────────────────────────
@@ -120,7 +121,9 @@ signal dialogo_solicitado(npc: Node, datos: DatosDialogo)
 # ── TIENDA ────────────────────────────────────────────────────────────────────
 ## Emitida por PanelDialogo al ejecutar una opción con action ABRIR_TIENDA
 ## — PanelTienda se autosuscribe (mismo patrón que dialogo_solicitado).
-signal tienda_solicitada(datos: DatosTienda)
+## nombre_comerciante: Npc.nombre() del NPC que abrió la tienda, para
+## titular la columna de mercancía con quién la vende de verdad.
+signal tienda_solicitada(datos: DatosTienda, nombre_comerciante: String)
 
 # ── JUEGO ─────────────────────────────────────────────────────────────────────
 signal juego_pausado()

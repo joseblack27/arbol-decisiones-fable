@@ -15,27 +15,6 @@ class_name PanelInventario
 @onready var description_text  := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2/VBoxContainer/TextoDescripcion
 @onready var vbox_caracteristicas: VBoxContainer = $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/VBoxCaracteristicas
 
-## Orden y etiqueta en español de cada campo de AtributosBase que se muestra
-## en el detalle de un equipable. Solo se listan los bonos que el ítem
-## realmente aporta (valor != 0), sin título — van pegados debajo de la
-## descripción, separados por el HSeparator4 ya existente en la escena.
-const ETIQUETAS_ATRIBUTOS := [
-	["danos", "Daños"],
-	["potencia", "Potencia"],
-	["impacto", "Impacto"],
-	["afliccion", "Aflicción"],
-	["impulso", "Impulso"],
-	["probabilidad_critico", "Prob. Crítico"],
-	["dano_critico", "Daño Crítico"],
-	["defensa", "Defensa"],
-	["tenacidad", "Tenacidad"],
-	["fortaleza", "Fortaleza"],
-	["resistencia_fisica", "Resist. Física"],
-	["resistencia_aire", "Resist. Aire"],
-	["resistencia_agua", "Resist. Agua"],
-	["resistencia_fuego", "Resist. Fuego"],
-	["resistencia_tierra", "Resist. Tierra"],
-]
 @onready var close_button      := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre/BotonCerrar
 ## Lo que se muestra/oculta según haya algo seleccionado o no — el PANEL en
 ## sí (PanelDetalle) ya no se oculta más: la columna "Detalles del Objeto"
@@ -203,7 +182,20 @@ func _on_use_button():
 			else:
 				GestorBarraRapida.refrescar(indice)
 	refrescar()
-	_on_close_button()
+	# Si todavía queda cantidad, el detalle se queda abierto mostrando el
+	# mismo ítem (con el número ya actualizado) — usar un consumible con
+	# varias unidades no debería obligar a volver a tocarlo cada vez.
+	# refrescar() reconstruye la grilla entera, así que item_data_details
+	# (el SlotItem viejo) ya no es válido: hay que encontrar el nuevo que
+	# representa el mismo DatosItem (misma identidad — usar_item() muta
+	# item.quantity en el lugar, nunca reemplaza el objeto).
+	if item.quantity <= 0:
+		_on_close_button()
+		return
+	for slot: SlotItem in flow.get_children():
+		if slot.item_data == item:
+			_update_details(slot)
+			return
 
 
 ## Botón "Soltar" del detalle — nunca estaba conectado a nada (bug: no
@@ -247,8 +239,16 @@ func _on_barra_rapida_button():
 	GestorBarraRapida.asignar(indice, item)
 	_on_close_button()
 
+## remove_child() (desvincula DE INMEDIATO) + queue_free() (destruye recién
+## en un momento seguro) — nunca uno solo de los dos: con queue_free() solo,
+## los hijos viejos siguen en get_children() hasta el próximo fotograma,
+## así que un código que busca el slot nuevo justo después de refrescar()
+## (ver _on_use_button) podía toparse con el viejo todavía ahí (ver memoria
+## queue-free-vs-remove-child-godot; mismo bug ya corregido en
+## PanelDialogo._limpiar_opciones() y PanelTienda._limpiar_grilla()).
 func _clear_grid(_grid):
 	for child in _grid.get_children():
+		_grid.remove_child(child)
 		child.queue_free()
 
 func _clear_details():
@@ -288,49 +288,11 @@ func _update_details(item: SlotItem):
 	drop_action_button.text = "Desequipar" if item is EquipoSlot else "Soltar"
 
 
-## Pinta, debajo de la descripción, una fila por cada característica != 0
-## del ítem: primero "Vida" si es un consumible con curacion (ver
-## DatosItem.curacion), después cada bono de equipo != 0 (nombre pegado a
-## la izquierda, valor pegado a la derecha).
+## Delegado a Utils.llenar_caracteristicas_item (compartido con PanelTienda,
+## que necesita exactamente lo mismo al elegir un equipable propio para
+## vender — ver ese comentario para el detalle de qué pinta).
 func _actualizar_caracteristicas(item: DatosItem) -> void:
-	# free() inmediato (no queue_free): son nodos recién creados sin señales
-	# ni procesos pendientes, y así la lista queda consistente en el mismo
-	# fotograma en que se cambia de ítem seleccionado.
-	for hijo in vbox_caracteristicas.get_children():
-		hijo.free()
-	if item == null:
-		return
-	if item.curacion > 0.0:
-		_agregar_fila_caracteristica("Vida", item.curacion)
-	if item.bonos != null:
-		for par in ETIQUETAS_ATRIBUTOS:
-			var campo: String = par[0]
-			var etiqueta: String = par[1]
-			var valor: float = item.bonos.get(campo)
-			if valor == 0.0:
-				continue
-			_agregar_fila_caracteristica(etiqueta, valor)
-
-
-func _agregar_fila_caracteristica(etiqueta: String, valor: float) -> void:
-	var fila := HBoxContainer.new()
-	var nombre := Label.new()
-	nombre.text = etiqueta
-	nombre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var cantidad := Label.new()
-	cantidad.text = ("+%s" % _formatear_valor(valor)) if valor > 0.0 else _formatear_valor(valor)
-	cantidad.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	fila.add_child(nombre)
-	fila.add_child(cantidad)
-	vbox_caracteristicas.add_child(fila)
-
-
-## Evita el ".0" final en bonos con valor entero (10.0 -> "10"); conserva
-## decimales cuando el bono realmente los tiene (2.5 -> "2.5").
-func _formatear_valor(valor: float) -> String:
-	if valor == floor(valor):
-		return str(int(valor))
-	return str(valor)
+	Utils.llenar_caracteristicas_item(vbox_caracteristicas, item)
 
 func set_active_filter_button(button: Button):
 	all_filter_button.button_pressed = false

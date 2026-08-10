@@ -1,7 +1,13 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tema"]
 [ext_resource type="Script" path="res://escenas/ui/panel_tienda/PanelTienda.gd" id="1_tienda"]
+[ext_resource type="PackedScene" uid="uid://cp7vpuqjt24rq" path="res://escenas/ui/panel_os/paneles/inventario/SlotItem.tscn" id="2_slot"]
+[ext_resource type="PackedScene" uid="uid://detnq67ilbdn4" path="res://escenas/ui/panel_os/comunes/barra_desplazamiento_v/BarraDesplazamientoV.tscn" id="3_scrollv"]
+
+[sub_resource type="ButtonGroup" id="BG_comerciante"]
+
+[sub_resource type="ButtonGroup" id="BG_jugador"]
 
 [node name="PanelTienda" type="Control"]
 layout_mode = 3
@@ -14,49 +20,367 @@ mouse_filter = 2
 theme = ExtResource("1_tema")
 script = ExtResource("1_tienda")
 
-[node name="Fondo" type="PanelContainer" parent="."]
+[node name="Fondo" type="ColorRect" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -160.0
-offset_top = -140.0
-offset_right = 160.0
-offset_bottom = 140.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+color = Color(0.05882353, 0.05882353, 0.05882353, 1)
 
-[node name="VBox" type="VBoxContainer" parent="Fondo"]
-layout_mode = 2
-theme_override_constants/separation = 6
+[node name="Margin" type="MarginContainer" parent="Fondo"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
 
-[node name="Titulo" type="Label" parent="Fondo/VBox"]
+[node name="VBoxRaiz" type="VBoxContainer" parent="Fondo/Margin"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
+theme_override_constants/separation = 4
+
+[node name="Header" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Titulo" type="Label" parent="Fondo/Margin/VBoxRaiz/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
 text = "Tienda"
-horizontal_alignment = 1
 
-[node name="Creditos" type="Label" parent="Fondo/VBox"]
+[node name="Creditos" type="Label" parent="Fondo/Margin/VBoxRaiz/Header"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
-horizontal_alignment = 1
+theme_override_font_sizes/font_size = 14
 text = "0 créditos"
 
-[node name="ScrollContainer" type="ScrollContainer" parent="Fondo/VBox"]
-custom_minimum_size = Vector2(0, 160)
+[node name="BotonSalir" type="Button" parent="Fondo/Margin/VBoxRaiz/Header"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Salir"
+
+[node name="HSeparatorHeader" type="HSeparator" parent="Fondo/Margin/VBoxRaiz"]
+layout_mode = 2
+
+[node name="HBoxColumnas" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_constants/separation = 4
 
-[node name="Lista" type="VBoxContainer" parent="Fondo/VBox/ScrollContainer"]
+[node name="PanelComerciante" type="Panel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+
+[node name="Margin" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="TituloComerciante" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox"]
 unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Comerciante"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox"]
+layout_mode = 2
+
+[node name="TabsFiltro" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="FiltroComTodos" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox/TabsFiltro"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("BG_comerciante")
+text = "Todos"
+
+[node name="FiltroComEquipos" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox/TabsFiltro"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+toggle_mode = true
+button_group = SubResource("BG_comerciante")
+text = "Equipos"
+
+[node name="FiltroComConsumibles" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox/TabsFiltro"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+toggle_mode = true
+button_group = SubResource("BG_comerciante")
+text = "Consumibles"
+
+[node name="FiltroComRecursos" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox/TabsFiltro"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+toggle_mode = true
+button_group = SubResource("BG_comerciante")
+text = "Recursos"
+
+[node name="HBoxScroll" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox/HBoxScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="GrillaComerciante" type="FlowContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox/HBoxScroll/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="BarraDesplazamientoV" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante/Margin/VBox/HBoxScroll" node_paths=PackedStringArray("scroll_container") instance=ExtResource("3_scrollv")]
+layout_mode = 2
+scroll_container = NodePath("../ScrollContainer")
+
+[node name="PanelDetalle" type="Panel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(230, 0)
+layout_mode = 2
+
+[node name="Margin" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="IconoItem" type="TextureRect" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NombreItem" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "Seleccioná un ítem"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+layout_mode = 2
+
+[node name="ScrollDescripcion" type="ScrollContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBoxDescripcion" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/ScrollDescripcion"]
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="BotonSalir" type="Button" parent="Fondo/VBox"]
+[node name="TextoDescripcion" type="RichTextLabel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/ScrollDescripcion/VBoxDescripcion"]
 unique_name_in_owner = true
 layout_mode = 2
-text = "Salir"
+size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 11
+fit_content = true
+
+[node name="VBoxCaracteristicas" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/ScrollDescripcion/VBoxDescripcion"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="HSeparator2" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+layout_mode = 2
+
+[node name="FilaPrecio" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/FilaPrecio"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Precio:"
+
+[node name="ValorPrecio" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/FilaPrecio"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.4, 1)
+text = "-"
+horizontal_alignment = 2
+
+[node name="FilaCantidad" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Label" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/FilaCantidad"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cantidad:"
+
+[node name="BotonMenos" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/FilaCantidad"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "-"
+
+[node name="ValorCantidad" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/FilaCantidad"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(24, 0)
+layout_mode = 2
+text = "1"
+horizontal_alignment = 1
+
+[node name="BotonMas" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/FilaCantidad"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "+"
+
+[node name="BotonAccion" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+disabled = true
+text = "—"
+alignment = 1
+icon_alignment = 0
+expand_icon = true
+
+[node name="PanelJugador" type="Panel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+
+[node name="Margin" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="VBox" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Titulo" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+text = "Inventario"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="HSeparator" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox"]
+layout_mode = 2
+
+[node name="TabsFiltro" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox"]
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="FiltroInvTodos" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox/TabsFiltro"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+toggle_mode = true
+button_pressed = true
+button_group = SubResource("BG_jugador")
+text = "Todos"
+
+[node name="FiltroInvEquipos" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox/TabsFiltro"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+toggle_mode = true
+button_group = SubResource("BG_jugador")
+text = "Equipos"
+
+[node name="FiltroInvConsumibles" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox/TabsFiltro"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+toggle_mode = true
+button_group = SubResource("BG_jugador")
+text = "Consumibles"
+
+[node name="FiltroInvRecursos" type="Button" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox/TabsFiltro"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+toggle_mode = true
+button_group = SubResource("BG_jugador")
+text = "Recursos"
+
+[node name="HBoxScroll" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 2
+
+[node name="ScrollContainer" type="ScrollContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox/HBoxScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="GrillaJugador" type="FlowContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox/HBoxScroll/ScrollContainer"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="BarraDesplazamientoV" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador/Margin/VBox/HBoxScroll" node_paths=PackedStringArray("scroll_container") instance=ExtResource("3_scrollv")]
+layout_mode = 2
+scroll_container = NodePath("../ScrollContainer")

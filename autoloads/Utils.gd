@@ -235,6 +235,18 @@ func tienda_componente_local() -> TiendaComponente:
 	return null
 
 
+## Atajo: el InventarioComponente del jugador propio (ver jugador_local()) —
+## mismo criterio que mejoras_componente_local().
+func inventario_componente_local() -> InventarioComponente:
+	var jugador := jugador_local()
+	if jugador == null:
+		return null
+	for hijo in jugador.get_children():
+		if hijo is InventarioComponente:
+			return hijo
+	return null
+
+
 ## Atajo: el MisionesComponente del jugador propio (ver jugador_local()) —
 ## mismo criterio que mejoras_componente_local().
 func misiones_componente_local() -> MisionesComponente:
@@ -380,3 +392,112 @@ func cargar_config() -> void:
 	nombre_conexion   = config.get_value("conexion", "nombre", nombre_conexion)
 	pin_conexion      = config.get_value("conexion", "pin", pin_conexion)
 	mostrar_depuracion = config.get_value("conexion", "depuracion", mostrar_depuracion)
+
+
+## Espera hasta que la malla de navegación DEL NIVEL de "nodo" responda
+## consultas de verdad, no solo que exista — recién cargado un nivel, la
+## malla tarda unos physics_frame en terminar de bakear/sincronizar, y hasta
+## entonces cualquier consulta de posición devuelve Vector2.ZERO ("no
+## encontrado"). Extraído de SpawnerMobs (que ya esperaba esto antes de
+## generar cualquier mob) para que CUALQUIER enemigo "colocado a mano" en
+## una escena (ver EnemigoArañaReina, el único caso hoy — no pasa por
+## SpawnerMobs así que nunca tenía esta espera) pueda usar el mismo
+## mecanismo: reportado "no se mueve, no ataca" al pelear apenas se entra al
+## nivel, con la malla todavía sin sincronizar.
+##
+## OJO: map_get_iteration_id() != 0 NO basta, y "que el iteration_id no
+## cambie durante N físicas" TAMPOCO — en un nivel grande el motor hace
+## VARIAS pasadas de sincronización y se queda quieto ENTRE pasada y pasada
+## (en Pradera, el id se mantiene en 1 unas 7 físicas seguidas antes de
+## saltar a 2, la sincronización real) — cualquier contador de estabilidad
+## corto corta justo en esa meseta y cree estar listo. Por eso se le
+## pregunta a la malla lo único que de verdad importa: ¿ya contesta
+## consultas? (ver _malla_de_nivel_responde). Sin malla real (mundo sin
+## nivel, prueba aislada) vuelve enseguida.
+const FRAMES_ESPERA_MALLA := 90
+const _DISTANCIA_SONDA_MALLA := 1_000_000.0
+
+func esperar_malla_de_nivel_lista(nodo: Node) -> void:
+	# Ceder SIEMPRE al menos una física: llamar esto desde _ready() (el nodo
+	# todavía se está armando) y volver sin ningún await puede pisar código
+	# que asuma que ya pasó al menos un físico.
+	await nodo.get_tree().physics_frame
+	var mapa := GestorNiveles.mapa_navegacion_de(nodo)
+	var intentos := 0
+	while not _malla_de_nivel_responde(mapa) and intentos < FRAMES_ESPERA_MALLA:
+		await nodo.get_tree().physics_frame
+		intentos += 1
+
+
+func _malla_de_nivel_responde(mapa: RID) -> bool:
+	if NavigationServer2D.map_get_regions(mapa).is_empty():
+		return true
+	var sonda := Vector2(_DISTANCIA_SONDA_MALLA, _DISTANCIA_SONDA_MALLA)
+	return NavigationServer2D.map_get_closest_point(mapa, sonda) != Vector2.ZERO
+
+
+## Orden y etiqueta en español de cada campo de AtributosBase que se muestra
+## en el detalle de un ítem — extraído de PanelInventario (único dueño
+## original) porque PanelTienda necesita exactamente lo mismo al elegir un
+## equipable propio para vender. Solo se listan los bonos que el ítem
+## realmente aporta (valor != 0).
+const ETIQUETAS_ATRIBUTOS_ITEM := [
+	["danos", "Daños"],
+	["potencia", "Potencia"],
+	["impacto", "Impacto"],
+	["afliccion", "Aflicción"],
+	["impulso", "Impulso"],
+	["probabilidad_critico", "Prob. Crítico"],
+	["dano_critico", "Daño Crítico"],
+	["defensa", "Defensa"],
+	["tenacidad", "Tenacidad"],
+	["fortaleza", "Fortaleza"],
+	["resistencia_fisica", "Resist. Física"],
+	["resistencia_aire", "Resist. Aire"],
+	["resistencia_agua", "Resist. Agua"],
+	["resistencia_fuego", "Resist. Fuego"],
+	["resistencia_tierra", "Resist. Tierra"],
+]
+
+## Reconstruye, dentro de "vbox", una fila por cada característica != 0 de
+## "item": primero "Vida" si es un consumible con curación (ver DatosItem.
+## curacion), después cada bono de equipo != 0 (nombre a la izquierda,
+## valor a la derecha). free() inmediato (no queue_free): son filas nuevas
+## sin señales ni procesos pendientes, y así la lista queda consistente en
+## el mismo fotograma en que cambia el ítem seleccionado.
+func llenar_caracteristicas_item(vbox: VBoxContainer, item: DatosItem) -> void:
+	for hijo in vbox.get_children():
+		hijo.free()
+	if item == null:
+		return
+	if item.curacion > 0.0:
+		_agregar_fila_caracteristica_item(vbox, "Vida", item.curacion)
+	if item.bonos != null:
+		for par in ETIQUETAS_ATRIBUTOS_ITEM:
+			var campo: String = par[0]
+			var etiqueta: String = par[1]
+			var valor: float = item.bonos.get(campo)
+			if valor == 0.0:
+				continue
+			_agregar_fila_caracteristica_item(vbox, etiqueta, valor)
+
+
+func _agregar_fila_caracteristica_item(vbox: VBoxContainer, etiqueta: String, valor: float) -> void:
+	var fila := HBoxContainer.new()
+	var nombre := Label.new()
+	nombre.text = etiqueta
+	nombre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var cantidad := Label.new()
+	cantidad.text = ("+%s" % _formatear_valor_caracteristica(valor)) if valor > 0.0 else _formatear_valor_caracteristica(valor)
+	cantidad.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	fila.add_child(nombre)
+	fila.add_child(cantidad)
+	vbox.add_child(fila)
+
+
+## Evita el ".0" final en bonos con valor entero (10.0 -> "10"); conserva
+## decimales cuando el bono realmente los tiene (2.5 -> "2.5").
+func _formatear_valor_caracteristica(valor: float) -> String:
+	if valor == floor(valor):
+		return str(int(valor))
+	return str(valor)

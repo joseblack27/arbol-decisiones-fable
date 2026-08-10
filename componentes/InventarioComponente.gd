@@ -92,7 +92,7 @@ func usar_item(item: DatosItem) -> void:
 	# mixto (cura + energía) se usa si AL MENOS una de las dos falta.
 	if not _consumible_util(item):
 		return
-	_quitar_una_unidad(item)
+	quitar_cantidad(item, 1)
 	if item.curacion > 0.0:
 		_pedir_curacion(item.curacion)
 	if item.energia > 0.0:
@@ -126,16 +126,24 @@ func _consumible_util(item: DatosItem) -> bool:
 	return false
 
 
-## Siempre decrementa quantity de verdad (nunca la deja "atascada" en 1)
-## para que cualquiera que solo tenga una referencia al ítem — como una
-## casilla de la barra rápida de consumibles, que lo saca de "items" al
-## soltarlo ahí — pueda saber si se agotó mirando item.quantity <= 0, sin
-## depender de si sigue en esta lista o no. items.erase() es un no-op
-## inofensivo si el ítem no está acá (ya vive en una casilla rápida).
-func _quitar_una_unidad(item: DatosItem) -> void:
-	item.quantity -= 1
+## Saca "cantidad" unidades de un ítem apilado — generaliza lo que antes
+## era _quitar_una_unidad (cantidad=1, único caso que existía) para que
+## TiendaComponente.vender_item() pueda sacar de a varias unidades en una
+## sola operación. Siempre decrementa quantity de verdad (nunca la deja
+## "atascada" en 1) para que cualquiera que solo tenga una referencia al
+## ítem — como una casilla de la barra rápida de consumibles, que lo saca
+## de "items" al soltarlo ahí — pueda saber si se agotó mirando
+## item.quantity <= 0, sin depender de si sigue en esta lista o no.
+## items.erase() es un no-op inofensivo si el ítem no está acá (ya vive en
+## una casilla rápida). false sin tocar nada si no hay tanto como se pide
+## (venta/uso a medias no debería pasar nunca).
+func quitar_cantidad(item: DatosItem, cantidad: int) -> bool:
+	if item == null or cantidad <= 0 or item.quantity < cantidad:
+		return false
+	item.quantity -= cantidad
 	if item.quantity <= 0:
 		items.erase(item)
+	return true
 
 
 func _pedir_curacion(cantidad: float) -> void:
@@ -269,3 +277,64 @@ func _pedir_desbloqueo_pasiva_red(ruta_escena: String) -> void:
 	var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
 	if confirmaciones:
 		confirmaciones.rpc_id(jugador.peer_id_dueño, "_recibir_pasiva_red", ruta_escena)
+
+
+## Bug real reportado: "el botón de vender no hace nada". Causa: cargar
+## partida (o reconectarse) solo llena el ESPEJO del cliente (ver
+## GestorGuardado._recibir_partida_red) — a diferencia del equipo (ver
+## EquipoComponente._sincronizar_equipo_red) y las habilidades, el
+## inventario SUELTO nunca tenía un canal de vuelta al servidor. El
+## servidor AUTORITATIVO (el que de verdad valida "¿tenés esto?", ver
+## TiendaComponente.vender_item/_vender_local) se quedaba con "items"
+## VACÍO tras reconectar, aunque el cliente mostrara el inventario
+## completo — vender pedía el RPC bien, pero _buscar_por_recurso nunca
+## encontraba nada porque del lado del servidor no había nada que buscar.
+## Mismo patrón de "cliente manda su espejo, servidor lo toma como
+## verdadero" que ya usa el equipo — solo tiene sentido pedirlo UNA VEZ,
+## justo después de que GestorGuardado termina de llenar el espejo local
+## (no en cada agregar_item(): eso mandaría el inventario ENTERO por cada
+## ítem sumado, carísimo con inventarios grandes).
+func sincronizar_con_servidor() -> void:
+	if not Utils.en_red() or multiplayer.is_server():
+		return
+	var jugador := get_parent()
+	if not is_instance_valid(jugador) or not ("peer_id_dueño" in jugador):
+		return
+	if jugador.peer_id_dueño != multiplayer.get_unique_id():
+		return
+	var rutas: PackedStringArray = []
+	var cantidades: PackedInt32Array = []
+	for item: DatosItem in items:
+		if item == null or item.id_recurso == "":
+			continue
+		rutas.append(item.id_recurso)
+		cantidades.append(item.quantity)
+	rpc_id(1, "_pedir_sincronizar_red", rutas, cantidades)
+
+
+## SERVIDOR: mismas verificaciones de dueño que el resto de los RPC "pedir"
+## — reemplaza ENTERO el inventario autoritativo por lo que el cliente dice
+## tener. Confiar así en el cliente es el mismo criterio que ya usa
+## EquipoComponente._equipar_red: solo se acepta justo después de un
+## cargar-partida/reconexión (nunca en medio de una compra/venta/loot
+## normal, que siguen validándose contra el propio InventarioComponente del
+## servidor como siempre).
+@rpc("any_peer", "reliable")
+func _pedir_sincronizar_red(rutas: PackedStringArray, cantidades: PackedInt32Array) -> void:
+	if not multiplayer.is_server():
+		return
+	var jugador := get_parent()
+	if not jugador or not ("peer_id_dueño" in jugador):
+		return
+	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+		return
+	items.clear()
+	for i in rutas.size():
+		var ruta := rutas[i]
+		if ruta == "" or not ResourceLoader.exists(ruta):
+			continue
+		var item := load(ruta) as DatosItem
+		if item == null:
+			continue
+		var cantidad := cantidades[i] if i < cantidades.size() else 1
+		agregar_item(item, cantidad, true)

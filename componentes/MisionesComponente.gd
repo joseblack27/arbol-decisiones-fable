@@ -195,13 +195,54 @@ func _otorgar_recompensas(padre: Node, recompensas: DatosRecompensaMision) -> vo
 
 
 # =============================================================================
-# Abandonar — no necesita RPC: solo borra progreso PROPIO, no hay una
-# copia autoritativa distinta que validar contra (a diferencia de aceptar/
-# completar). Se aplica igual en cualquier contexto.
+# Abandonar
 # =============================================================================
 
 func abandonar_mision(id_mision: String) -> void:
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_pedir_abandonar_mision_red", id_mision)
+		return
+	_abandonar_mision_local(id_mision)
+
+
+## Bug real reportado: "después de abandonar una misión y volverla a
+## aceptar, no se deja aceptar de nuevo". Antes esto NO pasaba por RPC —
+## se creía (comentario viejo) que no hacía falta "copia autoritativa
+## distinta que validar", pero SÍ la hay: _aceptar_mision_local() rechaza
+## si progreso.has(id) es true, y ESE chequeo corre sobre la copia del
+## SERVIDOR. En un cliente real, abandonar sin RPC solo borraba la copia
+## LOCAL del cliente — el servidor seguía teniendo la entrada vieja, así
+## que el siguiente intento de aceptar (que sí pasa por RPC) se rechazaba
+## en silencio contra una misión que el cliente ya creía abandonada.
+## Mismo patrón que aceptar/completar: pedir-al-servidor + confirmar-de-
+## vuelta (ver ComponenteConfirmacionesRed._recibir_mision_abandonada_red).
+##
+## Emite mision_abandonada — antes esta función no avisaba nada porque
+## abandonar_mision() aplicaba sincrónico y quien llamaba (PanelMisiones)
+## refrescaba a mano enseguida. Ahora, en un cliente real, el borrado de
+## verdad llega recién con la confirmación del servidor (una vuelta de
+## red después) — sin esta señal, PanelMisiones refrescaría ANTES de que
+## la copia local se actualizara y seguiría mostrando la misión vieja.
+func _abandonar_mision_local(id_mision: String) -> void:
 	progreso.erase(id_mision)
+	var padre := get_parent()
+	if padre:
+		BusEventos.mision_abandonada.emit(padre, id_mision)
+
+
+@rpc("any_peer", "reliable")
+func _pedir_abandonar_mision_red(id_mision: String) -> void:
+	if not multiplayer.is_server():
+		return
+	var jugador := get_parent()
+	if not jugador or not ("peer_id_dueño" in jugador):
+		return
+	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+		return
+	_abandonar_mision_local(id_mision)
+	var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
+	if confirmaciones:
+		confirmaciones.rpc_id(jugador.peer_id_dueño, "_recibir_mision_abandonada_red", id_mision)
 
 
 # =============================================================================

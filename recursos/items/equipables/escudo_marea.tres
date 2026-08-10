@@ -16,6 +16,7 @@ script = ExtResource("1_scr")
 name = "Escudo de Marea"
 icon = ExtResource("2_ico")
 description = "Templado en agua salada. Frena el agua y el aire, pero el fuego lo resquebraja."
+valor = 85
 type = 3
 type_equippable = 9
 can_equip = true

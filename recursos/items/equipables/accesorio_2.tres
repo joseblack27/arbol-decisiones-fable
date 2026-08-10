@@ -13,6 +13,7 @@ script = ExtResource("1_scr")
 name = "Amuleto Antiguo"
 icon = ExtResource("2_ico")
 description = "Un amuleto con un extraño grabado."
+valor = 45
 type = 3
 type_equippable = 6
 can_equip = true

@@ -27,7 +27,14 @@ class_name PanelMisiones
 @onready var rewards_vbox:       VBoxContainer = $MarginContainer/HBox/PanelDetalleMision/MarginContainer/VBoxDetalle/ScrollContainer/VBoxContainer/ListaRecompensas
 @onready var track_button:       Button = $MarginContainer/HBox/PanelDetalleMision/MarginContainer/VBoxDetalle/ButtonBar/TrackButton
 @onready var abandon_button:     Button = $MarginContainer/HBox/PanelDetalleMision/MarginContainer/VBoxDetalle/ButtonBar/AbandonButton
-@onready var confirmar_abandonar: ConfirmationDialog = $ConfirmarAbandonar
+
+## Con nodos propios (no ConfirmationDialog) para que respete el tema del
+## juego en vez del estilo nativo de ventana del sistema — pedido explícito
+## del usuario, quedaba desentonado con el resto de la interfaz.
+@onready var confirmar_abandonar: Control = $ConfirmarAbandonar
+@onready var confirmar_abandonar_mensaje: Label = $ConfirmarAbandonar/PanelCentro/Margin/VBox/Mensaje
+@onready var confirmar_abandonar_boton_si: Button = $ConfirmarAbandonar/PanelCentro/Margin/VBox/Botones/BotonConfirmar
+@onready var confirmar_abandonar_boton_no: Button = $ConfirmarAbandonar/PanelCentro/Margin/VBox/Botones/BotonCancelar
 
 var _mision_actual: DatosMision = null
 var _filtro_actual: Enums.Mision.Estado = Enums.Mision.Estado.EN_PROGRESO
@@ -38,13 +45,16 @@ func _ready():
 	btn_missions_completed.pressed.connect(set_missions_button.bind(btn_missions_completed, Enums.Mision.Estado.COMPLETADA))
 	btn_missions_pending.pressed.connect(set_missions_button.bind(btn_missions_pending, Enums.Mision.Estado.DISPONIBLE))
 	abandon_button.pressed.connect(_on_abandon_pressed)
-	confirmar_abandonar.confirmed.connect(_on_abandonar_confirmado)
+	confirmar_abandonar_boton_si.pressed.connect(_on_abandonar_confirmado)
+	confirmar_abandonar_boton_no.pressed.connect(_on_abandonar_cancelado)
 
 	BusEventos.mision_aceptada.connect(_on_mision_cambiada)
 	BusEventos.mision_completada.connect(_on_mision_cambiada)
+	BusEventos.mision_abandonada.connect(_on_mision_cambiada)
 	BusEventos.mision_progreso_actualizado.connect(_on_progreso_actualizado)
 	GestorGuardado.partida_cargada.connect(refrescar)
 
+	clear()
 	refrescar()
 	set_missions_button(btn_missions_active, Enums.Mision.Estado.EN_PROGRESO)
 
@@ -95,11 +105,16 @@ func _on_button_clicked(mission_data: DatosMision):
 func _on_abandon_pressed() -> void:
 	if _mision_actual == null:
 		return
-	confirmar_abandonar.dialog_text = "¿Seguro que querés abandonar \"%s\"? Vas a perder el progreso de sus objetivos." % _mision_actual.titulo
-	confirmar_abandonar.popup_centered()
+	confirmar_abandonar_mensaje.text = "¿Seguro que querés abandonar \"%s\"? Vas a perder el progreso de sus objetivos." % _mision_actual.titulo
+	confirmar_abandonar.visible = true
+
+
+func _on_abandonar_cancelado() -> void:
+	confirmar_abandonar.visible = false
 
 
 func _on_abandonar_confirmado() -> void:
+	confirmar_abandonar.visible = false
 	if _mision_actual == null:
 		return
 	var misiones := Utils.misiones_componente_local()
@@ -175,6 +190,7 @@ func clear():
 	_clear_container(rewards_vbox)
 	abandon_button.visible = false
 	track_button.visible   = false
+	mission_detail_panel.visible = false
 
 
 func _update_objectives(mission: DatosMision):

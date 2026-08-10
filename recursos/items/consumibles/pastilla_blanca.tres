@@ -8,6 +8,7 @@ script = ExtResource("1_scr")
 name = "Píldora Blanca"
 icon = ExtResource("2_ico")
 quantity = 1
+valor = 8
 description = "Un calmante suave. Restaura algo de vida."
 type = 2
 type_equippable = 0

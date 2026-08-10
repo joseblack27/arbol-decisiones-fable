@@ -6,15 +6,17 @@
 # forma confiable de un fotograma al otro (comprobado a mano: texto.size
 # pasaba de (1, 20) a (794, 20) entre la primera y la segunda apertura).
 #
-# Se probaron varios arreglos (reset_size(), call_deferred, alto fijo +
-# ScrollContainer, clip_text) — el último si pasaba esta prueba, pero a
-# pedido explícito del usuario se revirtió TODO lo agregado después de los
-# íconos en los botones de opción: nada de tamaños fijos, Fondo vuelve a
-# depender solo de anchor_top/anchor_bottom + grow_vertical dinámico, como
-# antes de que existiera este bug. Esta prueba por lo tanto queda FALLANDO
-# a propósito por ahora (falla conocida y aceptada, no una regresión nueva)
-# hasta que el usuario la verifique en el cliente real o pida retomar el
-# arreglo.
+# Se probaron varios arreglos con números de píxeles fijos (reset_size(),
+# call_deferred, alto fijo + ScrollContainer, clip_text) — a pedido
+# explícito del usuario se revirtieron todos: nada de tamaños fijos,
+# rechazado de raíz como técnica para este panel (ver memoria
+# feedback_no_tamanos_fijos_panel_dialogo). El arreglo que quedó no toca
+# ningún tamaño: la causa real no era el tamaño en sí, sino que
+# PanelDialogo apagaba su layout con visible=false al cerrarse, y al
+# reabrir (visible=true) Texto medía su ancho "en frío" antes de que se
+# asentara. Ahora PanelDialogo.gd nunca toca "visible" — se oculta con
+# modulate/mouse_filter en su lugar, así el layout de Texto sigue
+# corriendo (y asentado) todo el tiempo, con diálogo abierto o cerrado.
 #   godot --headless --path . --script res://pruebas/prueba_dialogo_tamano_consistente_al_reabrir.gd
 # =============================================================================
 extends SceneTree

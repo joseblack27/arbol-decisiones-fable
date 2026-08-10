@@ -258,9 +258,69 @@ layout_mode = 2
 size_flags_horizontal = 3
 text = "Abandonar"
 
-[node name="ConfirmarAbandonar" type="ConfirmationDialog" parent="."]
-title = "Abandonar misión"
-initial_position = 1
-size = Vector2i(320, 120)
-ok_button_text = "Sí, abandonar"
-cancel_button_text = "Cancelar"
+[node name="ConfirmarAbandonar" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Fondo" type="ColorRect" parent="ConfirmarAbandonar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="PanelCentro" type="PanelContainer" parent="ConfirmarAbandonar"]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Margin" type="MarginContainer" parent="ConfirmarAbandonar/PanelCentro"]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="ConfirmarAbandonar/PanelCentro/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Titulo" type="Label" parent="ConfirmarAbandonar/PanelCentro/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Abandonar misión"
+horizontal_alignment = 1
+
+[node name="Mensaje" type="Label" parent="ConfirmarAbandonar/PanelCentro/Margin/VBox"]
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_vertical = 6
+autowrap_mode = 2
+
+[node name="Botones" type="HBoxContainer" parent="ConfirmarAbandonar/PanelCentro/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BotonCancelar" type="Button" parent="ConfirmarAbandonar/PanelCentro/Margin/VBox/Botones"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancelar"
+
+[node name="BotonConfirmar" type="Button" parent="ConfirmarAbandonar/PanelCentro/Margin/VBox/Botones"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Confirmar"

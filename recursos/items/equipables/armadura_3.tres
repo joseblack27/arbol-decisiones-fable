@@ -13,6 +13,7 @@ script = ExtResource("1_scr")
 name = "Armadura Reforzada"
 icon = ExtResource("2_ico")
 description = "Placas reforzadas, más pesadas pero más seguras."
+valor = 90
 type = 3
 type_equippable = 3
 can_equip = true

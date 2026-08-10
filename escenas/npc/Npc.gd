@@ -27,6 +27,8 @@ class_name Npc
 ## mision_objetivo, no esta lista.
 @export var misiones_ofrecidas: Array[DatosMision] = []
 
+@onready var _label_nombre: Label = %Nombre
+
 var _cuerpos_dentro: int = 0
 
 
@@ -57,3 +59,11 @@ func interactuar() -> void:
 	if datos_dialogo == null:
 		return
 	BusEventos.dialogo_solicitado.emit(self, datos_dialogo)
+
+
+## Nombre visible de este NPC — el mismo texto que ya muestra su cartel
+## flotante (Nombre en Npc.tscn), no un campo aparte: así PanelTienda titula
+## su columna de mercancía sin que haya dos lugares para mantener el mismo
+## nombre sincronizados.
+func nombre() -> String:
+	return _label_nombre.text

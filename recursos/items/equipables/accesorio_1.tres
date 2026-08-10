@@ -13,6 +13,7 @@ script = ExtResource("1_scr")
 name = "Anillo Sencillo"
 icon = ExtResource("2_ico")
 description = "Un anillo simple sin encantamientos aparentes."
+valor = 40
 type = 3
 type_equippable = 5
 can_equip = true

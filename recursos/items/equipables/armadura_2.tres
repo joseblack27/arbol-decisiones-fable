@@ -13,6 +13,7 @@ script = ExtResource("1_scr")
 name = "Armadura de Guardia"
 icon = ExtResource("2_ico")
 description = "Coraza resistente de un soldado raso."
+valor = 55
 type = 3
 type_equippable = 2
 can_equip = true

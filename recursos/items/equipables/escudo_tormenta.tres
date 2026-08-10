@@ -16,6 +16,7 @@ script = ExtResource("1_scr")
 name = "Escudo Tormenta"
 icon = ExtResource("2_ico")
 description = "Liviano y cargado de estática. Corta el aire y el fuego, pero cede al acero."
+valor = 60
 type = 3
 type_equippable = 9
 can_equip = true

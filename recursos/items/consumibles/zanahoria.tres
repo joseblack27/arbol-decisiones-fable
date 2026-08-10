@@ -8,6 +8,7 @@ script = ExtResource("1_scr")
 name = "Zanahoria"
 icon = ExtResource("2_ico")
 quantity = 2
+valor = 5
 description = "Comida sencilla. Restaura un poco de vida."
 type = 2
 can_use = true

@@ -5,6 +5,12 @@ class_name DatosItem
 @export var icon: Texture2D
 @export var quantity: int = 1
 
+## Base para vender este ítem de vuelta a un comerciante (ver TiendaComponente
+## .vender_item, PORCENTAJE_VENTA) — NO es el precio de compra, eso lo define
+## cada NPC por separado en su propio DatosTienda/ItemTienda.precio. 0 = no se
+## le puede vender a ningún comerciante (ítems de misión, por ejemplo).
+@export var valor: int = 0
+
 @export var description: String = ""
 
 # 0=NINGUNO,1=TODOS,2=CONSUMIBLE,3=EQUIPABLE,4=RECURSO,5=MISION,6=ARMA

@@ -8,6 +8,7 @@ script = ExtResource("1_scr")
 name = "Jeringa de Adrenalina"
 icon = ExtResource("2_ico")
 quantity = 1
+valor = 20
 description = "Inyección de emergencia: restaura energía de golpe."
 type = 2
 type_equippable = 0
