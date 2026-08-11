@@ -12,18 +12,21 @@ class_name EnemigoEsqueletoArquero
 # Lo que SÍ es específico de este mob y vive acá: la reacción cuando el
 # jugador invade su espacio (distancia_peligro). Mientras siga así de
 # cerca, cada _INTERVALO_DECISION segundos tira una moneda 50/50:
-#   - Cadencia rápida: dispara más seguido durante esa ventana.
+#   - Cadencia rápida: dispara más seguido durante esa ventana — HabilidadBT
+#     Cadencia Rápida propia (ver Habilidades/HabilidadCadenciaRapida),
+#     activada directo acá (no por SelectorHabilidades: es una reacción del
+#     propio mob, no una habilidad elegida por rango/prioridad entre
+#     varias), con su propio ícono sobre el mob mientras dure.
 #   - Retirada: dash en línea recta en dirección CONTRARIA al jugador
 #     (hasta _DISTANCIA_RETIRADA), y vuelve a atacar normal apenas termina.
-# No pasa por el sistema de Habilidad/SelectorHabilidades (no es una
-# habilidad seleccionable por rango/cooldown, es un reflejo aparte) — se
-# implementa acá con el mismo patrón de "tomar control directo del
-# movimiento" que ya usa HabilidadCarga durante su dash: se avisa
-# "ataque_en_curso" a la memoria (para que AccionAtacar suelte el comando
-# de movimiento sin pelear por él) y se mueve el cuerpo directo con
-# componente_movimiento.physics_process(), con el mismo chequeo de
-# contener_dentro_del_mapa() que ya usan los otros dashes rápidos del
-# juego contra el tuneleo en los bordes del mapa.
+#     Esta sí es un reflejo aparte, no una habilidad — se implementa acá con
+#     el mismo patrón de "tomar control directo del movimiento" que ya usa
+#     HabilidadCarga durante su dash: se avisa "ataque_en_curso" a la
+#     memoria (para que AccionAtacar suelte el comando de movimiento sin
+#     pelear por él) y se mueve el cuerpo directo con componente_
+#     movimiento.physics_process(), con el mismo chequeo de contener_
+#     dentro_del_mapa() que ya usan los otros dashes rápidos del juego
+#     contra el tuneleo en los bordes del mapa.
 # =============================================================================
 
 ## Distancia por debajo de la cual el jugador se considera "demasiado
@@ -33,28 +36,19 @@ class_name EnemigoEsqueletoArquero
 @export var distancia_peligro: float = 120.0
 
 const _INTERVALO_DECISION := 5.0
-## "Aumenta la cadencia un 50%" = dispara 1.5x más seguido = el intervalo
-## entre disparos (duracion_recuperacion) se divide por 1.5.
-const _MULTIPLICADOR_CADENCIA := 1.5
 ## Cuánto retrocede en el dash. 200 px a pedido del usuario (antes 400): con
 ## el salto largo se despegaba demasiado y costaba volver a alcanzarlo.
 const _DISTANCIA_RETIRADA := 200.0
 const _VELOCIDAD_RETIRADA := 350.0
 
-@onready var _accion_atacar: AccionAtacar = $ArbolComportamiento/Selector/Atacar
+@onready var _habilidad_cadencia_rapida: HabilidadCadenciaRapidaArquero = $Habilidades/HabilidadCadenciaRapida
 
-var _duracion_recuperacion_normal: float = 0.0
 var _tiempo_restante_decision: float = 0.0
 var _estaba_cerca := false
 
 var _en_retirada := false
 var _direccion_retirada := Vector2.ZERO
 var _retirada_recorrida: float = 0.0
-
-
-func _ready() -> void:
-	super._ready()
-	_duracion_recuperacion_normal = _accion_atacar.duracion_recuperacion
 
 
 func _physics_process(delta: float) -> void:
@@ -86,7 +80,7 @@ func _actualizar_reaccion_cercania(delta: float) -> void:
 	if not jugador_cerca:
 		if _estaba_cerca:
 			_estaba_cerca = false
-			_restablecer_cadencia_normal()
+			_habilidad_cadencia_rapida.desactivar()
 		return
 
 	# Primera vez que se detecta "demasiado cerca": reacciona YA, no espera
@@ -102,24 +96,19 @@ func _actualizar_reaccion_cercania(delta: float) -> void:
 		_decidir_reaccion(objetivo_raw as Node2D)
 
 
+## Moneda 50/50 entre cadencia rápida y retirada (ver comentario de clase).
+const _PROBABILIDAD_CADENCIA_RAPIDA := 0.5
+
 func _decidir_reaccion(objetivo: Node2D) -> void:
-	# Reset primero: cada ventana de 5s es independiente de la anterior —
-	# si la vez pasada tocó cadencia rápida y esta vez toca retirada, no
-	# debe quedar la cadencia rápida pegada (pedido explícito: tras la
-	# retirada "sigue atacando normal hasta la próxima probabilidad").
-	_restablecer_cadencia_normal()
-	if randf() < 0.5:
-		_activar_cadencia_rapida()
+	if randf() < _PROBABILIDAD_CADENCIA_RAPIDA:
+		_habilidad_cadencia_rapida.activar()
 	else:
+		# Cada ventana de 5s es independiente de la anterior — si la vez
+		# pasada tocó cadencia rápida y esta vez toca retirada, no debe
+		# quedar la cadencia rápida pegada (pedido explícito: tras la
+		# retirada "sigue atacando normal hasta la próxima probabilidad").
+		_habilidad_cadencia_rapida.desactivar()
 		_iniciar_retirada(objetivo)
-
-
-func _activar_cadencia_rapida() -> void:
-	_accion_atacar.duracion_recuperacion = _duracion_recuperacion_normal / _MULTIPLICADOR_CADENCIA
-
-
-func _restablecer_cadencia_normal() -> void:
-	_accion_atacar.duracion_recuperacion = _duracion_recuperacion_normal
 
 
 # =============================================================================
@@ -140,6 +129,15 @@ func _iniciar_retirada(objetivo: Node2D) -> void:
 	# comando de movimiento sin pelear por él mientras este dash lo maneja
 	# directo (ver comentario de clase).
 	memoria.establecer("ataque_en_curso", true)
+	# Enemigo._aplicar_presentacion() deja de tocar debeCaminar/debeIdle
+	# mientras ataque_en_curso sea true (ver ese comentario — lo agregó
+	# HabilidadFlechaArquero para no pelear con su propia pose de ataque),
+	# así que durante la retirada hay que ponerlos a mano acá: sigue siendo
+	# un dash normal, tiene que verse caminando/corriendo, no quedarse
+	# pegado en la pose que tuviera un fotograma antes de arrancar.
+	if componente_animacion:
+		componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", true)
+		componente_animacion.establecer_condicion("parameters/conditions/debeIdle", false)
 
 
 func _procesar_retirada(delta: float) -> void:

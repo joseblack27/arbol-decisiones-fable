@@ -4,13 +4,8 @@
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="2_rhsv4"]
 [ext_resource type="PackedScene" uid="uid://nxtblnos5iwa" path="res://escenas/habilidades/area_efecto/HabilidadAreaEfecto.tscn" id="3_esc"]
 [ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="ec_base"]
-[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="ec_tabla"]
 [ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="ec_escalado"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_e3lqg"]
-atlas = ExtResource("2_drs2c")
-region = Rect2(448, 128, 32, 32)
-filter_clip = true
+[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="ec_tabla"]
 
 [sub_resource type="Resource" id="Resource_dano_min"]
 script = ExtResource("ec_tabla")
@@ -24,8 +19,11 @@ campo = 1
 [sub_resource type="Resource" id="Resource_escalado"]
 script = ExtResource("ec_escalado")
 campos = Array[ExtResource("ec_base")]([SubResource("Resource_dano_min"), SubResource("Resource_dano_max")])
-nivel_maximo = 5
-costo_puntos_por_nivel = 1
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_e3lqg"]
+atlas = ExtResource("2_drs2c")
+region = Rect2(448, 128, 32, 32)
+filter_clip = true
 
 [resource]
 script = ExtResource("2_rhsv4")

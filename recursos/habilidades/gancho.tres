@@ -10,13 +10,10 @@
 [sub_resource type="Resource" id="Resource_rango"]
 script = ExtResource("5_porcentaje")
 campo = 4
-porcentaje_por_nivel = 0.10
 
 [sub_resource type="Resource" id="Resource_escalado"]
 script = ExtResource("6_escalado")
 campos = Array[ExtResource("4_base")]([SubResource("Resource_rango")])
-nivel_maximo = 5
-costo_puntos_por_nivel = 1
 
 [resource]
 script = ExtResource("1_dh")

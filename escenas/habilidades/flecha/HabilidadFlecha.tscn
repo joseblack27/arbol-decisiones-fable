@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3]
 
-[ext_resource type="Script" uid="uid://cmvtumtuaysdj" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="1_hab"]
+[ext_resource type="Script" path="res://escenas/habilidades/flecha/HabilidadFlechaArquero.gd" id="1_hab"]
 [ext_resource type="PackedScene" path="res://escenas/habilidades/flecha/ProyectilFlecha.tscn" id="2_proy"]
 
 [node name="HabilidadFlecha" type="Node"]

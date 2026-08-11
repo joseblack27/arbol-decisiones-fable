@@ -1,7 +1,7 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://23jf7xxwpfjb"]
 
-[ext_resource type="Script" path="res://escenas/npc/Npc.gd" id="1_npc"]
-[ext_resource type="Texture2D" path="res://icon.svg" id="2_icon"]
+[ext_resource type="Script" uid="uid://dxhxcqb2d4y0e" path="res://escenas/npc/Npc.gd" id="1_npc"]
+[ext_resource type="Texture2D" uid="uid://dcbiv2e8aj1e4" path="res://assets/sprites/comerciante.png" id="2_tlcwb"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_npc"]
 radius = 40.0
@@ -15,7 +15,8 @@ script = ExtResource("1_npc")
 shape = SubResource("CircleShape2D_npc")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-texture = ExtResource("2_icon")
+position = Vector2(0, -16)
+texture = ExtResource("2_tlcwb")
 
 [node name="Nombre" type="Label" parent="."]
 unique_name_in_owner = true

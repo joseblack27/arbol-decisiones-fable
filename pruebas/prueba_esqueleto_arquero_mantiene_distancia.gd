@@ -33,9 +33,17 @@ func _process(_delta: float) -> bool:
 		2:
 			_distancia_inicial = _mob.global_position.distance_to(_jugador.global_position)
 			_vida_inicial = _jugador.componente_vida.obtener_vida()
-		# 6s de combate (360 fotogramas a 60fps): tiempo de sobra para
-		# acercarse a rango y disparar varias veces (cooldown 2s).
-		360:
+		# ~14s de combate (840 fotogramas a 60fps): tiempo de sobra para
+		# acercarse a rango y disparar varias veces. HabilidadFlechaArquero
+		# ya no dispara instantáneo (ver esa clase): aim (0.25s) + pose
+		# quieto antes del disparo (duracion_pose_ataque=1.2s) + vuelo de la
+		# flecha + recuperación COMPLETA recién arrancada después de la pose
+		# (AccionAtacar reinicia _fin_recuperacion al soltar "ataque_en_
+		# curso" — ver el comentario de esa clase) suman bastante más que
+		# los 2s de cooldown de antes por ciclo; 6s alcanzaba a duras penas
+		# para UN solo impacto y la prueba salía intermitente según cuánto
+		# tardara cada fotograma en tiempo real bajo --headless.
+		840:
 			return _informar()
 	return false
 

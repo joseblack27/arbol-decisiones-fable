@@ -346,12 +346,24 @@ func _aplicar_presentacion(caminando: bool) -> void:
 		habilidades.rotation = hacia_donde_mirar.angle()
 
 	if componente_animacion:
-		componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", caminando)
-		componente_animacion.establecer_condicion("parameters/conditions/debeIdle",    not caminando)
+		# Mientras dure un ataque con fases propias (p. ej. la pose del
+		# Esqueleto Arquero o la mordida del Lobo, ver memoria["ataque_en_
+		# curso"]), ESA habilidad es dueña de debeCaminar/debeIdle — este
+		# bloque corre TODOS los fotogramas y, sin este chequeo, pisaba
+		# debeIdle a true cada vez (el mob está quieto = caminando=false)
+		# justo encima del debeIdle=false que la habilidad acababa de poner,
+		# y el árbol de animación parpadeaba entre IDLE y su propio estado
+		# (reportado con el arquero: "parpadeando entre idle y atacar").
+		if not memoria.obtener("ataque_en_curso", false):
+			componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", caminando)
+			componente_animacion.establecer_condicion("parameters/conditions/debeIdle",    not caminando)
 		# El sprite se orienta con la MIRADA de combate cuando existe
 		# (quieto entre ataques o kiteando debe VERSE mirando al objetivo);
 		# fuera de combate, direccion_mirada es ZERO y cae a la dirección
-		# de paseo/huida de siempre.
+		# de paseo/huida de siempre. Esto sí sigue corriendo durante un
+		# ataque en curso: mantiene el blend space (incluido uno propio
+		# como ATACAR, si está en params_blend_adicionales) orientado hacia
+		# el objetivo.
 		componente_animacion.actualizar_blend(hacia_donde_mirar)
 
 

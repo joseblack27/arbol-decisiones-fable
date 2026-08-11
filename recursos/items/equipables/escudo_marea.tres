@@ -1,22 +1,22 @@
-[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3]
+[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3 uid="uid://dffil22iikbgo"]
 
 [ext_resource type="Script" uid="uid://j6y1rt5twmvl" path="res://recursos/items/DatosItem.gd" id="1_scr"]
-[ext_resource type="Texture2D" path="res://assets/items/equippables/escudo_marea.png" id="2_ico"]
+[ext_resource type="Texture2D" uid="uid://c16muohcm0k6k" path="res://assets/items/equippables/escudo_marea.png" id="2_ico"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="3_atr"]
 
 [sub_resource type="Resource" id="AtributosBase_bonos"]
 script = ExtResource("3_atr")
 defensa = 6.0
-resistencia_agua = 30.0
 resistencia_aire = 12.0
+resistencia_agua = 30.0
 resistencia_fuego = -25.0
 
 [resource]
 script = ExtResource("1_scr")
 name = "Escudo de Marea"
 icon = ExtResource("2_ico")
-description = "Templado en agua salada. Frena el agua y el aire, pero el fuego lo resquebraja."
 valor = 85
+description = "Templado en agua salada. Frena el agua y el aire, pero el fuego lo resquebraja."
 type = 3
 type_equippable = 9
 can_equip = true

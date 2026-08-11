@@ -4,32 +4,30 @@
 [ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_iconos"]
 [ext_resource type="PackedScene" uid="uid://1si68levmhyl" path="res://escenas/habilidades/acumulacion/HabilidadAcumulacion.tscn" id="3_esc"]
 [ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="ec_base"]
-[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="ec_tabla"]
 [ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="ec_escalado"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_acumulacion"]
-atlas = ExtResource("2_iconos")
-region = Rect2(352, 0, 32, 32)
+[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="ec_tabla"]
 
 [sub_resource type="Resource" id="Resource_recarga"]
 script = ExtResource("ec_tabla")
-campo = 2
 valores_por_nivel = Array[float]([18.0, 18.0, 18.0, 18.0, 18.0])
+campo = 2
 
 [sub_resource type="Resource" id="Resource_escalado"]
 script = ExtResource("ec_escalado")
 campos = Array[ExtResource("ec_base")]([SubResource("Resource_recarga")])
-nivel_maximo = 5
-costo_puntos_por_nivel = 1
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_acumulacion"]
+atlas = ExtResource("2_iconos")
+region = Rect2(352, 0, 32, 32)
 
 [resource]
 script = ExtResource("1_dh")
 nombre = "Acumulación"
 icono = SubResource("AtlasTexture_acumulacion")
 descripcion = "Activala para empezar a acumular el daño que recibís durante hasta {duracion} segundos (o hasta que la vuelvas a usar) y detona {valor1} de lo acumulado alrededor tuyo"
+categoria = 3
 escena = ExtResource("3_esc")
 nivel = 1
 costo_energia = 20
 enfriamiento = 18.0
-categoria = 3
 escalado = SubResource("Resource_escalado")
