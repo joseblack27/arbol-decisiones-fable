@@ -1,15 +1,9 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://bhgax8xll1ibj"]
 
-[ext_resource type="Script" path="res://escenas/habilidades/trampa/HabilidadTrampa.gd" id="1_htrampa"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/trampa/Trampa.tscn" id="2_trampa"]
+[ext_resource type="Script" uid="uid://cpa8e8gj5g18a" path="res://escenas/habilidades/trampa/HabilidadTrampa.gd" id="1_htrampa"]
 
 [node name="HabilidadTrampa" type="Node"]
 script = ExtResource("1_htrampa")
-escena_trampa = ExtResource("2_trampa")
-radio_deteccion = 15.0
-radio_dano = 30.0
-dano_trampa = 45.0
-duracion_maxima = 20.0
 nombre_habilidad = "Trampa"
 duracion_recarga = 6.0
 costo_energia = 20.0

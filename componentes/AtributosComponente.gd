@@ -46,15 +46,23 @@ static var ultimo_pipeline_critico := false
 var _base_sin_equipo: AtributosBase
 
 
-## Bonos de daño TEMPORALES (buffs de tiempo limitado, p. ej. HabilidadBuff
-## Equipo) — a propósito NO viven en "base": recalcular_con_equipo()
-## sobreescribe "base" entero desde _base_sin_equipo cada vez que cambia el
-## equipo (ver ese método), así que cualquier bono temporal sumado ahí se
-## perdía apenas alguien reequipaba algo mientras el buff seguía activo.
-## Viven aparte, se evalúan al calcular daño (ver calcular_dano_saliente) y
-## se quitan solos al vencer — nunca hace falta "restar" nada a mano.
+## Bonos TEMPORALES (buffs de tiempo limitado, p. ej. HabilidadBuffEquipo o
+## HabilidadSacrificio) — a propósito NO viven en "base": recalcular_con_
+## equipo() sobreescribe "base" entero desde _base_sin_equipo cada vez que
+## cambia el equipo (ver ese método), así que cualquier bono temporal
+## sumado ahí se perdía apenas alguien reequipaba algo mientras el buff
+## seguía activo. Viven aparte, se evalúan al calcular daño (ver
+## calcular_dano_saliente) y se quitan solos al vencer — nunca hace falta
+## "restar" nada a mano.
+## Generalizado desde la versión original (solo "danos", para Grito de
+## Guerra) — pedido del usuario para Sacrificio, que además de daño
+## temporal necesita potencia/crítico temporales, y por el mismo motivo de
+## arriba NINGUNO de los tres puede vivir en "base".
 class BonoTemporal:
 	var danos: float = 0.0
+	var potencia: float = 0.0
+	var probabilidad_critico: float = 0.0
+	var dano_critico: float = 0.0
 	var tiempo_restante: float = 0.0
 
 var _bonos_temporales: Dictionary[String, BonoTemporal] = {}
@@ -79,14 +87,20 @@ func _process(delta: float) -> void:
 		bono_dano_cambiado.emit(obtener_bono_dano_temporal())
 
 
-## Agrega (o renueva) un bono de daño plano temporal identificado por "id"
-## — reactivar el mismo buff antes de que venza el anterior renueva la
+## Agrega (o renueva) un bono TEMPORAL identificado por "id" a cualquier
+## combinación de danos/potencia/probabilidad_critico/dano_critico —
+## reactivar el mismo buff antes de que venza el anterior renueva la
 ## duración en vez de sumarse dos veces (mismo criterio que BuffsComponente
-## .agregar()).
-func agregar_bono_dano_temporal(id: String, danos: float, duracion: float) -> void:
+## .agregar()). Antes se llamaba agregar_bono_dano_temporal() y solo
+## aceptaba "danos" (para Grito de Guerra) — generalizado para Sacrificio.
+func agregar_bono_temporal(id: String, danos: float = 0.0, potencia: float = 0.0,
+		probabilidad_critico: float = 0.0, dano_critico: float = 0.0, duracion: float = 0.0) -> void:
 	var bono: BonoTemporal = _bonos_temporales.get(id, BonoTemporal.new())
-	bono.danos            = danos
-	bono.tiempo_restante  = duracion
+	bono.danos                = danos
+	bono.potencia              = potencia
+	bono.probabilidad_critico  = probabilidad_critico
+	bono.dano_critico          = dano_critico
+	bono.tiempo_restante       = duracion
 	_bonos_temporales[id] = bono
 	bono_dano_cambiado.emit(obtener_bono_dano_temporal())
 
@@ -99,6 +113,31 @@ func obtener_bono_dano_temporal() -> float:
 	var total := 0.0
 	for bono in _bonos_temporales.values():
 		total += (bono as BonoTemporal).danos
+	return total
+
+
+## Mismo criterio que obtener_bono_dano_temporal(), para potencia — usado
+## por calcular_dano_saliente()/vista_previa() y PanelTablero.
+func obtener_bono_potencia_temporal() -> float:
+	var total := 0.0
+	for bono in _bonos_temporales.values():
+		total += (bono as BonoTemporal).potencia
+	return total
+
+
+## Ídem, para probabilidad de crítico.
+func obtener_bono_probabilidad_critico_temporal() -> float:
+	var total := 0.0
+	for bono in _bonos_temporales.values():
+		total += (bono as BonoTemporal).probabilidad_critico
+	return total
+
+
+## Ídem, para daño crítico.
+func obtener_bono_dano_critico_temporal() -> float:
+	var total := 0.0
+	for bono in _bonos_temporales.values():
+		total += (bono as BonoTemporal).dano_critico
 	return total
 
 
@@ -224,18 +263,21 @@ func calcular_dano_saliente(
 		return dano_base
 
 	# 1. Bonus plano (base de fábrica+equipo, más cualquier buff temporal
-	# activo — ver _bono_dano_temporal_total)
+	# activo — ver obtener_bono_dano_temporal)
 	var total: float = dano_base + base.danos + obtener_bono_dano_temporal()
 
-	# 2. Multiplicador de potencia
-	total *= 1.0 + base.potencia / 100.0
+	# 2. Multiplicador de potencia (base + cualquier buff temporal, ej.
+	# HabilidadSacrificio)
+	total *= 1.0 + (base.potencia + obtener_bono_potencia_temporal()) / 100.0
 
 	# 3. Crítico: base x1.2 SIEMPRE que acierta (ver MULTIPLICADOR_CRITICO_
-	# BASE) + el dano_critico visible del personaje encima.
+	# BASE) + el dano_critico visible del personaje encima (ambos, base +
+	# cualquier buff temporal).
 	ultimo_golpe_critico = false
-	if base.probabilidad_critico > 0.0 and randf() * 100.0 < base.probabilidad_critico:
+	var prob_critico_total: float = base.probabilidad_critico + obtener_bono_probabilidad_critico_temporal()
+	if prob_critico_total > 0.0 and randf() * 100.0 < prob_critico_total:
 		ultimo_golpe_critico = true
-		total *= MULTIPLICADOR_CRITICO_BASE + base.dano_critico / 100.0
+		total *= MULTIPLICADOR_CRITICO_BASE + (base.dano_critico + obtener_bono_dano_critico_temporal()) / 100.0
 
 	return maxf(0.0, total)
 

@@ -1,4 +1,4 @@
-[gd_scene load_steps=63 format=3 uid="uid://d1042g45vblt7"]
+[gd_scene load_steps=68 format=3 uid="uid://d1042g45vblt7"]
 
 [ext_resource type="Resource" uid="uid://cbkkggbjn6q82" path="res://recursos/enemigos/CaballeroEsqueleto.tres" id="0_datos"]
 [ext_resource type="Script" uid="uid://clnx7q65b85bh" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.gd" id="0_script_caballero"]
@@ -21,14 +21,18 @@
 [ext_resource type="Texture2D" uid="uid://cgo4ablx73def" path="res://assets/skeleton-removebg-preview.png" id="18_qwpms"]
 [ext_resource type="PackedScene" uid="uid://dtw6fvi03aau8" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="26_6jhm3"]
 [ext_resource type="PackedScene" uid="uid://cwna41dn0homy" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
+[ext_resource type="Resource" uid="uid://bnmuhpm1lfsy1" path="res://recursos/habilidades/carga_jugador.tres" id="29_25upl"]
 [ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
 [ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
 [ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
 [ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
+[ext_resource type="Resource" uid="uid://s084jiq5htdd" path="res://recursos/habilidades/arañazo_caballero.tres" id="datos_arañazo_caballero"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/escudo_marea.tres" id="esc_escudo_marea"]
+[ext_resource type="Resource" uid="uid://dffil22iikbgo" path="res://recursos/items/equipables/escudo_marea.tres" id="esc_escudo_marea"]
+[ext_resource type="Script" uid="uid://dpmk0trobb2ea" path="res://escenas/habilidades/furia/HabilidadFuriaGuerrero.gd" id="habilidad_furia"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="iconos_habilidades_furia"]
 
 [sub_resource type="Resource" id="Resource_qwpms"]
 script = ExtResource("3_3v04n")
@@ -43,6 +47,12 @@ metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 [sub_resource type="Resource" id="Resource_rjqlh"]
 script = ExtResource("3_3v04n")
 item = ExtResource("6_0wona")
+metadata/_custom_type_script = "uid://bvgbk1t37ev53"
+
+[sub_resource type="Resource" id="Loot_escudo_marea"]
+script = ExtResource("3_3v04n")
+item = ExtResource("esc_escudo_marea")
+probabilidad = 0.15
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
@@ -292,6 +302,10 @@ radius = 200.30228
 [sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
 radius = 8.0
 
+[sub_resource type="AtlasTexture" id="AtlasTexture_furia"]
+atlas = ExtResource("iconos_habilidades_furia")
+region = Rect2(160, 0, 32, 32)
+
 [sub_resource type="Resource" id="Resource_atributos"]
 resource_local_to_scene = true
 script = ExtResource("34_iuxaj")
@@ -301,12 +315,6 @@ resistencia_fisica = 10.0
 resistencia_fuego = -20.0
 resistencia_tierra = 20.0
 metadata/_custom_type_script = "uid://ddhq5qxvccml7"
-
-[sub_resource type="Resource" id="Loot_escudo_marea"]
-script = ExtResource("3_3v04n")
-item = ExtResource("esc_escudo_marea")
-probabilidad = 0.15
-metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [node name="EnemigoCaballeroEsqueleto" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
 motion_mode = 1
@@ -458,7 +466,7 @@ nombre_nodo = "(Acción) Deambular"
 [node name="Habilidades" type="Marker2D" parent="."]
 
 [node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("26_6jhm3")]
-daño = 47.0
+datos = ExtResource("datos_arañazo_caballero")
 
 [node name="HabilidadCarga" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
 duracion_preparacion = 1.0
@@ -467,6 +475,13 @@ multiplicador_velocidad_carga = 3.0
 distancia_maxima_dash = 200.0
 componente_movimiento = NodePath("../../MovimientoComponente")
 duracion_recarga = 5.0
+datos = ExtResource("29_25upl")
+
+[node name="HabilidadFuria" type="Node" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento")]
+script = ExtResource("habilidad_furia")
+icono_buff = SubResource("AtlasTexture_furia")
+componente_movimiento = NodePath("../../MovimientoComponente")
+costo_energia = 15.0
 
 [node name="AtributosComponente" type="Node" parent="."]
 script = ExtResource("33_d76rf")

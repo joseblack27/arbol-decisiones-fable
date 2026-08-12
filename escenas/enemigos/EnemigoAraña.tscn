@@ -36,6 +36,7 @@
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
 [ext_resource type="Resource" path="res://recursos/enemigos/Arana.tres" id="0_datos_arana"]
 [ext_resource type="Resource" path="res://recursos/items/equipables/escudo_roca.tres" id="esc_escudo_roca"]
+[ext_resource type="Resource" path="res://recursos/habilidades/arañazo_araña.tres" id="datos_arañazo_araña"]
 
 [sub_resource type="Resource" id="Resource_vdkck"]
 script = ExtResource("2_qvumm")
@@ -845,9 +846,7 @@ tipo_dano = 0
 daño_proyectil = 47.0
 
 [node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("24_2vgoe")]
-tipo_dano = 0
-daño = 47.0
-costo_energia = 20.0
+datos = ExtResource("datos_arañazo_araña")
 
 [node name="AtributosComponente" type="Node" parent="."]
 script = ExtResource("21_araña")

@@ -17,8 +17,10 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 		push_error("HabilidadArañazo: escena_golpe debe ser de tipo Arañazo")
 		return
 	var frente := direccion if direccion.length() > 0.1 else Vector2.RIGHT
-	golpe.global_position = entidad_dueña.global_position + frente * alcance_golpe
+	var posicion: Vector2 = (entidad_dueña as Node2D).global_position + frente * alcance_golpe
+	golpe.global_position = posicion
 	golpe.configurar(_calcular_dano(int(daño)), radio_golpe, entidad_dueña, duracion_golpe, tipo_dano)
+	_mostrar_indicador_golpe(posicion)
 
 
 func aplicar_datos(d: DatosHabilidad) -> void:

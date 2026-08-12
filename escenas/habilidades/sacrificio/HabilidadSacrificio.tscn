@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3 uid="uid://ge357fcxp8j3"]
+
+[ext_resource type="Script" uid="uid://x4l1nt54sc1t" path="res://escenas/habilidades/sacrificio/HabilidadSacrificio.gd" id="1_sacrificio"]
+
+[node name="HabilidadSacrificio" type="Node"]
+script = ExtResource("1_sacrificio")
+duracion_recarga = 30.0

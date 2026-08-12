@@ -31,6 +31,15 @@ extends Accion
 ## siempre. Usado por Caballero Esqueleto (1.20) para perseguir más rápido
 ## que su velocidad base sin tocar velocidad_base en sí.
 @export var multiplicador_velocidad: float = 1.0
+## Punto al que apunta mientras persigue (nunca el centro exacto del
+## objetivo) — mismo motivo y mismo valor que AccionAtacar.distancia_minima_
+## acercamiento (ver ese comentario largo para el porqué del valor exacto:
+## tiene que quedar bien por debajo de distancia_ataque, o el mob se traba a
+## mitad de camino por MovimientoComponente.MARGEN_DESTINO). Sin este freno,
+## un mob cuya habilidad tiene requiere_acercarse=false (ej. Arañazo de la
+## Araña) queda pegado al jugador porque quien lo trae hasta acá es esta
+## acción, no AccionAtacar.
+@export var distancia_minima_acercamiento: float = 20.0
 
 var _ultima_vision: float = 0.0
 
@@ -78,8 +87,17 @@ func _on_ejecutar() -> Estado:
 		return Estado.EXITOSO
 
 	# Con NavigationAgent2D asignado, rodea obstáculos; sin él, línea recta.
-	movimiento.comandar_destino(objetivo.global_position, movimiento.velocidad_base * multiplicador_velocidad)
+	movimiento.comandar_destino(_punto_de_acercamiento(agente, objetivo), movimiento.velocidad_base * multiplicador_velocidad)
 	return Estado.EXITOSO
+
+
+## Punto al que se acerca — nunca el centro exacto del objetivo (ver el
+## @export distancia_minima_acercamiento). Mismo cálculo que AccionAtacar.
+func _punto_de_acercamiento(agente: Node2D, objetivo: Node2D) -> Vector2:
+	var hacia_agente := agente.global_position - objetivo.global_position
+	if hacia_agente.length() < 1.0:
+		hacia_agente = Vector2.RIGHT
+	return objetivo.global_position + hacia_agente.normalized() * distancia_minima_acercamiento
 
 
 func _on_entrar() -> void:

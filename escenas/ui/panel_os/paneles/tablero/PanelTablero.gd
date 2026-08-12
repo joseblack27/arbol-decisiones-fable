@@ -255,17 +255,21 @@ func _actualizar_regeneracion() -> void:
 func _actualizar_ofensivas() -> void:
 	if not _atributos:
 		return
-	# Suma el bono temporal (buffs como Grito de Guerra) al daño de base —
-	# el jugador ve el número YA efectivo mientras dure, sin tener que
-	# sumarlo a mano en pleno combate (pedido del usuario).
-	var bono_temporal := _atrib_comp.obtener_bono_dano_temporal() if _atrib_comp else 0.0
-	_lbl_danos.text        = str(_atributos.danos + bono_temporal)
-	_lbl_potencia.text     = "%.1f%%" % _atributos.potencia
+	# Suma los bonos temporales (buffs como Grito de Guerra o Sacrificio) a
+	# cada estadística de base — el jugador ve el número YA efectivo
+	# mientras duren, sin tener que sumarlos a mano en pleno combate
+	# (pedido del usuario, antes solo cubría Daño).
+	var bono_danos: float                = _atrib_comp.obtener_bono_dano_temporal() if _atrib_comp else 0.0
+	var bono_potencia: float             = _atrib_comp.obtener_bono_potencia_temporal() if _atrib_comp else 0.0
+	var bono_prob_critico: float         = _atrib_comp.obtener_bono_probabilidad_critico_temporal() if _atrib_comp else 0.0
+	var bono_dano_critico: float         = _atrib_comp.obtener_bono_dano_critico_temporal() if _atrib_comp else 0.0
+	_lbl_danos.text        = str(_atributos.danos + bono_danos)
+	_lbl_potencia.text     = "%.1f%%" % (_atributos.potencia + bono_potencia)
 	_lbl_impacto.text      = str(_atributos.impacto)
 	_lbl_afliccion.text    = str(_atributos.afliccion)
 	_lbl_impulso.text      = str(_atributos.impulso)
-	_lbl_prob_critico.text = "%.1f%%" % _atributos.probabilidad_critico
-	_lbl_dano_critico.text = "%.1f%%" % _atributos.dano_critico
+	_lbl_prob_critico.text = "%.1f%%" % (_atributos.probabilidad_critico + bono_prob_critico)
+	_lbl_dano_critico.text = "%.1f%%" % (_atributos.dano_critico + bono_dano_critico)
 
 
 func _actualizar_defensivas() -> void:

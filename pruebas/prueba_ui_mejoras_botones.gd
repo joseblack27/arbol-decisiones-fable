@@ -47,6 +47,7 @@ var _boton_reiniciar_habilitado_ok := false
 var _reiniciar_devuelve_puntos_ok := false
 var _reiniciar_actualiza_fila_ok := false
 var _reiniciar_deshabilita_boton_ok := false
+var _descripcion_sacrificio_escala_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -55,6 +56,7 @@ func _process(_delta: float) -> bool:
 	_probar_pasiva_gatillo()
 	_probar_habilidad_activa()
 	_probar_boton_reiniciar_puntos()
+	_probar_descripcion_sacrificio_escala_con_nivel()
 	_probar_boton_oculto_sin_escalado()
 	return _informar()
 
@@ -270,6 +272,44 @@ func _probar_boton_reiniciar_puntos() -> void:
 	_reiniciar_deshabilita_boton_ok = boton.disabled
 
 
+## HabilidadSacrificio: a diferencia del daño (dano_min_mostrado/etc., ya
+## cubierto arriba con muro), sus 3 campos escalados (potencia/prob.
+## crítico/daño crítico) solo se ven a través de la DESCRIPCIÓN
+## ({valor1}/{valor2}/{valor3}, ver sacrificio.tres) — reportado por el
+## usuario: "no se actualiza en el detalle cuando subo de nivel la
+## habilidad". La causa era que PanelDetalleHabilidad.show_skill() armaba
+## esos placeholders desde una instancia SIN aplicar_datos()/preparar_
+## escalado()/aplicar_nivel_mejora() — siempre mostraba el valor de
+## FÁBRICA (nivel 1), sin importar el nivel comprado.
+func _probar_descripcion_sacrificio_escala_con_nivel() -> void:
+	var datos_sacrificio := load("res://recursos/habilidades/sacrificio.tres") as DatosHabilidad
+	var slots = _jugador.get_node("SlotHabilidades")
+	slots.catalogo.append(datos_sacrificio)
+	slots.equipar(1, datos_sacrificio)
+
+	# equipar() no reconstruye la lista de la pestaña Activas — solo
+	# populate() lee slots.catalogo de nuevo (ver PanelHabilidades.gd).
+	_panel.populate()
+	_panel._on_btn_activas()
+	var item_sacrificio: ItemHabilidad = null
+	for hijo in _panel.skill_list_panel.get_children():
+		if hijo is ItemHabilidad and hijo.skill_data.resource_path == datos_sacrificio.resource_path:
+			item_sacrificio = hijo
+			break
+	_panel._on_skill_selected(item_sacrificio.skill_data)
+
+	print("Descripción en nivel 1 (esperado que contenga '+100'): %s" % _panel.detail_panel.description_label.text)
+	var nivel1_ok: bool = "+100" in _panel.detail_panel.description_label.text
+
+	for i in range(4):  # nivel 1 -> nivel 5 (escalado de sacrificio.tres llega a nivel_maximo=5)
+		_panel.detail_panel._uplevel_btn.pressed.emit()
+
+	print("Descripción en nivel 5 tras subir (esperado que contenga '+180'): %s" % _panel.detail_panel.description_label.text)
+	var nivel5_ok: bool = "+180" in _panel.detail_panel.description_label.text
+
+	_descripcion_sacrificio_escala_ok = nivel1_ok and nivel5_ok
+
+
 ## Habilidad SIN escalado configurado (DatosHabilidad.escalado == null) —
 ## no hace falta equiparla ni que tenga escena_al_impactar/lo que sea, solo
 ## seleccionarla (ver PanelHabilidades._on_skill_selected, que llama a
@@ -295,7 +335,8 @@ func _informar() -> bool:
 		and _fila_pasiva_actualiza_nivel_ok and _fila_activa_actualiza_nivel_ok \
 		and _boton_sin_puntos_explica_ok and _equipada_se_muestra_ok and _boton_nivel_maximo_explica_ok \
 		and _boton_reiniciar_habilitado_ok and _reiniciar_devuelve_puntos_ok \
-		and _reiniciar_actualiza_fila_ok and _reiniciar_deshabilita_boton_ok
+		and _reiniciar_actualiza_fila_ok and _reiniciar_deshabilita_boton_ok \
+		and _descripcion_sacrificio_escala_ok
 	print("  boton Mejorar visible en pasiva de stat: %s" % _boton_mejorar_visible_en_stat_ok)
 	print("  tocar Mejorar gasta el punto de verdad: %s" % _mejorar_gasta_punto_ok)
 	print("  boton Mejorar oculto en pasiva de gatillo: %s" % _boton_oculto_en_gatillo_ok)
@@ -311,6 +352,7 @@ func _informar() -> bool:
 	print("  reiniciar devuelve todos los puntos: %s" % _reiniciar_devuelve_puntos_ok)
 	print("  reiniciar actualiza las filas de la lista: %s" % _reiniciar_actualiza_fila_ok)
 	print("  boton reiniciar se deshabilita sin nada que reiniciar: %s" % _reiniciar_deshabilita_boton_ok)
+	print("  descripcion de Sacrificio escala con el nivel: %s" % _descripcion_sacrificio_escala_ok)
 	print("PRUEBA UI MEJORAS BOTONES %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

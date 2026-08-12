@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_scr"]
+
+[resource]
+script = ExtResource("1_scr")
+nombre = "Arañazo (Araña)"
+costo_energia = 20
+dano_base_min = 47
+dano_base_max = 47
+tipo_dano = 0
+alcance_metros = 1
+enfriamiento = 1.0

@@ -68,6 +68,24 @@ class Habilidad:
 		PORCENTAJE_EFECTO,
 	}
 
+	## Bonos de combate escalables por nivel de mejora (ver CampoEscalado.
+	## campo_atributo/HabilidadBase._nombre_campo_atributo) — a diferencia de
+	## CampoEscalable de arriba, ACÁ el nombre real de la propiedad es FIJO
+	## y GLOBAL (no hace falta un override por habilidad): cualquier
+	## habilidad que quiera escalar uno de estos tiene que nombrar su propio
+	## campo EXACTO así (bono_potencia, bono_probabilidad_critico,
+	## bono_dano_critico, bono_dano — este último ya es el nombre real que
+	## usa HabilidadBuffEquipo). NINGUNO=0 a propósito: es el default de
+	## cualquier CampoEscalado que no lo use, y tiene que significar
+	## "no aplica" para no pisar por accidente el CampoEscalable viejo.
+	enum AtributoEscalable {
+		NINGUNO,
+		DANOS,
+		POTENCIA,
+		PROBABILIDAD_CRITICO,
+		DANO_CRITICO,
+	}
+
 	## Color (nombre CSS o hex) para mostrar el daño de cada elemento en la
 	## descripción de una habilidad — ver PanelDetalleHabilidad.gd. Un solo
 	## enum de elemento (TipoDano) para gameplay Y color: antes había un

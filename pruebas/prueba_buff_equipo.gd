@@ -8,7 +8,7 @@
 #   2. Ambos quedan con el buff visible en BuffsComponente.
 #   3. El bono NO se guarda en AtributosComponente.base (sigue igual a
 #      los valores de fábrica) — vive aparte, ver AtributosComponente.
-#      agregar_bono_dano_temporal.
+#      agregar_bono_temporal.
 #   4. El bono SOBREVIVE a un recalcular_con_equipo() de por medio (bug
 #      que se evitó a propósito: si viviera en "base", cambiar de equipo
 #      mientras el buff está activo lo borraría, ver ese comentario).

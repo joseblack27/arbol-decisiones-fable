@@ -36,6 +36,25 @@ extends Accion
 @export var usar_rango_de_habilidades: bool = false
 ## Velocidad al acercarse para entrar en rango de una habilidad libre.
 @export var velocidad_aproximacion: float = 130.0
+## Punto al que apunta mientras se acerca (nunca el centro exacto del
+## objetivo) — antes se comandaba caminar directo a objetivo.global_position,
+## así que el mob terminaba pegado/encima del jugador (pedido del usuario:
+## "que lleguen a 20 o 25 pixeles, porque actualmente se colocan encima... y
+## casi no le da"): un golpe que se coloca alcance_golpe px por DELANTE del
+## propio mob se pasa de largo del objetivo si el mob ya está a distancia
+## casi nula. OJO: tiene que quedar BIEN por debajo del rango_maximo real de
+## la habilidad (donde el mob de verdad se frena, ver hay_habilidades_fuera_
+## de_rango) — no es "la distancia final de descanso", es solo hacia dónde
+## apunta el movimiento mientras todavía está lejos. Si quedara muy pegado a
+## ese rango_maximo, el mob se traba a mitad de camino: MovimientoComponente.
+## MARGEN_DESTINO (6px) hace que comandar_destino() no haga NADA si el punto
+## comandado ya está a menos de 6px de donde el mob está parado — con un
+## margen chico entre este valor y el rango_maximo de la habilidad, esa
+## distancia que falta cerrar puede caer por debajo de esos 6px SIN que el
+## mob haya entrado todavía en rango, y se queda congelado ahí para siempre
+## (reproducido con un Lobo real: rango_maximo=25, este valor en 22 → se
+## trababa clavado a 26.35px, ni un píxel más cerca, para siempre).
+@export var distancia_minima_acercamiento: float = 20.0
 ## Segundos de pausa tras ejecutar cualquier habilidad.
 @export var duracion_recuperacion: float = 3.0
 ## Segundos entre intentos de selección de habilidad.
@@ -67,9 +86,6 @@ const _UMBRAL_CAMBIO_DIRECCION_APUNTADO := 0.35  # ~20°
 @export var velocidad_reposicionamiento: float = 130.0
 ## Distancia a la que el punto de reposicionamiento se considera alcanzado.
 const _RADIO_LLEGADA_REPOSICIONAMIENTO := 10.0
-## Radio de respaldo si agente y objetivo terminaran en la MISMA posición
-## (no debería pasar en combate real, pero evita un from_angle degenerado).
-const _DISTANCIA_MINIMA_REPOSICIONAMIENTO := 40.0
 ## Al llegar al punto elegido, cuánto espera parado antes de elegir OTRO y
 ## seguir moviéndose — sin esto, apenas llegaba (rápido, sobre todo a la
 ## velocidad actual) se quedaba plantado el resto de la ventana de
@@ -185,6 +201,8 @@ func _on_ejecutar() -> Estado:
 	# el usuario). reposicionarse_en_recuperacion = false vuelve a quedarse
 	# quieto, el comportamiento de siempre.
 	if ahora < _fin_recuperacion:
+		if _corregir_si_demasiado_cerca(agente, objetivo, movimiento):
+			return Estado.EXITOSO
 		if reposicionarse_en_recuperacion:
 			if not _tiene_destino_reposicionamiento:
 				_elegir_destino_reposicionamiento(agente, objetivo)
@@ -206,6 +224,8 @@ func _on_ejecutar() -> Estado:
 	var distancia := agente.global_position.distance_to(objetivo.global_position)
 	if distancia > _distancia_maxima():
 		return Estado.FALLIDO
+	if _corregir_si_demasiado_cerca(agente, objetivo, movimiento):
+		return Estado.EXITOSO
 
 	# Intentar habilidad cada N segundos — pero solo si ya lleva
 	# duracion_apuntado segundos apuntando establemente al objetivo.
@@ -219,10 +239,54 @@ func _on_ejecutar() -> Estado:
 
 	# Sin habilidad ejecutada: acercarse solo si sirve de algo.
 	if _selector_habilidades.hay_habilidades_fuera_de_rango(distancia, agente):
-		movimiento.comandar_destino(objetivo.global_position, velocidad_aproximacion)
+		movimiento.comandar_destino(_punto_de_acercamiento(agente, objetivo), velocidad_aproximacion)
 	else:
 		movimiento.detener()
 	return Estado.EXITOSO
+
+
+## Punto al que se acerca — nunca el centro exacto del objetivo, se queda a
+## distancia_minima_acercamiento del lado por el que ya viene acercándose
+## (ver el @export de arriba para el motivo). Mismo respaldo por distancia
+## casi nula que ya usa _elegir_destino_reposicionamiento más abajo.
+func _punto_de_acercamiento(agente: Node2D, objetivo: Node2D) -> Vector2:
+	var hacia_agente := agente.global_position - objetivo.global_position
+	if hacia_agente.length() < 1.0:
+		hacia_agente = Vector2.RIGHT
+	return objetivo.global_position + hacia_agente.normalized() * distancia_minima_acercamiento
+
+
+## Corrección dura, chequeada CADA tick (no solo al elegir un destino nuevo):
+## si la distancia REAL ya cayó por debajo del piso, manda a alejarse derecho
+## hasta distancia_minima_acercamiento y devuelve true (el llamador corta ahí,
+## sin seguir con la lógica normal de esa rama). Sin este chequeo en caliente,
+## un solo tick de más al acercarse o al viajar hacia el punto de
+## reposicionamiento (mismo motivo, ver el comentario largo en
+## _elegir_destino_reposicionamiento) deja al mob más cerca de lo pensado, y
+## como el próximo ciclo "preserva la distancia actual" partiendo de ESE
+## valor ya corrompido, se va acercando ciclo tras ciclo en vez de
+## estabilizarse — este chequeo corta esa cadena apenas ocurre, no recién en
+## el próximo punto de reposicionamiento.
+## Cuánto más allá del piso apunta la corrección — NUNCA justo al piso mismo:
+## a medida que se acerca a distancia_minima_acercamiento EXACTO, el último
+## tramo cae bajo MovimientoComponente.MARGEN_DESTINO (6px) y deja de
+## moverse antes de cruzarlo — reproducido con el jugador pegado al lobo: se
+## frenaba en 15.14px con el piso en 20, sin llegar nunca, congelado para
+## siempre (ni reposicionaba ni atacaba). Mismo motivo que el margen entre
+## rango_maximo y distancia_minima_acercamiento (ver ese comentario).
+const _MARGEN_CORRECCION_CERCANIA := 15.0
+
+func _corregir_si_demasiado_cerca(agente: Node2D, objetivo: Node2D, movimiento: MovimientoComponente) -> bool:
+	var lejos := agente.global_position - objetivo.global_position
+	if lejos.length() >= distancia_minima_acercamiento:
+		return false
+	if lejos.length() < 1.0:
+		lejos = Vector2.RIGHT
+	var destino_seguro := objetivo.global_position \
+		+ lejos.normalized() * (distancia_minima_acercamiento + _MARGEN_CORRECCION_CERCANIA)
+	movimiento.comandar_destino(destino_seguro, velocidad_aproximacion)
+	_tiene_destino_reposicionamiento = false
+	return true
 
 
 ## OJO: acá NO se limpia direccion_mirada (antes se hacía en _on_salir):
@@ -256,10 +320,18 @@ func _on_reiniciar() -> void:
 ## cuenta tironearía sin llegar nunca.
 func _elegir_destino_reposicionamiento(agente: Node2D, objetivo: Node2D) -> void:
 	var vector_actual := agente.global_position - objetivo.global_position
-	var distancia_actual := vector_actual.length()
-	if distancia_actual < 1.0:
+	# Piso en distancia_minima_acercamiento: sin esto, si el acercamiento
+	# se pasó de largo del rango de la habilidad en un solo tick del árbol
+	# (10/s a velocidad_aproximacion, puede recorrer más que el margen entre
+	# rango_maximo y este piso de una sola vez), ese "de más" quedaba
+	# grabado como la nueva distancia "normal" a mantener — y como cada
+	# ataque siguiente vuelve a arrancar desde ahí, con cada ciclo el mob
+	# terminaba MÁS cerca todavía, nunca se corregía hacia afuera (reproducido
+	# con un Lobo real: 15.97 → 14.81 → 13.47 → 12.10 → 10.83 → 9.96px,
+	# achicándose ataque tras ataque en vez de estabilizarse).
+	var distancia_actual := maxf(vector_actual.length(), distancia_minima_acercamiento)
+	if vector_actual.length() < 1.0:
 		vector_actual = Vector2.RIGHT
-		distancia_actual = _DISTANCIA_MINIMA_REPOSICIONAMIENTO
 	var dispersion := deg_to_rad(dispersion_angulo_reposicionamiento_grados)
 	# El giro nunca es casi-cero: a un mob cuerpo a cuerpo (radio de órbita
 	# chico) un ángulo mínimo daría una cuerda más corta que el radio de

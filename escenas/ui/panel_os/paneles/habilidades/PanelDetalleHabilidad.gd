@@ -228,6 +228,18 @@ func show_skill(skill: DatosHabilidad) -> void:
 
 	if skill.escena:
 		var tmp := skill.escena.instantiate()
+		# Sin esto, los campos leídos más abajo (bono_dano, reduccion,
+		# bono_potencia...) siempre mostraban el valor de FÁBRICA (nivel 1),
+		# sin importar el nivel de mejora comprado — a diferencia de Daño/
+		# Rango/Recarga (ver dano_min_mostrado arriba), que sí ya pasaban
+		# por skill.escalado.valor_para_campo(). Mismo orden que usa
+		# SlotHabilidades._instanciar() en el juego real. instantiate() sin
+		# add_child no dispara _ready() (ver comentario más abajo), así que
+		# esto no tiene efectos secundarios sobre nada más.
+		tmp.aplicar_datos(skill)
+		if skill.escalado:
+			tmp.preparar_escalado(skill.escalado)
+			tmp.aplicar_nivel_mejora(nivel_mejora)
 		if "multiplicador_dano_tick" in tmp:
 			factor = tmp.get("multiplicador_dano_tick")
 
@@ -292,6 +304,17 @@ func show_skill(skill: DatosHabilidad) -> void:
 					valores_descripcion["valor1"] = "%d%%" % int(efecto.get("porcentaje_detonacion") * 100.0)
 				efecto.free()
 			proy.free()
+
+		# HabilidadSacrificio: a diferencia de las de arriba (un solo valor
+		# dinámico, {valor1}), acá son TRES campos propios escalando juntos
+		# — cada uno con su propio chequeo (no elif) porque los tres pueden
+		# estar presentes a la vez en la misma habilidad.
+		if "bono_potencia" in tmp:
+			valores_descripcion["valor1"] = "%d" % int(tmp.get("bono_potencia"))
+		if "bono_probabilidad_critico" in tmp:
+			valores_descripcion["valor2"] = "%d" % int(tmp.get("bono_probabilidad_critico"))
+		if "bono_dano_critico" in tmp:
+			valores_descripcion["valor3"] = "%d" % int(tmp.get("bono_dano_critico"))
 		tmp.free()
 
 	var rango_calc := AtributosComponente.calcular_rango_con_factor(

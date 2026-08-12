@@ -186,6 +186,20 @@ var _ultima_pos_enviada := Vector2.INF
 var _ultima_dir_enviada := Vector2.INF
 var _ultima_mirada_enviada := Vector2.INF
 var _fotogramas_sin_enviar := 0
+## Quiénes tenían a este mob dentro de RADIO_INTERES el fotograma anterior —
+## para detectar un peer RECIÉN entrado y mandarle su primer estado real de
+## inmediato (ver más abajo), en vez de esperar al próximo cambio real o al
+## keepalive (hasta _FOTOGRAMAS_KEEPALIVE_RED fotogramas). Sin esto, un mob
+## generado lejos y quieto por un buen rato (nada "cambia" para el chequeo de
+## abajo) podía dejar a un jugador que recién se acerca sin ningún
+## _recibir_estado_red hasta el próximo keepalive — mientras tanto, su cliente
+## ya tiene el NODO creado (MultiplayerSpawner replica sin filtrar por
+## distancia) pero con direccion/direccion_mirada todavía en el default de la
+## escena, así que actualizar_blend()/_aplicar_presentacion() no tienen nada
+## real que animar: el sprite queda pegado en la pose con la que se creó el
+## nodo (reportado: "un lobo respawneado fuera del área jugable, al entrar
+## se queda siempre con el mismo sprite").
+var _peers_relevantes_anterior: Array[int] = []
 ## Aunque nada cambie, reenviar cada tanto igual (~2 veces/seg): el RPC es
 ## unreliable — si el último paquete antes de quedarse quieto se perdió, sin
 ## este keepalive el cliente quedaría desincronizado para siempre.
@@ -320,6 +334,12 @@ func _physics_process(delta: float) -> void:
 		var cambio := global_position.distance_squared_to(_ultima_pos_enviada) > 0.25 \
 			or direccion != _ultima_dir_enviada \
 			or direccion_mirada != _ultima_mirada_enviada
+		var peers_relevantes := InteresEspacial.peers_cercanos(global_position)
+		var peers_nuevos: Array[int] = []
+		for peer_id in peers_relevantes:
+			if not _peers_relevantes_anterior.has(peer_id):
+				peers_nuevos.append(peer_id)
+		_peers_relevantes_anterior = peers_relevantes
 		if cambio or _fotogramas_sin_enviar >= _FOTOGRAMAS_KEEPALIVE_RED:
 			# Fase 1 del plan de escalado a MMO (interés espacial): antes esto
 			# era rpc() — broadcast a TODOS los peers conectados, sin importar
@@ -327,12 +347,19 @@ func _physics_process(delta: float) -> void:
 			# mapa, cada mob mandaba su posición a jugadores que ni siquiera
 			# lo tenían cerca — tráfico y costo de simulación que crecían como
 			# mobs × jugadores. Ahora solo a quien lo tiene a RADIO_INTERES.
-			for peer_id in InteresEspacial.peers_cercanos(global_position):
+			for peer_id in peers_relevantes:
 				rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
 			_ultima_pos_enviada    = global_position
 			_ultima_dir_enviada    = direccion
 			_ultima_mirada_enviada = direccion_mirada
 			_fotogramas_sin_enviar = 0
+		elif not peers_nuevos.is_empty():
+			# Peer recién entrado al radio de interés (ver el comentario largo
+			# en _peers_relevantes_anterior) — no esperar a que "cambie" algo
+			# ni al próximo keepalive: mandarle YA su primer estado real, sin
+			# tocar el resto del throttle (no cuenta como el envío normal).
+			for peer_id in peers_nuevos:
+				rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
 
 
 ## ÚNICA lógica de presentación, compartida entre servidor/single-player y

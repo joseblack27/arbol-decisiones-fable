@@ -25,6 +25,17 @@ signal recarga_terminada(habilidad: HabilidadBase)
 @export var requiere_direccion: bool = false
 ## Tipo de daño que inflige esta habilidad. Afecta las resistencias del defensor.
 @export var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
+## Datos opcionales para habilidades de MOBS: el jugador aplica su
+## DatosHabilidad al equipar (ver SlotHabilidades.gd), pero las habilidades
+## de un mob son nodos fijos en su escena, sin ningún SlotHabilidades de
+## por medio — antes de esto, su única forma de configurarse era un
+## override de instancia en el .tscn, que solo funciona en campos @export
+## (ver el bug de HabilidadGolpeBasico.daño, una var plana que un
+## daño = 47.0 en el .tscn nunca aplicaba). Se aplica una sola vez acá, en
+## _ready(), ANTES de que el _ready() de la subclase corra — así cualquier
+## nombre_habilidad/tipo_habilidad hardcodeado ahí (ej. "Arañazo") sigue
+## ganando por sobre lo cosmético que traiga el recurso.
+@export var datos: DatosHabilidad = null
 ## Apagar SOLO en habilidades cuyo propósito ES moverse (dash, parpadeo):
 ## para esas, congelar al activar no tiene sentido (el desplazamiento es la
 ## habilidad misma) y ya tienen su propio manejo de posición. El resto
@@ -79,6 +90,8 @@ func _ready() -> void:
 	# solo entra cuando aún está en null (jerarquía clásica: hab → contenedor → entidad).
 	if entidad_dueña == null and get_parent() != null:
 		entidad_dueña = get_parent().get_parent()
+	if datos:
+		aplicar_datos(datos)
 
 func _process(delta: float) -> void:
 	if _recarga_restante > 0.0:
@@ -300,6 +313,25 @@ func _nombre_campo_escalable(campo: Enums.Habilidad.CampoEscalable) -> String:
 		_: return ""
 
 
+## Traduce un CampoEscalado a su nombre de propiedad real, sin importar
+## cuál de los dos selectores use (ver CampoEscalado.campo_atributo) — el
+## único punto que preparar_escalado()/aplicar_nivel_mejora() consultan.
+## campo_atributo tiene prioridad porque su traducción es FIJA y GLOBAL
+## (no hace falta override por habilidad, a diferencia de "campo" — ver
+## Enums.Habilidad.AtributoEscalable): cualquier habilidad que exponga uno
+## de estos bonos SOLO tiene que nombrar su propio campo exacto así, nunca
+## hay que sobreescribir nada acá.
+func _nombre_campo_de(c: CampoEscalado) -> String:
+	if c.campo_atributo != Enums.Habilidad.AtributoEscalable.NINGUNO:
+		match c.campo_atributo:
+			Enums.Habilidad.AtributoEscalable.DANOS: return "bono_dano"
+			Enums.Habilidad.AtributoEscalable.POTENCIA: return "bono_potencia"
+			Enums.Habilidad.AtributoEscalable.PROBABILIDAD_CRITICO: return "bono_probabilidad_critico"
+			Enums.Habilidad.AtributoEscalable.DANO_CRITICO: return "bono_dano_critico"
+			_: return ""
+	return _nombre_campo_escalable(c.campo)
+
+
 ## Captura los valores de FÁBRICA de los campos que [escalado] configuró
 ## para esta habilidad — llamar DESPUÉS de que aplicar_datos() (base +
 ## TODA subclase) haya terminado del todo. aplicar_datos() de la base
@@ -314,7 +346,7 @@ func preparar_escalado(escalado: EscaladoHabilidad) -> void:
 	if not escalado:
 		return
 	for c in escalado.campos:
-		var nombre := _nombre_campo_escalable(c.campo)
+		var nombre := _nombre_campo_de(c)
 		if nombre != "":
 			_valores_base_campos[nombre] = get(nombre)
 
@@ -331,7 +363,7 @@ func aplicar_nivel_mejora(nivel: int) -> void:
 		return
 	nivel_mejora = clampi(nivel, 1, _escalado.nivel_maximo)
 	for c in _escalado.campos:
-		var nombre := _nombre_campo_escalable(c.campo)
+		var nombre := _nombre_campo_de(c)
 		if nombre == "" or not _valores_base_campos.has(nombre):
 			continue
 		set(nombre, c.valor_para_nivel(nivel_mejora, _valores_base_campos[nombre]))

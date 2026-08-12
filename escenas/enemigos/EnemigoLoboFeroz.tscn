@@ -39,6 +39,7 @@
 [ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
 [ext_resource type="Resource" path="res://recursos/items/equipables/escudo_tormenta.tres" id="esc_escudo_tormenta"]
+[ext_resource type="Resource" path="res://recursos/habilidades/arañazo_lobo_feroz.tres" id="datos_arañazo_lobo_feroz"]
 
 [sub_resource type="Resource" id="Resource_iuxaj"]
 script = ExtResource("2_ivj8v")
@@ -1344,10 +1345,7 @@ script = ExtResource("31_vm1f8")
 metadata/_custom_type_script = "uid://cmvtumtuaysdj"
 
 [node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("31_l6bpy")]
-tipo_dano = 4
-daño = 52.0
-duracion_recarga = 0.8
-costo_energia = 10.0
+datos = ExtResource("datos_arañazo_lobo_feroz")
 
 [node name="HabilidadParpadeo" parent="Habilidades" instance=ExtResource("45_parpadeo")]
 

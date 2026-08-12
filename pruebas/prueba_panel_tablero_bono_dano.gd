@@ -38,7 +38,7 @@ func _process(_delta: float) -> bool:
 			# Bono corto (0.2s) para no tener que esperar los 10s reales de
 			# un buff de verdad — solo la señal debe mover el label, en
 			# ningún momento se llama _actualizar_ofensivas() a mano.
-			_atrib_comp.agregar_bono_dano_temporal("prueba_buff", 15.0, 0.2)
+			_atrib_comp.agregar_bono_temporal("prueba_buff", 15.0, 0.0, 0.0, 0.0, 0.2)
 		3:
 			_muestra_suma_con_bono = _panel._lbl_danos.text == "25.0"
 			print("Label de Daño muestra la suma con el bono, YA (esperado true, '25.0'): %s (\"%s\")" % [

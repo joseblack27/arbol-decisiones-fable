@@ -6,7 +6,7 @@ extends HabilidadBase
 ##
 ## El bono NO se guarda en AtributosComponente.base (eso lo pisa
 ## recalcular_con_equipo() cada vez que alguien cambia de equipo, ver ese
-## archivo) — usa AtributosComponente.agregar_bono_dano_temporal(), que
+## archivo) — usa AtributosComponente.agregar_bono_temporal(), que
 ## vive aparte y se quita solo al vencer.
 ##
 ## Red: esta copia (dueño local en predicción, o servidor con autoridad)
@@ -80,7 +80,7 @@ func _aplicar_buff_local(aliado: Node) -> void:
 		return
 	var atributos := aliado.get_node_or_null("AtributosComponente") as AtributosComponente
 	if atributos:
-		atributos.agregar_bono_dano_temporal(_ID_BUFF, bono_dano, duracion_buff)
+		atributos.agregar_bono_temporal(_ID_BUFF, bono_dano, 0.0, 0.0, 0.0, duracion_buff)
 	if icono_buff == null:
 		return
 	var buffs := aliado.get_node_or_null("BuffsComponente") as BuffsComponente

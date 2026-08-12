@@ -1,10 +1,10 @@
-[gd_scene load_steps=7 format=3 uid="uid://aranazo_efecto01"]
+[gd_scene load_steps=7 format=3 uid="uid://dlt64nsaf6pck"]
 
-[ext_resource type="Script" path="res://escenas/habilidades/arañazo/Arañazo.gd" id="1_aranazo"]
+[ext_resource type="Script" uid="uid://d2d30njfxe1er" path="res://escenas/habilidades/arañazo/Arañazo.gd" id="1_aranazo"]
 [ext_resource type="Texture2D" uid="uid://bysnrreqwhpld" path="res://assets/arañazo.png" id="2_aranazo"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_aranazo"]
-radius = 16.0
+radius = 35.0
 
 [sub_resource type="Animation" id="Animation_reset"]
 length = 0.001

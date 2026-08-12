@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=2 format=3 uid="uid://s084jiq5htdd"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_scr"]
+
+[resource]
+script = ExtResource("1_scr")
+nombre = "Arañazo (Caballero Esqueleto)"
+descripcion = "Golpe basico"
+dano_base_min = 50
+dano_base_max = 50
+tipo_dano = 0
+alcance_metros = 1
+radio_golpe = 35.0
+enfriamiento = 1.0

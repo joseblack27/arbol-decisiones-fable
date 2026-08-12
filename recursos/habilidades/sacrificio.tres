@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=12 format=3 uid="uid://hm2ayvycc81k"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_scr"]
+[ext_resource type="Texture2D" uid="uid://guggod2f5emf" path="res://assets/iconos/iconos habilidades.png" id="2_iconos"]
+[ext_resource type="PackedScene" uid="uid://ge357fcxp8j3" path="res://escenas/habilidades/sacrificio/HabilidadSacrificio.tscn" id="3_esc"]
+[ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="ec_base"]
+[ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="ec_escalado"]
+[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="ec_tabla"]
+
+[sub_resource type="Resource" id="Resource_potencia"]
+script = ExtResource("ec_tabla")
+valores_por_nivel = Array[float]([100.0, 125.0, 150.0, 175.0, 200.0])
+campo_atributo = 2
+
+[sub_resource type="Resource" id="Resource_prob_critico"]
+script = ExtResource("ec_tabla")
+valores_por_nivel = Array[float]([10.0, 15.0, 20.0, 25.0, 30.0])
+campo_atributo = 3
+
+[sub_resource type="Resource" id="Resource_dano_critico"]
+script = ExtResource("ec_tabla")
+valores_por_nivel = Array[float]([10.0, 15.0, 20.0, 25.0, 30.0])
+campo_atributo = 4
+
+[sub_resource type="Resource" id="Resource_escalado"]
+script = ExtResource("ec_escalado")
+campos = Array[ExtResource("ec_base")]([SubResource("Resource_potencia"), SubResource("Resource_prob_critico"), SubResource("Resource_dano_critico")])
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_sacrificio"]
+atlas = ExtResource("2_iconos")
+region = Rect2(384, 128, 32, 32)
+
+[resource]
+script = ExtResource("1_scr")
+nombre = "Sacrificio"
+icono = SubResource("AtlasTexture_sacrificio")
+descripcion = "Cede el 20% de tu vida actual a cambio de +{valor1}% de potencia, +{valor2}% de probabilidad de crítico y +{valor3}% de daño crítico durante 30 segundos"
+categoria = 2
+escena = ExtResource("3_esc")
+nivel = 1
+enfriamiento = 30.0
+escalado = SubResource("Resource_escalado")
