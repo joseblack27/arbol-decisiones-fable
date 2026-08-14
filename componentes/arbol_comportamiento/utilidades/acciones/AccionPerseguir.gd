@@ -39,7 +39,10 @@ extends Accion
 ## un mob cuya habilidad tiene requiere_acercarse=false (ej. Arañazo de la
 ## Araña) queda pegado al jugador porque quien lo trae hasta acá es esta
 ## acción, no AccionAtacar.
-@export var distancia_minima_acercamiento: float = 20.0
+## Subido de 20 a 50 (pedido del usuario: "que no sea tan pegado"), mismo
+## valor que AccionAtacar — sigue bien por debajo de distancia_ataque (170,
+## o 180 en Araña/ArañaReina), ningún mob tiene ese margen ajustado.
+@export var distancia_minima_acercamiento: float = 50.0
 
 var _ultima_vision: float = 0.0
 

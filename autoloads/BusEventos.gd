@@ -112,6 +112,12 @@ signal mision_completada(jugador: Node, id_mision: String)
 signal mision_abandonada(jugador: Node, id_mision: String)
 signal mision_progreso_actualizado(jugador: Node, id_mision: String, id_objetivo: String, actual: int, requerido: int)
 
+# ── COFRES ────────────────────────────────────────────────────────────────────
+## Un cofre del mundo pide abrir su panel (ver Cofre.gd/PanelCofre) — mismo
+## patrón que dialogo_solicitado/tienda_solicitada: PanelCofre se
+## autosuscribe en vez de que el cofre necesite una referencia directa.
+signal cofre_solicitado(id_cofre: String, nombre_cofre: String)
+
 # ── DIÁLOGO ───────────────────────────────────────────────────────────────────
 ## Un NPC pide abrir el panel de diálogo con estos datos — PanelDialogo se
 ## autosuscribe a esta señal (mismo patrón que PanelInventario con el resto

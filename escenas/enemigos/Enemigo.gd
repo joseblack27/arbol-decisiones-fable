@@ -83,11 +83,11 @@ const MARGEN_CAMBIO_OBJETIVO := 40.0
 ## saber cuando está aturdido, ralentizado, o tenga algún efecto presente".
 ## Se dibujan con el mismo BuffsComponente que ya llenan Veneno/Lentitud/
 ## Aturdido (ver esos scripts) — nada que registrar acá por tipo.
-@export var tamano_icono_estado: float = 10.0
-@export var separacion_iconos_estado: float = 2.0
+@export var tamano_icono_estado: float = 16.0
+@export var separacion_iconos_estado: float = 3.0
 ## Separación entre el borde superior del texto del nombre y el borde
 ## inferior de los íconos.
-@export var margen_iconos_estado: float = 3.0
+@export var margen_iconos_estado: float = 4.0
 
 ## Ítems que este enemigo puede soltar al morir — van directo al inventario
 ## del jugador (GestorInventario), nunca quedan tirados en el suelo. Cada

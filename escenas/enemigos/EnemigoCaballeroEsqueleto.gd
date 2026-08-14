@@ -51,17 +51,26 @@ func _physics_process(delta: float) -> void:
 # SEÑALES DE HABILIDADES (_on_arañazo_activado vive en Enemigo.gd, compartida)
 # =============================================================================
 
+## Este mob no tiene sprites propios de embestida (el AnimationTree solo
+## tiene IDLE/CAMINAR — ver investigación del bug "esqueletos sin animación
+## durante el dash"): mientras dure ataque_en_curso, Enemigo._aplicar_
+## presentacion() deja de tocar debeCaminar/debeIdle, así que sin esto el
+## mob quedaba congelado en lo que sea que mostrara justo antes. Pedido del
+## usuario: que se vea caminando durante toda la preparación + el dash, ya
+## que no hay arte propio para una pose de embestida. viajar_a_estado()
+## (no la condición sola) porque el grafo puede no tener arista de salida
+## desde el estado en que esté parado el mob en este instante (mismo
+## criterio que EnemigoLobo._on_carga_preparacion).
 func _on_carga_preparacion() -> void:
-	pass
+	componente_animacion.viajar_a_estado("CAMINAR")
 
 
 func _on_carga_iniciada(_direccion: Vector2, _multiplicador: float) -> void:
-	pass
+	componente_animacion.viajar_a_estado("CAMINAR")
 
 
 func _on_carga_terminada() -> void:
 	memoria.establecer("ataque_en_curso", false)
-	componente_animacion.establecer_condicion("parameters/conditions/debeCargar", false)
 
 
 # =============================================================================

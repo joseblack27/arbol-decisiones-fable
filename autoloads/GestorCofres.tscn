@@ -1,0 +1,9 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://autoloads/GestorCofres.gd" id="1_gc"]
+[ext_resource type="Script" path="res://recursos/cofres/DatosCofre.gd" id="2_dc_script"]
+[ext_resource type="Resource" path="res://recursos/cofres/cofre_ciudad_1.tres" id="3_ejemplo"]
+
+[node name="GestorCofres" type="Node"]
+script = ExtResource("1_gc")
+catalogo = Array[ExtResource("2_dc_script")]([ExtResource("3_ejemplo")])

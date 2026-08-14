@@ -78,10 +78,17 @@ var _aviso_muerte: Label = null
 ## vive EN EL MUNDO, pegado al propio personaje (y visible para cualquiera
 ## que lo mire, réplicas incluidas), así que se nota de un vistazo sin
 ## desviar la mirada a la esquina.
-@export var tamano_icono_estado: float = 10.0
-@export var separacion_iconos_estado: float = 2.0
-## Y local donde se apoya la fila (negativo = arriba del sprite).
-@export var altura_iconos_estado: float = -50.0
+@export var tamano_icono_estado: float = 16.0
+@export var separacion_iconos_estado: float = 3.0
+## Separación entre el borde superior REAL del sprite (calculado, ver
+## _altura_iconos_estado) y el borde inferior de la fila de íconos — mismo
+## criterio que Enemigo.margen_iconos_estado. Antes esto era un número Y
+## fijo a ojo (altura_iconos_estado=-50.0): se quedó desactualizado la
+## primera vez que el sprite cambió de escala (perdió su scale=0.75 al
+## arreglar el pixel art) y los íconos pasaron a dibujarse ADENTRO del
+## sprite en vez de arriba — regresión real, la agarró
+## prueba_iconos_estado_jugador.
+@export var margen_iconos_estado: float = 4.0
 const _COLOR_CONTORNO_ICONOS_ESTADO := Color(0.0, 0.0, 0.0, 0.9)
 
 var _nodo_iconos_estado: Node2D = null
@@ -322,10 +329,22 @@ func _process(delta: float) -> void:
 func _crear_iconos_estado() -> void:
 	_nodo_iconos_estado = Node2D.new()
 	_nodo_iconos_estado.name = "IconosEstadoJugador"
-	_nodo_iconos_estado.position = Vector2(0.0, altura_iconos_estado)
+	_nodo_iconos_estado.position = Vector2(0.0, _altura_iconos_estado())
 	add_child(_nodo_iconos_estado)
 	_nodo_iconos_estado.draw.connect(_dibujar_iconos_estado)
 	_intentar_conectar_buffs_estado()
+
+
+## Y local (negativo = arriba) donde se apoya la fila de íconos, contra el
+## borde superior REAL del sprite — mismo criterio que
+## Enemigo._altura_iconos_estado(), ver el comentario de
+## margen_iconos_estado para el porqué de calcularlo en vez de fijarlo.
+func _altura_iconos_estado() -> float:
+	if not sprite or not sprite.texture or sprite.vframes <= 0:
+		return -(margen_iconos_estado + tamano_icono_estado)
+	var alto_frame := (sprite.texture.get_height() / float(sprite.vframes)) * sprite.scale.y
+	var borde_superior_sprite := sprite.position.y - alto_frame / 2.0
+	return borde_superior_sprite - margen_iconos_estado - tamano_icono_estado
 
 
 func _intentar_conectar_buffs_estado() -> void:

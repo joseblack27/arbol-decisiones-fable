@@ -259,6 +259,18 @@ func misiones_componente_local() -> MisionesComponente:
 	return null
 
 
+## Atajo: el CofresComponente del jugador propio (ver jugador_local()) —
+## mismo criterio que misiones_componente_local().
+func cofres_componente_local() -> CofresComponente:
+	var jugador := jugador_local()
+	if jugador == null:
+		return null
+	for hijo in jugador.get_children():
+		if hijo is CofresComponente:
+			return hijo
+	return null
+
+
 func snake_to_pascal(text: String) -> String:
 	var parts = text.split("_")
 	var result := ""

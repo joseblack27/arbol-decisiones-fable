@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="DatosCofre" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://recursos/cofres/DatosCofre.gd" id="1_scr"]
+[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="2_loot"]
+[ext_resource type="Resource" path="res://recursos/items/consumibles/pocion_vida.tres" id="3_pocion"]
+[ext_resource type="Resource" path="res://recursos/items/recursos/hoja_1.tres" id="4_hoja"]
+
+[sub_resource type="Resource" id="Resource_pocion"]
+script = ExtResource("2_loot")
+item = ExtResource("3_pocion")
+probabilidad = 1.0
+
+[sub_resource type="Resource" id="Resource_hoja"]
+script = ExtResource("2_loot")
+item = ExtResource("4_hoja")
+probabilidad = 0.5
+
+[resource]
+script = ExtResource("1_scr")
+id = "cofre_ciudad_1"
+nombre = "Cofre de la Ciudad"
+tabla_botin = Array[ExtResource("2_loot")]([SubResource("Resource_pocion"), SubResource("Resource_hoja")])

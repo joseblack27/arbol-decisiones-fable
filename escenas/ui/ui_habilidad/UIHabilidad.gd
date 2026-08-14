@@ -29,6 +29,10 @@ class_name UIHabilidad
 ## HabilidadAcumulacion) — para que se note a simple vista que ya no es
 ## "recién presionada" sino "esperando la segunda presión".
 @export var color_icono_fase_activa: Color = Color(1.00, 0.55, 0.20, 1.00)
+## Cuánto oscurecer el botón (fondo + ícono) mientras el dueño tiene el
+## control bloqueado por el margen de red de otra habilidad recién lanzada
+## (ver _dueño_bloqueado_por_control) — 0 = sin cambio, 1 = negro total.
+@export_range(0.0, 1.0, 0.05) var factor_oscurecido_bloqueo: float = 0.6
 
 ## Color/alfa normal del ícono fuera de la segunda etapa — mismo valor que
 ## ya usaba _actualizar_icono() antes de que existiera esto.
@@ -78,6 +82,10 @@ var _cd_restante: float = 0.0
 # ── Energía / slot ────────────────────────────────────────────────────────────
 var _sin_energia: bool                 = false
 var _slot_habilidades: SlotHabilidades = null
+
+## Cacheado en cada _process() (ver _dueño_bloqueado_por_control) — no hay
+## señal para esto, a diferencia de energía/recarga, así que se sondea.
+var _bloqueado_por_control: bool = false
 
 # ── Fase (habilidades de dos etapas, ver HabilidadAcumulacion) ──────────────────
 var _fase_activa: bool = false
@@ -220,6 +228,23 @@ func _dueño_muerto() -> bool:
 	if jugador.has_method(&"esta_bloqueado"):
 		return jugador.call(&"esta_bloqueado")
 	return ("_muerto" in jugador) and jugador.get("_muerto")
+
+
+## true mientras el dueño tiene el control bloqueado por el margen de red
+## de otra habilidad recién lanzada (ver HabilidadBase._MARGEN_CONGELAMIENTO_
+## RED/activar() — 0.5s tras cualquier cast con congela_movimiento_en_red=
+## true, que es la inmensa mayoría). El TOQUE ya estaba bloqueado sin esto
+## (Jugador.esta_bloqueado(), que _dueño_muerto() ya consulta, incluye
+## _bloqueos_control > 0) — lo único que faltaba era que se VIERA: tocar
+## otro slot en esa ventana no hacía nada, sin ningún indicio de por qué,
+## se sentía como lag/mala señal (reportado). Por eso esto vive aparte de
+## _dueño_muerto() y solo se usa para oscurecer (ver _refrescar_visual),
+## no para bloquear el toque de nuevo.
+func _dueño_bloqueado_por_control() -> bool:
+	if not _slot_habilidades or not is_instance_valid(_slot_habilidades.jugador):
+		return false
+	var jugador := _slot_habilidades.jugador
+	return ("_bloqueos_control" in jugador) and jugador.get("_bloqueos_control") > 0
 
 
 ## Registra por adelantado las señales de otros slots que este botón físico
@@ -448,6 +473,11 @@ func _process(delta: float) -> void:
 		_cd_restante -= delta
 		_cd_ratio = clampf(_cd_restante / _cd_duracion, 0.0, 1.0) if _cd_duracion > 0.0 else 0.0
 		_actualizar_cooldown_visual()
+
+	var bloqueado := _dueño_bloqueado_por_control()
+	if bloqueado != _bloqueado_por_control:
+		_bloqueado_por_control = bloqueado
+		_refrescar_visual()
 	# apunte SOLO se emitía en el evento de arrastre (motion) — si el dedo se
 	# queda quieto sosteniendo el joystick sin mover el punto, dejaba de
 	# avisar. Habilidades de canal continuo (lanzallamas: "mientras
@@ -531,9 +561,18 @@ func _disponer_nodos() -> void:
 
 ## Refleja el estado lógico en los nodos (antes era _draw()).
 func _refrescar_visual() -> void:
-	_base.self_modulate = color_activo if (_activo or _presionado) else color_reposo
+	var color_base := color_activo if (_activo or _presionado) else color_reposo
+	var color_icono := color_icono_fase_activa if _fase_activa else _COLOR_ICONO_NORMAL
+	# Oscurecer fondo + ícono mientras el control está bloqueado (ver
+	# _dueño_bloqueado_por_control) — pedido del usuario: que se note a
+	# simple vista por qué un toque no hace nada en vez de sentirse como
+	# lag/mala señal.
+	if _bloqueado_por_control:
+		color_base = color_base.darkened(factor_oscurecido_bloqueo)
+		color_icono = color_icono.darkened(factor_oscurecido_bloqueo)
+	_base.self_modulate = color_base
 	if _icono.texture != null:
-		_icono.modulate = color_icono_fase_activa if _fase_activa else _COLOR_ICONO_NORMAL
+		_icono.modulate = color_icono
 
 	var mostrar_direccion := _modo_joystick and _activo and _drag_offset.length() > 5.0
 	_linea_direccion.visible = mostrar_direccion

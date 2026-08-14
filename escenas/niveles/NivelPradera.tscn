@@ -16,6 +16,7 @@
 [ext_resource type="Resource" path="res://recursos/dialogo/ejemplo_comerciante.tres" id="12_npc_dialogo"]
 [ext_resource type="Resource" path="res://recursos/tienda/ejemplo_tienda_comerciante.tres" id="12_npc_tienda"]
 [ext_resource type="Script" uid="uid://dyloetpnctmqy" path="res://escenas/enemigos/SpawnerMobs.gd" id="11_spawner"]
+[ext_resource type="PackedScene" path="res://escenas/enemigos/MunecoEntrenamiento.tscn" id="13_muneco"]
 
 [sub_resource type="AtlasTexture" id="textura_arbol"]
 atlas = ExtResource("5_atlas")
@@ -362,6 +363,9 @@ position = Vector2(630, 40)
 [node name="EsqueletoArquero5" parent="Enemigos" instance=ExtResource("9_arquero")]
 position = Vector2(890, 300)
 
+[node name="MunecoEntrenamiento" parent="Enemigos" instance=ExtResource("13_muneco")]
+position = Vector2(-600, 150)
+
 [node name="NPCs" type="Node2D" parent="."]
 y_sort_enabled = true
 
@@ -384,3 +388,9 @@ etiqueta = "→ Cueva"
 position = Vector2(-500, 0)
 ruta_nivel_destino = "res://escenas/niveles/NivelCamino.tscn"
 etiqueta = "→ Camino"
+
+
+[node name="PortalACiudad" parent="." instance=ExtResource("10_u3oy8")]
+position = Vector2(0, -560)
+ruta_nivel_destino = "res://escenas/niveles/NivelCiudad.tscn"
+etiqueta = "→ Ciudad"

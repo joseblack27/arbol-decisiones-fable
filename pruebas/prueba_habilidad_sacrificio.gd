@@ -181,8 +181,8 @@ func _verificar_escalado() -> void:
 	hab.aplicar_datos(datos)
 	hab.preparar_escalado(datos.escalado)
 
-	var potencia_por_nivel: Array[float] = [100.0, 120.0, 140.0, 160.0, 180.0]
-	var prob_critico_por_nivel: Array[float] = [20.0, 25.0, 30.0, 35.0, 40.0]
+	var potencia_por_nivel: Array[float] = [100.0, 125.0, 150.0, 175.0, 200.0]
+	var prob_critico_por_nivel: Array[float] = [10.0, 15.0, 20.0, 25.0, 30.0]
 	var dano_critico_por_nivel: Array[float] = [10.0, 15.0, 20.0, 25.0, 30.0]
 	var escala_ok := true
 	for nivel in range(1, 6):

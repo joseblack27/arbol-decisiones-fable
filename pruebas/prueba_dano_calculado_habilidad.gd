@@ -52,28 +52,31 @@ func _montar() -> void:
 
 
 func _informar() -> bool:
-	# (10+5)*1.2=18, (12+5)*1.2=20.4 -> int() trunca a 20.
+	# El bonus plano ("danos") se suma DESPUÉS de potencia (ver
+	# AtributosComponente.calcular_dano_saliente_vista_previa) — solo el
+	# daño base de la habilidad se multiplica por potencia, así el plano no
+	# escala con ella: 10*1.2+5=17, 12*1.2+5=19.4 -> int() trunca a 19.
 	# _datos no fija tipo_dano -> default FISICO -> gris (ver
 	# Enums.Habilidad.valor_color_dano), inyectado alrededor de {damage1}
 	# desde PanelDetalleHabilidad.gd (ver ese archivo) — el .tres YA NO
 	# trae su propio [color=...] hardcodeado.
 	var calc_label: Label = _panel_detalle.get("dmg_calc_label")
 	var desc_label: RichTextLabel = _panel_detalle.get("description_label")
-	print("Daño calculado inicial (esperado '18 - 20'): %s" % calc_label.text)
-	print("Descripción inicial (esperado 'Golpea por [color=ghostwhite][b]18 - 20[/b][/color]'): %s" % desc_label.text)
-	var inicial_ok := calc_label.text == "18 - 20" \
-		and desc_label.text == "Golpea por [color=ghostwhite][b]18 - 20[/b][/color]"
+	print("Daño calculado inicial (esperado '17 - 19'): %s" % calc_label.text)
+	print("Descripción inicial (esperado 'Golpea por [color=ghostwhite][b]17 - 19[/b][/color]'): %s" % desc_label.text)
+	var inicial_ok := calc_label.text == "17 - 19" \
+		and desc_label.text == "Golpea por [color=ghostwhite][b]17 - 19[/b][/color]"
 
 	# Sube "danos" a 10 (equivalente a equipar algo con ese bono) y avisa
 	# como haría GestorEquipo.actualizar() al equipar/desequipar de verdad.
 	_atributos.base.danos = 10.0
 	root.get_node("/root/BusEventos").emit_signal("equipo_cambiado", [])
 
-	# (10+10)*1.2=24, (12+10)*1.2=26.4 -> 26.
-	print("Daño calculado tras subir 'danos' (esperado '24 - 26'): %s" % calc_label.text)
-	print("Descripción tras el cambio (esperado 'Golpea por [color=ghostwhite][b]24 - 26[/b][/color]'): %s" % desc_label.text)
-	var actualizado_ok := calc_label.text == "24 - 26" \
-		and desc_label.text == "Golpea por [color=ghostwhite][b]24 - 26[/b][/color]"
+	# 10*1.2+10=22, 12*1.2+10=24.4 -> 24.
+	print("Daño calculado tras subir 'danos' (esperado '22 - 24'): %s" % calc_label.text)
+	print("Descripción tras el cambio (esperado 'Golpea por [color=ghostwhite][b]22 - 24[/b][/color]'): %s" % desc_label.text)
+	var actualizado_ok := calc_label.text == "22 - 24" \
+		and desc_label.text == "Golpea por [color=ghostwhite][b]22 - 24[/b][/color]"
 
 	# Habilidad con "multiplicador_dano_tick" en su escena (el lanzallamas):
 	# el panel debe leerlo y escalar el rango mostrado — sin esto, mostraba

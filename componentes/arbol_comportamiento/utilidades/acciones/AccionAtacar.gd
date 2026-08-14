@@ -54,7 +54,12 @@ extends Accion
 ## mob haya entrado todavía en rango, y se queda congelado ahí para siempre
 ## (reproducido con un Lobo real: rango_maximo=25, este valor en 22 → se
 ## trababa clavado a 26.35px, ni un píxel más cerca, para siempre).
-@export var distancia_minima_acercamiento: float = 20.0
+## Subido de 20 a 50 (pedido del usuario: "que no sea tan pegado") — los
+## mobs cuyo rango_maximo de ataque era chico (35, ver ArañazoLobo.tres/
+## ArañazoLoboFeroz.tres/GolpeBasicoJefe.tres) se subieron a 70 junto con
+## esto para no quedar más cerca del rango_maximo que el margen de 15px de
+## más arriba.
+@export var distancia_minima_acercamiento: float = 50.0
 ## Segundos de pausa tras ejecutar cualquier habilidad.
 @export var duracion_recuperacion: float = 3.0
 ## Segundos entre intentos de selección de habilidad.
@@ -320,7 +325,8 @@ func _on_reiniciar() -> void:
 ## cuenta tironearía sin llegar nunca.
 func _elegir_destino_reposicionamiento(agente: Node2D, objetivo: Node2D) -> void:
 	var vector_actual := agente.global_position - objetivo.global_position
-	# Piso en distancia_minima_acercamiento: sin esto, si el acercamiento
+	# Piso en distancia_minima_acercamiento + _MARGEN_CORRECCION_CERCANIA (NO
+	# distancia_minima_acercamiento sola): sin esto, si el acercamiento
 	# se pasó de largo del rango de la habilidad en un solo tick del árbol
 	# (10/s a velocidad_aproximacion, puede recorrer más que el margen entre
 	# rango_maximo y este piso de una sola vez), ese "de más" quedaba
@@ -329,7 +335,21 @@ func _elegir_destino_reposicionamiento(agente: Node2D, objetivo: Node2D) -> void
 	# terminaba MÁS cerca todavía, nunca se corregía hacia afuera (reproducido
 	# con un Lobo real: 15.97 → 14.81 → 13.47 → 12.10 → 10.83 → 9.96px,
 	# achicándose ataque tras ataque en vez de estabilizarse).
-	var distancia_actual := maxf(vector_actual.length(), distancia_minima_acercamiento)
+	# El margen extra (no solo el piso exacto) es OTRO fix aparte: el camino
+	# en línea recta entre dos puntos sobre un mismo círculo de radio
+	# distancia_minima_acercamiento (una cuerda) pasa por DENTRO de ese
+	# círculo — con el giro máximo (dispersion_angulo_reposicionamiento_grados
+	# completo) arrancando justo desde el piso, el punto más cercano de esa
+	# cuerda cae bien por debajo del piso a mitad de camino, lo que dispara
+	# _corregir_si_demasiado_cerca ahí mismo: aborta este destino recién
+	# elegido (_tiene_destino_reposicionamiento = false) y manda a otro punto
+	# que, si TAMBIÉN arranca pegado al piso, vuelve a cortarse igual — el mob
+	# quedaba oscilando sin avanzar nunca, reproducido con un Lobo real tras
+	# subir distancia_minima_acercamiento a 50 (0.0px recorridos, trabado
+	# ~1s seguido). Mismo margen que ya usa el destino de esa corrección más
+	# abajo, para que el radio de este reposicionamiento y el piso "seguro"
+	# de la corrección sean la misma familia de distancia.
+	var distancia_actual := maxf(vector_actual.length(), distancia_minima_acercamiento + _MARGEN_CORRECCION_CERCANIA)
 	if vector_actual.length() < 1.0:
 		vector_actual = Vector2.RIGHT
 	var dispersion := deg_to_rad(dispersion_angulo_reposicionamiento_grados)

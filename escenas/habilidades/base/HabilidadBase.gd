@@ -316,19 +316,15 @@ func _nombre_campo_escalable(campo: Enums.Habilidad.CampoEscalable) -> String:
 ## Traduce un CampoEscalado a su nombre de propiedad real, sin importar
 ## cuál de los dos selectores use (ver CampoEscalado.campo_atributo) — el
 ## único punto que preparar_escalado()/aplicar_nivel_mejora() consultan.
-## campo_atributo tiene prioridad porque su traducción es FIJA y GLOBAL
-## (no hace falta override por habilidad, a diferencia de "campo" — ver
-## Enums.Habilidad.AtributoEscalable): cualquier habilidad que exponga uno
-## de estos bonos SOLO tiene que nombrar su propio campo exacto así, nunca
-## hay que sobreescribir nada acá.
+## campo_atributo tiene prioridad y NO necesita traducción a mano ni
+## override por habilidad: el nombre real sale por REFLEXIÓN del propio
+## enum (Enums.Atributos.Campo.keys()[valor] -> "POTENCIA" ->
+## "bono_potencia"), no de un match a mano — agregar un atributo nuevo de
+## AtributosBase el día de mañana solo toca Enums.gd, nunca este archivo.
 func _nombre_campo_de(c: CampoEscalado) -> String:
-	if c.campo_atributo != Enums.Habilidad.AtributoEscalable.NINGUNO:
-		match c.campo_atributo:
-			Enums.Habilidad.AtributoEscalable.DANOS: return "bono_dano"
-			Enums.Habilidad.AtributoEscalable.POTENCIA: return "bono_potencia"
-			Enums.Habilidad.AtributoEscalable.PROBABILIDAD_CRITICO: return "bono_probabilidad_critico"
-			Enums.Habilidad.AtributoEscalable.DANO_CRITICO: return "bono_dano_critico"
-			_: return ""
+	if c.campo_atributo != Enums.Atributos.Campo.NINGUNO:
+		var nombre_enum: String = Enums.Atributos.Campo.keys()[c.campo_atributo]
+		return "bono_" + nombre_enum.to_lower()
 	return _nombre_campo_escalable(c.campo)
 
 

@@ -16,6 +16,18 @@
 # recuperación (AccionAtacar._fin_recuperacion > 0), la posición sigue
 # cambiando en los fotogramas siguientes en vez de congelarse, Y no hay
 # ninguna racha larga sin moverse durante TODA la ventana de recuperación.
+#
+# OJO: el Lobo tiene DOS habilidades (Arañazo Y Carga) — _montar_escena()
+# filtra el SelectorHabilidades a solo Arañazo. Sin filtrar, a veces
+# SelectorHabilidades elige Carga primero (nada nuevo introducido por esta
+# prueba, es la prioridad de siempre) y su preparación telegrafiada —
+# quieta a propósito antes del dash, ver HabilidadCarga — se leía como
+# "plantado sin reposicionar": un falso negativo de esta prueba, no un bug
+# real (confirmado con diagnóstico: ataque_en_curso=true durante TODA la
+# racha "sin moverse"). El propio telegrafiado de Carga ya tiene sus
+# pruebas dedicadas (prueba_mirada_carga_lobo.gd, prueba_animacion_mordida_
+# lobo.gd) — esta prueba se queda enfocada en lo suyo: el reposicionamiento
+# de AccionAtacar durante la recuperación de un ataque corto.
 #   godot --headless --path . --script res://pruebas/prueba_atacar_reposicionamiento.gd
 # =============================================================================
 extends SceneTree
@@ -114,6 +126,20 @@ func _montar_escena() -> void:
 	_senuelo.global_position = Vector2(340, 300)
 
 	_accion_atacar = _lobo.get_node("ArbolComportamiento/Selector/Atacar")
+
+	# El Lobo tiene DOS habilidades (Arañazo Y Carga) — esta prueba existe
+	# para aislar el reposicionamiento de AccionAtacar durante la
+	# recuperación de un ataque CORTO (Arañazo), no el propio telegrafiado
+	# de Carga (preparación + dash, con su propia prueba dedicada en
+	# prueba_mirada_carga_lobo.gd / prueba_animacion_mordida_lobo.gd). Sin
+	# filtrar esto, SelectorHabilidades a veces elige Carga primero (misma
+	# prioridad de siempre, nada nuevo de esta prueba) y su preparación
+	# telegrafiada — quieta a propósito antes del dash, ver
+	# HabilidadCarga — se leía como "plantado sin reposicionar", un falso
+	# negativo ajeno al comportamiento que esta prueba realmente cubre.
+	var selector_habilidades: SelectorHabilidades = _accion_atacar.get_node("SelectorHabilidades")
+	selector_habilidades.habilidades = selector_habilidades.habilidades.filter(
+		func(h: HabilidadBT) -> bool: return not h.nombre.begins_with("Carga") and not h.nombre.begins_with("ArañazoFeroz"))
 
 
 func _informar() -> bool:

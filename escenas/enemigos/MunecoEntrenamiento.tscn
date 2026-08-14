@@ -1,0 +1,81 @@
+[gd_scene load_steps=12 format=3 uid="uid://c7ljvd4qctsel"]
+
+[ext_resource type="Script" uid="uid://dfgnr4vex01dx" path="res://escenas/enemigos/MunecoEntrenamiento.gd" id="1_3ovou"]
+[ext_resource type="Resource" path="res://recursos/enemigos/MunecoEntrenamiento.tres" id="2_0i7e6"]
+[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="3_wg4mn"]
+[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="4_nofcr"]
+[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="5_mpyrp"]
+[ext_resource type="Texture2D" uid="uid://3lkp2fvcpfgv" path="res://assets/sprites/Training Dummy Sprite Sheet.png" id="6_xggad"]
+[ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="7_bqf14"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_fkb4i"]
+radius = 12.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_3u5a2"]
+radius = 12.0
+
+[sub_resource type="Animation" id="Animation_64gtc"]
+length = 0.32
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.08, 0.16, 0.24, 0.32),
+"transitions": PackedFloat32Array(1, 1, 1, 1, 1),
+"update": 1,
+"values": [9, 10, 11, 12, 0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_mq6n5"]
+_data = {
+&"golpe": SubResource("Animation_64gtc")
+}
+
+[node name="MunecoEntrenamiento" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "memoria")]
+motion_mode = 1
+script = ExtResource("1_3ovou")
+componente_vida = NodePath("VidaComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+memoria = NodePath("MemoriaBT")
+datos = ExtResource("2_0i7e6")
+xp_otorgada = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_fkb4i")
+
+[node name="Habilidades" type="Marker2D" parent="."]
+
+[node name="MemoriaBT" type="Node" parent="."]
+script = ExtResource("3_wg4mn")
+
+[node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador")]
+script = ExtResource("4_nofcr")
+jugador = NodePath("..")
+
+[node name="VidaComponente" type="Area2D" parent="."]
+script = ExtResource("5_mpyrp")
+salud_maxima = 1000000.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
+shape = SubResource("CircleShape2D_3u5a2")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(-2.1457672e-06, -20)
+scale = Vector2(1.4999998, 1.7499998)
+texture = ExtResource("6_xggad")
+hframes = 8
+vframes = 3
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_mq6n5")
+}
+
+[node name="BarraVidaEnergia" type="Node2D" parent="."]
+visible = false
+position = Vector2(0, -24)
+script = ExtResource("7_bqf14")
+ancho = 28.0

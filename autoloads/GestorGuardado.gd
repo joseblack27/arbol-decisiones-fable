@@ -183,6 +183,7 @@ func guardar_partida() -> void:
 		"mejoras": _serializar_mejoras(),
 		"creditos": _serializar_creditos(),
 		"misiones": _serializar_misiones(),
+		"cofres": _serializar_cofres(),
 	}
 
 	# En red (cliente puro) el archivo vive en el SERVIDOR — mandarle el
@@ -266,6 +267,7 @@ func _aplicar_datos_partida(datos: Dictionary) -> void:
 	_restaurar_mejoras(datos.get("mejoras", {}))
 	_restaurar_creditos(datos.get("creditos", {}))
 	_restaurar_misiones(datos.get("misiones", {}))
+	_restaurar_cofres(datos.get("cofres", {}))
 
 	GestorInventario.items.clear()
 	for entrada in datos.get("inventario", []):
@@ -458,6 +460,57 @@ func _restaurar_misiones(datos: Dictionary, jugador: Node = null) -> void:
 	# actual diga repetible=true (ver el comentario completo en
 	# MisionesComponente.reparar_completadas_repetibles).
 	misiones.reparar_completadas_repetibles()
+
+
+## id_cofre -> lista de ítems, mismo formato por-ítem que _serializar_
+## items ({id_recurso, cantidad}) — sin huecos que preservar: el cofre es
+## una lista DENSA tras el refactor a componentes genéricos (ver
+## CofresComponente, "no quiero slots precreados"), la posición ya no
+## significa nada.
+func _serializar_cofres() -> Dictionary:
+	var cofres := Utils.cofres_componente_local()
+	if cofres == null:
+		return {}
+	var resultado := {}
+	for id_cofre in cofres.contenidos:
+		resultado[id_cofre] = _serializar_items(cofres.contenidos[id_cofre])
+	return resultado
+
+
+## [jugador] explícito para el camino SERVIDOR — mismo motivo que
+## _restaurar_misiones. Reemplaza contenidos ENTERO: restaurar es "así
+## quedó la última vez", nunca vuelve a sortear el botín inicial (eso sería
+## un cofre gratis por cada guardado/cargado — ver CofresComponente.
+## obtener_contenido, que solo siembra la PRIMERA vez que un id no está en
+## el diccionario).
+## [datos] sin tipar a propósito: una partida guardada con el cofre viejo
+## ("una vez por jugador") trae acá una Array (lista de ids ya abiertos),
+## no un Dictionary — tipar el parámetro reventaría con "Cannot convert
+## argument 1 from Array to Dictionary" al cargar esas partidas. La guarda
+## descarta ese formato viejo en vez de migrarlo (no había nada que migrar:
+## el cofre ahora es un contenedor, no algo "ya abierto").
+func _restaurar_cofres(datos, jugador: Node = null) -> void:
+	if not datos is Dictionary:
+		return
+	var jugador_real := jugador if jugador != null else Utils.jugador_local()
+	if jugador_real == null:
+		return
+	var cofres := jugador_real.get_node_or_null("CofresComponente") as CofresComponente
+	if cofres == null:
+		return
+	cofres.contenidos.clear()
+	for id_cofre in datos:
+		var casillas: Array[DatosItem] = []
+		for entrada in datos[id_cofre]:
+			var item: DatosItem = _cargar_item(entrada) if entrada is Dictionary else null
+			if item:
+				# Copia propia con la cantidad guardada — nunca mutar el
+				# recurso de fábrica/compartido directo (mismo motivo que
+				# InventarioComponente.agregar_item, ver ese comentario).
+				item = item.duplicate() as DatosItem
+				item.quantity = (entrada as Dictionary).get("cantidad", 1)
+				casillas.append(item)
+		cofres.contenidos[id_cofre] = casillas
 
 
 func _restaurar_barra_rapida(rutas: Array) -> void:
@@ -696,6 +749,7 @@ func _restaurar_estado_autoritativo(jugador: Node2D, texto: String) -> void:
 	_restaurar_mejoras(datos.get("mejoras", {}), jugador)
 	_restaurar_creditos(datos.get("creditos", {}), jugador)
 	_restaurar_misiones(datos.get("misiones", {}), jugador)
+	_restaurar_cofres(datos.get("cofres", {}), jugador)
 
 	# Pasivas de GATILLO: a diferencia de la XP, no se re-derivan de nada
 	# más — sin esto, un jugador reconectado veía sus pasivas en la UI
@@ -732,6 +786,7 @@ func _recibir_partida_red(texto: String) -> void:
 	_restaurar_mejoras(datos.get("mejoras", {}))
 	_restaurar_creditos(datos.get("creditos", {}))
 	_restaurar_misiones(datos.get("misiones", {}))
+	_restaurar_cofres(datos.get("cofres", {}))
 	GestorInventario.items.clear()
 	for entrada in datos.get("inventario", []):
 		var item := _cargar_item(entrada)

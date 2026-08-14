@@ -75,12 +75,16 @@ func _actualizar_nivel() -> void:
 		_contenedor_puntos.add_child(_indicador_puntos)
 	var mejoras := Utils.mejoras_componente_local()
 	var tier: int = mejoras.nivel_pasiva(_pasiva_stat.resource_path) if mejoras else 0
-	# Tier CRUDO, sin sumarle el nivel gratis del desbloqueo automático —
-	# max_niveles es el tope de TIERS COMPRADOS (ver MejorasComponente.
-	# _gastar_en_pasiva_local, que compara tier_actual >= max_niveles
-	# directo), no "1 + tier" como en las habilidades activas.
-	_indicador_puntos.max_tier = _pasiva_stat.max_niveles
-	_indicador_puntos.tier = tier
+	# 1 + tier, igual que ItemHabilidad._actualizar_nivel: el desbloqueo YA
+	# aplicó un tier gratis (ver MejorasComponente._gastar_en_pasiva_local/
+	# PanelDetallePasiva._actualizar_descripcion), así que la pasiva arranca
+	# en nivel 1, no en 0 — pedido del usuario ("que cuando se desbloqueen,
+	# comiencen con nivel 1"). max_niveles sigue siendo el tope de TIERS
+	# COMPRADOS nada más (ver _gastar_en_pasiva_local, que compara
+	# tier_actual >= max_niveles directo, sin el +1); acá se le suma 1 para
+	# que el indicador muestre el tope TOTAL (gratis + comprables).
+	_indicador_puntos.max_tier = 1 + _pasiva_stat.max_niveles
+	_indicador_puntos.tier = 1 + tier
 
 
 func _on_toggled(pressed: bool) -> void:

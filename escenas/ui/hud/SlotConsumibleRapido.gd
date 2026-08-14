@@ -74,9 +74,16 @@ func _on_click(_slot: SlotItem) -> void:
 	# quedaba desactualizada hasta el próximo refresco por otra vía (abrir/
 	# cerrar el panel, lootear algo). Usar desde "Usar" en el detalle sí
 	# refrescaba (ver PanelInventario._on_use_button); usar desde acá no.
+	# refrescar_diferido() (no refrescar() directo): el panel casi siempre
+	# está CERRADO acá (esto es la barra rápida del HUD, pensada para usarse
+	# en pleno movimiento) — reconstruir su grilla entera a ciegas mientras
+	# nadie la mira causaba un tirón notable ("se traba el juego y el
+	# jugador hace tp") al usar un consumible caminando. Con el panel
+	# cerrado, refrescar_diferido() solo marca la grilla desactualizada y la
+	# reconstruye recién cuando se abre.
 	var panel := get_tree().get_root().find_child("PanelInventario", true, false)
-	if panel and panel.has_method("refrescar"):
-		panel.refrescar()
+	if panel and panel.has_method("refrescar_diferido"):
+		panel.refrescar_diferido()
 
 
 func _can_drop_data(_position, data) -> bool:

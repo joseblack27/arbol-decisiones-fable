@@ -9,8 +9,8 @@
 
 [sub_resource type="Resource" id="Resource_recarga"]
 script = ExtResource("ec_tabla")
-valores_por_nivel = Array[float]([15.0, 15.0, 15.0, 15.0, 15.0])
-campo = 2
+valores_por_nivel = Array[float]([1.0, 1.25, 1.5, 1.75, 2.0])
+campo = 6
 
 [sub_resource type="Resource" id="Resource_escalado"]
 script = ExtResource("ec_escalado")

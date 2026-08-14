@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://pcgj7icxfdlf"
-path="res://.godot/imported/captura_red_tras_lanzar.png-38b1efbde5b7eb3842131a4c62f50141.ctex"
+uid="uid://dq1o3j3fo82yn"
+path="res://.godot/imported/pack items medievales reducido.png-3455ed449e23189de1f06e6c8585a03b.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://captura_red_tras_lanzar.png"
-dest_files=["res://.godot/imported/captura_red_tras_lanzar.png-38b1efbde5b7eb3842131a4c62f50141.ctex"]
+source_file="res://assets/packs/pack items medievales reducido.png"
+dest_files=["res://.godot/imported/pack items medievales reducido.png-3455ed449e23189de1f06e6c8585a03b.ctex"]
 
 [params]
 

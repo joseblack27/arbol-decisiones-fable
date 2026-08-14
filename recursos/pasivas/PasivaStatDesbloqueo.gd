@@ -24,4 +24,4 @@ class_name PasivaStatDesbloqueo
 ## Puntos de mejora que cuesta cada tier ADICIONAL más allá del gratis.
 @export var costo_puntos_por_nivel: int = 1
 ## Tope de tiers comprables con puntos (sin contar el gratis del desbloqueo).
-@export var max_niveles: int = 5
+@export var max_niveles: int = 4

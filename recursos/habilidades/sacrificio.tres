@@ -15,12 +15,12 @@ campo_atributo = 2
 [sub_resource type="Resource" id="Resource_prob_critico"]
 script = ExtResource("ec_tabla")
 valores_por_nivel = Array[float]([10.0, 15.0, 20.0, 25.0, 30.0])
-campo_atributo = 3
+campo_atributo = 6
 
 [sub_resource type="Resource" id="Resource_dano_critico"]
 script = ExtResource("ec_tabla")
 valores_por_nivel = Array[float]([10.0, 15.0, 20.0, 25.0, 30.0])
-campo_atributo = 4
+campo_atributo = 7
 
 [sub_resource type="Resource" id="Resource_escalado"]
 script = ExtResource("ec_escalado")

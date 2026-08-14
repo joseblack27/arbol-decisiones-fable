@@ -55,7 +55,10 @@ func _get_drag_data(_at_position):
 	# can_equip (llevar a un EquipoSlot) O can_use (llevar a la barra rápida
 	# de consumibles, ver SlotConsumibleRapido): sin el segundo caso, un
 	# ítem usable (poción, comida...) nunca podía arrastrarse desde la
-	# grilla general del inventario, solo equipables.
+	# grilla general del inventario, solo equipables. Un ítem de categoría
+	# Recursos (ninguno de los dos) no tiene destino válido acá — ver
+	# CasillaObjeto/GrillaObjetos para el cofre, que sí acepta cualquier
+	# ítem sin esta restricción (es otra escena, no esta).
 	if not item_data or (item_data.can_equip == false and item_data.can_use == false):
 		return null
 
@@ -80,28 +83,40 @@ func _get_drag_data(_at_position):
 	return self
 
 
-## Solo acepta el drop si ESTE slot tiene un ítem del MISMO type_equippable
-## que el que se está arrastrando desde un EquipoSlot — es la única acción
-## "positiva" que una celda de la grilla general necesita manejar ella
-## misma (reemplazo real). Cualquier OTRO caso (celda vacía, tipo distinto,
-## soltar en el fondo del panel, sobre otro EquipoSlot que no coincide...)
-## NO se acepta acá a propósito: lo resuelve EquipoSlot._notification como
-## red de seguridad final cuando el arrastre termina sin que nadie lo
-## haya aceptado — ver ese archivo para el porqué (mouse_filter STOP por
-## defecto corta cualquier intento de "burbujear" el rechazo hacia arriba,
-## así que depender de eso para el resto de los casos no es confiable).
+## Solo un caso: un ítem del MISMO type_equippable arrastrado desde un
+## EquipoSlot — la única acción "positiva" que una celda de la grilla
+## general necesita manejar ella misma para EQUIPABLES (reemplazo real).
+## Cualquier OTRO caso de EquipoSlot (celda vacía, tipo distinto, soltar en
+## el fondo del panel...) NO se acepta acá a propósito: lo resuelve
+## EquipoSlot._notification como red de seguridad final cuando el arrastre
+## termina sin que nadie lo haya aceptado — ver ese archivo para el porqué
+## (mouse_filter STOP por defecto corta cualquier intento de "burbujear"
+## el rechazo hacia arriba).
 func _can_drop_data(_at_position, data) -> bool:
 	return data is EquipoSlot and data.item_data != null \
 		and item_data != null and item_data.type_equippable == data.item_data.type_equippable
 
 
+func _drop_data(_at_position, data) -> void:
+	_reemplazar_equipado(data)
+
+
 ## Reemplazo: el ítem de ESTA celda pasa a equipado en el EquipoSlot de
 ## origen, y el que estaba puesto ahí vuelve al inventario general.
-func _drop_data(_at_position, data) -> void:
+## panel se resuelve ACÁ ARRIBA, antes de tocar nada — no después (bug real
+## encontrado esta misma sesión): GestorInventario.agregar_item(item) más
+## abajo dispara BusEventos.item_agregado, y si PanelInventario está
+## visible (siempre lo está: es el único panel desde el que se puede
+## arrastrar hasta acá) su handler reconstruye flow ENTERO — destruyendo
+## "self", que es un hijo de esa misma grilla — antes de que _obtener_
+## panel_inventario() llegara a correr. Resuelto así de temprano, "panel"
+## ya no depende de que "self" siga vivo para nada.
+func _reemplazar_equipado(data) -> void:
 	var fuente: EquipoSlot = data
 	var item: DatosItem = fuente.item_data
 	if item == null:
 		return
+	var panel := _obtener_panel_inventario()
 	var item_reemplazo := item_data
 	fuente.item_data = item_reemplazo
 	fuente.can_equip = false
@@ -109,7 +124,6 @@ func _drop_data(_at_position, data) -> void:
 	GestorInventario.quitar_item(item_reemplazo)
 	GestorInventario.agregar_item(item)
 	fuente.slot_dragging.emit(false, item.type_equippable)
-	var panel := _obtener_panel_inventario()
 	if panel:
 		panel.refrescar()
 		panel.notificar_equipo_cambiado()

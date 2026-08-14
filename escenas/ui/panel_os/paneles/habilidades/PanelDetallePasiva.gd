@@ -116,8 +116,13 @@ func _actualizar_fila_mejorar() -> void:
 	if _indicador_puntos_mejora == null:
 		_indicador_puntos_mejora = IndicadorNivelMejora.new()
 		_contenedor_puntos_mejora.add_child(_indicador_puntos_mejora)
-	_indicador_puntos_mejora.max_tier = _pasiva_actual.max_niveles
-	_indicador_puntos_mejora.tier = tier
+	# 1 + tier / 1 + max_niveles: mismo motivo que ItemPasiva._actualizar_
+	# nivel — el desbloqueo ya da un tier gratis, el indicador arranca en
+	# nivel 1, no en 0. "al_tope" de abajo sigue comparando el tier CRUDO
+	# (sin el +1) contra max_niveles: eso es "cuántos tiers COMPRADOS con
+	# puntos ya tengo", un cálculo aparte de cómo se muestra el nivel.
+	_indicador_puntos_mejora.max_tier = 1 + _pasiva_actual.max_niveles
+	_indicador_puntos_mejora.tier = 1 + tier
 
 	var al_tope := tier >= _pasiva_actual.max_niveles
 	var costo := _pasiva_actual.costo_puntos_por_nivel

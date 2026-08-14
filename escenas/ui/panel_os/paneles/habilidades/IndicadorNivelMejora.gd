@@ -48,6 +48,11 @@ func _reconstruir_cuadros() -> void:
 		var cuadro := ColorRect.new()
 		cuadro.custom_minimum_size = Vector2(_TAMAÑO, _TAMAÑO)
 		cuadro.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		# Sin esto, tocar justo sobre un cuadrito no selecciona la fila —
+		# mismo bug que el ícono/nombre de ItemHabilidad/ItemPasiva (ver esos
+		# .tscn): un Control hijo sin mouse_filter explícito usa STOP por
+		# defecto y se traga el toque antes de que llegue al Button padre.
+		cuadro.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(cuadro)
 		_cuadros.append(cuadro)
 	_actualizar_cuadros()

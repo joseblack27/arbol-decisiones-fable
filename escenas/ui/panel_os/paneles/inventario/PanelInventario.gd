@@ -24,6 +24,16 @@ class_name PanelInventario
 ## no hay selección, en vez de mostrar placeholders tipo "No item" / "-".
 @onready var detail_panel_margin := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle
 
+## Créditos del jugador, visibles en PanelDetalle mientras no hay ningún
+## ítem seleccionado (mismo espacio que ocupa ContenidoDetalle) — pedido
+## del usuario: "que el detalle del item se dibuje por encima de los
+## creditos". En vez de superponerlos y depender del orden de dibujado, se
+## ocultan mutuamente (ver _on_slot_clicked/_on_close_button): mismo
+## resultado visual, sin arriesgar que el texto de los créditos se vea
+## atravesando el detalle.
+@onready var _label_creditos: Label = $Margin/HBox/PanelDetalle/MarginCreditos/Creditos
+var _creditos: CreditosComponente = null
+
 @onready var action_button     := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/BotonAccion
 @onready var main_action_panel: PanelContainer = $Margin/HBox/PanelDetalle/PanelAccionPrincipal
 @onready var use_action_button   := $Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonUsar
@@ -88,6 +98,7 @@ func _ready():
 		slot.slot_clicked.connect(_on_slot_clicked)
 	BusEventos.item_agregado.connect(_on_item_agregado)
 	visibility_changed.connect(_on_visibility_changed)
+	_conectar_creditos()
 	# GestorInventario.agregar_item(..., silencioso=true) — el modo que usa
 	# GestorGuardado para restaurar una partida guardada — a propósito NO
 	# emite item_agregado (esos ítems ya eran tuyos, no son botín nuevo; ver
@@ -110,9 +121,27 @@ func _on_item_agregado(_item: DatosItem, _cantidad: int) -> void:
 		_grilla_desactualizada = true
 
 func _on_visibility_changed() -> void:
-	if is_visible_in_tree() and _grilla_desactualizada:
+	if not is_visible_in_tree():
+		return
+	if _creditos == null:
+		_conectar_creditos()
+	if _grilla_desactualizada:
 		_grilla_desactualizada = false
 		refrescar()
+
+
+## Mismo patrón que PanelTienda._al_cambiar_creditos/HudJugador — reintenta
+## en cada apertura (ver _on_visibility_changed) por si el jugador local
+## todavía no existía cuando este panel corrió su propio _ready().
+func _conectar_creditos() -> void:
+	_creditos = Utils.creditos_componente_local()
+	if _creditos and not _creditos.creditos_cambiados.is_connected(_actualizar_creditos):
+		_creditos.creditos_cambiados.connect(_actualizar_creditos)
+		_actualizar_creditos(_creditos.obtener_creditos())
+
+
+func _actualizar_creditos(nuevo: int) -> void:
+	_label_creditos.text = "Créditos: %d" % nuevo
 
 
 ## Reconstruye la grilla de inventario desde GestorInventario.items (la
@@ -128,6 +157,24 @@ func refrescar() -> void:
 	# ignorado (mostrando todo) cada vez que algo dispara un refresco
 	# (equipar, lootear, desequipar).
 	flow.filter_items(flow.last_filter_type)
+
+## Como refrescar(), pero para quien cambia el inventario desde AFUERA del
+## panel mientras puede estar CERRADO (ver SlotConsumibleRapido._on_click) —
+## mismo criterio que _on_item_agregado: si nadie lo está mirando ahora
+## mismo, alcanza con marcarlo desactualizado y reconstruir la grilla recién
+## cuando se abra (ver _on_visibility_changed), en vez de reconstruirla
+## entera a ciegas. _load_items_flow() destruye/reinstancia un nodo por
+## CADA ítem del inventario completo (no solo el usado) — reportado como un
+## tirón notable ("se traba el juego y el jugador hace tp") al usar un
+## consumible de la barra rápida mientras caminaba, con el panel cerrado:
+## el freeze pausaba toda la física por un instante y el motor "recuperaba"
+## de golpe el movimiento acumulado del joystick al descongelarse.
+func refrescar_diferido() -> void:
+	if is_visible_in_tree():
+		refrescar()
+	else:
+		_grilla_desactualizada = true
+
 
 func _load_items_flow():
 	_clear_grid(flow)
@@ -156,11 +203,13 @@ func _on_slot_clicked(slot: SlotItem):
 		_update_details(slot)
 		main_action_panel.hide()
 		detail_panel_margin.show()
+		_label_creditos.hide()
 
 func _on_close_button():
 	item_data_details = null
 	detail_panel_margin.hide()
 	main_action_panel.hide()
+	_label_creditos.show()
 
 func _on_action_button():
 	main_action_panel.visible = !main_action_panel.visible

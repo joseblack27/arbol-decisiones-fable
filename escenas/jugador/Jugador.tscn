@@ -1,4 +1,4 @@
-[gd_scene load_steps=74 format=3 uid="uid://ce0idfghf3qmv"]
+[gd_scene load_steps=87 format=3 uid="uid://ce0idfghf3qmv"]
 
 [ext_resource type="Script" uid="uid://dgmateor552fo" path="res://escenas/jugador/Jugador.gd" id="1_omvyu"]
 [ext_resource type="Texture2D" uid="uid://c6uo706eo6eio" path="res://assets/JugadorBase.png" id="2_vwuu0"]
@@ -11,25 +11,19 @@
 [ext_resource type="Script" uid="uid://b1v8fo84ubns6" path="res://componentes/InventarioComponente.gd" id="16_invc"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="16_su64b"]
 [ext_resource type="Script" uid="uid://b06badl4dbciy" path="res://componentes/EquipoComponente.gd" id="17_eqpc"]
+[ext_resource type="Script" uid="uid://ccxbcmk2bofl" path="res://componentes/CreditosComponente.gd" id="18_creditos_comp"]
+[ext_resource type="Script" uid="uid://ple3ba5rci1u" path="res://componentes/MejorasComponente.gd" id="18_mejoras_comp"]
+[ext_resource type="Script" uid="uid://dbwm60oyx4qdn" path="res://componentes/MisionesComponente.gd" id="18_misiones_comp"]
+[ext_resource type="Script" path="res://componentes/CofresComponente.gd" id="18_cofres_comp"]
+[ext_resource type="Script" uid="uid://d3lkug0pahug4" path="res://componentes/PasivasComponente.gd" id="18_pasivas_comp"]
+[ext_resource type="Resource" uid="uid://bnog2p2efxqrr" path="res://recursos/pasivas/Fortaleza.tres" id="18_pasiva_fortaleza"]
+[ext_resource type="Resource" uid="uid://dc2kvkbpn7rqr" path="res://recursos/pasivas/MetabolismoAcelerado.tres" id="18_pasiva_metabolismo"]
+[ext_resource type="Resource" uid="uid://b0h18knu5lbmf" path="res://recursos/pasivas/OjoCertero.tres" id="18_pasiva_ojo"]
+[ext_resource type="Resource" uid="uid://cj8tgix380ek5" path="res://recursos/pasivas/PielCurtida.tres" id="18_pasiva_piel"]
+[ext_resource type="Script" uid="uid://jo3a2yo6rb2i" path="res://recursos/pasivas/PasivaStatDesbloqueo.gd" id="18_pasiva_script"]
+[ext_resource type="Script" uid="uid://c7ri2ntnfyr0w" path="res://componentes/TiendaComponente.gd" id="18_tienda_comp"]
 [ext_resource type="Script" uid="uid://bupy2t5ntk7cg" path="res://componentes/ExperienciaComponente.gd" id="18_xpc"]
-[ext_resource type="Script" path="res://componentes/PasivasComponente.gd" id="18_pasivas_comp"]
-[ext_resource type="Script" path="res://componentes/MejorasComponente.gd" id="18_mejoras_comp"]
-[ext_resource type="Script" path="res://componentes/CreditosComponente.gd" id="18_creditos_comp"]
-[ext_resource type="Script" path="res://componentes/TiendaComponente.gd" id="18_tienda_comp"]
-[ext_resource type="Script" path="res://componentes/MisionesComponente.gd" id="18_misiones_comp"]
-[ext_resource type="Script" path="res://recursos/pasivas/PasivaStatDesbloqueo.gd" id="18_pasiva_script"]
-[ext_resource type="Resource" path="res://recursos/pasivas/PielCurtida.tres" id="18_pasiva_piel"]
-[ext_resource type="Resource" path="res://recursos/pasivas/OjoCertero.tres" id="18_pasiva_ojo"]
-[ext_resource type="Resource" path="res://recursos/pasivas/MetabolismoAcelerado.tres" id="18_pasiva_metabolismo"]
-[ext_resource type="Resource" path="res://recursos/pasivas/Fortaleza.tres" id="18_pasiva_fortaleza"]
 [ext_resource type="Resource" uid="uid://c6t4kbl6xo405" path="res://recursos/habilidades/bola_de_fuego.tres" id="20_bf"]
-[ext_resource type="Resource" path="res://recursos/habilidades/camuflaje.tres" id="47_camuflaje"]
-[ext_resource type="Resource" path="res://recursos/habilidades/marca_detonable.tres" id="48_marca"]
-[ext_resource type="Resource" path="res://recursos/habilidades/purga.tres" id="49_purga"]
-[ext_resource type="Resource" path="res://recursos/habilidades/fervor.tres" id="50_fervor"]
-[ext_resource type="Resource" path="res://recursos/habilidades/sacudida.tres" id="51_sacudida"]
-[ext_resource type="Resource" path="res://recursos/habilidades/acumulacion.tres" id="52_acumulacion"]
-[ext_resource type="Resource" path="res://recursos/habilidades/sacrificio.tres" id="53_sacrificio"]
 [ext_resource type="Resource" uid="uid://drafagadatos1" path="res://recursos/habilidades/rafaga.tres" id="21_eh"]
 [ext_resource type="Resource" uid="uid://dm8bip261qqn" path="res://recursos/habilidades/picos_rocosos.tres" id="22_pr"]
 [ext_resource type="Resource" uid="uid://qwx3tms4pg2x" path="res://recursos/habilidades/golpe_basico.tres" id="23_gb"]
@@ -45,19 +39,26 @@
 [ext_resource type="Resource" uid="uid://cuulrkmhcuj8g" path="res://recursos/habilidades/curacion.tres" id="32_curacion"]
 [ext_resource type="Resource" uid="uid://cxq8minmov01" path="res://recursos/habilidades/inmovilizar.tres" id="33_inmov"]
 [ext_resource type="Script" path="res://componentes/CuracionComponente.gd" id="34_curc"]
-[ext_resource type="Script" path="res://componentes/ComponenteConfirmacionesRed.gd" id="35_confred"]
+[ext_resource type="Script" uid="uid://d5sqhjbgpcnn" path="res://componentes/ComponenteConfirmacionesRed.gd" id="35_confred"]
 [ext_resource type="Resource" uid="uid://bm4obwbxriwrr" path="res://recursos/habilidades/lanzallamas.tres" id="35_llamas"]
 [ext_resource type="Resource" uid="uid://d3elulj0pqs7d" path="res://recursos/habilidades/esquirla_helada.tres" id="36_esquirla"]
 [ext_resource type="Resource" uid="uid://cekyubxqgis3r" path="res://recursos/habilidades/gancho.tres" id="37_gancho"]
 [ext_resource type="Resource" uid="uid://bgritoguerra1" path="res://recursos/habilidades/grito_guerra.tres" id="38_grito"]
 [ext_resource type="Resource" uid="uid://btrampahab01" path="res://recursos/habilidades/trampa.tres" id="39_trampa"]
-[ext_resource type="Resource" uid="uid://bvenenohab01" path="res://recursos/habilidades/veneno.tres" id="40_veneno"]
+[ext_resource type="Resource" uid="uid://ywbknvvan0dv" path="res://recursos/habilidades/veneno.tres" id="40_veneno"]
 [ext_resource type="Resource" uid="uid://0sipjyxy3vjl" path="res://recursos/habilidades/aura.tres" id="41_aura"]
 [ext_resource type="Resource" uid="uid://brebotehab01" path="res://recursos/habilidades/rebote.tres" id="42_rebote"]
 [ext_resource type="Resource" uid="uid://bgolpevamp01" path="res://recursos/habilidades/golpe_vampirico.tres" id="43_golpevamp"]
 [ext_resource type="Resource" uid="uid://bondachoque1" path="res://recursos/habilidades/onda_choque.tres" id="44_ondachoque"]
 [ext_resource type="Resource" uid="uid://binvocacion1" path="res://recursos/habilidades/invocacion.tres" id="45_invocacion"]
 [ext_resource type="Resource" uid="uid://bvortice001" path="res://recursos/habilidades/vortice.tres" id="46_vortice"]
+[ext_resource type="Resource" uid="uid://deevj8huw0mk3" path="res://recursos/habilidades/camuflaje.tres" id="47_camuflaje"]
+[ext_resource type="Resource" uid="uid://chooilnxdii3q" path="res://recursos/habilidades/marca_detonable.tres" id="48_marca"]
+[ext_resource type="Resource" uid="uid://da4e5o0hl0nek" path="res://recursos/habilidades/purga.tres" id="49_purga"]
+[ext_resource type="Resource" uid="uid://crx1bie3vviqe" path="res://recursos/habilidades/fervor.tres" id="50_fervor"]
+[ext_resource type="Resource" uid="uid://cn2j6o4uull0g" path="res://recursos/habilidades/sacudida.tres" id="51_sacudida"]
+[ext_resource type="Resource" uid="uid://b4bsetx406k81" path="res://recursos/habilidades/acumulacion.tres" id="52_acumulacion"]
+[ext_resource type="Resource" uid="uid://hm2ayvycc81k" path="res://recursos/habilidades/sacrificio.tres" id="53_sacrificio"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_8vwo7"]
 
@@ -644,8 +645,7 @@ shape = SubResource("CircleShape2D_8vwo7")
 debug_color = Color(0.14086378, 0.637896, 0.30538398, 0.41960785)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-position = Vector2(0, -16)
-scale = Vector2(0.75, 0.75)
+position = Vector2(0, -24)
 texture = SubResource("AtlasTexture_1j33q")
 hframes = 4
 vframes = 5
@@ -716,6 +716,9 @@ script = ExtResource("18_tienda_comp")
 
 [node name="MisionesComponente" type="Node" parent="."]
 script = ExtResource("18_misiones_comp")
+
+[node name="CofresComponente" type="Node" parent="."]
+script = ExtResource("18_cofres_comp")
 
 [node name="Sync" type="MultiplayerSynchronizer" parent="."]
 

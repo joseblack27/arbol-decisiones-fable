@@ -41,14 +41,27 @@ func _ready() -> void:
 	# Mismo cableado que EnemigoCaballeroEsqueleto._ready() para su
 	# HabilidadCarga — solo avisa al BT que la carga terminó, ver
 	# HabilidadCarga.gd para la lógica real (daño, movimiento del dash).
+	_habilidad_carga.preparacion_iniciada.connect(_on_carga_preparacion)
+	_habilidad_carga.carga_iniciada.connect(_on_carga_iniciada)
 	_habilidad_carga.carga_terminada.connect(_on_carga_terminada)
 	if componente_vida:
 		componente_vida.cambio_valor_vida.connect(_on_vida_cambiada_jefe)
 
 
+## Este mob no tiene sprites propios de embestida (el AnimationTree solo
+## tiene IDLE/CAMINAR, idéntico al del Caballero) — sin esto quedaba
+## congelado durante toda la preparación + el dash. Mismo criterio que
+## EnemigoCaballeroEsqueleto._on_carga_preparacion/_on_carga_iniciada.
+func _on_carga_preparacion() -> void:
+	componente_animacion.viajar_a_estado("CAMINAR")
+
+
+func _on_carga_iniciada(_direccion: Vector2, _multiplicador: float) -> void:
+	componente_animacion.viajar_a_estado("CAMINAR")
+
+
 func _on_carga_terminada() -> void:
 	memoria.establecer("ataque_en_curso", false)
-	componente_animacion.establecer_condicion("parameters/conditions/debeCargar", false)
 
 
 ## Corre en TODOS los peers (cambio_valor_vida se emite igual en el servidor

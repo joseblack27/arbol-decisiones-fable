@@ -262,34 +262,43 @@ func calcular_dano_saliente(
 	if not base:
 		return dano_base
 
-	# 1. Bonus plano (base de fábrica+equipo, más cualquier buff temporal
-	# activo — ver obtener_bono_dano_temporal)
-	var total: float = dano_base + base.danos + obtener_bono_dano_temporal()
-
-	# 2. Multiplicador de potencia (base + cualquier buff temporal, ej.
-	# HabilidadSacrificio)
+	# 1. Multiplicador de potencia (base + cualquier buff temporal, ej.
+	# HabilidadSacrificio) — SOLO sobre el daño base de la habilidad, no
+	# sobre el bonus plano (ver punto 3): antes "danos" entraba acá también
+	# y terminaba amplificado por potencia Y por crítico a la vez, así que
+	# equipar daño plano + potencia escalaba multiplicativamente entre sí y
+	# desbalanceaba rápido. Ahora el plano se suma fijo al final, sin que
+	# ningún multiplicador lo toque.
+	var total: float = dano_base
 	total *= 1.0 + (base.potencia + obtener_bono_potencia_temporal()) / 100.0
 
-	# 3. Crítico: base x1.2 SIEMPRE que acierta (ver MULTIPLICADOR_CRITICO_
+	# 2. Crítico: base x1.2 SIEMPRE que acierta (ver MULTIPLICADOR_CRITICO_
 	# BASE) + el dano_critico visible del personaje encima (ambos, base +
-	# cualquier buff temporal).
+	# cualquier buff temporal) — ídem, solo sobre el daño base ya potenciado.
 	ultimo_golpe_critico = false
 	var prob_critico_total: float = base.probabilidad_critico + obtener_bono_probabilidad_critico_temporal()
 	if prob_critico_total > 0.0 and randf() * 100.0 < prob_critico_total:
 		ultimo_golpe_critico = true
 		total *= MULTIPLICADOR_CRITICO_BASE + (base.dano_critico + obtener_bono_dano_critico_temporal()) / 100.0
 
+	# 3. Bonus plano (base de fábrica+equipo, más cualquier buff temporal
+	# activo — ver obtener_bono_dano_temporal): se suma AL FINAL, sin
+	# multiplicar por potencia ni por crítico.
+	total += base.danos + obtener_bono_dano_temporal()
+
 	return maxf(0.0, total)
 
 
 ## Igual que calcular_dano_saliente() pero SIN el roll de crítico (ese paso
 ## es aleatorio y no tiene sentido en un número mostrado en pantalla, p. ej.
-## la descripción de una habilidad en el panel). Solo bonus plano + potencia.
+## la descripción de una habilidad en el panel). Solo potencia + bonus plano,
+## mismo orden que la versión real (ver ahí).
 func calcular_dano_saliente_vista_previa(dano_base: float) -> float:
 	if not base:
 		return dano_base
-	var total: float = dano_base + base.danos
+	var total: float = dano_base
 	total *= 1.0 + base.potencia / 100.0
+	total += base.danos
 	return maxf(0.0, total)
 
 

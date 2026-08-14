@@ -6,7 +6,7 @@
 script = ExtResource("1_086wa")
 nombre = "Arañazo"
 prioridad = 1
-rango_maximo = 35.0
+rango_maximo = 70.0
 duracion_cooldown = 2.0
 requiere_acercarse = true
 ruta_nodo = NodePath("Habilidades/HabilidadArañazo")

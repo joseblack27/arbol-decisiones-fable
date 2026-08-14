@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
 [ext_resource type="Texture2D" uid="uid://dvmb0oqqde75l" path="res://assets/iconos/icono_trampa_32x32.png" id="2_icono"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/trampa/HabilidadTrampa.tscn" id="3_esc"]
+[ext_resource type="PackedScene" uid="uid://bhgax8xll1ibj" path="res://escenas/habilidades/trampa/HabilidadTrampa.tscn" id="3_esc"]
 [ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="ec_base"]
 [ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="ec_escalado"]
 [ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="ec_tabla"]

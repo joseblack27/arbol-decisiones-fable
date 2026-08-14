@@ -15,8 +15,8 @@
 # dano_base_min=dano_base_max al valor real, y _calcular_dano() (ver
 # HabilidadBase.gd) prioriza ese rango sobre el daño de fallback.
 #
-# Usa el Caballero Esqueleto (arañazo_caballero.tres: daño=50, alcance
-# 1 metro = 40px, sin costo de energía ni recarga especial) como caso
+# Usa el Caballero Esqueleto (arañazo_caballero.tres: daño=50, costo de
+# energía=10, alcance 1 metro = 40px, sin recarga especial) como caso
 # concreto — mismo criterio que ya usa prueba_habilidad_furia_guerrero.gd.
 #   godot --headless --path . --script res://pruebas/prueba_habilidad_datos_mob_indicador_golpe.gd
 # =============================================================================
@@ -70,7 +70,7 @@ func _verificar_datos_aplicados() -> void:
 	# se leen directo, mismo criterio que el resto de las pruebas del
 	# proyecto para campos internos.
 	var dano_ok: bool = _arañazo._dano_min == 50 and _arañazo._dano_max == 50
-	var costo_ok: bool = absf(_arañazo.costo_energia - 0.0) < 0.001
+	var costo_ok: bool = absf(_arañazo.costo_energia - 10.0) < 0.001
 	var recarga_ok: bool = absf(_arañazo.duracion_recarga - 1.0) < 0.001
 	var alcance_ok: bool = absf(_arañazo.alcance_golpe - 40.0) < 0.001
 	var ok: bool = dano_ok and costo_ok and recarga_ok and alcance_ok

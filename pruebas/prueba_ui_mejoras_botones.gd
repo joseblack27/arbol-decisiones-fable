@@ -137,9 +137,9 @@ func _probar_pasiva_stat() -> void:
 	var fila = _fila_pasiva_de(_pasiva_stat.nombre)
 	fila.button_pressed = true
 
-	print("Puntos de progreso en la fila ANTES de comprar (esperado 0/5): %d/%d" % [
+	print("Puntos de progreso en la fila ANTES de comprar (esperado 1/6, el desbloqueo ya da 1 tier gratis): %d/%d" % [
 		fila._indicador_puntos.tier, fila._indicador_puntos.max_tier])
-	var nivel_fila_antes_ok: bool = fila._indicador_puntos.tier == 0 and fila._indicador_puntos.max_tier == 5
+	var nivel_fila_antes_ok: bool = fila._indicador_puntos.tier == 1 and fila._indicador_puntos.max_tier == 6
 
 	var boton: Button = _panel.pasivas_detail_panel._boton_mejorar
 	print("Fila de mejorar visible para pasiva de stat (esperado true): %s" % \
@@ -160,10 +160,10 @@ func _probar_pasiva_stat() -> void:
 	_mejorar_gasta_punto_ok = is_equal_approx(defensa_despues, defensa_antes + 3.0) \
 		and _panel._etiqueta_puntos.text == "Puntos: %d" % (puntos_antes - 1)
 
-	print("Puntos de progreso en la fila tras comprar (esperado 1/5): %d/%d" % [
+	print("Puntos de progreso en la fila tras comprar (esperado 2/6): %d/%d" % [
 		fila._indicador_puntos.tier, fila._indicador_puntos.max_tier])
 	_fila_pasiva_actualiza_nivel_ok = nivel_fila_antes_ok \
-		and fila._indicador_puntos.tier == 1 and fila._indicador_puntos.max_tier == 5
+		and fila._indicador_puntos.tier == 2 and fila._indicador_puntos.max_tier == 6
 
 	# Sin puntos disponibles, el botón tiene que decir POR QUÉ está
 	# deshabilitado, no solo mostrar el mismo texto de costo de siempre
@@ -262,11 +262,11 @@ func _probar_boton_reiniciar_puntos() -> void:
 
 	var fila = _fila_pasiva_de(_pasiva_stat.nombre)
 	var item: ItemHabilidad = _panel.skill_list_panel.get_child(0)
-	print("Fila de pasiva vuelve a 0/5 (esperado true): %d/%d" % [
+	print("Fila de pasiva vuelve a 1/6 (esperado true): %d/%d" % [
 		fila._indicador_puntos.tier, fila._indicador_puntos.max_tier])
 	print("Fila de muro vuelve a 1/3 (esperado true): %d/%d" % [
 		item._indicador_puntos.tier, item._indicador_puntos.max_tier])
-	_reiniciar_actualiza_fila_ok = fila._indicador_puntos.tier == 0 and item._indicador_puntos.tier == 1
+	_reiniciar_actualiza_fila_ok = fila._indicador_puntos.tier == 1 and item._indicador_puntos.tier == 1
 
 	print("Botón reiniciar DESHABILITADO sin nada que reiniciar (esperado true): %s" % boton.disabled)
 	_reiniciar_deshabilita_boton_ok = boton.disabled
@@ -304,8 +304,8 @@ func _probar_descripcion_sacrificio_escala_con_nivel() -> void:
 	for i in range(4):  # nivel 1 -> nivel 5 (escalado de sacrificio.tres llega a nivel_maximo=5)
 		_panel.detail_panel._uplevel_btn.pressed.emit()
 
-	print("Descripción en nivel 5 tras subir (esperado que contenga '+180'): %s" % _panel.detail_panel.description_label.text)
-	var nivel5_ok: bool = "+180" in _panel.detail_panel.description_label.text
+	print("Descripción en nivel 5 tras subir (esperado que contenga '+200'): %s" % _panel.detail_panel.description_label.text)
+	var nivel5_ok: bool = "+200" in _panel.detail_panel.description_label.text
 
 	_descripcion_sacrificio_escala_ok = nivel1_ok and nivel5_ok
 

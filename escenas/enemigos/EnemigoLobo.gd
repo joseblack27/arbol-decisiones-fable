@@ -31,11 +31,21 @@ func _ready() -> void:
 ## que no existe en este árbol (typo/resto viejo, no hacía nada).
 func _on_carga_preparacion() -> void:
 	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaPrep", true)
+	# No alcanza con la condición sola: el grafo solo tiene la arista
+	# IDLE->MORDIDA_PREPARACION. Si el lobo todavía está en CAMINAR (lo más
+	# común — recién llega al rango y dispara el ataque, movimiento.detener()
+	# recién se llama DESPUÉS en AccionAtacar) esa condición no tiene ninguna
+	# arista de salida que la escuche desde ahí y se queda pegado mostrando
+	# caminar — mismo bug ya encontrado y resuelto para el Arquero (ver
+	# HabilidadFlechaArquero._ejecutar). viajar_a_estado() fuerza el viaje
+	# pase lo que pase (ver AnimacionComponente).
+	componente_animacion.viajar_a_estado("MORDIDA_PREPARACION")
 
 
 func _on_carga_iniciada(_direccion: Vector2, _multiplicador: float) -> void:
 	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaPrep", false)
 	componente_animacion.establecer_condicion("parameters/conditions/debeMordidaDash", true)
+	componente_animacion.viajar_a_estado("MORDIDA_DASH")
 
 
 func _on_carga_terminada() -> void:

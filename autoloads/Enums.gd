@@ -30,6 +30,41 @@ class Inventario:
 		ESCUDO
 	}
 
+## Espejo de los campos de AtributosBase (ver ese archivo) — usado por
+## CampoEscalado.campo_atributo/HabilidadBase._nombre_campo_de() para
+## escalar bonos de combate por nivel de mejora SIN traducción a mano: el
+## nombre real de la propiedad en la habilidad sale de Campo.keys()[valor]
+## .to_lower() (reflexión del enum, no un match a mano), así que agregar
+## un atributo nuevo el día de mañana se hace UNA vez acá — nunca hay que
+## tocar HabilidadBase ni ninguna habilidad. Los nombres de acá tienen que
+## ser el UPPER_SNAKE_CASE exacto del campo real de AtributosBase (ej.
+## PROBABILIDAD_CRITICO -> probabilidad_critico), o la reflexión resuelve
+## mal. NINGUNO=0 a propósito: default de cualquier CampoEscalado que no
+## use esto, tiene que significar "no aplica" (cae al CampoEscalable viejo
+## de Habilidad, más abajo) y no un atributo real.
+class Atributos:
+	enum Campo {
+		NINGUNO,
+		DANOS,
+		POTENCIA,
+		IMPACTO,
+		AFLICCION,
+		IMPULSO,
+		PROBABILIDAD_CRITICO,
+		DANO_CRITICO,
+		REGENERACION_VIDA,
+		REGENERACION_VIDA_PLANA,
+		REGENERACION_ENERGIA,
+		DEFENSA,
+		TENACIDAD,
+		FORTALEZA,
+		RESISTENCIA_FISICA,
+		RESISTENCIA_AIRE,
+		RESISTENCIA_AGUA,
+		RESISTENCIA_FUEGO,
+		RESISTENCIA_TIERRA,
+	}
+
 class Habilidad:
 	enum TipoDano {
 		TIERRA,
@@ -66,24 +101,6 @@ class Habilidad:
 		RADIO,
 		DURACION_EFECTO,
 		PORCENTAJE_EFECTO,
-	}
-
-	## Bonos de combate escalables por nivel de mejora (ver CampoEscalado.
-	## campo_atributo/HabilidadBase._nombre_campo_atributo) — a diferencia de
-	## CampoEscalable de arriba, ACÁ el nombre real de la propiedad es FIJO
-	## y GLOBAL (no hace falta un override por habilidad): cualquier
-	## habilidad que quiera escalar uno de estos tiene que nombrar su propio
-	## campo EXACTO así (bono_potencia, bono_probabilidad_critico,
-	## bono_dano_critico, bono_dano — este último ya es el nombre real que
-	## usa HabilidadBuffEquipo). NINGUNO=0 a propósito: es el default de
-	## cualquier CampoEscalado que no lo use, y tiene que significar
-	## "no aplica" para no pisar por accidente el CampoEscalable viejo.
-	enum AtributoEscalable {
-		NINGUNO,
-		DANOS,
-		POTENCIA,
-		PROBABILIDAD_CRITICO,
-		DANO_CRITICO,
 	}
 
 	## Color (nombre CSS o hex) para mostrar el daño de cada elemento en la
