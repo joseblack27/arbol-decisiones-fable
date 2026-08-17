@@ -13,6 +13,12 @@ class_name GrillaObjetos
 const _CASILLA_SCENE := preload("res://escenas/ui/comunes/casilla_objeto/CasillaObjeto.tscn")
 
 signal item_tocado(item: DatosItem)
+## Botón de cerrar propio (ver mostrar_boton_cerrar) — pedido del usuario:
+## "quiero un botón de cerrar desde esta vista, que haga lo mismo que el
+## que ya está de salir". Genérica a propósito: esta grilla no sabe qué
+## significa "cerrar" para quien la usa (PanelCofre la conecta a su propio
+## _cerrar()), solo avisa que lo pidieron.
+signal cerrar_solicitado
 
 @export var titulo: String = "":
 	set(value):
@@ -20,7 +26,16 @@ signal item_tocado(item: DatosItem)
 		if is_node_ready():
 			_titulo_label.text = value
 
+## Oculto por defecto — no toda GrillaObjetos necesita un botón de cerrar
+## (ej. si en el futuro se reusa en un contexto sin la noción de "salir").
+@export var mostrar_boton_cerrar: bool = false:
+	set(value):
+		mostrar_boton_cerrar = value
+		if is_node_ready():
+			_boton_cerrar.visible = value
+
 @onready var _titulo_label: Label = %Titulo
+@onready var _boton_cerrar: Button = %BotonCerrar
 @onready var _contenedor: GridContainer = %Contenedor
 
 ## [obtener_items]() -> Array[DatosItem]: la lista a mostrar AHORA MISMO —
@@ -35,6 +50,8 @@ var fuente_grilla: FuenteObjetos = null
 
 func _ready() -> void:
 	_titulo_label.text = titulo
+	_boton_cerrar.visible = mostrar_boton_cerrar
+	_boton_cerrar.pressed.connect(func(): cerrar_solicitado.emit())
 
 
 func poblar(obtener_items: Callable, fuente: FuenteObjetos) -> void:

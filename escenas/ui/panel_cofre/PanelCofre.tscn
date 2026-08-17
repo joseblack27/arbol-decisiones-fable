@@ -40,25 +40,6 @@ theme_override_constants/margin_bottom = 6
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="Header" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="TituloCofre" type="Label" parent="Fondo/Margin/VBoxRaiz/Header"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 16
-text = "Cofre"
-
-[node name="BotonSalir" type="Button" parent="Fondo/Margin/VBoxRaiz/Header"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "Salir"
-
-[node name="HSeparatorHeader" type="HSeparator" parent="Fondo/Margin/VBoxRaiz"]
-layout_mode = 2
-
 [node name="HBoxColumnas" type="HBoxContainer" parent="Fondo/Margin/VBoxRaiz"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -69,66 +50,113 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(265, 0)
 layout_mode = 2
 titulo = "Cofre"
+mostrar_boton_cerrar = true
 
 [node name="PanelDetalle" type="Panel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas"]
 unique_name_in_owner = true
+clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="Margin" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
-
-[node name="VBox" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin"]
-layout_mode = 2
+[node name="VBoxDetalle" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle"]
+layout_mode = 0
+offset_right = 250.0
+offset_bottom = 468.0
 theme_override_constants/separation = 4
 
-[node name="IconoItem" type="TextureRect" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+[node name="MarginNombre" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+
+[node name="NombreItem" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginNombre"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 13
+text = "Tocá un ítem para ver los detalles"
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="HSeparator" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+layout_mode = 2
+
+[node name="IconoItem" type="TextureRect" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 expand_mode = 1
 stretch_mode = 5
 
-[node name="NombreItem" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+[node name="HSeparator2" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+layout_mode = 2
+
+[node name="MarginInfo" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 4
+
+[node name="RejillaInfo" type="GridContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginInfo"]
+layout_mode = 2
+columns = 2
+
+[node name="TypeLabel" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginInfo/RejillaInfo"]
+layout_mode = 2
+text = "Tipo:"
+
+[node name="ValorTipo" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginInfo/RejillaInfo"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "Tocá un ítem para ver los detalles"
-horizontal_alignment = 1
-autowrap_mode = 2
+size_flags_horizontal = 3
+text = "-"
 
-[node name="HSeparator" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+[node name="QtyLabel" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginInfo/RejillaInfo"]
 layout_mode = 2
+text = "Cantidad:"
 
-[node name="ScrollDescripcion" type="ScrollContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
-layout_mode = 2
-size_flags_vertical = 3
-horizontal_scroll_mode = 0
-
-[node name="VBoxDescripcion" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/ScrollDescripcion"]
+[node name="ValorCantidad" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginInfo/RejillaInfo"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_constants/separation = 4
+text = "-"
 
-[node name="TextoDescripcion" type="RichTextLabel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/ScrollDescripcion/VBoxDescripcion"]
+[node name="HSeparator3" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+layout_mode = 2
+
+[node name="MarginDescripcion" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 4
+
+[node name="VBoxDescripcion" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginDescripcion"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="EtiquetaDescripcion" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginDescripcion/VBoxDescripcion"]
+layout_mode = 2
+text = "Descripción:"
+
+[node name="TextoDescripcion" type="RichTextLabel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginDescripcion/VBoxDescripcion"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/normal_font_size = 11
 fit_content = true
 
-[node name="VBoxCaracteristicas" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox/ScrollDescripcion/VBoxDescripcion"]
+[node name="HSeparator4" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+layout_mode = 2
+
+[node name="MarginCaracteristicas" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_right = 4
+
+[node name="VBoxCaracteristicas" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle/MarginCaracteristicas"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 2
 
 [node name="GrillaJugador" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas" instance=ExtResource("2_grilla")]
@@ -136,3 +164,4 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(265, 0)
 layout_mode = 2
 titulo = "Inventario"
+mostrar_boton_cerrar = true

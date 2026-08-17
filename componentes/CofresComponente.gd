@@ -37,7 +37,7 @@ func obtener_contenido(id_cofre: String) -> Array[DatosItem]:
 	var casillas: Array[DatosItem] = []
 	if datos:
 		for entrada in datos.tabla_botin:
-			if casillas.size() >= tope:
+			if tope >= 0 and casillas.size() >= tope:
 				break
 			if entrada == null or entrada.item == null:
 				continue
@@ -47,6 +47,7 @@ func obtener_contenido(id_cofre: String) -> Array[DatosItem]:
 	return casillas
 
 
+## -1 = sin límite (ver DatosCofre.capacidad).
 func capacidad(id_cofre: String) -> int:
 	var datos: DatosCofre = GestorCofres.obtener_por_id(id_cofre)
 	return datos.capacidad if datos else 20
@@ -54,9 +55,11 @@ func capacidad(id_cofre: String) -> int:
 
 ## Agrega [item] si hay lugar bajo la capacidad — false y no hace nada si
 ## ya está lleno (el llamador decide qué hacer con el ítem en ese caso).
+## capacidad -1 (sin límite) nunca rechaza.
 func agregar(id_cofre: String, item: DatosItem) -> bool:
 	var casillas := obtener_contenido(id_cofre)
-	if casillas.size() >= capacidad(id_cofre):
+	var tope := capacidad(id_cofre)
+	if tope >= 0 and casillas.size() >= tope:
 		return false
 	casillas.append(item)
 	return true

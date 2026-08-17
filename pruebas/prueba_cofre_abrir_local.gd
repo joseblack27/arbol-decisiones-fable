@@ -12,6 +12,8 @@
 #      saca por REFERENCIA, no por índice.
 #   4. id vacío o cofre inexistente en el catálogo no revienta (arranca
 #      vacío, capacidad de respaldo 20).
+#   5. capacidad = -1 significa SIN LÍMITE: la siembra no corta y agregar()
+#      nunca rechaza.
 #   godot --headless --path . --script res://pruebas/prueba_cofre_abrir_local.gd
 # =============================================================================
 extends SceneTree
@@ -27,6 +29,7 @@ var _misma_referencia_no_vuelve_a_sortear_ok := false
 var _agregar_respeta_capacidad_ok := false
 var _quitar_por_referencia_ok := false
 var _id_inexistente_no_revienta_ok := false
+var _capacidad_sin_limite_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -35,6 +38,7 @@ func _process(_delta: float) -> bool:
 	_probar_misma_referencia()
 	_probar_agregar_y_quitar()
 	_probar_id_inexistente()
+	_probar_capacidad_sin_limite()
 	return _informar()
 
 
@@ -116,14 +120,44 @@ func _probar_id_inexistente() -> void:
 	_id_inexistente_no_revienta_ok = contenido.size() == 0 and tope == 20
 
 
+## capacidad = -1: la siembra no debe cortar (entran las 3 entradas
+## "siempre", no solo 2) y agregar() nunca debe rechazar por llenarse.
+func _probar_capacidad_sin_limite() -> void:
+	var siempre_a := LootDrop.new()
+	siempre_a.item = _pocion
+	siempre_a.probabilidad = 1.0
+	var siempre_b := LootDrop.new()
+	siempre_b.item = _pocion
+	siempre_b.probabilidad = 1.0
+	var siempre_c := LootDrop.new()
+	siempre_c.item = _pocion
+	siempre_c.probabilidad = 1.0
+
+	var datos := DatosCofre.new()
+	datos.id = "cofre_sin_limite_de_prueba"
+	datos.capacidad = -1
+	datos.tabla_botin = [siempre_a, siempre_b, siempre_c] as Array[LootDrop]
+	_gestor_cofres.catalogo.append(datos)
+
+	var contenido := _cofres.obtener_contenido("cofre_sin_limite_de_prueba")
+	print("Con capacidad=-1 la siembra no corta (esperado 3): %d" % contenido.size())
+	var siembra_ok: bool = contenido.size() == 3
+
+	var agregado: bool = _cofres.agregar("cofre_sin_limite_de_prueba", _hoja)
+	print("agregar() nunca rechaza con capacidad=-1 (esperado true): %s" % agregado)
+	_capacidad_sin_limite_ok = siembra_ok and agregado
+
+
 func _informar() -> bool:
 	var exito := _siembra_respeta_probabilidad_y_capacidad_ok and _misma_referencia_no_vuelve_a_sortear_ok \
-		and _agregar_respeta_capacidad_ok and _quitar_por_referencia_ok and _id_inexistente_no_revienta_ok
+		and _agregar_respeta_capacidad_ok and _quitar_por_referencia_ok and _id_inexistente_no_revienta_ok \
+		and _capacidad_sin_limite_ok
 	print("  siembra inicial respeta probabilidad y capacidad como tope: %s" % _siembra_respeta_probabilidad_y_capacidad_ok)
 	print("  misma referencia, no vuelve a sortear: %s" % _misma_referencia_no_vuelve_a_sortear_ok)
 	print("  agregar() respeta la capacidad: %s" % _agregar_respeta_capacidad_ok)
 	print("  quitar() por referencia: %s" % _quitar_por_referencia_ok)
 	print("  id inexistente no revienta: %s" % _id_inexistente_no_revienta_ok)
+	print("  capacidad = -1 (sin límite): %s" % _capacidad_sin_limite_ok)
 	print("PRUEBA COFRE ABRIR LOCAL %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

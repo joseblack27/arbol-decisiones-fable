@@ -1,14 +1,13 @@
-[gd_resource type="Resource" script_class="DatosCofre" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="DatosCofre" load_steps=7 format=3 uid="uid://bju7v4pdd5e1f"]
 
-[ext_resource type="Script" path="res://recursos/cofres/DatosCofre.gd" id="1_scr"]
-[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="2_loot"]
+[ext_resource type="Script" uid="uid://b0ccoafwakgbn" path="res://recursos/cofres/DatosCofre.gd" id="1_scr"]
+[ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="2_loot"]
 [ext_resource type="Resource" path="res://recursos/items/consumibles/pocion_vida.tres" id="3_pocion"]
 [ext_resource type="Resource" path="res://recursos/items/recursos/hoja_1.tres" id="4_hoja"]
 
 [sub_resource type="Resource" id="Resource_pocion"]
 script = ExtResource("2_loot")
 item = ExtResource("3_pocion")
-probabilidad = 1.0
 
 [sub_resource type="Resource" id="Resource_hoja"]
 script = ExtResource("2_loot")
@@ -19,4 +18,5 @@ probabilidad = 0.5
 script = ExtResource("1_scr")
 id = "cofre_ciudad_1"
 nombre = "Cofre de la Ciudad"
+capacidad = -1
 tabla_botin = Array[ExtResource("2_loot")]([SubResource("Resource_pocion"), SubResource("Resource_hoja")])

@@ -21,9 +21,11 @@ var _gestor_cofres: Node
 var _se_abre_por_bus_eventos_ok := false
 var _grilla_cofre_sin_slots_precreados_ok := false
 var _grilla_jugador_tiene_los_items_reales_ok := false
+var _detalle_arranca_invisible_ok := false
 var _refrescar_inventario_reconstruye_ok := false
 var _detalle_al_tocar_item_ok := false
 var _arrastre_ida_y_vuelta_por_panel_real_ok := false
+var _boton_cerrar_de_grilla_cierra_panel_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -32,6 +34,7 @@ func _process(_delta: float) -> bool:
 	_probar_refrescar_inventario()
 	_probar_detalle_al_tocar_item()
 	_probar_arrastre_ida_y_vuelta_por_panel_real()
+	_probar_boton_cerrar_de_grilla_cierra_panel()
 	return _informar()
 
 
@@ -62,9 +65,9 @@ func _probar_abrir() -> void:
 	root.get_node("/root/BusEventos").cofre_solicitado.emit(_ID_COFRE, "Cofre de Prueba")
 
 	print("Se abre solo al recibir cofre_solicitado (esperado true): %s" % _panel.visible)
-	print("Título muestra el nombre recibido (esperado 'Cofre de Prueba'): %s" % _panel._titulo_cofre.text)
+	print("Título muestra el nombre recibido (esperado 'Cofre de Prueba'): %s" % _panel._grilla_cofre.titulo)
 	_se_abre_por_bus_eventos_ok = arrancaba_oculto and _panel.visible \
-		and _panel._titulo_cofre.text == "Cofre de Prueba"
+		and _panel._grilla_cofre.titulo == "Cofre de Prueba"
 
 	print("Grilla del cofre SIN slots precreados, vacía (esperado 0): %d" % \
 		_panel._grilla_cofre._contenedor.get_child_count())
@@ -73,6 +76,10 @@ func _probar_abrir() -> void:
 	print("Grilla de inventario muestra los ítems reales (esperado 1): %d" % \
 		_panel._grilla_jugador._contenedor.get_child_count())
 	_grilla_jugador_tiene_los_items_reales_ok = _panel._grilla_jugador._contenedor.get_child_count() == 1
+
+	print("Panel de detalle arranca invisible, sin nada seleccionado (esperado 0.0): %.1f" % \
+		_panel._panel_detalle.modulate.a)
+	_detalle_arranca_invisible_ok = _panel._panel_detalle.modulate.a == 0.0
 
 
 func _probar_refrescar_inventario() -> void:
@@ -94,7 +101,12 @@ func _probar_detalle_al_tocar_item() -> void:
 	print("Tocar un ítem del inventario muestra su nombre en el detalle (esperado 'Poción de Vida'): %s" % \
 		_panel._nombre_item.text)
 	print("... y su descripción (esperado no vacía): %s" % (_panel._descripcion_item.text != ""))
-	_detalle_al_tocar_item_ok = _panel._nombre_item.text == "Poción de Vida" and _panel._descripcion_item.text != ""
+	print("... y su tipo/cantidad, mismo diseño que PanelInventario (esperado no '-'): %s / %s" % \
+		[_panel._valor_tipo.text, _panel._valor_cantidad.text])
+	print("... y el panel de detalle se hace visible (esperado 1.0): %.1f" % _panel._panel_detalle.modulate.a)
+	_detalle_al_tocar_item_ok = _panel._nombre_item.text == "Poción de Vida" and _panel._descripcion_item.text != "" \
+		and _panel._valor_tipo.text != "-" and _panel._valor_cantidad.text != "-" \
+		and _panel._panel_detalle.modulate.a == 1.0
 
 
 ## Bug real reportado: "Cannot call method 'get_root' on a null value" al
@@ -139,16 +151,41 @@ func _probar_arrastre_ida_y_vuelta_por_panel_real() -> void:
 	_arrastre_ida_y_vuelta_por_panel_real_ok = ida_ok and vuelve_ok
 
 
+## Pedido del usuario: "coloca en la vista de GrillaObjeto un boton de
+## cerrar, que cuando se presione oculte toda la vista, osea hara lo mismo
+## que el boton que ya esta de salir". Verifica que AMBAS grillas (cofre e
+## inventario) muestren su botón (mostrar_boton_cerrar = true en el .tscn)
+## y que su señal cerrar_solicitado esté de verdad conectada a _cerrar().
+func _probar_boton_cerrar_de_grilla_cierra_panel() -> void:
+	print("Botón cerrar visible en GrillaCofre (esperado true): %s" % _panel._grilla_cofre._boton_cerrar.visible)
+	print("Botón cerrar visible en GrillaJugador (esperado true): %s" % _panel._grilla_jugador._boton_cerrar.visible)
+	var botones_visibles_ok: bool = _panel._grilla_cofre._boton_cerrar.visible and _panel._grilla_jugador._boton_cerrar.visible
+
+	_panel._grilla_cofre.cerrar_solicitado.emit()
+	print("cerrar_solicitado de GrillaCofre oculta el panel (esperado true): %s" % (not _panel.visible))
+	var cierra_desde_cofre_ok: bool = not _panel.visible
+
+	root.get_node("/root/BusEventos").cofre_solicitado.emit(_ID_COFRE, "Cofre de Prueba")
+	_panel._grilla_jugador.cerrar_solicitado.emit()
+	print("cerrar_solicitado de GrillaJugador oculta el panel (esperado true): %s" % (not _panel.visible))
+	var cierra_desde_inventario_ok: bool = not _panel.visible
+
+	_boton_cerrar_de_grilla_cierra_panel_ok = botones_visibles_ok and cierra_desde_cofre_ok and cierra_desde_inventario_ok
+
+
 func _informar() -> bool:
 	var exito := _se_abre_por_bus_eventos_ok and _grilla_cofre_sin_slots_precreados_ok \
-		and _grilla_jugador_tiene_los_items_reales_ok and _refrescar_inventario_reconstruye_ok \
-		and _detalle_al_tocar_item_ok and _arrastre_ida_y_vuelta_por_panel_real_ok
+		and _grilla_jugador_tiene_los_items_reales_ok and _detalle_arranca_invisible_ok \
+		and _refrescar_inventario_reconstruye_ok and _detalle_al_tocar_item_ok \
+		and _arrastre_ida_y_vuelta_por_panel_real_ok and _boton_cerrar_de_grilla_cierra_panel_ok
 	print("  se abre por BusEventos.cofre_solicitado: %s" % _se_abre_por_bus_eventos_ok)
 	print("  grilla del cofre sin slots precreados: %s" % _grilla_cofre_sin_slots_precreados_ok)
 	print("  grilla de inventario: ítems reales: %s" % _grilla_jugador_tiene_los_items_reales_ok)
+	print("  panel de detalle arranca invisible: %s" % _detalle_arranca_invisible_ok)
 	print("  refrescar_inventario() reconstruye: %s" % _refrescar_inventario_reconstruye_ok)
 	print("  detalle al tocar un ítem: %s" % _detalle_al_tocar_item_ok)
 	print("  arrastre ida y vuelta por el panel real: %s" % _arrastre_ida_y_vuelta_por_panel_real_ok)
+	print("  botón cerrar de cada grilla cierra el panel: %s" % _boton_cerrar_de_grilla_cierra_panel_ok)
 	print("PRUEBA PANEL COFRE %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

@@ -11,8 +11,9 @@ class_name DatosCofre
 ## coincidir con el Cofre.id de la instancia en el nivel.
 @export var id: String = ""
 @export var nombre: String = ""
-## Cuántas casillas fijas tiene — CofresComponente.obtener_contenido()
-## arma un Array de este tamaño la primera vez que este jugador lo abre.
+## Tope de cuántos ítems puede haber a la vez (ver CofresComponente.agregar)
+## — no es una grilla de casillas fijas, la lista es densa. -1 = sin
+## límite (agregar() nunca rechaza por capacidad).
 @export var capacidad: int = 20
 ## Botín inicial: al abrirlo por PRIMERA VEZ (nunca más), cada entrada tira
 ## su propia probabilidad independiente y lo que entra se coloca en las
