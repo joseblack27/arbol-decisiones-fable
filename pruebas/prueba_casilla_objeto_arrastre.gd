@@ -60,6 +60,9 @@ var _cofre_lleno_no_pierde_el_item_ok := false
 var _recurso_se_puede_arrastrar_ok := false
 var _casilla_misma_grilla_no_hace_nada_ok := false
 var _casilla_distinta_grilla_agrega_ok := false
+var _popup_cantidad_ok := false
+var _filtro_categorias_ok := false
+var _recurso_se_acumula_en_cofre_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -70,6 +73,9 @@ func _process(_delta: float) -> bool:
 	_probar_recurso_se_puede_arrastrar()
 	_probar_casilla_a_casilla_misma_grilla_no_hace_nada()
 	_probar_casilla_a_casilla_distinta_grilla_agrega()
+	_probar_popup_cantidad_transferencia_parcial()
+	_probar_filtro_categorias()
+	_probar_recurso_se_acumula_en_cofre()
 	return _informar()
 
 
@@ -164,17 +170,28 @@ func _probar_cofre_lleno_no_pierde_el_item() -> void:
 	_cofres.agregar(_ID_COFRE, _hoja)
 	_grilla_cofre.notificar_cambio()
 
-	# Intenta meter un tercero (la hoja, que sigue en el inventario) — debe
-	# rechazarse sin que la hoja desaparezca de ningún lado.
-	var origen = _casilla_con(_grilla_inventario, "Hoja Verde")
+	# Intenta meter un TERCER ítem DISTINTO (una batería, no otra hoja: el
+	# cofre ya tiene una entrada "Hoja Verde", y desde el fix de fusión de
+	# agregar() — bug real reportado: "si paso dos veces el mismo recurso,
+	# se crean 2 slots diferentes en vez de acumularse" — una segunda hoja
+	# se FUSIONARÍA con la que ya está en vez de chocar contra la
+	# capacidad. Acá se prueba específicamente el rechazo por capacidad
+	# real, con un ítem sin ninguna entrada existente para fusionar) —
+	# debe rechazarse sin que desaparezca de ningún lado.
+	var bateria := load("res://recursos/items/recursos/bateria_1.tres") as DatosItem
+	_gestor_inventario.agregar_item(bateria, 1, true)
+	_grilla_inventario.notificar_cambio()
+
+	var origen = _casilla_con(_grilla_inventario, bateria.name)
 	var scroll_cofre = _grilla_cofre.get_node("%ScrollContainer")
 	scroll_cofre._drop_data(Vector2.ZERO, origen)
 
 	print("El cofre lleno sigue con 2 ítems, no aceptó el tercero (esperado 2): %d" % \
 		_cofres.obtener_contenido(_ID_COFRE).size())
-	print("La hoja sigue en el inventario, no se perdió (esperado 1): %d" % _cantidad_en_inventario("Hoja Verde"))
+	print("La batería sigue en el inventario, no se perdió (esperado 1): %d" % \
+		_cantidad_en_inventario(bateria.name))
 	_cofre_lleno_no_pierde_el_item_ok = _cofres.obtener_contenido(_ID_COFRE).size() == 2 \
-		and _cantidad_en_inventario("Hoja Verde") == 1
+		and _cantidad_en_inventario(bateria.name) == 1
 
 
 ## Llama _get_drag_data() DIRECTO (no hay otra forma de probar esto sin un
@@ -214,7 +231,12 @@ func _probar_casilla_a_casilla_misma_grilla_no_hace_nada() -> void:
 
 
 ## El cofre sigue lleno (2/2, poción+hoja) desde el paso anterior — saca
-## uno para hacer lugar (directo, no es lo que se prueba acá).
+## uno para hacer lugar (directo, no es lo que se prueba acá). La poción
+## del inventario llegó a quantity=2 en el paso anterior (agregar_item()
+## fusionó con la que ya había ahí) — soltarla sobre OTRA grilla dispara
+## PopupCantidad (ver GrillaObjetos.recibir_desde), así que hace falta
+## confirmarlo (con el valor por defecto, el stack entero) para que la
+## transferencia se complete de verdad.
 func _probar_casilla_a_casilla_distinta_grilla_agrega() -> void:
 	_cofres.quitar(_ID_COFRE, _pocion)
 	_grilla_cofre.notificar_cambio()
@@ -227,6 +249,8 @@ func _probar_casilla_a_casilla_distinta_grilla_agrega() -> void:
 	var item_real: DatosItem = origen.item_data
 	var destino_cofre = _grilla_cofre.find_child("Contenedor", true, false).get_child(0)  # OTRA grilla que origen.
 	destino_cofre._drop_data(Vector2.ZERO, origen)
+	if _grilla_cofre._popup_cantidad.visible:
+		_grilla_cofre._popup_cantidad._aceptar()  # confirma el máximo (default de abrir()).
 
 	print("Soltar sobre una casilla de OTRA grilla sí agrega (esperado 0 en inventario): %d" % \
 		_cantidad_en_inventario("Poción de Vida"))
@@ -235,16 +259,162 @@ func _probar_casilla_a_casilla_distinta_grilla_agrega() -> void:
 		and item_real in _cofres.obtener_contenido(_ID_COFRE)
 
 
+## Pedido del usuario: "que me deje elegir cuantos quiero pasar" — arma un
+## stack de 5 hojas SOLO para esta prueba (limpia inventario/cofre antes,
+## así queda aislado de lo que dejaron las pruebas anteriores) y cubre: el
+## popup se abre en vez de mover directo, Cancelar no mueve nada, y MIN+"+"
+## +"+" (1, 2, 3) confirmado con Aceptar mueve solo esa cantidad — el resto
+## se queda en el inventario, en la MISMA instancia (ver FuenteObjetos, el
+## origen nunca se duplica, solo se le resta "quantity").
+func _probar_popup_cantidad_transferencia_parcial() -> void:
+	_gestor_inventario.items.clear()
+	var vacio: Array[DatosItem] = []
+	_cofres.contenidos[_ID_COFRE] = vacio
+
+	var hoja_stack := _hoja.duplicate() as DatosItem
+	hoja_stack.quantity = 5
+	_gestor_inventario.items.append(hoja_stack)
+	_grilla_inventario.notificar_cambio()
+	_grilla_cofre.notificar_cambio()
+
+	var origen = _casilla_con(_grilla_inventario, "Hoja Verde")
+	var scroll_cofre = _grilla_cofre.get_node("%ScrollContainer")
+	var popup: PopupCantidad = _grilla_cofre._popup_cantidad
+
+	scroll_cofre._drop_data(Vector2.ZERO, origen)
+	print("Arrastrar un stack >1 abre PopupCantidad en vez de mover directo (esperado true): %s" % popup.visible)
+	var popup_abre_ok: bool = popup.visible
+
+	popup._cancelar()
+	print("Cancelar deja todo intacto (esperado 5 en inventario, 0 en cofre): %d, %d" % [
+		hoja_stack.quantity, _cofres.obtener_contenido(_ID_COFRE).size()
+	])
+	var cancelar_no_mueve_ok: bool = hoja_stack in _gestor_inventario.items \
+		and hoja_stack.quantity == 5 and _cofres.obtener_contenido(_ID_COFRE).size() == 0
+
+	scroll_cofre._drop_data(Vector2.ZERO, origen)
+	popup._boton_min.pressed.emit()
+	popup._boton_mas.pressed.emit()
+	popup._boton_mas.pressed.emit()  # MIN(1) + "+" + "+" = 3.
+	popup._boton_aceptar.pressed.emit()
+
+	var contenido_cofre := _cofres.obtener_contenido(_ID_COFRE)
+	print("Cofre recibe solo la cantidad parcial elegida (esperado 3): %d" % \
+		(contenido_cofre[0].quantity if contenido_cofre.size() > 0 else -1))
+	print("El resto se queda en el inventario, MISMA instancia (esperado 2): %d" % \
+		(hoja_stack.quantity if hoja_stack in _gestor_inventario.items else -1))
+	var parcial_ok: bool = contenido_cofre.size() == 1 and contenido_cofre[0].quantity == 3 \
+		and hoja_stack in _gestor_inventario.items and hoja_stack.quantity == 2
+
+	# Pedido del usuario: "un cuadro de texto donde si se desea se coloque
+	# el numero manualmente" — escribe "1" a mano (sin tocar +/-/MIN/MAX,
+	# quedan 2 en el stack) y confirma con Enter (text_submitted), como en
+	# un teclado táctil real. La entrada existente del cofre (quantity=3,
+	# mismo nombre/tipo) fusiona el nuevo 1 → 4 (ver CofresComponente
+	# .agregar_cantidad).
+	scroll_cofre._drop_data(Vector2.ZERO, origen)
+	popup._valor_input.text = "1"
+	popup._valor_input.text_submitted.emit("1")
+	popup._boton_aceptar.pressed.emit()
+
+	contenido_cofre = _cofres.obtener_contenido(_ID_COFRE)
+	print("Cuadro de texto manual mueve la cantidad tipeada (esperado 4): %d" % \
+		(contenido_cofre[0].quantity if contenido_cofre.size() > 0 else -1))
+	print("El resto se queda en el inventario (esperado 1): %d" % \
+		(hoja_stack.quantity if hoja_stack in _gestor_inventario.items else -1))
+	var texto_manual_ok: bool = contenido_cofre.size() == 1 and contenido_cofre[0].quantity == 4 \
+		and hoja_stack in _gestor_inventario.items and hoja_stack.quantity == 1
+
+	_popup_cantidad_ok = popup_abre_ok and cancelar_no_mueve_ok and parcial_ok and texto_manual_ok
+
+
+## Pedido del usuario: "filtros como lo del inventario por categoría de
+## objetos... parametrizable por un booleano para quitarlo o ponerlo".
+## Apagado por defecto: TabsFiltro invisible y la grilla muestra TODO sin
+## importar el tipo. Encendido (mostrar_filtro_categorias = true): aparece
+## la fila de tabs y tocar una categoría reconstruye la grilla mostrando
+## solo esa (misma lógica que FlujoItems.gd/PanelTienda, pero acá se
+## filtra la LISTA antes de instanciar casillas en vez de esconder slots
+## ya creados, porque GrillaObjetos ya reconstruye entera en cada cambio).
+func _probar_filtro_categorias() -> void:
+	_gestor_inventario.items.clear()
+	var accesorio := load("res://recursos/items/equipables/accesorio_1.tres") as DatosItem
+	_gestor_inventario.agregar_item(_pocion, 1, true)
+	_gestor_inventario.agregar_item(_hoja, 1, true)
+	_gestor_inventario.agregar_item(accesorio, -1, true)
+	_grilla_inventario.notificar_cambio()
+
+	print("Apagado por defecto: TabsFiltro invisible (esperado true): %s" % \
+		(not _grilla_inventario._tabs_filtro.visible))
+	print("... y muestra los 3 ítems sin filtrar (esperado 3): %d" % \
+		_grilla_inventario._contenedor.get_child_count())
+	var apagado_no_filtra_ok: bool = not _grilla_inventario._tabs_filtro.visible \
+		and _grilla_inventario._contenedor.get_child_count() == 3
+
+	_grilla_inventario.mostrar_filtro_categorias = true
+	print("Encendido: TabsFiltro visible (esperado true): %s" % _grilla_inventario._tabs_filtro.visible)
+	var tabs_visibles_ok: bool = _grilla_inventario._tabs_filtro.visible
+
+	# Orden de _botones_filtro == _TIPOS_FILTRO: Todos, Equipables,
+	# Consumibles, Recursos (índice 2 = Consumibles, 0 = Todos).
+	_grilla_inventario._botones_filtro[2].pressed.emit()
+	print("Filtro 'Consumibles' deja solo la poción (esperado 1): %d" % \
+		_grilla_inventario._contenedor.get_child_count())
+	var filtro_consumibles_ok: bool = _grilla_inventario._contenedor.get_child_count() == 1 \
+		and _grilla_inventario._contenedor.get_child(0).item_data.name == "Poción de Vida"
+
+	_grilla_inventario._botones_filtro[0].pressed.emit()
+	print("Volver a 'Todos' muestra los 3 de nuevo (esperado 3): %d" % \
+		_grilla_inventario._contenedor.get_child_count())
+	var vuelve_a_todos_ok: bool = _grilla_inventario._contenedor.get_child_count() == 3
+
+	_filtro_categorias_ok = apagado_no_filtra_ok and tabs_visibles_ok \
+		and filtro_consumibles_ok and vuelve_a_todos_ok
+
+
+## Bug real reportado: "cuando paso un recurso del inventario al cofre, si
+## paso dos veces el mismo recurso, se crean 2 slots diferentes... quiero
+## que en el del cofre también se acumule" — arrastra la MISMA hoja al
+## cofre dos veces seguidas (cada vez, un ítem NUEVO recolectado en el
+## inventario, no la misma instancia arrastrada de vuelta) y verifica que
+## el cofre termine con UNA sola entrada de quantity=2, no dos entradas de
+## quantity=1 (ver el fix de fusión en CofresComponente.agregar()).
+func _probar_recurso_se_acumula_en_cofre() -> void:
+	_gestor_inventario.items.clear()
+	var vacio: Array[DatosItem] = []
+	_cofres.contenidos[_ID_COFRE] = vacio
+
+	var scroll_cofre = _grilla_cofre.get_node("%ScrollContainer")
+
+	_gestor_inventario.agregar_item(_hoja, 1, true)
+	_grilla_inventario.notificar_cambio()
+	scroll_cofre._drop_data(Vector2.ZERO, _casilla_con(_grilla_inventario, "Hoja Verde"))
+
+	_gestor_inventario.agregar_item(_hoja, 1, true)
+	_grilla_inventario.notificar_cambio()
+	scroll_cofre._drop_data(Vector2.ZERO, _casilla_con(_grilla_inventario, "Hoja Verde"))
+
+	var contenido_cofre := _cofres.obtener_contenido(_ID_COFRE)
+	print("El cofre acumula las 2 hojas en UNA sola entrada (esperado 1 entrada): %d" % contenido_cofre.size())
+	print("... con quantity = 2 (esperado 2): %d" % \
+		(contenido_cofre[0].quantity if contenido_cofre.size() > 0 else -1))
+	_recurso_se_acumula_en_cofre_ok = contenido_cofre.size() == 1 and contenido_cofre[0].quantity == 2
+
+
 func _informar() -> bool:
 	var exito := _inventario_a_cofre_ok and _cofre_a_inventario_ok \
 		and _cofre_lleno_no_pierde_el_item_ok and _recurso_se_puede_arrastrar_ok \
-		and _casilla_misma_grilla_no_hace_nada_ok and _casilla_distinta_grilla_agrega_ok
+		and _casilla_misma_grilla_no_hace_nada_ok and _casilla_distinta_grilla_agrega_ok \
+		and _popup_cantidad_ok and _filtro_categorias_ok and _recurso_se_acumula_en_cofre_ok
 	print("  inventario -> cofre (vía ScrollContainer): %s" % _inventario_a_cofre_ok)
 	print("  cofre -> inventario (vía ScrollContainer): %s" % _cofre_a_inventario_ok)
 	print("  cofre lleno no pierde el ítem: %s" % _cofre_lleno_no_pierde_el_item_ok)
 	print("  un ítem de Recursos se puede arrastrar: %s" % _recurso_se_puede_arrastrar_ok)
 	print("  casilla a casilla, misma grilla, no hace nada: %s" % _casilla_misma_grilla_no_hace_nada_ok)
 	print("  casilla a casilla, distinta grilla, agrega: %s" % _casilla_distinta_grilla_agrega_ok)
+	print("  PopupCantidad: abre, cancela, transfiere parcial: %s" % _popup_cantidad_ok)
+	print("  filtro de categorías: apagado no filtra, encendido sí: %s" % _filtro_categorias_ok)
+	print("  recurso repetido se acumula en el cofre: %s" % _recurso_se_acumula_en_cofre_ok)
 	print("PRUEBA CASILLA OBJETO ARRASTRE %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

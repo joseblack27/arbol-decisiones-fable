@@ -15,3 +15,12 @@ func agregar(item: DatosItem) -> bool:
 func quitar(item: DatosItem) -> void:
 	if cofres:
 		cofres.quitar(id_cofre, item)
+
+
+func agregar_cantidad(item: DatosItem, cantidad: int) -> bool:
+	return cofres.agregar_cantidad(id_cofre, item, cantidad) if cofres else false
+
+
+func quitar_cantidad(item: DatosItem, cantidad: int) -> void:
+	if cofres:
+		cofres.quitar_cantidad(id_cofre, item, cantidad)

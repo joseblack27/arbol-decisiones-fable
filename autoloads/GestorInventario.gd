@@ -50,6 +50,10 @@ func quitar_item(item: DatosItem) -> void:
 	_obtener_componente().quitar_item(item)
 
 
+func quitar_cantidad(item: DatosItem, cantidad: int) -> bool:
+	return _obtener_componente().quitar_cantidad(item, cantidad)
+
+
 func tiene_item(nombre: String) -> bool:
 	return _obtener_componente().tiene_item(nombre)
 

@@ -26,6 +26,9 @@ var _refrescar_inventario_reconstruye_ok := false
 var _detalle_al_tocar_item_ok := false
 var _arrastre_ida_y_vuelta_por_panel_real_ok := false
 var _boton_cerrar_de_grilla_cierra_panel_ok := false
+var _tomar_todo_ok := false
+var _scroll_a_cada_lado_ok := false
+var _filtro_categorias_activo_por_defecto_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -35,6 +38,8 @@ func _process(_delta: float) -> bool:
 	_probar_detalle_al_tocar_item()
 	_probar_arrastre_ida_y_vuelta_por_panel_real()
 	_probar_boton_cerrar_de_grilla_cierra_panel()
+	_probar_tomar_todo()
+	_probar_scroll_a_cada_lado()
 	return _informar()
 
 
@@ -72,6 +77,17 @@ func _probar_abrir() -> void:
 	print("Grilla del cofre SIN slots precreados, vacía (esperado 0): %d" % \
 		_panel._grilla_cofre._contenedor.get_child_count())
 	_grilla_cofre_sin_slots_precreados_ok = _panel._grilla_cofre._contenedor.get_child_count() == 0
+
+	# Pedido del usuario: "activale los filtros al cofre de la ciudad...
+	# por defecto debe venir activada" + "el que tiene los items del
+	# inventario también activaselo" — sin tocar nada, ya visibles al abrir
+	# EN LAS DOS grillas.
+	print("Filtro de categorías del cofre viene activado por defecto (esperado true): %s" % \
+		_panel._grilla_cofre._tabs_filtro.visible)
+	print("Filtro de categorías del inventario viene activado por defecto (esperado true): %s" % \
+		_panel._grilla_jugador._tabs_filtro.visible)
+	_filtro_categorias_activo_por_defecto_ok = _panel._grilla_cofre._tabs_filtro.visible \
+		and _panel._grilla_jugador._tabs_filtro.visible
 
 	print("Grilla de inventario muestra los ítems reales (esperado 1): %d" % \
 		_panel._grilla_jugador._contenedor.get_child_count())
@@ -173,11 +189,78 @@ func _probar_boton_cerrar_de_grilla_cierra_panel() -> void:
 	_boton_cerrar_de_grilla_cierra_panel_ok = botones_visibles_ok and cierra_desde_cofre_ok and cierra_desde_inventario_ok
 
 
+## Pedido del usuario: "un boton de 'Tomar todo' que solo se muestre en el
+## inventario del cofre, y pase todo al inventario" — verifica que el
+## botón esté visible SOLO en GrillaCofre (no en GrillaJugador) y que
+## presionarlo (emite tomar_todo_solicitado, ver GrillaObjetos) vacíe el
+## cofre entero hacia el inventario.
+func _probar_tomar_todo() -> void:
+	root.get_node("/root/BusEventos").cofre_solicitado.emit(_ID_COFRE, "Cofre de Prueba")
+
+	print("Botón 'Tomar todo' visible en GrillaCofre (esperado true): %s" % \
+		_panel._grilla_cofre._boton_tomar_todo.visible)
+	print("Botón 'Tomar todo' NO visible en GrillaJugador (esperado false): %s" % \
+		_panel._grilla_jugador._boton_tomar_todo.visible)
+	var boton_solo_en_cofre_ok: bool = _panel._grilla_cofre._boton_tomar_todo.visible \
+		and not _panel._grilla_jugador._boton_tomar_todo.visible
+
+	# Mete la hoja al cofre directo (sin arrastre, no es lo que se prueba
+	# acá) para tener algo real que "tomar todo".
+	var cofres = _jugador.get_node("CofresComponente")
+	var hoja_actual: DatosItem = null
+	for item: DatosItem in _inventario.items:
+		if item.name == "Hoja Verde":
+			hoja_actual = item
+			break
+	_inventario.quitar_item(hoja_actual)
+	cofres.agregar(_ID_COFRE, hoja_actual)
+	_panel._grilla_cofre.notificar_cambio()
+	_panel._grilla_jugador.notificar_cambio()
+
+	_panel._grilla_cofre.tomar_todo_solicitado.emit()
+
+	print("'Tomar todo' vacía el cofre (esperado 0): %d" % cofres.obtener_contenido(_ID_COFRE).size())
+	var cofre_vacio_ok: bool = cofres.obtener_contenido(_ID_COFRE).size() == 0
+
+	var hoja_de_vuelta := false
+	for item: DatosItem in _inventario.items:
+		if item.name == "Hoja Verde":
+			hoja_de_vuelta = true
+			break
+	print("... y la hoja vuelve al inventario (esperado true): %s" % hoja_de_vuelta)
+
+	_tomar_todo_ok = boton_solo_en_cofre_ok and cofre_vacio_ok and hoja_de_vuelta
+
+
+## Pedido del usuario: "un scroll a cada lado... cuando sea del inventario
+## del jugador muestre el scroll derecho y cuando sea el del cofre muestre
+## el scroll izquierdo, para dar un buen diseño para los dedos" — verifica
+## que BarraDesplazamientoV quede primera (izquierda) en GrillaCofre
+## (scroll_a_la_izquierda = true en el .tscn) y última (derecha) en
+## GrillaJugador (default false).
+func _probar_scroll_a_cada_lado() -> void:
+	var barra_cofre = _panel._grilla_cofre._barra_desplazamiento
+	var hbox_cofre: Node = barra_cofre.get_parent()
+	print("Scroll del cofre queda primero, a la izquierda (esperado 0): %d" % \
+		hbox_cofre.get_children().find(barra_cofre))
+	var scroll_cofre_izquierda_ok: bool = hbox_cofre.get_child(0) == barra_cofre
+
+	var barra_jugador = _panel._grilla_jugador._barra_desplazamiento
+	var hbox_jugador: Node = barra_jugador.get_parent()
+	print("Scroll del inventario queda último, a la derecha (esperado %d): %d" % [
+		hbox_jugador.get_child_count() - 1, hbox_jugador.get_children().find(barra_jugador)
+	])
+	var scroll_jugador_derecha_ok: bool = hbox_jugador.get_child(hbox_jugador.get_child_count() - 1) == barra_jugador
+
+	_scroll_a_cada_lado_ok = scroll_cofre_izquierda_ok and scroll_jugador_derecha_ok
+
+
 func _informar() -> bool:
 	var exito := _se_abre_por_bus_eventos_ok and _grilla_cofre_sin_slots_precreados_ok \
 		and _grilla_jugador_tiene_los_items_reales_ok and _detalle_arranca_invisible_ok \
 		and _refrescar_inventario_reconstruye_ok and _detalle_al_tocar_item_ok \
-		and _arrastre_ida_y_vuelta_por_panel_real_ok and _boton_cerrar_de_grilla_cierra_panel_ok
+		and _arrastre_ida_y_vuelta_por_panel_real_ok and _boton_cerrar_de_grilla_cierra_panel_ok \
+		and _tomar_todo_ok and _scroll_a_cada_lado_ok and _filtro_categorias_activo_por_defecto_ok
 	print("  se abre por BusEventos.cofre_solicitado: %s" % _se_abre_por_bus_eventos_ok)
 	print("  grilla del cofre sin slots precreados: %s" % _grilla_cofre_sin_slots_precreados_ok)
 	print("  grilla de inventario: ítems reales: %s" % _grilla_jugador_tiene_los_items_reales_ok)
@@ -186,6 +269,9 @@ func _informar() -> bool:
 	print("  detalle al tocar un ítem: %s" % _detalle_al_tocar_item_ok)
 	print("  arrastre ida y vuelta por el panel real: %s" % _arrastre_ida_y_vuelta_por_panel_real_ok)
 	print("  botón cerrar de cada grilla cierra el panel: %s" % _boton_cerrar_de_grilla_cierra_panel_ok)
+	print("  botón 'Tomar todo' solo en el cofre, mueve todo: %s" % _tomar_todo_ok)
+	print("  scroll a cada lado (cofre izquierda, inventario derecha): %s" % _scroll_a_cada_lado_ok)
+	print("  filtro de categorías del cofre activo por defecto: %s" % _filtro_categorias_activo_por_defecto_ok)
 	print("PRUEBA PANEL COFRE %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

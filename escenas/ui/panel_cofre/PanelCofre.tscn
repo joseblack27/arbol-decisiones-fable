@@ -31,10 +31,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 6
-theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 6
 
 [node name="VBoxRaiz" type="VBoxContainer" parent="Fondo/Margin"]
 layout_mode = 2
@@ -51,6 +47,9 @@ custom_minimum_size = Vector2(265, 0)
 layout_mode = 2
 titulo = "Cofre"
 mostrar_boton_cerrar = true
+mostrar_boton_tomar_todo = true
+scroll_a_la_izquierda = true
+mostrar_filtro_categorias = true
 
 [node name="PanelDetalle" type="Panel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas"]
 unique_name_in_owner = true
@@ -59,9 +58,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 
 [node name="VBoxDetalle" type="VBoxContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle"]
-layout_mode = 0
-offset_right = 250.0
-offset_bottom = 468.0
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 4
 
 [node name="MarginNombre" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/VBoxDetalle"]
@@ -165,3 +167,4 @@ custom_minimum_size = Vector2(265, 0)
 layout_mode = 2
 titulo = "Inventario"
 mostrar_boton_cerrar = true
+mostrar_filtro_categorias = true

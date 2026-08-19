@@ -20,6 +20,14 @@ signal item_tocado(item: DatosItem)
 ## _cerrar()), solo avisa que lo pidieron.
 signal cerrar_solicitado
 
+## Botón "Tomar todo" (ver mostrar_boton_tomar_todo) — pedido del usuario:
+## "un botón que solo se muestre en el inventario del cofre, y pase todo al
+## inventario". Misma idea que cerrar_solicitado: esta grilla no sabe qué
+## significa "tomar todo" (no conoce ninguna otra grilla), solo avisa que
+## lo pidieron — PanelCofre es quien de verdad mueve los ítems, usando el
+## fuente_grilla de ESTA grilla y el de GrillaJugador.
+signal tomar_todo_solicitado
+
 @export var titulo: String = "":
 	set(value):
 		titulo = value
@@ -34,9 +42,57 @@ signal cerrar_solicitado
 		if is_node_ready():
 			_boton_cerrar.visible = value
 
+## Oculto por defecto — pedido del usuario: "solo se muestre en el
+## inventario del cofre" (PanelCofre lo activa nada más en GrillaCofre).
+@export var mostrar_boton_tomar_todo: bool = false:
+	set(value):
+		mostrar_boton_tomar_todo = value
+		if is_node_ready():
+			_boton_tomar_todo.visible = value
+
+## false (por defecto) = la barra de scroll queda a la DERECHA de las
+## casillas (orden natural del .tscn); true = a la IZQUIERDA. Pedido del
+## usuario: "que cuando sea del inventario del jugador muestre el scroll
+## derecho y cuando sea el del cofre muestre el scroll izquierdo, para dar
+## un buen diseño para los dedos" — en PanelCofre, GrillaCofre queda a la
+## izquierda de la pantalla y GrillaJugador a la derecha; con la barra
+## siempre "hacia afuera" (el borde de la pantalla, no el que da contra el
+## panel de detalle del medio) queda al alcance del pulgar de cada mano
+## sin cruzar la pantalla.
+@export var scroll_a_la_izquierda: bool = false:
+	set(value):
+		scroll_a_la_izquierda = value
+		if is_node_ready():
+			_aplicar_orden_scroll()
+
+## Oculto por defecto — pedido del usuario: "filtros como lo del
+## inventario por categoría de objetos... pero parametrizable por un
+## booleano para quitarlo o ponerlo". Mismas 4 categorías/orden que ya usan
+## PanelInventario (FlujoItems.gd) y PanelTienda (_TIPOS_FILTRO): Todos,
+## Equipables, Consumibles, Recursos — ver _TIPOS_FILTRO.
+@export var mostrar_filtro_categorias: bool = false:
+	set(value):
+		mostrar_filtro_categorias = value
+		if is_node_ready():
+			_tabs_filtro.visible = value
+
 @onready var _titulo_label: Label = %Titulo
 @onready var _boton_cerrar: Button = %BotonCerrar
+@onready var _boton_tomar_todo: Button = %BotonTomarTodo
 @onready var _contenedor: GridContainer = %Contenedor
+@onready var _popup_cantidad: PopupCantidad = %PopupCantidad
+@onready var _barra_desplazamiento: Control = %BarraDesplazamientoV
+@onready var _tabs_filtro: HBoxContainer = %TabsFiltro
+@onready var _botones_filtro: Array[Button] = [%BotonFiltroTodos, %BotonFiltroEquipables, %BotonFiltroConsumibles, %BotonFiltroRecursos]
+
+## Mismo orden que _botones_filtro — índice a índice.
+const _TIPOS_FILTRO := [
+	Enums.Inventario.TipoItem.TODOS,
+	Enums.Inventario.TipoItem.EQUIPABLE,
+	Enums.Inventario.TipoItem.CONSUMIBLE,
+	Enums.Inventario.TipoItem.RECURSO,
+]
+var _filtro_categoria_actual: Enums.Inventario.TipoItem = Enums.Inventario.TipoItem.TODOS
 
 ## [obtener_items]() -> Array[DatosItem]: la lista a mostrar AHORA MISMO —
 ## solo ítems que EXISTEN, sin nulls (mismo criterio que InventarioComponente
@@ -47,11 +103,27 @@ var _obtener_items: Callable = Callable()
 ## de verdad al recibir un drop).
 var fuente_grilla: FuenteObjetos = null
 
+## Transferencia esperando que PopupCantidad confirme una cantidad (ver
+## recibir_desde()) — solo puede haber UNA a la vez, el popup bloquea el
+## resto de la UI mientras está abierto.
+var _pendiente_origen_fuente: FuenteObjetos = null
+var _pendiente_origen_grilla: GrillaObjetos = null
+var _pendiente_item: DatosItem = null
+
 
 func _ready() -> void:
 	_titulo_label.text = titulo
 	_boton_cerrar.visible = mostrar_boton_cerrar
 	_boton_cerrar.pressed.connect(func(): cerrar_solicitado.emit())
+	_boton_tomar_todo.visible = mostrar_boton_tomar_todo
+	_boton_tomar_todo.pressed.connect(func(): tomar_todo_solicitado.emit())
+	_aplicar_orden_scroll()
+	_tabs_filtro.visible = mostrar_filtro_categorias
+	for i in _botones_filtro.size():
+		var tipo: Enums.Inventario.TipoItem = _TIPOS_FILTRO[i]
+		_botones_filtro[i].pressed.connect(func(): _seleccionar_filtro(tipo))
+	_popup_cantidad.confirmada.connect(_on_popup_cantidad_confirmada)
+	_popup_cantidad.cancelada.connect(_limpiar_pendiente)
 
 
 func poblar(obtener_items: Callable, fuente: FuenteObjetos) -> void:
@@ -76,6 +148,8 @@ func notificar_cambio() -> void:
 		return
 	_limpiar()
 	var items: Array = _obtener_items.call()
+	if mostrar_filtro_categorias and _filtro_categoria_actual != Enums.Inventario.TipoItem.TODOS:
+		items = items.filter(func(item: DatosItem) -> bool: return item.type == _filtro_categoria_actual)
 	for item in items:
 		var casilla: CasillaObjeto = _CASILLA_SCENE.instantiate()
 		casilla.item_data = item
@@ -97,15 +171,69 @@ func notificar_cambio() -> void:
 ## sea diferente". No hay "posición" que reordenar en una lista densa, así
 ## que un movimiento dentro de la misma colección no tiene ningún efecto
 ## que mostrar.
+## Si el stack tiene más de 1 unidad, no mueve nada todavía: abre
+## PopupCantidad (pedido del usuario: "que me deje elegir cuantos quiero
+## pasar") y guarda los datos del drop en _pendiente_* hasta que el
+## usuario confirme o cancele (ver _on_popup_cantidad_confirmada). Un
+## stack de 1 (o un ítem no apilable) se mueve directo, sin preguntar.
 func recibir_desde(origen_fuente: FuenteObjetos, origen_grilla: GrillaObjetos, item: DatosItem) -> void:
 	if self == origen_grilla:
 		return
 	if fuente_grilla == null:
 		return
-	if not fuente_grilla.agregar(item):
+	if item.quantity > 1:
+		_pendiente_origen_fuente = origen_fuente
+		_pendiente_origen_grilla = origen_grilla
+		_pendiente_item = item
+		_popup_cantidad.abrir(item.quantity)
+		return
+	_transferir(origen_fuente, origen_grilla, item, item.quantity)
+
+
+func _on_popup_cantidad_confirmada(cantidad: int) -> void:
+	_transferir(_pendiente_origen_fuente, _pendiente_origen_grilla, _pendiente_item, cantidad)
+	_limpiar_pendiente()
+
+
+func _limpiar_pendiente() -> void:
+	_pendiente_origen_fuente = null
+	_pendiente_origen_grilla = null
+	_pendiente_item = null
+
+
+## El ButtonGroup (ver .tscn) ya se encarga del look de "tab activa" —
+## acá solo hace falta guardar el tipo elegido y reconstruir filtrado.
+func _seleccionar_filtro(tipo: Enums.Inventario.TipoItem) -> void:
+	_filtro_categoria_actual = tipo
+	notificar_cambio()
+
+
+## move_child() a índice 0 (izquierda, en el HBoxContainer que las
+## contiene) o de vuelta al final (derecha) — ver scroll_a_la_izquierda.
+func _aplicar_orden_scroll() -> void:
+	var padre := _barra_desplazamiento.get_parent()
+	if scroll_a_la_izquierda:
+		padre.move_child(_barra_desplazamiento, 0)
+	else:
+		padre.move_child(_barra_desplazamiento, padre.get_child_count() - 1)
+
+
+## Mueve de verdad "cantidad" unidades. Si es el stack ENTERO (cantidad >=
+## item.quantity) usa agregar()/quitar() — mueve la referencia tal cual,
+## igual que siempre (más barato, y preserva la identidad del ítem: varias
+## pruebas ya dependen de que sea "la MISMA instancia"). Si es PARCIAL usa
+## las variantes _cantidad (ver FuenteObjetos, duplican del lado de
+## "agregar" para no tocar el resto que se queda en el origen).
+func _transferir(origen_fuente: FuenteObjetos, origen_grilla: GrillaObjetos, item: DatosItem, cantidad: int) -> void:
+	var mover_todo := cantidad >= item.quantity
+	var agregado := fuente_grilla.agregar(item) if mover_todo else fuente_grilla.agregar_cantidad(item, cantidad)
+	if not agregado:
 		return
 	if origen_fuente:
-		origen_fuente.quitar(item)
+		if mover_todo:
+			origen_fuente.quitar(item)
+		else:
+			origen_fuente.quitar_cantidad(item, cantidad)
 
 	notificar_cambio()
 	if origen_grilla:

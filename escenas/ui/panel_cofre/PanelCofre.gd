@@ -47,6 +47,7 @@ func _ready() -> void:
 	BusEventos.cofre_solicitado.connect(_abrir)
 	_grilla_cofre.cerrar_solicitado.connect(_cerrar)
 	_grilla_jugador.cerrar_solicitado.connect(_cerrar)
+	_grilla_cofre.tomar_todo_solicitado.connect(_tomar_todo)
 	_grilla_cofre.item_tocado.connect(_mostrar_detalle)
 	_grilla_jugador.item_tocado.connect(_mostrar_detalle)
 	if not BusEventos.item_agregado.is_connected(_al_cambiar_inventario):
@@ -115,6 +116,28 @@ func _limpiar_detalle() -> void:
 	_valor_cantidad.text = "-"
 	_descripcion_item.text = ""
 	Utils.llenar_caracteristicas_item(_vbox_caracteristicas, null)
+
+
+## Pedido del usuario: "un botón de 'Tomar todo' que solo se muestre en el
+## inventario del cofre, y pase todo al inventario" (ver GrillaObjetos.
+## mostrar_boton_tomar_todo, activo solo en _grilla_cofre). Mueve cada
+## ítem con agregar()/quitar() (referencia entera, sin PopupCantidad —
+## "todo" no tiene nada que preguntar) usando los fuente_grilla que ya
+## tienen las dos grillas. .duplicate() de la lista: obtener_contenido()
+## devuelve la MISMA referencia mutable que fuente_grilla.quitar() va a
+## ir vaciando en el camino, recorrerla sin copiar saltearía ítems.
+func _tomar_todo() -> void:
+	if _grilla_cofre.fuente_grilla == null or _grilla_jugador.fuente_grilla == null:
+		return
+	var cofres := Utils.cofres_componente_local()
+	if cofres == null:
+		return
+	var contenido: Array[DatosItem] = cofres.obtener_contenido(_id_cofre).duplicate()
+	for item in contenido:
+		if _grilla_jugador.fuente_grilla.agregar(item):
+			_grilla_cofre.fuente_grilla.quitar(item)
+	_grilla_cofre.notificar_cambio()
+	_grilla_jugador.notificar_cambio()
 
 
 func _cerrar() -> void:

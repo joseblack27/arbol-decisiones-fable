@@ -1,0 +1,145 @@
+[gd_scene load_steps=3 format=3 uid="uid://6yg8ovlmwdsf"]
+
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tema"]
+[ext_resource type="Script" uid="uid://demrnictum25w" path="res://escenas/ui/comunes/popup_cantidad/PopupCantidad.gd" id="2_script"]
+
+[node name="PopupCantidad" type="Control"]
+top_level = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource("1_tema")
+script = ExtResource("2_script")
+
+[node name="Fondo" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.5)
+
+[node name="Caja" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -128.0
+offset_top = -52.0
+offset_right = 128.0
+offset_bottom = 52.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBox" type="VBoxContainer" parent="Caja"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="MarginContainer" type="MarginContainer" parent="Caja/VBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="TituloLabel" type="Label" parent="Caja/VBox/MarginContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Confirmar cantidad"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="Caja/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="MarginCantidad" type="MarginContainer" parent="Caja/VBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="HBoxCantidad" type="HBoxContainer" parent="Caja/VBox/MarginCantidad"]
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="BotonMin" type="Button" parent="Caja/VBox/MarginCantidad/HBoxCantidad"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MIN"
+
+[node name="BotonMenos" type="Button" parent="Caja/VBox/MarginCantidad/HBoxCantidad"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "-"
+
+[node name="ValorInput" type="LineEdit" parent="Caja/VBox/MarginCantidad/HBoxCantidad"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(56, 32)
+layout_mode = 2
+text = "1"
+alignment = 1
+max_length = 6
+virtual_keyboard_type = 2
+select_all_on_focus = true
+
+[node name="BotonMas" type="Button" parent="Caja/VBox/MarginCantidad/HBoxCantidad"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+"
+
+[node name="BotonMax" type="Button" parent="Caja/VBox/MarginCantidad/HBoxCantidad"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "MAX"
+
+[node name="HSeparator2" type="HSeparator" parent="Caja/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="MarginAcciones" type="MarginContainer" parent="Caja/VBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
+
+[node name="HBoxAcciones" type="HBoxContainer" parent="Caja/VBox/MarginAcciones"]
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="BotonCancelar" type="Button" parent="Caja/VBox/MarginAcciones/HBoxAcciones"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Cancelar"
+
+[node name="BotonAceptar" type="Button" parent="Caja/VBox/MarginAcciones/HBoxAcciones"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 32)
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Aceptar"

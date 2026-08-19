@@ -55,9 +55,24 @@ func capacidad(id_cofre: String) -> int:
 
 ## Agrega [item] si hay lugar bajo la capacidad — false y no hace nada si
 ## ya está lleno (el llamador decide qué hacer con el ítem en ese caso).
-## capacidad -1 (sin límite) nunca rechaza.
+## capacidad -1 (sin límite) nunca rechaza. Bug real reportado: "si paso
+## dos veces el mismo recurso [al cofre], se crean 2 slots diferentes
+## mientras que en el inventario sí se acumulan" — fusiona en una entrada
+## existente del mismo nombre/tipo si hay una (igual que InventarioComponente
+## .agregar_item() y que agregar_cantidad() acá abajo); si no hay, recién
+## ahí "casillas.append(item)" reusa la referencia tal cual, sin duplicar
+## (mismo criterio que GrillaObjetos._transferir para un stack ENTERO).
 func agregar(id_cofre: String, item: DatosItem) -> bool:
 	var casillas := obtener_contenido(id_cofre)
+	if item.type != InventarioComponente.TYPE_EQUIPABLE:
+		for existente in casillas:
+			# existente != item: [item] YA podría estar en esta misma lista
+			# (ej. mutación directa de pruebas, o cualquier llamador que
+			# reuse una referencia que ya vive acá) — fusionarlo consigo
+			# mismo duplicaría su quantity y se saltearía la capacidad.
+			if existente != item and existente.name == item.name and existente.type == item.type:
+				existente.quantity += item.quantity
+				return true
 	var tope := capacidad(id_cofre)
 	if tope >= 0 and casillas.size() >= tope:
 		return false
@@ -70,3 +85,42 @@ func agregar(id_cofre: String, item: DatosItem) -> bool:
 func quitar(id_cofre: String, item: DatosItem) -> void:
 	var casillas := obtener_contenido(id_cofre)
 	casillas.erase(item)
+
+
+## Agrega "cantidad" unidades de [item] — usado al transferir solo PARTE de
+## un stack (ver GrillaObjetos/PopupCantidad, pedido del usuario: "elegir
+## cuantos quiero pasar"). A diferencia de agregar(), SIEMPRE duplica el
+## ítem antes de guardarlo (nunca reusa la referencia del origen, que
+## sigue existiendo con el resto del stack) y fusiona en una entrada
+## existente del mismo nombre/tipo si hay una — mismo criterio que
+## InventarioComponente.agregar_item().
+func agregar_cantidad(id_cofre: String, item: DatosItem, cantidad: int) -> bool:
+	if item == null or cantidad <= 0:
+		return false
+	var casillas := obtener_contenido(id_cofre)
+	if item.type != InventarioComponente.TYPE_EQUIPABLE:
+		for existente in casillas:
+			if existente != item and existente.name == item.name and existente.type == item.type:
+				existente.quantity += cantidad
+				return true
+	var tope := capacidad(id_cofre)
+	if tope >= 0 and casillas.size() >= tope:
+		return false
+	var copia := item.duplicate() as DatosItem
+	copia.quantity = cantidad
+	copia.id_recurso = item.id_recurso if item.id_recurso != "" else item.resource_path
+	casillas.append(copia)
+	return true
+
+
+## Saca "cantidad" unidades de [item] — decrementa quantity y recién saca
+## la entrada entera si llega a 0, mismo criterio que InventarioComponente
+## .quitar_cantidad(). No-op silencioso si no alcanza tanto como se pide
+## (no debería pasar nunca: GrillaObjetos ya valida contra item.quantity
+## antes de llamar acá).
+func quitar_cantidad(id_cofre: String, item: DatosItem, cantidad: int) -> void:
+	if item == null or cantidad <= 0 or item.quantity < cantidad:
+		return
+	item.quantity -= cantidad
+	if item.quantity <= 0:
+		obtener_contenido(id_cofre).erase(item)
