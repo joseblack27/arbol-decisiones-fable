@@ -29,17 +29,22 @@ var _boton_cerrar_de_grilla_cierra_panel_ok := false
 var _tomar_todo_ok := false
 var _scroll_a_cada_lado_ok := false
 var _filtro_categorias_activo_por_defecto_ok := false
+var _doble_tap_transferencia_rapida_ok := false
+var _estado_vacio_ok := false
+var _orden_activo_por_defecto_ok := false
 
 
 func _process(_delta: float) -> bool:
 	_montar()
 	_probar_abrir()
+	_probar_estado_vacio()
 	_probar_refrescar_inventario()
 	_probar_detalle_al_tocar_item()
 	_probar_arrastre_ida_y_vuelta_por_panel_real()
 	_probar_boton_cerrar_de_grilla_cierra_panel()
 	_probar_tomar_todo()
 	_probar_scroll_a_cada_lado()
+	_probar_doble_tap_transferencia_rapida()
 	return _informar()
 
 
@@ -89,6 +94,15 @@ func _probar_abrir() -> void:
 	_filtro_categorias_activo_por_defecto_ok = _panel._grilla_cofre._tabs_filtro.visible \
 		and _panel._grilla_jugador._tabs_filtro.visible
 
+	# Pedido del usuario: "activale [el orden] en las dos grillas del
+	# cofre" — mismo criterio, ya visible al abrir en las dos.
+	print("Selector de orden del cofre viene activado por defecto (esperado true): %s" % \
+		_panel._grilla_cofre._fila_orden.visible)
+	print("Selector de orden del inventario viene activado por defecto (esperado true): %s" % \
+		_panel._grilla_jugador._fila_orden.visible)
+	_orden_activo_por_defecto_ok = _panel._grilla_cofre._fila_orden.visible \
+		and _panel._grilla_jugador._fila_orden.visible
+
 	print("Grilla de inventario muestra los ítems reales (esperado 1): %d" % \
 		_panel._grilla_jugador._contenedor.get_child_count())
 	_grilla_jugador_tiene_los_items_reales_ok = _panel._grilla_jugador._contenedor.get_child_count() == 1
@@ -96,6 +110,41 @@ func _probar_abrir() -> void:
 	print("Panel de detalle arranca invisible, sin nada seleccionado (esperado 0.0): %.1f" % \
 		_panel._panel_detalle.modulate.a)
 	_detalle_arranca_invisible_ok = _panel._panel_detalle.modulate.a == 0.0
+
+
+## Pedido del usuario: "agrega el estado vacío" — el cofre arranca sin
+## ítems (ver _montar, tabla_botin vacía) y debe mostrar la etiqueta
+## personalizada del panel; agregar un ítem la oculta, sacarlo la vuelve a
+## mostrar. El inventario del jugador arranca CON un ítem (la poción), así
+## que su estado vacío debe estar oculto desde el principio.
+func _probar_estado_vacio() -> void:
+	print("Cofre vacío muestra el estado vacío (esperado true): %s" % \
+		_panel._grilla_cofre._etiqueta_vacia.visible)
+	print("... con el texto del panel (esperado 'El cofre está vacío'): %s" % \
+		_panel._grilla_cofre._etiqueta_vacia.text)
+	var cofre_vacio_muestra_estado_ok: bool = _panel._grilla_cofre._etiqueta_vacia.visible \
+		and _panel._grilla_cofre._etiqueta_vacia.text == "El cofre está vacío"
+
+	var cofres = _jugador.get_node("CofresComponente")
+	var pocion := load("res://recursos/items/consumibles/pocion_vida.tres") as DatosItem
+	cofres.agregar(_ID_COFRE, pocion)
+	_panel._grilla_cofre.notificar_cambio()
+	print("Con un ítem adentro, el estado vacío se oculta (esperado false): %s" % \
+		_panel._grilla_cofre._etiqueta_vacia.visible)
+	var con_item_oculta_estado_ok: bool = not _panel._grilla_cofre._etiqueta_vacia.visible
+
+	cofres.quitar(_ID_COFRE, pocion)
+	_panel._grilla_cofre.notificar_cambio()
+	print("Al vaciarse de nuevo, el estado vacío reaparece (esperado true): %s" % \
+		_panel._grilla_cofre._etiqueta_vacia.visible)
+	var vuelve_a_mostrar_estado_ok: bool = _panel._grilla_cofre._etiqueta_vacia.visible
+
+	print("Inventario con ítems no muestra el estado vacío (esperado false): %s" % \
+		_panel._grilla_jugador._etiqueta_vacia.visible)
+	var jugador_con_items_oculta_estado_ok: bool = not _panel._grilla_jugador._etiqueta_vacia.visible
+
+	_estado_vacio_ok = cofre_vacio_muestra_estado_ok and con_item_oculta_estado_ok \
+		and vuelve_a_mostrar_estado_ok and jugador_con_items_oculta_estado_ok
 
 
 func _probar_refrescar_inventario() -> void:
@@ -255,12 +304,45 @@ func _probar_scroll_a_cada_lado() -> void:
 	_scroll_a_cada_lado_ok = scroll_cofre_izquierda_ok and scroll_jugador_derecha_ok
 
 
+## Pedido del usuario: "hazme el doble-tap para transferencia rápida" —
+## dos toques seguidos sobre una casilla del inventario deben mandar el
+## ítem al cofre (grilla_destino_rapida, conectado en PanelCofre._ready()),
+## la MISMA lógica que ya usa el arrastre. Usa una batería (no una hoja):
+## a esta altura el inventario ya puede tener una hoja de pruebas
+## anteriores, y agregar_item() FUSIONARÍA (quantity>1 dispara PopupCantidad
+## en vez de mover directo, ver GrillaObjetos.recibir_desde) — un ítem sin
+## ninguna entrada previa mantiene esto en el camino simple sin popup.
+func _probar_doble_tap_transferencia_rapida() -> void:
+	var bateria := load("res://recursos/items/recursos/bateria_1.tres") as DatosItem
+	_inventario.agregar_item(bateria, 1, true)
+	_panel._grilla_jugador.notificar_cambio()
+
+	var casilla = null
+	for c in _panel._grilla_jugador._contenedor.get_children():
+		if c.item_data and c.item_data.name == bateria.name:
+			casilla = c
+			break
+
+	casilla._procesar_tap()
+	casilla._procesar_tap()
+
+	var cofres = _jugador.get_node("CofresComponente")
+	var entro_al_cofre := false
+	for item: DatosItem in cofres.obtener_contenido(_ID_COFRE):
+		if item.name == bateria.name:
+			entro_al_cofre = true
+			break
+	print("Doble-tap sobre una casilla del inventario la manda al cofre (esperado true): %s" % entro_al_cofre)
+	_doble_tap_transferencia_rapida_ok = entro_al_cofre
+
+
 func _informar() -> bool:
 	var exito := _se_abre_por_bus_eventos_ok and _grilla_cofre_sin_slots_precreados_ok \
 		and _grilla_jugador_tiene_los_items_reales_ok and _detalle_arranca_invisible_ok \
 		and _refrescar_inventario_reconstruye_ok and _detalle_al_tocar_item_ok \
 		and _arrastre_ida_y_vuelta_por_panel_real_ok and _boton_cerrar_de_grilla_cierra_panel_ok \
-		and _tomar_todo_ok and _scroll_a_cada_lado_ok and _filtro_categorias_activo_por_defecto_ok
+		and _tomar_todo_ok and _scroll_a_cada_lado_ok and _filtro_categorias_activo_por_defecto_ok \
+		and _doble_tap_transferencia_rapida_ok and _estado_vacio_ok and _orden_activo_por_defecto_ok
 	print("  se abre por BusEventos.cofre_solicitado: %s" % _se_abre_por_bus_eventos_ok)
 	print("  grilla del cofre sin slots precreados: %s" % _grilla_cofre_sin_slots_precreados_ok)
 	print("  grilla de inventario: ítems reales: %s" % _grilla_jugador_tiene_los_items_reales_ok)
@@ -272,6 +354,9 @@ func _informar() -> bool:
 	print("  botón 'Tomar todo' solo en el cofre, mueve todo: %s" % _tomar_todo_ok)
 	print("  scroll a cada lado (cofre izquierda, inventario derecha): %s" % _scroll_a_cada_lado_ok)
 	print("  filtro de categorías del cofre activo por defecto: %s" % _filtro_categorias_activo_por_defecto_ok)
+	print("  doble-tap transferencia rápida: %s" % _doble_tap_transferencia_rapida_ok)
+	print("  estado vacío: %s" % _estado_vacio_ok)
+	print("  selector de orden activo por defecto: %s" % _orden_activo_por_defecto_ok)
 	print("PRUEBA PANEL COFRE %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

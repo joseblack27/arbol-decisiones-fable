@@ -76,6 +76,28 @@ signal tomar_todo_solicitado
 		if is_node_ready():
 			_tabs_filtro.visible = value
 
+## Texto del estado vacío (ver notificar_cambio) — pedido del usuario:
+## "agrega el estado vacío". Un campo por instancia, no un texto fijo, para
+## que cada grilla pueda decir "Cofre vacío" / "No tenés objetos" en vez de
+## un genérico "Vacío" — esta grilla no sabe si es cofre o inventario.
+@export var texto_vacio: String = "Vacío":
+	set(value):
+		texto_vacio = value
+		if is_node_ready():
+			_etiqueta_vacia.text = value
+
+## Oculto por defecto — pedido del usuario: "poder organizar los ítems por
+## orden alfabético de las categorías ascendente y descendente, orden
+## alfabético ascendente y descendente [por nombre]". Mismo criterio que
+## mostrar_filtro_categorias: parametrizable por booleano.
+@export var mostrar_ordenar: bool = false:
+	set(value):
+		mostrar_ordenar = value
+		if is_node_ready():
+			_fila_orden.visible = value
+
+enum OrdenItems { SIN_ORDENAR, CATEGORIA_ASC, CATEGORIA_DESC, NOMBRE_ASC, NOMBRE_DESC }
+
 @onready var _titulo_label: Label = %Titulo
 @onready var _boton_cerrar: Button = %BotonCerrar
 @onready var _boton_tomar_todo: Button = %BotonTomarTodo
@@ -84,6 +106,9 @@ signal tomar_todo_solicitado
 @onready var _barra_desplazamiento: Control = %BarraDesplazamientoV
 @onready var _tabs_filtro: HBoxContainer = %TabsFiltro
 @onready var _botones_filtro: Array[Button] = [%BotonFiltroTodos, %BotonFiltroEquipables, %BotonFiltroConsumibles, %BotonFiltroRecursos]
+@onready var _etiqueta_vacia: Label = %EtiquetaVacia
+@onready var _fila_orden: HBoxContainer = %FilaOrden
+@onready var _selector_orden: OptionButton = %SelectorOrden
 
 ## Mismo orden que _botones_filtro — índice a índice.
 const _TIPOS_FILTRO := [
@@ -94,6 +119,11 @@ const _TIPOS_FILTRO := [
 ]
 var _filtro_categoria_actual: Enums.Inventario.TipoItem = Enums.Inventario.TipoItem.TODOS
 
+## Mismo orden que los add_item() de _ready() — índice del OptionButton ==
+## valor del enum, así el índice que manda item_selected() se puede usar
+## directo como OrdenItems sin mapear nada.
+var _orden_actual: OrdenItems = OrdenItems.SIN_ORDENAR
+
 ## [obtener_items]() -> Array[DatosItem]: la lista a mostrar AHORA MISMO —
 ## solo ítems que EXISTEN, sin nulls (mismo criterio que InventarioComponente
 ## .items, ver CofresComponente tras este refactor).
@@ -102,6 +132,15 @@ var _obtener_items: Callable = Callable()
 ## posición (ver FuenteObjetos/ScrollContainerObjetos, que es quien la usa
 ## de verdad al recibir un drop).
 var fuente_grilla: FuenteObjetos = null
+
+## A qué grilla manda un doble-tap sobre una casilla de ESTA grilla (ver
+## CasillaObjeto._transferencia_rapida) — pedido del usuario: "el
+## doble-tap para transferencia rápida". null = sin configurar (grilla
+## suelta, sin contraparte armada). No es @export: como fuente_grilla, se
+## arma en tiempo de ejecución — quien usa dos GrillaObjetos como par (ej.
+## PanelCofre) las conecta entre sí después de poblarlas, esta grilla no
+## sabe nada de la otra por sí sola.
+var grilla_destino_rapida: GrillaObjetos = null
 
 ## Transferencia esperando que PopupCantidad confirme una cantidad (ver
 ## recibir_desde()) — solo puede haber UNA a la vez, el popup bloquea el
@@ -122,6 +161,14 @@ func _ready() -> void:
 	for i in _botones_filtro.size():
 		var tipo: Enums.Inventario.TipoItem = _TIPOS_FILTRO[i]
 		_botones_filtro[i].pressed.connect(func(): _seleccionar_filtro(tipo))
+	_etiqueta_vacia.text = texto_vacio
+	_fila_orden.visible = mostrar_ordenar
+	_selector_orden.add_item("Sin ordenar")
+	_selector_orden.add_item("Categoría (A-Z)")
+	_selector_orden.add_item("Categoría (Z-A)")
+	_selector_orden.add_item("Nombre (A-Z)")
+	_selector_orden.add_item("Nombre (Z-A)")
+	_selector_orden.item_selected.connect(_on_orden_seleccionado)
 	_popup_cantidad.confirmada.connect(_on_popup_cantidad_confirmada)
 	_popup_cantidad.cancelada.connect(_limpiar_pendiente)
 
@@ -147,9 +194,13 @@ func notificar_cambio() -> void:
 	if not _obtener_items.is_valid():
 		return
 	_limpiar()
-	var items: Array = _obtener_items.call()
+	# .duplicate(): _ordenar()/filter() no deben mutar la lista REAL de
+	# quien la provee (ej. InventarioComponente.items) — sin filtro activo,
+	# _obtener_items.call() devuelve esa misma referencia tal cual.
+	var items: Array = _obtener_items.call().duplicate()
 	if mostrar_filtro_categorias and _filtro_categoria_actual != Enums.Inventario.TipoItem.TODOS:
 		items = items.filter(func(item: DatosItem) -> bool: return item.type == _filtro_categoria_actual)
+	_ordenar(items)
 	for item in items:
 		var casilla: CasillaObjeto = _CASILLA_SCENE.instantiate()
 		casilla.item_data = item
@@ -157,6 +208,7 @@ func notificar_cambio() -> void:
 		casilla.grilla_dueña = self
 		casilla.tocada.connect(_on_casilla_tocada)
 		_contenedor.add_child(casilla)
+	_etiqueta_vacia.visible = items.is_empty()
 
 
 ## Punto único de entrada para un drop aceptado en ESTA grilla — lo llaman
@@ -206,6 +258,45 @@ func _limpiar_pendiente() -> void:
 func _seleccionar_filtro(tipo: Enums.Inventario.TipoItem) -> void:
 	_filtro_categoria_actual = tipo
 	notificar_cambio()
+
+
+func _on_orden_seleccionado(indice: int) -> void:
+	_orden_actual = indice as OrdenItems
+	notificar_cambio()
+
+
+## sort_custom() en el lugar — [items] ya es una copia propia de
+## notificar_cambio(), nunca la lista real de la fuente. Categoría ordena
+## por type_equippable_descripcion (el SLOT real — casco, anillo, arma...
+## pedido explícito del usuario: "la categoria no es que sea equipable, la
+## categoria es el Enums.Inventario.TipoItemEquipable"), no por el TipoItem
+## genérico. Los ítems sin slot (NINGUNO — consumibles, recursos, misión)
+## van SIEMPRE al final, pedido del usuario: "los recursos van al final",
+## sin importar la dirección asc/desc; dentro de cada grupo (con o sin
+## slot), empate por nombre para no dejar el orden interno al azar.
+func _ordenar(items: Array) -> void:
+	match _orden_actual:
+		OrdenItems.CATEGORIA_ASC:
+			items.sort_custom(func(a: DatosItem, b: DatosItem) -> bool: return _comparar_categoria(a, b, true))
+		OrdenItems.CATEGORIA_DESC:
+			items.sort_custom(func(a: DatosItem, b: DatosItem) -> bool: return _comparar_categoria(a, b, false))
+		OrdenItems.NOMBRE_ASC:
+			items.sort_custom(func(a: DatosItem, b: DatosItem) -> bool: return a.name < b.name)
+		OrdenItems.NOMBRE_DESC:
+			items.sort_custom(func(a: DatosItem, b: DatosItem) -> bool: return a.name > b.name)
+
+
+func _comparar_categoria(a: DatosItem, b: DatosItem, ascendente: bool) -> bool:
+	var sin_slot := Enums.Inventario.TipoItemEquipable.NINGUNO
+	var a_sin_slot := a.type_equippable == sin_slot
+	var b_sin_slot := b.type_equippable == sin_slot
+	if a_sin_slot != b_sin_slot:
+		return b_sin_slot
+	if a.type_equippable_descripcion == b.type_equippable_descripcion:
+		return a.name < b.name
+	if ascendente:
+		return a.type_equippable_descripcion < b.type_equippable_descripcion
+	return a.type_equippable_descripcion > b.type_equippable_descripcion
 
 
 ## move_child() a índice 0 (izquierda, en el HBoxContainer que las

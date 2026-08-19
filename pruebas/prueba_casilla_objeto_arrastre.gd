@@ -63,6 +63,7 @@ var _casilla_distinta_grilla_agrega_ok := false
 var _popup_cantidad_ok := false
 var _filtro_categorias_ok := false
 var _recurso_se_acumula_en_cofre_ok := false
+var _ordenar_items_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -76,6 +77,7 @@ func _process(_delta: float) -> bool:
 	_probar_popup_cantidad_transferencia_parcial()
 	_probar_filtro_categorias()
 	_probar_recurso_se_acumula_en_cofre()
+	_probar_ordenar_items()
 	return _informar()
 
 
@@ -401,11 +403,57 @@ func _probar_recurso_se_acumula_en_cofre() -> void:
 	_recurso_se_acumula_en_cofre_ok = contenido_cofre.size() == 1 and contenido_cofre[0].quantity == 2
 
 
+## Pedido del usuario: "organizar los ítems por orden alfabético de las
+## categorías ascendente y descendente, orden alfabético ascendente y
+## descendente [por nombre]" — la categoría es Enums.Inventario.
+## TipoItemEquipable (el slot real: casco, amuleto...), no el TipoItem
+## genérico, y "los recursos van al final" (cualquier ítem sin slot —
+## consumibles, recursos — queda siempre después de los equipables, sin
+## importar la dirección). 2 equipables de slot distinto + 2 sin slot,
+## nombres todos distintos, para que las 4 combinaciones den un orden
+## inequívoco.
+func _probar_ordenar_items() -> void:
+	_gestor_inventario.items.clear()
+	var anillo := load("res://recursos/items/equipables/accesorio_1.tres") as DatosItem  # AMULETO
+	var armadura := load("res://recursos/items/equipables/armadura_1.tres") as DatosItem  # CASCO
+	var hoja := load("res://recursos/items/recursos/hoja_1.tres") as DatosItem  # sin slot
+	var pocion := load("res://recursos/items/consumibles/pocion_vida.tres") as DatosItem  # sin slot
+	_gestor_inventario.agregar_item(anillo, -1, true)
+	_gestor_inventario.agregar_item(armadura, -1, true)
+	_gestor_inventario.agregar_item(hoja, 1, true)
+	_gestor_inventario.agregar_item(pocion, 1, true)
+
+	_grilla_inventario.mostrar_ordenar = true
+	_grilla_inventario.notificar_cambio()
+
+	var casos := [
+		[GrillaObjetos.OrdenItems.CATEGORIA_ASC, ["Anillo Sencillo", "Armadura Ligera", "Hoja Verde", "Poción de Vida"]],
+		[GrillaObjetos.OrdenItems.CATEGORIA_DESC, ["Armadura Ligera", "Anillo Sencillo", "Hoja Verde", "Poción de Vida"]],
+		[GrillaObjetos.OrdenItems.NOMBRE_ASC, ["Anillo Sencillo", "Armadura Ligera", "Hoja Verde", "Poción de Vida"]],
+		[GrillaObjetos.OrdenItems.NOMBRE_DESC, ["Poción de Vida", "Hoja Verde", "Armadura Ligera", "Anillo Sencillo"]],
+	]
+
+	var todo_ok := true
+	for caso in casos:
+		var orden: GrillaObjetos.OrdenItems = caso[0]
+		var esperado: Array = caso[1]
+		_grilla_inventario._on_orden_seleccionado(orden)
+		var real: Array = []
+		for c in _grilla_inventario._contenedor.get_children():
+			real.append(c.item_data.name)
+		print("Orden %d da %s (esperado %s)" % [orden, real, esperado])
+		if real != esperado:
+			todo_ok = false
+
+	_ordenar_items_ok = todo_ok
+
+
 func _informar() -> bool:
 	var exito := _inventario_a_cofre_ok and _cofre_a_inventario_ok \
 		and _cofre_lleno_no_pierde_el_item_ok and _recurso_se_puede_arrastrar_ok \
 		and _casilla_misma_grilla_no_hace_nada_ok and _casilla_distinta_grilla_agrega_ok \
-		and _popup_cantidad_ok and _filtro_categorias_ok and _recurso_se_acumula_en_cofre_ok
+		and _popup_cantidad_ok and _filtro_categorias_ok and _recurso_se_acumula_en_cofre_ok \
+		and _ordenar_items_ok
 	print("  inventario -> cofre (vía ScrollContainer): %s" % _inventario_a_cofre_ok)
 	print("  cofre -> inventario (vía ScrollContainer): %s" % _cofre_a_inventario_ok)
 	print("  cofre lleno no pierde el ítem: %s" % _cofre_lleno_no_pierde_el_item_ok)
@@ -415,6 +463,7 @@ func _informar() -> bool:
 	print("  PopupCantidad: abre, cancela, transfiere parcial: %s" % _popup_cantidad_ok)
 	print("  filtro de categorías: apagado no filtra, encendido sí: %s" % _filtro_categorias_ok)
 	print("  recurso repetido se acumula en el cofre: %s" % _recurso_se_acumula_en_cofre_ok)
+	print("  ordenar por categoría/nombre asc/desc: %s" % _ordenar_items_ok)
 	print("PRUEBA CASILLA OBJETO ARRASTRE %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

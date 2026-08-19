@@ -58,7 +58,6 @@ theme_override_constants/separation = 2
 
 [node name="TabsFiltro" type="HBoxContainer" parent="Margin/VBox"]
 unique_name_in_owner = true
-visible = false
 custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 theme_override_constants/separation = 0
@@ -100,6 +99,29 @@ toggle_mode = true
 button_group = SubResource("BG_filtro")
 text = "Recursos"
 
+[node name="FilaOrden" type="HBoxContainer" parent="Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 22)
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="EtiquetaOrden" type="Label" parent="Margin/VBox/FilaOrden"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 9
+text = "Ordenar:"
+vertical_alignment = 1
+
+[node name="SelectorOrden" type="OptionButton" parent="Margin/VBox/FilaOrden"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 9
+alignment = 1
+
+[node name="HSeparator2" type="HSeparator" parent="Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 2
+
 [node name="HBoxScroll" type="HBoxContainer" parent="Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -123,14 +145,28 @@ size_flags_vertical = 3
 horizontal_scroll_mode = 0
 script = ExtResource("4_scroll")
 
-[node name="Contenedor" type="GridContainer" parent="Margin/VBox/HBoxScroll/MarginContainer/ScrollContainer"]
-unique_name_in_owner = true
+[node name="ContenedorCentrado" type="HBoxContainer" parent="Margin/VBox/HBoxScroll/MarginContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
+alignment = 1
+
+[node name="Contenedor" type="GridContainer" parent="Margin/VBox/HBoxScroll/MarginContainer/ScrollContainer/ContenedorCentrado"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 4
+
+[node name="EtiquetaVacia" type="Label" parent="Margin/VBox/HBoxScroll/MarginContainer/ScrollContainer/ContenedorCentrado"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(200, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 1)
+theme_override_font_sizes/font_size = 11
+text = "Vacío"
+horizontal_alignment = 1
+autowrap_mode = 2
 
 [node name="BarraDesplazamientoV" parent="Margin/VBox/HBoxScroll" node_paths=PackedStringArray("scroll_container") instance=ExtResource("3_scrollv")]
 unique_name_in_owner = true
@@ -147,4 +183,5 @@ text = "Tomar todo"
 
 [node name="PopupCantidad" parent="." instance=ExtResource("5_popup")]
 unique_name_in_owner = true
+visible = false
 layout_mode = 1

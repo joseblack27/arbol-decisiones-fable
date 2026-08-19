@@ -20,7 +20,10 @@ class_name DatosItem
 		type_descripcion = item_description[value]
 
 # 0=NINGUNO,1=CASCO,2=CUERPO,3=PANTALON,4=BOTAS,5=AMULETO,6=ANILLO,7=CINTURON,8=ARMA,9=ESCUDO
-@export var type_equippable: Enums.Inventario.TipoItemEquipable = Enums.Inventario.TipoItemEquipable.NINGUNO
+@export var type_equippable: Enums.Inventario.TipoItemEquipable = Enums.Inventario.TipoItemEquipable.NINGUNO:
+	set(value):
+		type_equippable = value
+		type_equippable_descripcion = type_equippable_description[value]
 
 @export var can_use: bool = false
 @export var can_equip: bool = false
@@ -58,6 +61,7 @@ class_name DatosItem
 @export var id_recurso: String = ""
 
 var type_descripcion: String
+var type_equippable_descripcion: String
 
 const item_description := {
 	Enums.Inventario.TipoItem.NINGUNO: "vacio",
@@ -68,4 +72,21 @@ const item_description := {
 	Enums.Inventario.TipoItem.MISION: "misión",
 	Enums.Inventario.TipoItem.EQUIPABLE: "equipable",
 	Enums.Inventario.TipoItem.PASIVA: "pasiva"
+}
+
+## Pedido del usuario para GrillaObjetos.ordenar por categoría: "la
+## categoria no es que sea equipable, la categoria es el Enums.Inventario
+## .TipoItemEquipable" — el slot real (casco, anillo, arma...), no el
+## TipoItem genérico (que solo distingue equipable/consumible/recurso).
+const type_equippable_description := {
+	Enums.Inventario.TipoItemEquipable.NINGUNO: "ninguno",
+	Enums.Inventario.TipoItemEquipable.CASCO: "casco",
+	Enums.Inventario.TipoItemEquipable.CUERPO: "cuerpo",
+	Enums.Inventario.TipoItemEquipable.PANTALON: "pantalón",
+	Enums.Inventario.TipoItemEquipable.BOTAS: "botas",
+	Enums.Inventario.TipoItemEquipable.AMULETO: "amuleto",
+	Enums.Inventario.TipoItemEquipable.ANILLO: "anillo",
+	Enums.Inventario.TipoItemEquipable.CINTURON: "cinturón",
+	Enums.Inventario.TipoItemEquipable.ARMA: "arma",
+	Enums.Inventario.TipoItemEquipable.ESCUDO: "escudo",
 }

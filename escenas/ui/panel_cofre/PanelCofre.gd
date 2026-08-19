@@ -50,6 +50,12 @@ func _ready() -> void:
 	_grilla_cofre.tomar_todo_solicitado.connect(_tomar_todo)
 	_grilla_cofre.item_tocado.connect(_mostrar_detalle)
 	_grilla_jugador.item_tocado.connect(_mostrar_detalle)
+	# Pedido del usuario: "el doble-tap para transferencia rápida" — cada
+	# grilla manda al doble-tap a la OTRA (ver CasillaObjeto._transferencia
+	# _rapida/GrillaObjetos.grilla_destino_rapida). Fijo (no cambia entre
+	# aperturas, %GrillaCofre/%GrillaJugador son siempre los mismos nodos).
+	_grilla_cofre.grilla_destino_rapida = _grilla_jugador
+	_grilla_jugador.grilla_destino_rapida = _grilla_cofre
 	if not BusEventos.item_agregado.is_connected(_al_cambiar_inventario):
 		BusEventos.item_agregado.connect(_al_cambiar_inventario)
 

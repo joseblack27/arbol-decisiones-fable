@@ -34,6 +34,12 @@ class_name CasillaObjeto
 
 signal tocada(item: DatosItem)
 
+## Ventana para contar dos toques seguidos como doble-tap (ver _procesar_
+## tap) — NO se usa InputEventMouseButton.double_click: en touch emulado
+## (el juego es 100% táctil, sin mouse real) ese flag es poco confiable
+## (issue conocido de Godot). Se mide a mano contra el reloj.
+const _VENTANA_DOBLE_TAP_MS := 350
+
 @export var item_data: DatosItem:
 	set(value):
 		item_data = value
@@ -46,6 +52,7 @@ var grilla_dueña: GrillaObjetos = null
 
 var _arrastrando := false
 static var _arrastrando_ahora: CasillaObjeto = null
+var _ultimo_tap_msec: int = -1000000
 
 
 func _ready() -> void:
@@ -58,7 +65,34 @@ func _on_gui_input(event: InputEvent) -> void:
 			_arrastrando = false
 		elif event.is_released() and event.button_index == MOUSE_BUTTON_LEFT:
 			if not _arrastrando:
-				tocada.emit(item_data)
+				_procesar_tap()
+
+
+## Pedido del usuario: "el doble-tap para transferencia rápida" — el
+## primer toque sigue mostrando el detalle como siempre (tocada.emit); si
+## llega un segundo toque dentro de _VENTANA_DOBLE_TAP_MS, además dispara
+## la transferencia. _transferencia_rapida() va AL FINAL: puede terminar
+## reconstruyendo grilla_dueña entera (remove_child+queue_free, ver
+## GrillaObjetos.notificar_cambio) y destruir este "self" en el camino —
+## mismo cuidado que _drop_data, nada de self después de esa llamada.
+func _procesar_tap() -> void:
+	tocada.emit(item_data)
+	var ahora := Time.get_ticks_msec()
+	var es_doble_tap := ahora - _ultimo_tap_msec <= _VENTANA_DOBLE_TAP_MS
+	_ultimo_tap_msec = -1000000 if es_doble_tap else ahora
+	if es_doble_tap:
+		_transferencia_rapida()
+
+
+## Manda item_data a grilla_dueña.grilla_destino_rapida — la MISMA lógica
+## que ya usa el arrastre (recibir_desde ya decide si hace falta preguntar
+## la cantidad con PopupCantidad, ver GrillaObjetos). Sin destino
+## configurado (grilla suelta, sin contraparte armada por su panel) no
+## hace nada.
+func _transferencia_rapida() -> void:
+	if item_data == null or grilla_dueña == null or grilla_dueña.grilla_destino_rapida == null:
+		return
+	grilla_dueña.grilla_destino_rapida.recibir_desde(fuente, grilla_dueña, item_data)
 
 
 func _actualizar_visual() -> void:
