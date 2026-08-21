@@ -64,6 +64,8 @@ var _popup_cantidad_ok := false
 var _filtro_categorias_ok := false
 var _recurso_se_acumula_en_cofre_ok := false
 var _ordenar_items_ok := false
+var _tipo_descripcion_equipable_ok := false
+var _busqueda_por_texto_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -78,6 +80,8 @@ func _process(_delta: float) -> bool:
 	_probar_filtro_categorias()
 	_probar_recurso_se_acumula_en_cofre()
 	_probar_ordenar_items()
+	_probar_tipo_descripcion_equipable()
+	_probar_busqueda_por_texto()
 	return _informar()
 
 
@@ -414,23 +418,40 @@ func _probar_recurso_se_acumula_en_cofre() -> void:
 ## inequívoco.
 func _probar_ordenar_items() -> void:
 	_gestor_inventario.items.clear()
-	var anillo := load("res://recursos/items/equipables/accesorio_1.tres") as DatosItem  # AMULETO
-	var armadura := load("res://recursos/items/equipables/armadura_1.tres") as DatosItem  # CASCO
-	var hoja := load("res://recursos/items/recursos/hoja_1.tres") as DatosItem  # sin slot
-	var pocion := load("res://recursos/items/consumibles/pocion_vida.tres") as DatosItem  # sin slot
-	_gestor_inventario.agregar_item(anillo, -1, true)
-	_gestor_inventario.agregar_item(armadura, -1, true)
-	_gestor_inventario.agregar_item(hoja, 1, true)
-	_gestor_inventario.agregar_item(pocion, 1, true)
+	# Nombres tomados de los .tres directo (no hardcodeados): el catálogo
+	# de ítems puede cambiar de nombre con el tiempo (ya pasó una vez esta
+	# sesión con accesorio_1/2.tres) — la prueba no debe depender de cuál
+	# nombre le puso el usuario, solo del ORDEN relativo. equip_amuleto y
+	# equip_casco son dos slots distintos a propósito (para que asc/desc
+	# den resultados distintos); sin_slot_a/b son dos ítems sin slot.
+	var equip_amuleto := load("res://recursos/items/equipables/accesorio_1.tres") as DatosItem  # AMULETO
+	var equip_casco := load("res://recursos/items/equipables/armadura_1.tres") as DatosItem  # CASCO
+	var sin_slot_a := load("res://recursos/items/recursos/hoja_1.tres") as DatosItem
+	var sin_slot_b := load("res://recursos/items/consumibles/pocion_vida.tres") as DatosItem
+	_gestor_inventario.agregar_item(equip_amuleto, -1, true)
+	_gestor_inventario.agregar_item(equip_casco, -1, true)
+	_gestor_inventario.agregar_item(sin_slot_a, 1, true)
+	_gestor_inventario.agregar_item(sin_slot_b, 1, true)
 
 	_grilla_inventario.mostrar_ordenar = true
 	_grilla_inventario.notificar_cambio()
 
+	var sin_slot_por_nombre := [sin_slot_a.name, sin_slot_b.name]
+	sin_slot_por_nombre.sort()  # asc por nombre, mismo criterio que _comparar_categoria dentro del grupo "sin slot".
+	var por_nombre_asc := [equip_amuleto.name, equip_casco.name, sin_slot_a.name, sin_slot_b.name]
+	por_nombre_asc.sort()
+	var por_nombre_desc := por_nombre_asc.duplicate()
+	por_nombre_desc.reverse()
+
+	# Nota: equip_amuleto/equip_casco NO tienen por qué mantener este
+	# orden entre sí si en el futuro cambia cuál slot corresponde a cada
+	# .tres — hoy AMULETO < CASCO alfabéticamente ("amuleto" < "casco"),
+	# por eso amuleto va primero en ASC.
 	var casos := [
-		[GrillaObjetos.OrdenItems.CATEGORIA_ASC, ["Anillo Sencillo", "Armadura Ligera", "Hoja Verde", "Poción de Vida"]],
-		[GrillaObjetos.OrdenItems.CATEGORIA_DESC, ["Armadura Ligera", "Anillo Sencillo", "Hoja Verde", "Poción de Vida"]],
-		[GrillaObjetos.OrdenItems.NOMBRE_ASC, ["Anillo Sencillo", "Armadura Ligera", "Hoja Verde", "Poción de Vida"]],
-		[GrillaObjetos.OrdenItems.NOMBRE_DESC, ["Poción de Vida", "Hoja Verde", "Armadura Ligera", "Anillo Sencillo"]],
+		[GrillaObjetos.OrdenItems.CATEGORIA_ASC, [equip_amuleto.name, equip_casco.name] + sin_slot_por_nombre],
+		[GrillaObjetos.OrdenItems.CATEGORIA_DESC, [equip_casco.name, equip_amuleto.name] + sin_slot_por_nombre],
+		[GrillaObjetos.OrdenItems.NOMBRE_ASC, por_nombre_asc],
+		[GrillaObjetos.OrdenItems.NOMBRE_DESC, por_nombre_desc],
 	]
 
 	var todo_ok := true
@@ -448,12 +469,66 @@ func _probar_ordenar_items() -> void:
 	_ordenar_items_ok = todo_ok
 
 
+## Pedido del usuario: "cuando el tipo es equipable, mostrar el
+## TipoItemEquipable en lugar de 'equipable'" — item.type_descripcion
+## (lo que muestra la fila "Tipo:" en PanelCofre/PanelInventario) debe
+## resolver el slot real para un ítem equipable, nunca el genérico
+## "equipable". Los ítems sin slot siguen mostrando su descripción normal.
+func _probar_tipo_descripcion_equipable() -> void:
+	var equip_amuleto := load("res://recursos/items/equipables/accesorio_1.tres") as DatosItem
+	var pocion := load("res://recursos/items/consumibles/pocion_vida.tres") as DatosItem
+
+	print("Ítem equipable muestra el slot, no 'equipable' (esperado true): %s" % \
+		(equip_amuleto.type_descripcion != "equipable" and \
+		equip_amuleto.type_descripcion == equip_amuleto.type_equippable_descripcion))
+	var muestra_slot_ok: bool = equip_amuleto.type_descripcion != "equipable" \
+		and equip_amuleto.type_descripcion == equip_amuleto.type_equippable_descripcion
+
+	print("Ítem sin slot sigue con su descripción normal (esperado 'consumible'): %s" % pocion.type_descripcion)
+	var no_equipable_normal_ok: bool = pocion.type_descripcion == "consumible"
+
+	_tipo_descripcion_equipable_ok = muestra_slot_ok and no_equipable_normal_ok
+
+
+## Pedido del usuario: "la búsqueda por texto" — reusa los 4 ítems que dejó
+## _probar_ordenar_items (Anillo Sencillo, Armadura Ligera, Hoja Verde,
+## Poción de Vida) en _grilla_inventario. Sin importar mayúsculas/acentos
+## de más ("HOJA" encuentra "Hoja Verde"), busca en cualquier parte del
+## nombre (no solo el inicio: "dura" encuentra "Armadura"), y borrar el
+## texto vuelve a mostrar todo.
+func _probar_busqueda_por_texto() -> void:
+	_grilla_inventario.mostrar_busqueda = true
+	_grilla_inventario._orden_actual = GrillaObjetos.OrdenItems.SIN_ORDENAR
+
+	_grilla_inventario._on_busqueda_cambiada("HOJA")
+	var nombres_hoja: Array = []
+	for c in _grilla_inventario._contenedor.get_children():
+		nombres_hoja.append(c.item_data.name)
+	print("Buscar 'HOJA' (mayúsculas) deja solo la hoja (esperado ['Hoja Verde']): %s" % nombres_hoja)
+	var busca_sin_distinguir_mayusculas_ok: bool = nombres_hoja == ["Hoja Verde"]
+
+	_grilla_inventario._on_busqueda_cambiada("dura")
+	var nombres_dura: Array = []
+	for c in _grilla_inventario._contenedor.get_children():
+		nombres_dura.append(c.item_data.name)
+	print("Buscar 'dura' (mitad de la palabra) encuentra 'Armadura Ligera' (esperado ['Armadura Ligera']): %s" % nombres_dura)
+	var busca_en_cualquier_parte_ok: bool = nombres_dura == ["Armadura Ligera"]
+
+	_grilla_inventario._on_busqueda_cambiada("")
+	print("Borrar el texto vuelve a mostrar todos (esperado 4): %d" % \
+		_grilla_inventario._contenedor.get_child_count())
+	var borrar_muestra_todo_ok: bool = _grilla_inventario._contenedor.get_child_count() == 4
+
+	_busqueda_por_texto_ok = busca_sin_distinguir_mayusculas_ok and busca_en_cualquier_parte_ok \
+		and borrar_muestra_todo_ok
+
+
 func _informar() -> bool:
 	var exito := _inventario_a_cofre_ok and _cofre_a_inventario_ok \
 		and _cofre_lleno_no_pierde_el_item_ok and _recurso_se_puede_arrastrar_ok \
 		and _casilla_misma_grilla_no_hace_nada_ok and _casilla_distinta_grilla_agrega_ok \
 		and _popup_cantidad_ok and _filtro_categorias_ok and _recurso_se_acumula_en_cofre_ok \
-		and _ordenar_items_ok
+		and _ordenar_items_ok and _tipo_descripcion_equipable_ok and _busqueda_por_texto_ok
 	print("  inventario -> cofre (vía ScrollContainer): %s" % _inventario_a_cofre_ok)
 	print("  cofre -> inventario (vía ScrollContainer): %s" % _cofre_a_inventario_ok)
 	print("  cofre lleno no pierde el ítem: %s" % _cofre_lleno_no_pierde_el_item_ok)
@@ -464,6 +539,8 @@ func _informar() -> bool:
 	print("  filtro de categorías: apagado no filtra, encendido sí: %s" % _filtro_categorias_ok)
 	print("  recurso repetido se acumula en el cofre: %s" % _recurso_se_acumula_en_cofre_ok)
 	print("  ordenar por categoría/nombre asc/desc: %s" % _ordenar_items_ok)
+	print("  tipo mostrado para equipables usa el slot, no 'equipable': %s" % _tipo_descripcion_equipable_ok)
+	print("  búsqueda por texto: %s" % _busqueda_por_texto_ok)
 	print("PRUEBA CASILLA OBJETO ARRASTRE %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

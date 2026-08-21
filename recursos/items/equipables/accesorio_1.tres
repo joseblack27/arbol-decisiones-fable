@@ -10,7 +10,7 @@ probabilidad_critico = 5.0
 
 [resource]
 script = ExtResource("1_scr")
-name = "Anillo Sencillo"
+name = "Amuleto Antiguo"
 icon = ExtResource("2_ico")
 valor = 40
 description = "Un anillo simple sin encantamientos aparentes."

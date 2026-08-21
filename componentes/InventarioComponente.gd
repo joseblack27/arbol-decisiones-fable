@@ -40,6 +40,7 @@ func agregar_item(item: DatosItem, cantidad: int = -1, silencioso: bool = false)
 				if not silencioso:
 					BusEventos.item_agregado.emit(existente, cantidad_real)
 					_notificar_recolectar(item)
+				BusEventos.inventario_cambiado.emit()
 				return
 
 	var copia := item.duplicate() as DatosItem
@@ -55,6 +56,7 @@ func agregar_item(item: DatosItem, cantidad: int = -1, silencioso: bool = false)
 	if not silencioso:
 		BusEventos.item_agregado.emit(copia, cantidad_real)
 		_notificar_recolectar(item)
+	BusEventos.inventario_cambiado.emit()
 
 
 ## Objetivos de misión tipo RECOLECTAR (ver MisionesComponente.notificar_
@@ -69,6 +71,7 @@ func _notificar_recolectar(item: DatosItem) -> void:
 
 func quitar_item(item: DatosItem) -> void:
 	items.erase(item)
+	BusEventos.inventario_cambiado.emit()
 
 
 func tiene_item(nombre: String) -> bool:
@@ -143,6 +146,7 @@ func quitar_cantidad(item: DatosItem, cantidad: int) -> bool:
 	item.quantity -= cantidad
 	if item.quantity <= 0:
 		items.erase(item)
+	BusEventos.inventario_cambiado.emit()
 	return true
 
 

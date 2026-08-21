@@ -56,6 +56,15 @@ text = "x"
 layout_mode = 2
 theme_override_constants/separation = 2
 
+[node name="CampoBusqueda" type="LineEdit" parent="Margin/VBox"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 24)
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+placeholder_text = "Buscar..."
+clear_button_enabled = true
+
 [node name="TabsFiltro" type="HBoxContainer" parent="Margin/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 22)

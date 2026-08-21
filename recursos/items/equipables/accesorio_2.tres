@@ -10,7 +10,7 @@ tenacidad = 6.0
 
 [resource]
 script = ExtResource("1_scr")
-name = "Amuleto Antiguo"
+name = "Anillo Sencillo"
 icon = ExtResource("2_ico")
 valor = 45
 description = "Un amuleto con un extraño grabado."

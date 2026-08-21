@@ -32,6 +32,7 @@ var _filtro_categorias_activo_por_defecto_ok := false
 var _doble_tap_transferencia_rapida_ok := false
 var _estado_vacio_ok := false
 var _orden_activo_por_defecto_ok := false
+var _busqueda_activa_por_defecto_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -102,6 +103,15 @@ func _probar_abrir() -> void:
 		_panel._grilla_jugador._fila_orden.visible)
 	_orden_activo_por_defecto_ok = _panel._grilla_cofre._fila_orden.visible \
 		and _panel._grilla_jugador._fila_orden.visible
+
+	# Pedido del usuario: "me interesa la búsqueda por texto" — mismo
+	# criterio, ya visible al abrir en las dos.
+	print("Campo de búsqueda del cofre viene activado por defecto (esperado true): %s" % \
+		_panel._grilla_cofre._campo_busqueda.visible)
+	print("Campo de búsqueda del inventario viene activado por defecto (esperado true): %s" % \
+		_panel._grilla_jugador._campo_busqueda.visible)
+	_busqueda_activa_por_defecto_ok = _panel._grilla_cofre._campo_busqueda.visible \
+		and _panel._grilla_jugador._campo_busqueda.visible
 
 	print("Grilla de inventario muestra los ítems reales (esperado 1): %d" % \
 		_panel._grilla_jugador._contenedor.get_child_count())
@@ -342,7 +352,8 @@ func _informar() -> bool:
 		and _refrescar_inventario_reconstruye_ok and _detalle_al_tocar_item_ok \
 		and _arrastre_ida_y_vuelta_por_panel_real_ok and _boton_cerrar_de_grilla_cierra_panel_ok \
 		and _tomar_todo_ok and _scroll_a_cada_lado_ok and _filtro_categorias_activo_por_defecto_ok \
-		and _doble_tap_transferencia_rapida_ok and _estado_vacio_ok and _orden_activo_por_defecto_ok
+		and _doble_tap_transferencia_rapida_ok and _estado_vacio_ok and _orden_activo_por_defecto_ok \
+		and _busqueda_activa_por_defecto_ok
 	print("  se abre por BusEventos.cofre_solicitado: %s" % _se_abre_por_bus_eventos_ok)
 	print("  grilla del cofre sin slots precreados: %s" % _grilla_cofre_sin_slots_precreados_ok)
 	print("  grilla de inventario: ítems reales: %s" % _grilla_jugador_tiene_los_items_reales_ok)
@@ -357,6 +368,7 @@ func _informar() -> bool:
 	print("  doble-tap transferencia rápida: %s" % _doble_tap_transferencia_rapida_ok)
 	print("  estado vacío: %s" % _estado_vacio_ok)
 	print("  selector de orden activo por defecto: %s" % _orden_activo_por_defecto_ok)
+	print("  campo de búsqueda activo por defecto: %s" % _busqueda_activa_por_defecto_ok)
 	print("PRUEBA PANEL COFRE %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

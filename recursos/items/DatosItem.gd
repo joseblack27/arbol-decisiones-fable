@@ -14,10 +14,7 @@ class_name DatosItem
 @export var description: String = ""
 
 # 0=NINGUNO,1=TODOS,2=CONSUMIBLE,3=EQUIPABLE,4=RECURSO,5=MISION,6=ARMA
-@export var type: Enums.Inventario.TipoItem = Enums.Inventario.TipoItem.NINGUNO:
-	set(value):
-		type = value
-		type_descripcion = item_description[value]
+@export var type: Enums.Inventario.TipoItem = Enums.Inventario.TipoItem.NINGUNO
 
 # 0=NINGUNO,1=CASCO,2=CUERPO,3=PANTALON,4=BOTAS,5=AMULETO,6=ANILLO,7=CINTURON,8=ARMA,9=ESCUDO
 @export var type_equippable: Enums.Inventario.TipoItemEquipable = Enums.Inventario.TipoItemEquipable.NINGUNO:
@@ -60,7 +57,20 @@ class_name DatosItem
 ## tocarlo a mano en los .tres.
 @export var id_recurso: String = ""
 
-var type_descripcion: String
+## Calculada (no cacheada en set()): el orden en que un .tres asigna sus
+## propiedades no está garantizado (type podría llegar antes que
+## type_equippable), así que cachear en el setter de "type" podía quedarse
+## con type_equippable todavía en NINGUNO. Pedido del usuario: "cuando el
+## tipo es equipable, mostrar el TipoItemEquipable en lugar de 'equipable'"
+## — item.type_descripcion (usado por PanelCofre/PanelInventario en la
+## fila "Tipo:") ahora resuelve el slot real (casco, anillo, arma...) para
+## los ítems equipables, y el texto genérico para el resto.
+var type_descripcion: String:
+	get:
+		if type == Enums.Inventario.TipoItem.EQUIPABLE:
+			return type_equippable_description[type_equippable]
+		return item_description[type]
+
 var type_equippable_descripcion: String
 
 const item_description := {

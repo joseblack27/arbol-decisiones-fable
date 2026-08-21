@@ -97,6 +97,15 @@ func _ready():
 	for slot in quick_slots_inventario:
 		slot.slot_clicked.connect(_on_slot_clicked)
 	BusEventos.item_agregado.connect(_on_item_agregado)
+	# Bug real reportado: "cuando paso objetos del cofre al inventario...
+	# lo que haya hecho no se sincroniza acá" — FuenteInventario.agregar()
+	# (ver ese archivo) siempre pasa silencioso=true, así que item_agregado
+	# de arriba nunca se dispara para ese flujo (ni para sacar algo del
+	# inventario hacia el cofre). inventario_cambiado SÍ se emite siempre
+	# (ver InventarioComponente), sin importar la vía — refrescar_diferido()
+	# es el mismo patrón ya usado por SlotConsumibleRapido para "algo
+	# cambió el inventario desde afuera, quizás con el panel cerrado".
+	BusEventos.inventario_cambiado.connect(refrescar_diferido)
 	visibility_changed.connect(_on_visibility_changed)
 	_conectar_creditos()
 	# GestorInventario.agregar_item(..., silencioso=true) — el modo que usa

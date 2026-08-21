@@ -71,6 +71,17 @@ signal habilidad_equipada(entidad: Node, slot_index: int, habilidad: HabilidadBa
 ## Emitida cuando se añade un ítem al inventario del jugador (ítem, cantidad
 ## añadida en esa operación — puede ser una entrada nueva o una suma a una pila).
 signal item_agregado(item: DatosItem, cantidad: int)
+## Emitida SIEMPRE que InventarioComponente.items cambia de cualquier forma
+## (agregar, quitar, quitar_cantidad) — a diferencia de item_agregado, NO se
+## apaga con silencioso=true. Bug real reportado: "cuando paso objetos del
+## cofre al inventario... lo que haya hecho no se sincroniza acá [PanelInventario]"
+## — FuenteInventario.agregar() siempre llama agregar_item(..., silencioso=true)
+## (para no disparar el popup de "obtuviste X" al mover algo que ya era tuyo),
+## así que item_agregado nunca llegaba a PanelInventario en ese flujo. Sin
+## argumentos a propósito: quien la escucha (PanelInventario.refrescar_diferido)
+## reconstruye TODA la grilla desde GestorInventario.items igual, no le importa
+## qué cambió puntualmente.
+signal inventario_cambiado
 ## Emitida cuando cambia el equipo puesto (equipar, quitar o reemplazar
 ## cualquier pieza) — trae la lista completa de ítems equipados en ese momento.
 signal equipo_cambiado(equipados: Array[DatosItem])

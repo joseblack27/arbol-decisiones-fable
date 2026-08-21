@@ -52,6 +52,7 @@ scroll_a_la_izquierda = true
 mostrar_filtro_categorias = true
 texto_vacio = "El cofre está vacío"
 mostrar_ordenar = true
+mostrar_busqueda = true
 
 [node name="PanelDetalle" type="Panel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas"]
 unique_name_in_owner = true
@@ -172,3 +173,4 @@ mostrar_boton_cerrar = true
 mostrar_filtro_categorias = true
 texto_vacio = "No tenés objetos"
 mostrar_ordenar = true
+mostrar_busqueda = true

@@ -98,6 +98,15 @@ signal tomar_todo_solicitado
 
 enum OrdenItems { SIN_ORDENAR, CATEGORIA_ASC, CATEGORIA_DESC, NOMBRE_ASC, NOMBRE_DESC }
 
+## Oculto por defecto — pedido del usuario: "la búsqueda por texto". Mismo
+## criterio parametrizable que el resto. Filtra por nombre, sin importar
+## mayúsculas/minúsculas, en cualquier parte del texto (no solo el inicio).
+@export var mostrar_busqueda: bool = false:
+	set(value):
+		mostrar_busqueda = value
+		if is_node_ready():
+			_campo_busqueda.visible = value
+
 @onready var _titulo_label: Label = %Titulo
 @onready var _boton_cerrar: Button = %BotonCerrar
 @onready var _boton_tomar_todo: Button = %BotonTomarTodo
@@ -109,6 +118,7 @@ enum OrdenItems { SIN_ORDENAR, CATEGORIA_ASC, CATEGORIA_DESC, NOMBRE_ASC, NOMBRE
 @onready var _etiqueta_vacia: Label = %EtiquetaVacia
 @onready var _fila_orden: HBoxContainer = %FilaOrden
 @onready var _selector_orden: OptionButton = %SelectorOrden
+@onready var _campo_busqueda: LineEdit = %CampoBusqueda
 
 ## Mismo orden que _botones_filtro — índice a índice.
 const _TIPOS_FILTRO := [
@@ -118,6 +128,10 @@ const _TIPOS_FILTRO := [
 	Enums.Inventario.TipoItem.RECURSO,
 ]
 var _filtro_categoria_actual: Enums.Inventario.TipoItem = Enums.Inventario.TipoItem.TODOS
+
+## Ya en minúsculas (ver _on_busqueda_cambiada) — así notificar_cambio() no
+## repite to_lower() por cada ítem en cada reconstrucción.
+var _texto_busqueda: String = ""
 
 ## Mismo orden que los add_item() de _ready() — índice del OptionButton ==
 ## valor del enum, así el índice que manda item_selected() se puede usar
@@ -162,6 +176,8 @@ func _ready() -> void:
 		var tipo: Enums.Inventario.TipoItem = _TIPOS_FILTRO[i]
 		_botones_filtro[i].pressed.connect(func(): _seleccionar_filtro(tipo))
 	_etiqueta_vacia.text = texto_vacio
+	_campo_busqueda.visible = mostrar_busqueda
+	_campo_busqueda.text_changed.connect(_on_busqueda_cambiada)
 	_fila_orden.visible = mostrar_ordenar
 	_selector_orden.add_item("Sin ordenar")
 	_selector_orden.add_item("Categoría (A-Z)")
@@ -200,6 +216,8 @@ func notificar_cambio() -> void:
 	var items: Array = _obtener_items.call().duplicate()
 	if mostrar_filtro_categorias and _filtro_categoria_actual != Enums.Inventario.TipoItem.TODOS:
 		items = items.filter(func(item: DatosItem) -> bool: return item.type == _filtro_categoria_actual)
+	if mostrar_busqueda and not _texto_busqueda.is_empty():
+		items = items.filter(func(item: DatosItem) -> bool: return item.name.to_lower().contains(_texto_busqueda))
 	_ordenar(items)
 	for item in items:
 		var casilla: CasillaObjeto = _CASILLA_SCENE.instantiate()
@@ -262,6 +280,11 @@ func _seleccionar_filtro(tipo: Enums.Inventario.TipoItem) -> void:
 
 func _on_orden_seleccionado(indice: int) -> void:
 	_orden_actual = indice as OrdenItems
+	notificar_cambio()
+
+
+func _on_busqueda_cambiada(texto: String) -> void:
+	_texto_busqueda = texto.to_lower()
 	notificar_cambio()
 
 
