@@ -8,8 +8,8 @@ class_name Npc
 ## .tscn como collision_mask) + filtro Utils.jugador_local(), para que
 ## solo reaccione al jugador PROPIO de esta pantalla, no a réplicas de
 ## otros jugadores visibles en el mapa. Al entrar/salir se registra en
-## GestorInteraccion — el botón fijo de interacción (ver
-## BotonInteraccion.gd) es quien decide mostrarse, este nodo no tiene
+## GestorInteraccion — la lista fija de interacción (ver
+## ListaInteraccion.gd) es quien decide mostrarse, este nodo no tiene
 ## ningún botón propio.
 
 ## Id estable para objetivos de misión tipo HABLAR (ver DatosObjetivoMision.
@@ -42,7 +42,7 @@ func _al_entrar_cuerpo(cuerpo: Node2D) -> void:
 		return
 	_cuerpos_dentro += 1
 	if _cuerpos_dentro == 1:
-		GestorInteraccion.registrar(self, texto_interaccion)
+		GestorInteraccion.registrar(self, nombre(), acciones_interaccion())
 
 
 func _al_salir_cuerpo(cuerpo: Node2D) -> void:
@@ -53,12 +53,19 @@ func _al_salir_cuerpo(cuerpo: Node2D) -> void:
 		GestorInteraccion.quitar(self)
 
 
-## Llamado por GestorInteraccion.interactuar() al presionar el botón fijo
-## de interacción mientras este NPC es el interactuable activo.
+## Llamado al tocar la acción "Hablar" (ver ListaInteraccion.gd) mientras
+## este NPC está en rango.
 func interactuar() -> void:
 	if datos_dialogo == null:
 		return
 	BusEventos.dialogo_solicitado.emit(self, datos_dialogo)
+
+
+## Un solo NPC, una sola acción por ahora (hablar es obligatorio, ver el
+## comentario de la clase) — lista de un elemento para calzar con el
+## contrato genérico de GestorInteraccion (ver ese archivo).
+func acciones_interaccion() -> Array[Dictionary]:
+	return [{"texto": texto_interaccion, "callback": interactuar}]
 
 
 ## Nombre visible de este NPC — el mismo texto que ya muestra su cartel

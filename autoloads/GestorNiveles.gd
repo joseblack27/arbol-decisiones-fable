@@ -132,6 +132,29 @@ func registrar(contenedor: Node, jugador: Node2D) -> void:
 	_jugador = jugador
 
 
+## Mundo.tscn/ServidorDedicado.tscn llaman esto al arrancar — contenedor
+## FIJO, hermano de "Jugadores" y fuera de cualquier nivel (existe siempre,
+## en todo cliente, sin importar qué nivel tenga cargado). Lo usan entidades
+## no-jugador que igual necesitan moverse "entre niveles" replicándose bien
+## a todos los clientes (el leñador, ver GestorLenador.gd/Lenador.gd): un
+## jugador NUNCA se reparenta entre niveles al cruzar un portal (cuelga de
+## "Jugadores" siempre, ver mapa_navegacion_de) — solo se le cambia
+## global_position, así su ruta en el árbol nunca cambia y las RPC dirigidas
+## a él siguen resolviendo en cualquier cliente, esté donde esté. Mismo
+## criterio acá: reparentar entre los NPCs de cada nivel rompía las RPC de
+## réplica en cualquier cliente que no tuviera ESE nivel cargado en ese
+## momento (bug real reportado: "el leñador no se mueve").
+var _contenedor_errantes: Node2D
+
+
+func registrar_errantes(contenedor: Node2D) -> void:
+	_contenedor_errantes = contenedor
+
+
+func contenedor_errantes() -> Node2D:
+	return _contenedor_errantes
+
+
 ## Dónde se instancia cada nivel. Los desconocidos van al origen: un nivel
 ## suelto (una prueba, algo a medio hacer) sigue funcionando como siempre.
 func desplazamiento_de_nivel(ruta: String) -> Vector2:
@@ -197,6 +220,13 @@ func _cambiar_nivel_local(ruta_escena: String, forzar: bool = false) -> bool:
 
 
 func _cargar(ruta_escena: String) -> void:
+	# Capturado ANTES de liberar el nivel viejo (unas líneas más abajo) —
+	# _colocar_jugador_local() lo necesita para aparecer junto al portal de
+	# regreso correspondiente, no siempre en el mismo PuntoAparicion fijo
+	# (ver ese comentario).
+	var nivel_anterior := nivel_actual()
+	var ruta_origen := nivel_anterior.scene_file_path if nivel_anterior != null else ""
+
 	var escena := await _cargar_escena_con_progreso(ruta_escena)
 	if escena == null:
 		push_error("GestorNiveles: no se pudo cargar '%s'." % ruta_escena)
@@ -228,7 +258,7 @@ func _cargar(ruta_escena: String) -> void:
 	GestorCarga.completar(&"mundo")
 
 	if nivel is NivelBase:
-		_colocar_jugador_local(nivel as NivelBase)
+		_colocar_jugador_local(nivel as NivelBase, ruta_origen)
 
 	_gracia = GRACIA_TRAS_CARGA
 	_cargando = false
@@ -254,19 +284,21 @@ func _cargar(ruta_escena: String) -> void:
 ## Sólo el jugador LOCAL: en el cliente, las réplicas de los otros jugadores
 ## las coloca la red (y encima pueden estar en otro nivel), y en el servidor
 ## este camino no se usa para nada.
-func _colocar_jugador_local(nivel: NivelBase) -> void:
+## ruta_origen: nivel del que viene (si cruzó un portal) — ver
+## _punto_de_llegada() para cómo se usa.
+func _colocar_jugador_local(nivel: NivelBase, ruta_origen: String = "") -> void:
 	if _jugador == null:
 		return
-	var punto: Node2D = nivel.punto_aparicion()
+	var punto = _punto_de_llegada(nivel, ruta_origen)
 	if punto != null:
-		_jugador.global_position = punto.global_position
+		_jugador.global_position = punto
 		if _jugador is CharacterBody2D:
 			(_jugador as CharacterBody2D).velocity = Vector2.ZERO
 		# Lo que se REPLICA es esta variable, no global_position (ver
 		# Jugador._physics_process): sin ponerla acá, el cuerpo ya movido
 		# seguiría anunciando la posición vieja durante un fotograma.
 		if "_posicion_replicada" in _jugador:
-			_jugador.set("_posicion_replicada", punto.global_position)
+			_jugador.set("_posicion_replicada", punto)
 	# Mientras dura el fundido (y un poco más) el jugador copia la posición
 	# del servidor sin suavizar: el servidor sigue moviendo el cuerpo con la
 	# última dirección de joystick mientras este cliente carga, así que al
@@ -338,6 +370,17 @@ func _asegurar_nivel_cargado(ruta: String) -> NivelBase:
 	return null
 
 
+## SERVIDOR: fuerza que un nivel esté cargado aunque todavía no lo haya
+## pisado ningún jugador — lo necesitan entidades que viven cruzando
+## niveles por su cuenta (el leñador, ver Lenador.gd/GestorLenador.gd), que
+## sin esto no encontrarían su nivel "de destino" instanciado hasta que un
+## jugador lo visitara primero por casualidad.
+func asegurar_nivel_cargado_servidor(ruta: String) -> NivelBase:
+	if not _es_servidor:
+		return null
+	return _asegurar_nivel_cargado(ruta)
+
+
 ## El nivel donde está ese jugador. Si no se sabe (todavía no se le asignó
 ## ninguno), cae al nivel inicial.
 func nivel_de_peer(peer_id: int) -> NivelBase:
@@ -382,10 +425,14 @@ func mover_peer_a_nivel(peer_id: int, ruta: String) -> void:
 	var nivel := _asegurar_nivel_cargado(ruta)
 	if nivel == null:
 		return
+	# Capturado ANTES de pisar _nivel_por_peer[peer_id] con el destino — ver
+	# _punto_de_llegada() para cómo se usa (aparecer junto al portal de
+	# regreso correspondiente, no siempre en el mismo PuntoAparicion fijo).
+	var ruta_origen: String = _nivel_por_peer.get(peer_id, "")
 	jugador_cambio_de_nivel.emit(peer_id)
 	_nivel_por_peer[peer_id] = ruta
 	_gracia_por_peer[peer_id] = GRACIA_TRAS_CARGA
-	_colocar_peer_en_aparicion(peer_id, nivel)
+	_colocar_peer_en_aparicion(peer_id, nivel, null, ruta_origen)
 	_ordenar_nivel_a_peer(peer_id, ruta)
 	# El nivel que deja puede quedar vacío y el nuevo tiene que despertar.
 	_actualizar_actividad_niveles()
@@ -405,20 +452,58 @@ func colocar_jugador_nuevo(peer_id: int, jugador: Node2D) -> void:
 	_actualizar_actividad_niveles()
 
 
-func _colocar_peer_en_aparicion(peer_id: int, nivel: NivelBase, jugador: Node2D = null) -> void:
+## ruta_origen: nivel del que viene (si cruzó un portal, ver
+## mover_peer_a_nivel) — cadena vacía para un jugador recién conectado
+## (colocar_jugador_nuevo), que no viene de ningún lado en particular.
+func _colocar_peer_en_aparicion(peer_id: int, nivel: NivelBase, jugador: Node2D = null, ruta_origen: String = "") -> void:
 	var cuerpo := jugador
 	if cuerpo == null:
 		cuerpo = InteresEspacial.jugador_de_peer(peer_id)
 	if cuerpo == null:
 		return
-	var punto: Node2D = nivel.punto_aparicion()
+	var punto = _punto_de_llegada(nivel, ruta_origen)
 	if punto == null:
 		return
-	cuerpo.global_position = punto.global_position
+	cuerpo.global_position = punto
 	if cuerpo is CharacterBody2D:
 		(cuerpo as CharacterBody2D).velocity = Vector2.ZERO
 	if "_posicion_replicada" in cuerpo:
-		cuerpo.set("_posicion_replicada", punto.global_position)
+		cuerpo.set("_posicion_replicada", punto)
+	_bloquear_por_transicion(cuerpo)
+
+
+## Dónde aparece un jugador al entrar a "nivel". Pedido del usuario: si
+## cruzó un portal de verdad (ruta_origen no vacía) Y ese nivel tiene un
+## PortalNivel que lleva DE VUELTA a ruta_origen, aparece en el
+## PortalNivel.punto_llegada de ESE portal (el mismo por el que "saldría"
+## si quisiera volver) — un Marker2D hijo del portal, elegido a mano en el
+## editor para cada uno ("con eso se establece bien una buena posición de
+## respawn": ver el comentario en PortalNivel.gd, reemplaza la versión
+## anterior que dispersaba a un ángulo al azar, que podía caer hacia
+## terreno no despejado). Sin portal de regreso identificable (llegada
+## nueva al conectarse, o un nivel sin ese portal) cae al PuntoAparicion
+## fijo de siempre — mismo comportamiento que antes.
+func _punto_de_llegada(nivel: NivelBase, ruta_origen: String):
+	if ruta_origen != "":
+		var portal := _portal_de_regreso(nivel, ruta_origen)
+		if portal != null and portal.punto_llegada != null:
+			return portal.punto_llegada.global_position
+	var punto_fijo := nivel.punto_aparicion()
+	return punto_fijo.global_position if punto_fijo != null else null
+
+
+## El PortalNivel de "nivel" cuya ruta_nivel_destino apunta de vuelta a
+## ruta_origen — "el mismo círculo del tp correspondiente" que el jugador
+## usaría para volver por donde vino.
+func _portal_de_regreso(nivel: NivelBase, ruta_origen: String) -> PortalNivel:
+	for portal in get_tree().get_nodes_in_group(&"portales_nivel"):
+		if portal is PortalNivel and nivel.is_ancestor_of(portal) \
+				and (portal as PortalNivel).ruta_nivel_destino == ruta_origen:
+			return portal
+	return null
+
+
+func _bloquear_por_transicion(cuerpo: Node) -> void:
 	# El servidor es la autoridad del movimiento y del daño: acá es donde el
 	# bloqueo y la invulnerabilidad de llegada valen de verdad (el cliente
 	# aplica el suyo al terminar de cargar, ver _colocar_jugador_local).
@@ -453,6 +538,18 @@ func olvidar_peer(peer_id: int) -> void:
 	_actualizar_actividad_niveles()
 
 
+## nodo -> ruta del nivel donde está AHORA — mismo rol que _nivel_por_peer,
+## pero para entidades no-jugador que tampoco viven dentro de un NivelBase
+## (cuelgan de contenedor_errantes(), ver registrar_errantes): el leñador es
+## la primera (ver Lenador.gd), pero cualquier NPC futuro que necesite
+## "moverse entre niveles" sin reparentarse puede reusar esto.
+var _nivel_por_entidad: Dictionary = {}
+
+
+func fijar_nivel_de_entidad(nodo: Node, ruta: String) -> void:
+	_nivel_por_entidad[nodo] = ruta
+
+
 ## El mapa de navegación que le corresponde a un nodo cualquiera.
 ##
 ## Cada nivel tiene el SUYO (ver NivelBase._crear_mapa_navegacion): con varios
@@ -462,7 +559,8 @@ func olvidar_peer(peer_id: int) -> void:
 ##
 ## Los mobs viven DENTRO del nivel, así que se resuelve subiendo por el árbol.
 ## Los jugadores no (cuelgan de "Jugadores", fuera de los niveles), así que
-## para ellos se pregunta en qué nivel están. Si no se puede determinar, se
+## para ellos se pregunta en qué nivel están; las entidades errantes
+## registradas en _nivel_por_entidad, lo mismo. Si no se puede determinar, se
 ## cae al mapa del mundo: es lo que había antes y nunca es peor.
 func mapa_navegacion_de(nodo: Node) -> RID:
 	if nodo == null or not nodo.is_inside_tree():
@@ -476,6 +574,10 @@ func mapa_navegacion_de(nodo: Node) -> RID:
 		var nivel := nivel_de_jugador(nodo)
 		if nivel != null:
 			return nivel.mapa_navegacion()
+	if _nivel_por_entidad.has(nodo):
+		var nivel_errante := _nivel_por_ruta(_nivel_por_entidad[nodo])
+		if nivel_errante != null:
+			return nivel_errante.mapa_navegacion()
 	var nivel_puesto := nivel_actual()
 	if nivel_puesto != null:
 		return nivel_puesto.mapa_navegacion()
@@ -495,13 +597,26 @@ func mapa_navegacion_de(nodo: Node) -> RID:
 ## (mobs, árboles de comportamiento, generadores, portales) sin sacar nada de
 ## la escena: la colisión y la malla de navegación siguen ahí, y al reactivarlo
 ## todo sigue donde estaba.
+## Rutas que se mantienen activas SIEMPRE, tengan o no jugadores — pedido
+## explícito del usuario ("dejar activo ambos mapa a la vez") para que
+## Ciudad y Pradera nunca se congelen mientras el leñador (o cualquier otra
+## simulación de fondo) las necesite funcionando.
+var _rutas_siempre_activas: Array[String] = []
+
+
+func mantener_siempre_activo(ruta: String) -> void:
+	if not _rutas_siempre_activas.has(ruta):
+		_rutas_siempre_activas.append(ruta)
+
+
 func _actualizar_actividad_niveles() -> void:
 	if not _es_servidor or _contenedor == null:
 		return
 	for hijo in _contenedor.get_children():
 		if not (hijo is NivelBase):
 			continue
-		var activo := hay_jugadores_en(hijo as NivelBase)
+		var activo := hay_jugadores_en(hijo as NivelBase) \
+			or _rutas_siempre_activas.has((hijo as NivelBase).scene_file_path)
 		var modo := Node.PROCESS_MODE_INHERIT if activo else Node.PROCESS_MODE_DISABLED
 		if hijo.process_mode != modo:
 			hijo.process_mode = modo

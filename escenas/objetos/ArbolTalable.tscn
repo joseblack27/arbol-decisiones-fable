@@ -1,0 +1,135 @@
+[gd_scene load_steps=10 format=3]
+
+[ext_resource type="Texture2D" uid="uid://b6kva54sk7tqj" path="res://assets/tilesets/tileset_01.png" id="1_atlas"]
+[ext_resource type="Script" path="res://escenas/objetos/ObjetoRecolectable.gd" id="2_script"]
+[ext_resource type="Resource" path="res://recursos/items/recursos/lena_1.tres" id="3_lena"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_normal"]
+atlas = ExtResource("1_atlas")
+region = Rect2(928, 896, 96, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_talado"]
+atlas = ExtResource("1_atlas")
+region = Rect2(384, 392, 64, 48)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_solida"]
+radius = 16.0
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_silueta"]
+size = Vector2(72, 104)
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_interaccion"]
+radius = 56.0
+
+[sub_resource type="Animation" id="Animation_completo"]
+resource_name = "completo"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [SubResource("AtlasTexture_normal")]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite2D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, -64)]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Sprite2D:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="Animation" id="Animation_cortado"]
+resource_name = "cortado"
+length = 0.001
+tracks/0/type = "value"
+tracks/0/path = NodePath("Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [SubResource("AtlasTexture_talado")]
+}
+tracks/1/type = "value"
+tracks/1/path = NodePath("Sprite2D:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(0, -24)]
+}
+tracks/2/type = "value"
+tracks/2/path = NodePath("Sprite2D:scale")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(1, 1)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_arbol"]
+_data = {
+&"completo": SubResource("Animation_completo"),
+&"cortado": SubResource("Animation_cortado")
+}
+
+[node name="ArbolTalable" type="StaticBody2D" node_paths=PackedStringArray("sprite", "area_oclusion", "area_interaccion", "animation_player")]
+script = ExtResource("2_script")
+sprite = NodePath("Sprite2D")
+area_oclusion = NodePath("AreaOclusion")
+area_interaccion = NodePath("AreaInteraccion")
+animation_player = NodePath("AnimationPlayer")
+texto_interaccion = "Talar"
+item_recurso = ExtResource("3_lena")
+segundos_respawn = 120.0
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -64)
+texture = SubResource("AtlasTexture_normal")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+position = Vector2(0, -16)
+shape = SubResource("CircleShape2D_solida")
+
+[node name="AreaOclusion" type="Area2D" parent="."]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaOclusion"]
+position = Vector2(0, -72)
+shape = SubResource("RectangleShape2D_silueta")
+
+[node name="AreaInteraccion" type="Area2D" parent="."]
+collision_layer = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AreaInteraccion"]
+position = Vector2(0, -16)
+shape = SubResource("CircleShape2D_interaccion")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+"": SubResource("AnimationLibrary_arbol")
+}
+
+[node name="TimerRespawn" type="Timer" parent="."]

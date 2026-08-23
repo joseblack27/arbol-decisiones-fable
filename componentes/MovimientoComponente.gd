@@ -105,6 +105,7 @@ func comandar_destino(destino: Vector2, velocidad_override: float = 0.0) -> void
 	if agente_navegacion != null \
 			and (not _destino_definido or _destino.distance_to(destino) > UMBRAL_REPLANIFICAR):
 		agente_navegacion.target_position = destino
+		_tiempo_en_destino_actual = 0.0  # destino de verdad nuevo, reiniciar el reloj de llego_al_destino().
 	_destino = destino
 	_destino_definido = true
 
@@ -112,6 +113,43 @@ func comandar_destino(destino: Vector2, velocidad_override: float = 0.0) -> void
 ## Comando persistente de quietud (velocity = ZERO cada frame).
 func detener() -> void:
 	comandar_direccion(Vector2.ZERO, 0.0)
+
+
+## Segundos que llevamos intentando llegar al destino ACTUAL de
+## comandar_destino() — se reinicia solo cuando el destino cambia de
+## verdad (ver comandar_destino). Usado por llego_al_destino() como último
+## recurso: ver ese comentario.
+var _tiempo_en_destino_actual: float = 0.0
+## Si tras esto seguimos sin "llegar" ni con is_navigation_finished(), se da
+## por llegado igual — red de seguridad final. Encontrado en la práctica: un
+## destino cuyo punto exacto (o la región navegable alrededor) resultó
+## inalcanzable por la malla dejaba is_navigation_finished() en false PARA
+## SIEMPRE (el agente seguía "intentando" indefinidamente en vez de
+## rendirse), así que ni el margen ni is_navigation_finished() alcanzaban —
+## el leñador se quedaba caminando en el lugar por horas (bug real
+## reportado: "el leñador no se mueve").
+const _TIEMPO_MAXIMO_INTENTANDO_LLEGAR := 6.0
+
+
+## true si ya "llegamos" al último destino de comandar_destino(): cerca de
+## verdad (dentro de margen), O el agente de navegación ya da la ruta por
+## terminada aunque sigamos más lejos que margen — el punto exacto pedido
+## puede quedar dentro de un obstáculo sólido que la malla de navegación
+## rodea (el tronco de un árbol, la base de un mueble), así que el agente
+## nunca se acerca más y esperar el margen a secas lo dejaría caminando en
+## el lugar para siempre —, O ya pasaron _TIEMPO_MAXIMO_INTENTANDO_LLEGAR
+## segundos intentándolo sin ninguna de las dos cosas (ver esa constante).
+## Pensado para llamadores que no pueden hacer caminar hasta el CENTRO
+## exacto de algo con cuerpo sólido (ver Lenador.gd) — comandar_direccion()/
+## jugadores reales no lo necesitan, apuntan a un punto siempre alcanzable.
+func llego_al_destino(margen: float) -> bool:
+	if not _destino_definido:
+		return false
+	if jugador.global_position.distance_to(_destino) <= margen:
+		return true
+	if agente_navegacion != null and agente_navegacion.is_navigation_finished():
+		return true
+	return _tiempo_en_destino_actual > _TIEMPO_MAXIMO_INTENTANDO_LLEGAR
 
 
 ## Suelta el control del movimiento SIN frenar. Necesario cuando otro sistema
@@ -152,6 +190,7 @@ func _usar_mapa_del_nivel() -> void:
 
 
 func _avanzar_hacia_destino(delta: float) -> void:
+	_tiempo_en_destino_actual += delta
 	var posicion := jugador.global_position
 	var deseada := Vector2.ZERO
 	if posicion.distance_to(_destino) > MARGEN_DESTINO:

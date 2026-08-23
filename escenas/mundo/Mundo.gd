@@ -27,6 +27,7 @@ const COLOR_CONECTANDO := Color(1.0, 0.9, 0.4)
 
 func _ready() -> void:
 	GestorNiveles.registrar($ContenedorNivel, null)
+	GestorNiveles.registrar_errantes($NPCsErrantes)
 	_aplicar_visibilidad_depuracion()
 	if Utils.modo_local_pruebas:
 		_arrancar_modo_prueba_local()

@@ -1,17 +1,15 @@
-[gd_scene load_steps=14 format=4]
+[gd_scene load_steps=12 format=4 uid="uid://6q7qjw0q2gke"]
 
-[ext_resource type="Script" path="res://escenas/niveles/NivelBase.gd" id="1_nw7or"]
-[ext_resource type="TileSet" path="res://escenas/niveles/tileset_juego.tres" id="2_fwehj"]
-[ext_resource type="TileSet" path="res://escenas/niveles/tileset_colisiones.tres" id="3_jvvnp"]
-[ext_resource type="PackedScene" path="res://escenas/niveles/DecoracionOcluible.tscn" id="4_vb3vv"]
-[ext_resource type="Script" path="res://escenas/niveles/DecoracionOcluible.gd" id="5_jlvf5"]
-[ext_resource type="PackedScene" path="res://escenas/niveles/PortalNivel.tscn" id="6_u8xbv"]
-[ext_resource type="Script" path="res://escenas/niveles/PortalNivel.gd" id="7_ev6k2"]
-[ext_resource type="Script" path="res://escenas/enemigos/SpawnerMobs.gd" id="8_riy61"]
-[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.tscn" id="9_fhdbt"]
-[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoEsqueletoArquero.tscn" id="10_1iwjq"]
-[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoLobo.tscn" id="11_lpfnr"]
-[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoLoboFeroz.tscn" id="12_0maht"]
+[ext_resource type="Script" uid="uid://buv25r2fvbcxs" path="res://escenas/niveles/NivelBase.gd" id="1_nw7or"]
+[ext_resource type="TileSet" uid="uid://srcylgoba2ge" path="res://escenas/niveles/tileset_juego.tres" id="2_fwehj"]
+[ext_resource type="TileSet" uid="uid://urtc1k2kjcgo" path="res://escenas/niveles/tileset_colisiones.tres" id="3_jvvnp"]
+[ext_resource type="PackedScene" uid="uid://dx7oab6yttt00" path="res://escenas/niveles/DecoracionOcluible.tscn" id="4_vb3vv"]
+[ext_resource type="PackedScene" uid="uid://vwdfflyout3b" path="res://escenas/niveles/PortalNivel.tscn" id="6_u8xbv"]
+[ext_resource type="Script" uid="uid://dyloetpnctmqy" path="res://escenas/enemigos/SpawnerMobs.gd" id="8_riy61"]
+[ext_resource type="PackedScene" uid="uid://d1042g45vblt7" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.tscn" id="9_fhdbt"]
+[ext_resource type="PackedScene" uid="uid://dbyc6mqnvcnoj" path="res://escenas/enemigos/EnemigoEsqueletoArquero.tscn" id="10_1iwjq"]
+[ext_resource type="PackedScene" uid="uid://ryqwerc33taa" path="res://escenas/enemigos/EnemigoLobo.tscn" id="11_lpfnr"]
+[ext_resource type="PackedScene" uid="uid://bmvhspq2lnp3u" path="res://escenas/enemigos/EnemigoLoboFeroz.tscn" id="12_0maht"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_pq12v"]
 vertices = PackedVector2Array(-3368, -3336, 3368, -3336, 3368, 3368, -3368, 3368)
@@ -44,1320 +42,602 @@ navigation_layers = 2
 [node name="Decoraciones" type="Node2D" parent="."]
 y_sort_enabled = true
 
-[node name="Arbol0" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol0" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-179.08333, 756.47955)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol1" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol1" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-151.02872, 675.46155)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol2" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol2" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1656.4653, -3146.3171)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol3" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol3" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1385.0226, -3077.2122)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol4" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol4" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1385.3326, -3135.591)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol5" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol5" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(234.38031, -574.5754)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol6" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol6" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(108.11181, -534.5555)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol7" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol7" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(238.8477, -625.8494)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol8" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol8" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(163.8415, -708.71234)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol9" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol9" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(2210.508, -2637.661)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol10" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol10" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(2313.1782, -2816.253)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol11" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol11" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1919.8105, -2479.3582)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol12" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol12" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1870.262, -2419.0486)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol13" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol13" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1921.9253, -2450.6963)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol14" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol14" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1791.0333, -2425.034)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol15" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol15" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1999.5736, -2403.3674)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol16" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol16" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1807.9061, -2375.4119)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol17" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol17" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(870.3803, 1951.2957)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol18" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol18" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(987.64716, 1796.1191)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol19" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol19" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2354.866, -2827.3508)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol20" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol20" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2362.9958, -2752.8247)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol21" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol21" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2303.5793, -2822.0793)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol22" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol22" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2223.1775, -2811.1265)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol23" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol23" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1744.6364, -1035.4581)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol24" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol24" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1931.311, -876.9519)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol25" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol25" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1759.2415, -1041.9167)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol26" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol26" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1974.2222, -903.4637)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol27" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol27" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1784.1482, -931.59656)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol28" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol28" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(904.43494, 3027.833)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol29" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol29" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(908.42413, 3119.0676)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol30" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol30" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(946.63116, 3016.939)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol31" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol31" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(890.4653, 3132.678)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol32" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol32" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-510.30756, 1641.5367)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol33" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol33" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-610.2368, 1548.2814)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol34" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol34" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-558.7362, 1558.8374)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol35" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol35" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-437.21786, 1644.4834)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol36" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol36" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1134.458, 3101.7686)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol37" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol37" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-978.1623, 3214.6257)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol38" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol38" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-942.43225, 3288.5957)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol39" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol39" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1131.2506, 3087.5269)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol40" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol40" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1158.2423, 3124.2231)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol41" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol41" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1015.6854, 3248.4133)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol42" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol42" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-104.90175, -1595.7346)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol43" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol43" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-181.90788, -1532.5138)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol44" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol44" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-60.081192, -1607.1766)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol45" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol45" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-295.3233, -1531.3258)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol46" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol46" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-266.87134, -1614.6246)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol47" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol47" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-98.50717, -1480.8093)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol48" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol48" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(561.74445, 3010.8145)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol49" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol49" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(433.54083, 2953.2275)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol50" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol50" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(448.83612, 2879.486)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol51" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol51" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(2879.61, -1819.1588)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol52" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol52" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3059.403, -1947.3005)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol53" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol53" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3009.0745, -1945.4331)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol54" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol54" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-603.14557, 848.67944)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol55" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol55" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-415.27545, 705.4756)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol56" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol56" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1243.2057, 399.00836)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol57" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol57" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1099.7153, 425.44897)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol58" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol58" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1224.3872, 533.6705)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol59" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol59" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(956.95135, -897.316)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol60" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol60" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(909.5519, -865.8982)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol61" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol61" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(914.73254, -900.8664)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol62" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol62" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1250.4717, -2611.6355)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol63" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol63" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1167.1868, -2529.534)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol64" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol64" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1241.1888, -2414.459)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol65" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol65" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1275.6414, -2547.2922)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol66" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol66" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2154.7136, -1917.4698)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol67" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol67" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2091.3245, -1834.9435)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol68" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol68" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1938.7751, -1856.5607)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol69" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol69" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3060.8696, -2482.1746)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol70" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol70" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3195.8948, -2555.0347)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol71" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol71" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3103.4941, -2390.877)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol72" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol72" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3276.3005, -2581.4968)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol73" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol73" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3165.56, -2562.3506)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol74" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol74" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3106.9568, -2448.7344)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol75" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol75" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2947.668, 2396.4663)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol76" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol76" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-3019.7803, 2415.4026)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol77" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol77" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-3004.894, 2304.0674)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol78" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol78" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2834.986, 2444.1907)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol79" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol79" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2915.353, 2289.6008)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol80" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol80" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2951.763, 2364.7505)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol81" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol81" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1141.2632, 3367.0088)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol82" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol82" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1137.908, 3266.3394)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol83" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol83" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1354.7362, 3280.9917)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol84" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol84" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1336.2222, 3284.7683)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol85" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol85" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1226.0677, 3240.3125)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol86" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol86" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1347.566, 3362.576)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol87" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol87" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1869.7448, 840.8317)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol88" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol88" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1609.6433, 933.76276)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol89" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol89" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1788.7769, 1052.7684)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol90" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol90" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(728.30743, -966.77124)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol91" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol91" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(733.0415, -896.6672)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol92" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol92" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(863.0713, -871.73486)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol93" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol93" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(806.7241, -891.459)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol94" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol94" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(738.2082, -867.7415)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol95" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol95" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(778.3391, -1022.6791)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol96" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol96" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1646.3535, 1076.8872)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol97" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol97" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1630.5427, 1195.2673)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol98" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol98" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3068.4756, -1572.5819)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol99" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol99" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3146.5461, -1587.8237)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol100" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol100" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3046.2896, -1495.2068)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol101" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol101" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3032.1343, -1579.6497)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol102" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol102" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3098.8745, -1490.3794)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol103" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol103" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(3040.149, -1407.4291)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol104" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol104" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-143.29251, -521.9855)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol105" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol105" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(26.954773, -464.9669)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol106" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol106" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-120.604546, -495.33624)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol107" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol107" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-164.41278, -480.95587)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol108" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol108" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(43.5645, -607.9663)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol109" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol109" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2637.129, 2198.3513)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol110" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol110" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2701.493, 2197.2705)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol111" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol111" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2590.8774, 2153.4346)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol112" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol112" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2553.5461, 2100.55)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol113" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol113" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1100.2708, -3202.0903)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol114" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol114" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1334.47, -3172.6868)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol115" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol115" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1064.7229, -3112.6423)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol116" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol116" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1305.4094, -3138.4365)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol117" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol117" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1074.6135, -3161.1714)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol118" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol118" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1270.035, -3105.0818)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol119" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol119" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1027.8999, -3047.345)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol120" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol120" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1086.6206, -3169.6648)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol121" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol121" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1186.9137, -3013.342)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol122" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol122" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-3289.4585, -1078.2441)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol123" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol123" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-3261.1067, -1234.4717)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol124" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol124" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-3268.3223, -1045.5012)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol125" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol125" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-3249.0732, -1034.5103)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol126" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol126" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-803.4865, -1764.2488)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol127" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol127" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-707.01904, -1928.4298)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol128" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol128" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1586.0343, 994.5825)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol129" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol129" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1645.5205, 1031.8009)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol130" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol130" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1499.9498, 870.82904)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol131" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol131" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1512.2611, 919.9711)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol132" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol132" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2514.0198, -2620.2651)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol133" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol133" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-2475.9077, -2587.348)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol134" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol134" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(996.2992, -1099.2992)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol135" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol135" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1216.879, -961.9631)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol136" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol136" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1018.58, -936.7146)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol137" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol137" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1207.7247, -1110.9646)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol138" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol138" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(987.1253, -1065.196)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol139" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol139" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(1115.7513, -1068.6702)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol140" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol140" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(12.683624, -514.3635)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol141" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol141" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-167.66428, -642.9142)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol142" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol142" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-1101.5355, -825.8268)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
-[node name="Arbol143" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion") instance=ExtResource("4_vb3vv")]
-texture_filter = 1
+[node name="Arbol143" parent="Decoraciones" instance=ExtResource("4_vb3vv")]
 position = Vector2(-909.7889, -912.1685)
 scale = Vector2(1.6, 1.6)
-collision_mask = 0
-script = ExtResource("5_jlvf5")
-sprite = NodePath("Sprite2D")
-area_oclusion = NodePath("AreaOclusion")
 
 [node name="PuntoAparicion" type="Marker2D" parent="."]
-position = Vector2(-3216, 0)
+position = Vector2(-3280, 0)
 
-[node name="PortalAPradera" type="Area2D" parent="." instance=ExtResource("6_u8xbv")]
-position = Vector2(-3344, 0)
-collision_layer = 0
-collision_mask = 8
-script = ExtResource("7_ev6k2")
+[node name="PortalAPradera" parent="." node_paths=PackedStringArray("punto_llegada") instance=ExtResource("6_u8xbv")]
+position = Vector2(-3336, 0)
 ruta_nivel_destino = "res://escenas/niveles/NivelPradera.tscn"
 etiqueta = "→ Pradera"
+punto_llegada = NodePath("Marker2D")
 
-[node name="PortalANidoArañaReina" type="Area2D" parent="." instance=ExtResource("6_u8xbv")]
-position = Vector2(-3216, 150)
-collision_layer = 0
-collision_mask = 8
-script = ExtResource("7_ev6k2")
+[node name="Marker2D" type="Marker2D" parent="PortalAPradera"]
+position = Vector2(56, 0)
+
+[node name="PortalANidoArañaReina" parent="." node_paths=PackedStringArray("punto_llegada") instance=ExtResource("6_u8xbv")]
+position = Vector2(-3232, 416)
 ruta_nivel_destino = "res://escenas/niveles/NivelNidoArañaReina.tscn"
 etiqueta = "→ Nido de la Araña Reina"
+punto_llegada = NodePath("Marker2D")
+
+[node name="Marker2D" type="Marker2D" parent="PortalANidoArañaReina"]
+position = Vector2(64, 0)
 
 [node name="Enemigos" type="Node2D" parent="."]
 y_sort_enabled = true

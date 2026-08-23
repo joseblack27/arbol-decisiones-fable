@@ -34,6 +34,11 @@
 #   3. EquipoSlot._desequipar() (la red de seguridad final) desequipa y
 #      actualiza GestorInventario sin duplicar para el caso "no hubo
 #      reemplazo válido" (mismo caso que el anillo reportado).
+#   4. Bug real reportado: "tengo el escudo equipado y lo arrastro hacia
+#      donde está la lista de ítems y lo suelto" -> aparecía la
+#      notificación de botín. Ese drop cae en FlujoItems._drop_data (fondo
+#      del panel, sin ningún SlotItem hijo debajo) — a ese call site
+#      también le faltaba silencioso=true.
 #   godot --headless --path . --script res://pruebas/prueba_inventario_reemplazar_por_arrastre.gd
 # =============================================================================
 extends SceneTree
@@ -41,6 +46,7 @@ extends SceneTree
 var _fotogramas := 0
 var _panel: Node
 var _gestor: Node
+var _bus: Node
 var _armadura_a: DatosItem
 var _armadura_b: DatosItem
 var _casco: DatosItem
@@ -51,6 +57,11 @@ var _reemplaza_por_mismo_tipo := false
 var _armadura_vieja_vuelve_al_inventario_sin_duplicar := false
 var _desequipa_por_red_de_seguridad := false
 var _sin_duplicar_tras_desequipar_por_red_de_seguridad := false
+var _flujo_items_desequipa_sin_duplicar := false
+var _flujo_items_no_dispara_notificacion_botin := false
+
+var _contador_item_agregado := 0
+var _contador_antes_de_soltar_en_flujo := 0
 
 
 func _process(_delta: float) -> bool:
@@ -94,6 +105,25 @@ func _process(_delta: float) -> bool:
 				_desequipa_por_red_de_seguridad)
 			print("Sin duplicar tras desequipar por la red de seguridad (esperado true, 1 copia): %s" % \
 				_sin_duplicar_tras_desequipar_por_red_de_seguridad)
+
+			# Caso del bug reportado: casco equipado, soltado directo en el
+			# fondo de FlujoItems (sin ningún SlotItem hijo debajo) — llama a
+			# _drop_data() del contenedor directo, como haría Godot cuando el
+			# drop no cae sobre ninguna celda.
+			var slot_casco := _buscar_slot_de(_panel.flow, _casco)
+			_panel._equip_item(slot_casco)
+		6:
+			_contador_antes_de_soltar_en_flujo = _contador_item_agregado
+			_panel.flow._drop_data(Vector2.ZERO, _panel.equip_slot_helmet)
+		7:
+			_flujo_items_desequipa_sin_duplicar = _panel.equip_slot_helmet.item_data == null \
+				and _contar_en_lista(_gestor.items, "Casco de Prueba") == 1
+			print("Soltar en el fondo de FlujoItems desequipa sin duplicar (esperado true): %s" % \
+				_flujo_items_desequipa_sin_duplicar)
+			_flujo_items_no_dispara_notificacion_botin = \
+				_contador_item_agregado == _contador_antes_de_soltar_en_flujo
+			print("Soltar en el fondo de FlujoItems NO dispara la notificacion de botin (esperado true): %s" % \
+				_flujo_items_no_dispara_notificacion_botin)
 			return _informar()
 	return false
 
@@ -127,6 +157,9 @@ func _montar() -> void:
 	_panel = (load("res://escenas/ui/panel_os/paneles/inventario/PanelInventario.tscn") as PackedScene).instantiate()
 	root.add_child(_panel)
 
+	_bus = root.get_node("/root/BusEventos")
+	_bus.item_agregado.connect(func(_item, _cantidad): _contador_item_agregado += 1)
+
 
 ## Busca por NOMBRE, no por referencia: GestorInventario.agregar_item()
 ## duplica el recurso de los equipables antes de guardarlo, así que el
@@ -150,7 +183,8 @@ func _contar_en_lista(items: Array, nombre: String) -> int:
 func _informar() -> bool:
 	var exito := _no_acepta_tipo_distinto and _acepta_mismo_tipo \
 		and _reemplaza_por_mismo_tipo and _armadura_vieja_vuelve_al_inventario_sin_duplicar \
-		and _desequipa_por_red_de_seguridad and _sin_duplicar_tras_desequipar_por_red_de_seguridad
+		and _desequipa_por_red_de_seguridad and _sin_duplicar_tras_desequipar_por_red_de_seguridad \
+		and _flujo_items_desequipa_sin_duplicar and _flujo_items_no_dispara_notificacion_botin
 	print("PRUEBA INVENTARIO REEMPLAZAR POR ARRASTRE %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

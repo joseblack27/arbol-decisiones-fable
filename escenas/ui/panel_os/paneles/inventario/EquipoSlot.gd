@@ -54,7 +54,10 @@ func _drop_data(_position, data):
 		var panel := _obtener_panel_inventario()
 		GestorInventario.quitar_item(item)
 		if item_anterior != null:
-			GestorInventario.agregar_item(item_anterior)
+			# silencioso=true: el ítem que traías puesto vuelve al
+			# inventario, no es botín nuevo — bug reportado: al desequipar
+			# aparecía la notificación como si hubiera llegado equipo nuevo.
+			GestorInventario.agregar_item(item_anterior, -1, true)
 		if panel:
 			panel.refrescar()
 
@@ -106,7 +109,9 @@ func _desequipar() -> void:
 	var item := item_data
 	item_data = null
 	update_item()
-	GestorInventario.agregar_item(item)
+	# silencioso=true: mismo criterio que arriba en _drop_data — desequipar
+	# no es botín nuevo, no debe disparar la notificación de "recibiste".
+	GestorInventario.agregar_item(item, -1, true)
 	var panel := _obtener_panel_inventario()
 	if panel:
 		panel.refrescar()

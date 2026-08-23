@@ -41,6 +41,7 @@ GestorLogRed="*res://autoloads/GestorLogRed.gd"
 GestorMisiones="*res://autoloads/GestorMisiones.tscn"
 GestorCofres="*res://autoloads/GestorCofres.tscn"
 GestorInteraccion="*res://autoloads/GestorInteraccion.gd"
+GestorLenador="*res://autoloads/GestorLenador.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
 
 [display]

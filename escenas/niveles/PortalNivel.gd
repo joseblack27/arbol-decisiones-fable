@@ -8,6 +8,23 @@ extends Area2D
 @export_file("*.tscn") var ruta_nivel_destino := ""
 ## Texto mostrado sobre el portal (p. ej. el nombre del destino).
 @export var etiqueta := ""
+## Dónde aparece un jugador que llega desde OTRO nivel usando el portal de
+## regreso correspondiente a este (ver GestorNiveles._punto_de_llegada) —
+## posición fija, elegida a mano en el editor para cada portal (mover este
+## Marker2D "PuntoLlegada" hijo del portal), en vez de un punto al azar
+## alrededor del círculo. Pedido explícito del usuario: "con eso se
+## establece bien una buena posición de respawn" — un punto al azar podía
+## caer en cualquier ángulo, incluso hacia terreno no despejado.
+##
+## OJO al moverlo por instancia: tiene que quedar FUERA del radio de
+## disparo del portal (30 px, ver CircleShape2D_forma_portal) MÁS el propio
+## radio del jugador (10 px, sin margen los círculos ya se tocan) — bug
+## real encontrado con el valor por defecto original (0,40), exactamente
+## en el borde: el jugador llegaba, tras vencer la gracia anti-rebote
+## (1 s) sin haberse movido de ahí, el portal se reactivaba solo y lo
+## mandaba de vuelta en bucle. El valor por defecto (0,64) deja margen de
+## sobra.
+@export var punto_llegada: Marker2D
 
 const DIAMETRO_VISUAL := 72.0
 

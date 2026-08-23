@@ -6,10 +6,11 @@
 [sub_resource type="CircleShape2D" id="forma_portal"]
 radius = 30.0
 
-[node name="PortalNivel" type="Area2D"]
-collision_mask = 8
+[node name="PortalNivel" type="Area2D" node_paths=PackedStringArray("punto_llegada")]
 collision_layer = 0
+collision_mask = 8
 script = ExtResource("1_portal")
+punto_llegada = NodePath("")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("forma_portal")

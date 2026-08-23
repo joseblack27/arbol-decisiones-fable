@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=4 uid="uid://b3r2fxugtcblu"]
+[gd_scene load_steps=15 format=4 uid="uid://b3r2fxugtcblu"]
 
 [ext_resource type="Script" uid="uid://buv25r2fvbcxs" path="res://escenas/niveles/NivelBase.gd" id="1_qern7"]
 [ext_resource type="TileSet" uid="uid://srcylgoba2ge" path="res://escenas/niveles/tileset_juego.tres" id="2_mqdv6"]
@@ -6,7 +6,9 @@
 [ext_resource type="PackedScene" uid="uid://vwdfflyout3b" path="res://escenas/niveles/PortalNivel.tscn" id="4_42w7g"]
 [ext_resource type="Script" uid="uid://bkxidp0dfsf0r" path="res://escenas/niveles/DecoracionOcluible.gd" id="4_qern7"]
 [ext_resource type="PackedScene" uid="uid://c7ljvd4qctsel" path="res://escenas/enemigos/MunecoEntrenamiento.tscn" id="6_mqdv6"]
-[ext_resource type="PackedScene" path="res://escenas/objetos/Cofre.tscn" id="7_cofre"]
+[ext_resource type="PackedScene" uid="uid://dppevmcsw5an7" path="res://escenas/objetos/Cofre.tscn" id="7_cofre"]
+[ext_resource type="Texture2D" uid="uid://b6kva54sk7tqj" path="res://assets/tilesets/tileset_01.png" id="8_xrf2a"]
+[ext_resource type="PackedScene" uid="uid://dhqlvt8wdg8mt" path="res://escenas/objetos/AlmacenLenador.tscn" id="9_almacen_lenador"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_g6ir3"]
 atlas = ExtResource("3_cpmdm")
@@ -19,6 +21,14 @@ region = Rect2(284, 192, 96, 96)
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_qern7"]
 radius = 8.0
 height = 24.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ntdto"]
+atlas = ExtResource("8_xrf2a")
+region = Rect2(640, 584, 32, 24)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_cfe4b"]
+atlas = ExtResource("8_xrf2a")
+region = Rect2(608, 584, 32, 24)
 
 [node name="NivelCiudad" type="Node2D"]
 y_sort_enabled = true
@@ -55,13 +65,30 @@ position = Vector2(0, 4)
 rotation = 1.5707964
 shape = SubResource("CapsuleShape2D_qern7")
 
-[node name="PuntoAparicion" type="Marker2D" parent="."]
-position = Vector2(-848, 0)
+[node name="CofreCiudad1" parent="Decoraciones" instance=ExtResource("7_cofre")]
+position = Vector2(80, -48)
+id = "cofre_ciudad_1"
 
-[node name="PortalAPradera" parent="." instance=ExtResource("4_42w7g")]
-position = Vector2(-912, 0)
+[node name="Sprite2D" type="Sprite2D" parent="Decoraciones/CofreCiudad1"]
+texture = SubResource("AtlasTexture_ntdto")
+
+[node name="AlmacenLenador1" parent="Decoraciones" instance=ExtResource("9_almacen_lenador")]
+position = Vector2(112, -48)
+
+[node name="Sprite2D" type="Sprite2D" parent="Decoraciones/AlmacenLenador1"]
+texture = SubResource("AtlasTexture_cfe4b")
+
+[node name="PuntoAparicion" type="Marker2D" parent="."]
+position = Vector2(-896, 24)
+
+[node name="PortalAPradera" parent="." node_paths=PackedStringArray("punto_llegada") instance=ExtResource("4_42w7g")]
+position = Vector2(-968, 24)
 ruta_nivel_destino = "res://escenas/niveles/NivelPradera.tscn"
 etiqueta = "→ Pradera"
+punto_llegada = NodePath("Marker2D")
+
+[node name="Marker2D" type="Marker2D" parent="PortalAPradera"]
+position = Vector2(72, 0)
 
 [node name="Enemigos" type="Node2D" parent="."]
 y_sort_enabled = true
@@ -75,8 +102,5 @@ position = Vector2(24, 32)
 [node name="MunecoEntrenamiento3" parent="Enemigos" instance=ExtResource("6_mqdv6")]
 position = Vector2(80, 32)
 
-[node name="Objetos" type="Node2D" parent="."]
-
-[node name="CofreCiudad1" parent="Objetos" instance=ExtResource("7_cofre")]
-position = Vector2(80, -40)
-id = "cofre_ciudad_1"
+[node name="NPCs" type="Node2D" parent="."]
+y_sort_enabled = true

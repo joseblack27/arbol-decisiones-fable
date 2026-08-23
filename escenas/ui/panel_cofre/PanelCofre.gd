@@ -22,6 +22,21 @@ class_name PanelCofre
 ## arriba") — el nombre real del cofre se muestra en GrillaCofre.titulo, y
 ## cada grilla trae su propio botón de cerrar (GrillaObjetos.
 ## mostrar_boton_cerrar) que hace lo mismo que el "Salir" de antes.
+##
+## También hace de panel para el almacén compartido del leñador (ver
+## GestorLenador.gd/AlmacenLenador.gd) — pedido explícito del usuario: "usa
+## la del cofre del jugador, allí pondrás los recursos del leñador", en vez
+## de mantener PanelAlmacenLenador (una lista aparte, sin arrastrar,
+## eliminada). Mismo panel, misma sensación de arrastre — la única
+## diferencia real es la fuente: GrillaCofre pasa a poblarse con
+## FuenteAlmacenLenador (ver ese archivo) en vez de FuenteCofre, que
+## bloquea agregar()/agregar_cantidad() (confirmado con el usuario: "solo
+## retirar", nadie deposita ahí arrastrando, solo el leñador) y enruta
+## quitar()/quitar_cantidad() por GestorLenador.pedir_retirar() (validado
+## por el servidor, async en red — a diferencia de un cofre por jugador,
+## sin RPC). _modo_almacen distingue cuál de los dos está abierto ahora
+## mismo, para que _tomar_todo()/el refresco en caliente actúen sobre la
+## fuente correcta.
 
 @onready var _grilla_cofre: GrillaObjetos = %GrillaCofre
 @onready var _grilla_jugador: GrillaObjetos = %GrillaJugador
@@ -40,11 +55,17 @@ class_name PanelCofre
 @onready var _vbox_caracteristicas: VBoxContainer = %VBoxCaracteristicas
 
 var _id_cofre: String = ""
+## true mientras lo abierto es el almacén compartido del leñador en vez de
+## un cofre por jugador (ver _abrir_almacen) — decide qué fuente usa
+## _tomar_todo() y si el refresco en caliente de GestorLenador.
+## almacen_actualizado debe tocar esta grilla ahora mismo.
+var _modo_almacen: bool = false
 
 
 func _ready() -> void:
 	visible = false
 	BusEventos.cofre_solicitado.connect(_abrir)
+	BusEventos.almacen_lenador_solicitado.connect(_abrir_almacen)
 	_grilla_cofre.cerrar_solicitado.connect(_cerrar)
 	_grilla_jugador.cerrar_solicitado.connect(_cerrar)
 	_grilla_cofre.tomar_todo_solicitado.connect(_tomar_todo)
@@ -58,11 +79,20 @@ func _ready() -> void:
 	_grilla_jugador.grilla_destino_rapida = _grilla_cofre
 	if not BusEventos.item_agregado.is_connected(_al_cambiar_inventario):
 		BusEventos.item_agregado.connect(_al_cambiar_inventario)
+	GestorLenador.almacen_actualizado.connect(_al_cambiar_almacen)
 
 
 func _abrir(id_cofre: String, nombre_cofre: String = "Cofre") -> void:
+	_modo_almacen = false
 	_id_cofre = id_cofre
 	_grilla_cofre.titulo = nombre_cofre
+	_grilla_cofre.texto_vacio = "El cofre está vacío"
+	# Por si la apertura anterior fue el almacén (ver _abrir_almacen, que los
+	# oculta) — %GrillaCofre es el MISMO nodo entre una apertura y la
+	# siguiente, sin esto quedarían apagados también para un cofre normal.
+	_grilla_cofre.mostrar_filtro_categorias = true
+	_grilla_cofre.mostrar_ordenar = true
+	_grilla_cofre.mostrar_busqueda = true
 	visible = true
 	_limpiar_detalle()
 
@@ -74,12 +104,73 @@ func _abrir(id_cofre: String, nombre_cofre: String = "Cofre") -> void:
 		func() -> Array: return cofres.obtener_contenido(_id_cofre) if cofres else [],
 		fuente_cofre
 	)
+	_poblar_grilla_jugador()
+
+
+## Almacén compartido del leñador (ver GestorLenador.gd) en vez de un cofre
+## por jugador — mismas dos grillas, misma sensación de arrastre, pero
+## GrillaCofre pasa a alimentarse de _obtener_items_almacen()/
+## FuenteAlmacenLenador (solo retiro, ver ese archivo) en vez de
+## CofresComponente/FuenteCofre.
+func _abrir_almacen() -> void:
+	_modo_almacen = true
+	_id_cofre = ""
+	_grilla_cofre.titulo = "Almacén del Leñador"
+	_grilla_cofre.texto_vacio = "El almacén está vacío"
+	# Pedido del usuario: sin filtro de categorías, orden ni búsqueda acá —
+	# a diferencia de un cofre con ítems variados, el almacén solo tiene
+	# recursos del leñador, pocos tipos distintos, no hace falta.
+	_grilla_cofre.mostrar_filtro_categorias = false
+	_grilla_cofre.mostrar_ordenar = false
+	_grilla_cofre.mostrar_busqueda = false
+	visible = true
+	_limpiar_detalle()
+
+	_grilla_cofre.poblar(_obtener_items_almacen, FuenteAlmacenLenador.new())
+	_poblar_grilla_jugador()
+
+
+func _poblar_grilla_jugador() -> void:
 	_grilla_jugador.poblar(
 		func() -> Array:
 			var inventario := Utils.inventario_componente_local()
 			return inventario.items if inventario else [],
 		FuenteInventario.new()
 	)
+
+
+## GestorLenador.almacen_replicado es un Dictionary (ruta -> cantidad), no
+## una Array[DatosItem] — arma una lista fresca por refresco. .duplicate()
+## antes de tocar .quantity: el DatosItem que devuelve load() es el MISMO
+## recurso CACHEADO cada vez que se pide esa ruta, mutar su .quantity
+## directo corrompería cualquier otro lugar del juego que cargue ese mismo
+## .tres (mismo motivo/mismo campo id_recurso que ya usa CofresComponente.
+## agregar_cantidad() — Resource.duplicate() no conserva resource_path, ver
+## FuenteAlmacenLenador).
+func _obtener_items_almacen() -> Array:
+	var resultado: Array[DatosItem] = []
+	for ruta_item: String in GestorLenador.almacen_replicado.keys():
+		var cantidad: int = GestorLenador.almacen_replicado[ruta_item]
+		if cantidad <= 0:
+			continue
+		var original := load(ruta_item) as DatosItem
+		if original == null:
+			continue
+		var item := original.duplicate() as DatosItem
+		item.quantity = cantidad
+		item.id_recurso = ruta_item
+		resultado.append(item)
+	return resultado
+
+
+## GestorLenador.almacen_actualizado dispara por depósito del leñador,
+## retiro propio o eco de red — mismo criterio que _al_cambiar_inventario
+## para la grilla del jugador: solo refresca si el almacén es lo que está
+## abierto AHORA, para no pisar una vista de cofre por jugador que
+## coincidiera en estar visible.
+func _al_cambiar_almacen() -> void:
+	if _modo_almacen and is_visible_in_tree():
+		_grilla_cofre.notificar_cambio()
 
 
 ## Pública: quien cambie el inventario desde AFUERA de un arrastre (loot
@@ -129,16 +220,17 @@ func _limpiar_detalle() -> void:
 ## mostrar_boton_tomar_todo, activo solo en _grilla_cofre). Mueve cada
 ## ítem con agregar()/quitar() (referencia entera, sin PopupCantidad —
 ## "todo" no tiene nada que preguntar) usando los fuente_grilla que ya
-## tienen las dos grillas. .duplicate() de la lista: obtener_contenido()
-## devuelve la MISMA referencia mutable que fuente_grilla.quitar() va a
-## ir vaciando en el camino, recorrerla sin copiar saltearía ítems.
+## tienen las dos grillas — genérico a propósito (ver GrillaObjetos.
+## obtener_items_actuales): funciona igual de cofre por jugador que de
+## almacén compartido (ver _modo_almacen), sin importar cuál está abierto.
+## .duplicate() de la lista: para un cofre, obtener_items_actuales()
+## devuelve la MISMA referencia mutable que fuente_grilla.quitar() va a ir
+## vaciando en el camino, recorrerla sin copiar saltearía ítems (para el
+## almacén no hace falta, pero tampoco molesta).
 func _tomar_todo() -> void:
 	if _grilla_cofre.fuente_grilla == null or _grilla_jugador.fuente_grilla == null:
 		return
-	var cofres := Utils.cofres_componente_local()
-	if cofres == null:
-		return
-	var contenido: Array[DatosItem] = cofres.obtener_contenido(_id_cofre).duplicate()
+	var contenido: Array = _grilla_cofre.obtener_items_actuales().duplicate()
 	for item in contenido:
 		if _grilla_jugador.fuente_grilla.agregar(item):
 			_grilla_cofre.fuente_grilla.quitar(item)

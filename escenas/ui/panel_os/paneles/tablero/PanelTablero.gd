@@ -125,6 +125,15 @@ func _conectar_jugador() -> void:
 
 	if "datos_jugador" in jugador:
 		_datos_jugador = jugador.get("datos_jugador") as DatosJugador
+	# Bug real reportado: "el nombre que aparece en atributos debería ser
+	# el mismo nombre de la cuenta" — "datos_jugador" arriba NUNCA existe
+	# de verdad en Jugador.gd (ese if nunca corre), así que este Label se
+	# quedaba con el placeholder hardcodeado del .tscn ("Rikapolo") para
+	# siempre. Utils.nombre_visible() es el mismo helper que ya usa
+	# HudJugador.gd para mostrar el nombre de cuenta real (replicado en
+	# Jugador.nombre_visible, ver ese archivo) — se fija una sola vez acá
+	# (no cambia durante la partida), no en _actualizar_principales().
+	_lbl_nombre.text = Utils.nombre_visible(jugador)
 
 	if _vida_comp:
 		_vida_comp.cambio_valor_vida.connect(_on_vida_cambiada)
@@ -229,7 +238,6 @@ func _actualizar_principales() -> void:
 	_lbl_experiencia.text = "%d / %d" % [progreso.x, progreso.y] if progreso.y > 0 \
 		else "MAX"
 	if _datos_jugador:
-		_lbl_nombre.text   = _datos_jugador.nombre
 		_lbl_estamina.text = str(int(_datos_jugador.estamina))
 
 	if _vida_comp:

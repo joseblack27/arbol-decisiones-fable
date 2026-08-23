@@ -1,29 +1,36 @@
 extends Node
-## Registro del interactuable más cercano al jugador LOCAL. Un objeto de
-## mundo (Npc, y a futuro cofres/palancas/etc.) se registra al entrar en su
-## propio radio de detección y se quita al salir — no necesita saber nada
-## del botón de interacción fijo en pantalla (ver BotonInteraccion.gd), que
-## a su vez no necesita saber nada de NPCs: solo pide que el objeto
-## registrado tenga un método interactuar().
+## Registro de TODOS los interactuables cerca del jugador LOCAL. Un objeto
+## de mundo (Npc, Cofre, AlmacenLenador, ObjetoRecolectable) se registra al
+## entrar en su propio radio de detección y se quita al salir — no necesita
+## saber nada del botón/lista de interacción fijo en pantalla (ver
+## ListaInteraccion.gd), que a su vez no necesita saber nada de NPCs/cofres/
+## árboles: solo consume nombre + acciones().
 ##
 ## Pila, no un solo valor: si dos interactuables se superponen, salir del
-## radio de uno no debe apagar el botón mientras el otro siga cerca —
-## siempre se ofrece el último que sigue activo. Guarda el PAR (objeto,
-## texto) en cada entrada — no alcanza con guardar solo el objeto y leer
-## texto_interaccion de vuelta al volver a uno anterior: no todo
-## interactuable tiene por qué exponer esa propiedad exacta.
+## radio de uno no debe apagar la lista mientras el otro siga cerca.
+## Pedido real del usuario: con dos cofres uno al lado del otro no había
+## forma de elegir CUÁL abrir — ofrecer siempre "el último que entró" no
+## alcanza. Ahora se transmite la pila COMPLETA en cada cambio; decidir qué
+## mostrar (un botón directo, o una lista para elegir) es responsabilidad
+## de quien escucha, no de este autoload.
 
-signal disponible(objeto: Node, texto: String)
-signal no_disponible()
+## items: Array[Dictionary], cada entrada {"objeto": Node, "nombre":
+## String, "acciones": Array[Dictionary]} — la pila completa, ya podada de
+## instancias inválidas. Vacío cuando no hay nada cerca (reemplaza a la
+## vieja no_disponible()).
+signal cambio(items: Array[Dictionary])
 
 var _pila: Array[Dictionary] = []
 
 
-func registrar(objeto: Node, texto: String = "Interactuar") -> void:
+## acciones: Array[Dictionary], cada entrada {"texto": String, "callback":
+## Callable} — ver el comentario de cada interactuable (Cofre.gd, Npc.gd,
+## etc.) para el molde de acciones_interaccion().
+func registrar(objeto: Node, nombre: String, acciones: Array[Dictionary]) -> void:
 	if _indice_de(objeto) != -1:
 		return
-	_pila.append({"objeto": objeto, "texto": texto})
-	disponible.emit(objeto, texto)
+	_pila.append({"objeto": objeto, "nombre": nombre, "acciones": acciones})
+	cambio.emit(_pila)
 
 
 func quitar(objeto: Node) -> void:
@@ -42,21 +49,7 @@ func _indice_de(objeto: Node) -> int:
 
 
 ## Poda entradas liberadas (p. ej. un interactuable que desaparece sin
-## avisar) antes de decidir qué mostrar.
+## avisar) antes de transmitir el cambio.
 func _refrescar() -> void:
-	while not _pila.is_empty() and not is_instance_valid(_pila.back()["objeto"]):
-		_pila.pop_back()
-	if _pila.is_empty():
-		no_disponible.emit()
-	else:
-		var tope: Dictionary = _pila.back()
-		disponible.emit(tope["objeto"], tope["texto"])
-
-
-func interactuar() -> void:
-	_refrescar()
-	if _pila.is_empty():
-		return
-	var objeto: Node = _pila.back()["objeto"]
-	if objeto.has_method("interactuar"):
-		objeto.interactuar()
+	_pila = _pila.filter(func(entrada): return is_instance_valid(entrada["objeto"]))
+	cambio.emit(_pila)

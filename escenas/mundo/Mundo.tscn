@@ -1,6 +1,7 @@
 [gd_scene load_steps=20 format=3 uid="uid://brkcchgxseadn"]
 
 [ext_resource type="Script" uid="uid://b1k567eamw383" path="res://escenas/mundo/Mundo.gd" id="2_mundo"]
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="30_tema"]
 [ext_resource type="PackedScene" uid="uid://cjw4ul4uo1qyp" path="res://escenas/ui/joystick/joystick.tscn" id="3_xywc0"]
 [ext_resource type="PackedScene" uid="uid://k23y3qpaht01" path="res://escenas/ui/zona_cancelacion/ZonaCancelacion.tscn" id="5_zc"]
 [ext_resource type="PackedScene" uid="uid://6fwc7y8i8y77" path="res://escenas/ui/ui_habilidad/UIHabilidad.tscn" id="6_uih"]
@@ -9,7 +10,7 @@
 [ext_resource type="PackedScene" path="res://escenas/ui/panel_tienda/PanelTienda.tscn" id="27_tienda"]
 [ext_resource type="PackedScene" path="res://escenas/ui/panel_cofre/PanelCofre.tscn" id="28_cofre"]
 [ext_resource type="Script" uid="uid://c51cbomf7oq2h" path="res://escenas/ui/boton_os/BotonOS.gd" id="15_bos"]
-[ext_resource type="Script" path="res://escenas/ui/boton_interaccion/BotonInteraccion.gd" id="28_boton_int"]
+[ext_resource type="Script" path="res://escenas/ui/boton_interaccion/ListaInteraccion.gd" id="28_boton_int"]
 [ext_resource type="Script" uid="uid://dpmgf5u2u5w0y" path="res://escenas/ui/ControlJuego.gd" id="16_cj"]
 [ext_resource type="PackedScene" path="res://escenas/ui/notificaciones_loot/PanelNotificacionesLoot.tscn" id="17_pnl"]
 [ext_resource type="PackedScene" path="res://escenas/ui/contador_fps/ContadorFPS.tscn" id="18_fps"]
@@ -113,7 +114,7 @@ text = "1"
 script = ExtResource("24_pag")
 rutas_botones = Array[NodePath]([NodePath("../UIHabilidadSlot0"), NodePath("../UIHabilidadSlot1"), NodePath("../UIHabilidadSlot2"), NodePath("../UIHabilidadSlot3"), NodePath("../UIHabilidadSlot4")])
 
-[node name="BotonInteraccion" type="Button" parent="CanvasLayer/Control"]
+[node name="ListaInteraccion" type="PanelContainer" parent="CanvasLayer/Control"]
 visible = false
 layout_mode = 1
 anchors_preset = 3
@@ -121,14 +122,26 @@ anchor_left = 1.0
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -116.0
+offset_left = -202.0
 offset_top = -296.0
 offset_right = -72.0
 offset_bottom = -257.0
 grow_horizontal = 0
 grow_vertical = 0
-text = "Hablar"
+theme = ExtResource("30_tema")
 script = ExtResource("28_boton_int")
+
+[node name="Margen" type="MarginContainer" parent="CanvasLayer/Control/ListaInteraccion"]
+layout_mode = 2
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="Lista" type="VBoxContainer" parent="CanvasLayer/Control/ListaInteraccion/Margen"]
+unique_name_in_owner = true
+layout_mode = 2
+alignment = 2
 
 [node name="ZonaCancelacion" parent="CanvasLayer/Control" instance=ExtResource("5_zc")]
 layout_mode = 1
@@ -220,6 +233,12 @@ script = ExtResource("15_bos")
 
 [node name="Jugadores" type="Node2D" parent="."]
 y_sort_enabled = true
+
+[node name="NPCsErrantes" type="Node2D" parent="."]
+
+[node name="GeneradorNPCsErrantes" type="MultiplayerSpawner" parent="NPCsErrantes"]
+_spawnable_scenes = PackedStringArray("res://escenas/npc/leñador/Lenador.tscn")
+spawn_path = NodePath("..")
 
 [node name="GeneradorJugadores" type="MultiplayerSpawner" parent="Jugadores"]
 _spawnable_scenes = PackedStringArray("uid://ce0idfghf3qmv")

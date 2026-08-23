@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=4 uid="uid://b2bnfitcpfcum"]
+[gd_scene load_steps=39 format=4 uid="uid://b2bnfitcpfcum"]
 
 [ext_resource type="Script" uid="uid://buv25r2fvbcxs" path="res://escenas/niveles/NivelBase.gd" id="1_fupr0"]
 [ext_resource type="TileSet" uid="uid://srcylgoba2ge" path="res://escenas/niveles/tileset_juego.tres" id="2_af08k"]
@@ -9,14 +9,15 @@
 [ext_resource type="Texture2D" uid="uid://b6kva54sk7tqj" path="res://assets/tilesets/tileset_01.png" id="5_atlas"]
 [ext_resource type="PackedScene" uid="uid://7r1t84krlu7l" path="res://escenas/enemigos/EnemigoAraña.tscn" id="6_fhb07"]
 [ext_resource type="PackedScene" uid="uid://b7r15dmdjvgww" path="res://escenas/enemigos/EnemigoRaton.tscn" id="8_fc1o5"]
+[ext_resource type="PackedScene" uid="uid://dbyc6mqnvcnoj" path="res://escenas/enemigos/EnemigoEsqueletoArquero.tscn" id="9_arquero"]
 [ext_resource type="PackedScene" uid="uid://d1042g45vblt7" path="res://escenas/enemigos/EnemigoCaballeroEsqueleto.tscn" id="9_caballero"]
-[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoEsqueletoArquero.tscn" id="9_arquero"]
 [ext_resource type="PackedScene" uid="uid://vwdfflyout3b" path="res://escenas/niveles/PortalNivel.tscn" id="10_u3oy8"]
-[ext_resource type="PackedScene" path="res://escenas/npc/Npc.tscn" id="12_npc"]
-[ext_resource type="Resource" path="res://recursos/dialogo/ejemplo_comerciante.tres" id="12_npc_dialogo"]
-[ext_resource type="Resource" path="res://recursos/tienda/ejemplo_tienda_comerciante.tres" id="12_npc_tienda"]
 [ext_resource type="Script" uid="uid://dyloetpnctmqy" path="res://escenas/enemigos/SpawnerMobs.gd" id="11_spawner"]
-[ext_resource type="PackedScene" path="res://escenas/enemigos/MunecoEntrenamiento.tscn" id="13_muneco"]
+[ext_resource type="PackedScene" uid="uid://23jf7xxwpfjb" path="res://escenas/npc/Npc.tscn" id="12_npc"]
+[ext_resource type="Resource" uid="uid://p3blph453nhe" path="res://recursos/dialogo/ejemplo_comerciante.tres" id="12_npc_dialogo"]
+[ext_resource type="Resource" uid="uid://dvmqh4vfxdpv" path="res://recursos/tienda/ejemplo_tienda_comerciante.tres" id="12_npc_tienda"]
+[ext_resource type="PackedScene" uid="uid://c7ljvd4qctsel" path="res://escenas/enemigos/MunecoEntrenamiento.tscn" id="13_muneco"]
+[ext_resource type="PackedScene" path="res://escenas/objetos/ArbolTalable.tscn" id="14_arbol_talable"]
 
 [sub_resource type="AtlasTexture" id="textura_arbol"]
 atlas = ExtResource("5_atlas")
@@ -120,6 +121,11 @@ navigation_enabled = false
 
 [node name="Decoraciones" type="Node2D" parent="."]
 y_sort_enabled = true
+
+[node name="ArbolTalable1" parent="Decoraciones" instance=ExtResource("14_arbol_talable")]
+position = Vector2(128, 128)
+scale = Vector2(2, 2)
+segundos_respawn = 10.0
 
 [node name="Decor1" type="StaticBody2D" parent="Decoraciones" node_paths=PackedStringArray("sprite", "area_oclusion")]
 texture_filter = 1
@@ -375,22 +381,29 @@ id = "comerciante_pradera"
 datos_dialogo = ExtResource("12_npc_dialogo")
 datos_tienda = ExtResource("12_npc_tienda")
 
-[node name="Nombre" parent="NPCs/Comerciante" index="2"]
-text = "Comerciante"
-
-[node name="PortalACueva" parent="." instance=ExtResource("10_u3oy8")]
-position = Vector2(1080, 0)
+[node name="PortalACueva" parent="." node_paths=PackedStringArray("punto_llegada") instance=ExtResource("10_u3oy8")]
+position = Vector2(1120, 16)
 ruta_nivel_destino = "res://escenas/niveles/NivelCueva.tscn"
 etiqueta = "→ Cueva"
+punto_llegada = NodePath("Marker2D")
 
+[node name="Marker2D" type="Marker2D" parent="PortalACueva"]
+position = Vector2(-64, 0)
 
-[node name="PortalACamino" parent="." instance=ExtResource("10_u3oy8")]
-position = Vector2(-500, 0)
+[node name="PortalACamino" parent="." node_paths=PackedStringArray("punto_llegada") instance=ExtResource("10_u3oy8")]
+position = Vector2(-1088, 24)
 ruta_nivel_destino = "res://escenas/niveles/NivelCamino.tscn"
 etiqueta = "→ Camino"
+punto_llegada = NodePath("Marker2D")
 
+[node name="Marker2D" type="Marker2D" parent="PortalACamino"]
+position = Vector2(64, 0)
 
-[node name="PortalACiudad" parent="." instance=ExtResource("10_u3oy8")]
-position = Vector2(0, -560)
+[node name="PortalACiudad" parent="." node_paths=PackedStringArray("punto_llegada") instance=ExtResource("10_u3oy8")]
+position = Vector2(16, -608)
 ruta_nivel_destino = "res://escenas/niveles/NivelCiudad.tscn"
 etiqueta = "→ Ciudad"
+punto_llegada = NodePath("Marker2D")
+
+[node name="Marker2D" type="Marker2D" parent="PortalACiudad"]
+position = Vector2(0, 64)

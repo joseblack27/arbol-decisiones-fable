@@ -129,6 +129,14 @@ signal mision_progreso_actualizado(jugador: Node, id_mision: String, id_objetivo
 ## autosuscribe en vez de que el cofre necesite una referencia directa.
 signal cofre_solicitado(id_cofre: String, nombre_cofre: String)
 
+# ── ALMACÉN DEL LEÑADOR ──────────────────────────────────────────────────────
+## El almacén compartido del leñador (ver AlmacenLenador.gd/GestorLenador.gd)
+## pide abrir su panel — sin id: a diferencia de los cofres (por jugador),
+## este es un pozo único para todo el mundo. Lo abre PanelCofre.gd (modo
+## almacén, ver ese archivo) — mismo panel de arrastrar-y-soltar que un
+## cofre normal, autosuscrito igual que cofre_solicitado.
+signal almacen_lenador_solicitado()
+
 # ── DIÁLOGO ───────────────────────────────────────────────────────────────────
 ## Un NPC pide abrir el panel de diálogo con estos datos — PanelDialogo se
 ## autosuscribe a esta señal (mismo patrón que PanelInventario con el resto

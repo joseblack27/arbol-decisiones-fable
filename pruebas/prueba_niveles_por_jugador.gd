@@ -101,10 +101,20 @@ func _probar_aparicion() -> void:
 
 func _probar_viaje_individual() -> void:
 	var pos_b_antes := _jugador_b.global_position
+	# Pedido del usuario: aparecer en PortalNivel.punto_llegada del portal
+	# de regreso (Marker2D hijo, posición fija elegida en el editor), no en
+	# el PuntoAparicion fijo del nivel entero. _punto_esperado_de_llegada()
+	# calcula lo mismo que el código real — ahora es determinístico (ya no
+	# hay ángulo al azar que predecir), así que se compara exacto.
+	#
+	# OJO: se calcula DESPUÉS de mover_peer_a_nivel(), no antes — Cueva
+	# recién existe en _contenedor una vez que _asegurar_nivel_cargado()
+	# corre DENTRO de mover_peer_a_nivel(); calcularlo antes encontraba
+	# "nivel == null" y comparaba contra Vector2.ZERO, un falso negativo.
 	_gestor.mover_peer_a_nivel(1, CUEVA)
+	var punto_esperado := _punto_esperado_de_llegada(CUEVA, PRADERA)
 
-	var spawn_cueva := _spawn_de(CUEVA)
-	var a_en_cueva: bool = _jugador_a.global_position.distance_to(spawn_cueva) < 50.0
+	var a_en_cueva: bool = _jugador_a.global_position == punto_esperado
 	var b_no_se_movio: bool = _jugador_b.global_position.distance_to(pos_b_antes) < 1.0
 	_solo_viaja_el_que_cruza = a_en_cueva and b_no_se_movio
 	print("Viaja SOLO el que cruza (A en la cueva=%s, B quieto=%s): %s" % [
@@ -138,9 +148,14 @@ func _probar_viaje_individual() -> void:
 
 func _probar_vuelta() -> void:
 	var pos_b_antes := _jugador_b.global_position
+	# Mismo criterio que _probar_viaje_individual: A viene de Cueva, así que
+	# si Pradera tiene un portal de regreso a Cueva, debe aparecer cerca de
+	# ESE (PortalACueva), no en el PuntoAparicion fijo de Pradera. Pradera
+	# ya está cargada desde el arranque, pero se calcula DESPUÉS igual, por
+	# el mismo motivo que _probar_viaje_individual.
 	_gestor.mover_peer_a_nivel(1, PRADERA)
-	var spawn := _spawn_de(PRADERA)
-	var a_volvio: bool = _jugador_a.global_position.distance_to(spawn) < 50.0
+	var punto_esperado := _punto_esperado_de_llegada(PRADERA, CUEVA)
+	var a_volvio: bool = _jugador_a.global_position == punto_esperado
 	var b_quieto: bool = _jugador_b.global_position.distance_to(pos_b_antes) < 1.0
 	_puede_volver_sin_arrastrar = a_volvio and b_quieto
 	print("A vuelve a la Pradera y B sigue sin enterarse (A=%s, B quieto=%s): %s" % [
@@ -152,6 +167,24 @@ func _spawn_de(ruta: String) -> Vector2:
 		if hijo is NivelBase and (hijo as NivelBase).scene_file_path == ruta:
 			return ((hijo as NivelBase).punto_aparicion() as Node2D).global_position
 	return Vector2.ZERO
+
+
+## Mismo cálculo que GestorNiveles._punto_de_llegada(): si hay un portal de
+## regreso a "ruta_origen" en "ruta_nivel", devuelve el punto_llegada (un
+## Marker2D hijo) de ESE portal; si no, cae al PuntoAparicion fijo, igual
+## que el código real.
+func _punto_esperado_de_llegada(ruta_nivel: String, ruta_origen: String) -> Vector2:
+	var nivel: NivelBase = null
+	for hijo in _contenedor.get_children():
+		if hijo is NivelBase and (hijo as NivelBase).scene_file_path == ruta_nivel:
+			nivel = hijo
+			break
+	if nivel == null:
+		return Vector2.ZERO
+	var portal = _gestor._portal_de_regreso(nivel, ruta_origen)
+	if portal != null and portal.punto_llegada != null:
+		return portal.punto_llegada.global_position
+	return _spawn_de(ruta_nivel)
 
 
 func _informar() -> bool:

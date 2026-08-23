@@ -195,6 +195,18 @@ func poblar(obtener_items: Callable, fuente: FuenteObjetos) -> void:
 	notificar_cambio()
 
 
+## La lista actual, SIN el filtro/orden/búsqueda que aplica notificar_cambio()
+## para mostrarla — el mismo Array que devuelve el Callable pasado a
+## poblar(). Pública para quien necesite operar sobre TODOS los ítems de la
+## grilla sin pasar por casillas ni por la vista filtrada (ej. PanelCofre.
+## _tomar_todo(), que antes de este método leía directo de
+## Utils.cofres_componente_local() — atado a que la grilla SIEMPRE fuera un
+## cofre por jugador; ahora sirve igual para cualquier fuente, ej. el
+## almacén compartido del leñador, ver FuenteAlmacenLenador).
+func obtener_items_actuales() -> Array:
+	return _obtener_items.call() if _obtener_items.is_valid() else []
+
+
 ## Pública: ScrollContainerObjetos la llama tras un _drop_data exitoso (ver
 ## ese archivo), y PanelCofre la llama cuando el inventario cambia por otra
 ## vía (loot recibido mientras el panel está abierto). Reconstruye ENTERA

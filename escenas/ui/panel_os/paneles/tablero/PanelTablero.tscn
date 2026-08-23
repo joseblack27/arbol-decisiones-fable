@@ -104,7 +104,7 @@ vertical_alignment = 1
 
 [node name="EtiquetaNombre" type="Label" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer/HBoxContainer"]
 layout_mode = 2
-text = "Rikapolo"
+text = ""
 vertical_alignment = 1
 
 [node name="HBoxContainer3" type="HBoxContainer" parent="VBoxContainer/MarginContainer/HBoxContainer/PanelEstado/MarginContainer/ScrollContainer/VBoxContainer/Container/VBoxContainer/MarginContainer/VBoxContainer"]

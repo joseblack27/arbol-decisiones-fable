@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://dppevmcsw5an7"]
 
-[ext_resource type="Script" path="res://escenas/objetos/Cofre.gd" id="1_cofre"]
+[ext_resource type="Script" uid="uid://bjoljebuggt6f" path="res://escenas/objetos/Cofre.gd" id="1_cofre"]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_solido"]
 size = Vector2(24, 18)
@@ -9,22 +9,21 @@ size = Vector2(24, 18)
 radius = 50.0
 
 [node name="Cofre" type="StaticBody2D" node_paths=PackedStringArray("area_interaccion")]
+y_sort_enabled = true
 script = ExtResource("1_cofre")
 area_interaccion = NodePath("AreaInteraccion")
 
 [node name="Visual" type="ColorRect" parent="."]
 offset_left = -14.0
-offset_top = -18.0
+offset_top = -10.0
 offset_right = 14.0
-offset_bottom = 2.0
+offset_bottom = 10.0
 color = Color(0.5215687, 0.3411765, 0.145098, 1)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2(0, -8)
 shape = SubResource("RectangleShape2D_solido")
 
 [node name="AreaInteraccion" type="Area2D" parent="."]
-position = Vector2(0, -8)
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AreaInteraccion"]
 shape = SubResource("CircleShape2D_interaccion")

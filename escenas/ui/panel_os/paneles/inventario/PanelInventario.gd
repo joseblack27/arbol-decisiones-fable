@@ -269,7 +269,9 @@ func _on_drop_button():
 		if item != null:
 			equipo_slot.item_data = null
 			equipo_slot.update_item()
-			GestorInventario.agregar_item(item)
+			# silencioso=true: vuelve al inventario general, no es botín
+			# nuevo — no debe disparar la notificación de "recibiste".
+			GestorInventario.agregar_item(item, -1, true)
 			refrescar()
 			notificar_equipo_cambiado()
 	_on_close_button()
@@ -411,7 +413,9 @@ func _equip_item(item_equip: SlotItem):
 		var old_item = target_slot.item_data
 		target_slot.item_data = item
 		target_slot.can_equip = false
-		GestorInventario.agregar_item(old_item)
+		# silencioso=true: el ocupante anterior vuelve al inventario, no es
+		# botín nuevo — no debe disparar la notificación de "recibiste".
+		GestorInventario.agregar_item(old_item, -1, true)
 	else:
 		target_slot.item_data = item
 		target_slot.can_equip = false

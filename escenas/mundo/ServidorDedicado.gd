@@ -42,6 +42,7 @@ var _cola_spawn: Array[int] = []
 func _ready() -> void:
 	get_tree().current_scene = self
 	GestorNiveles.registrar($ContenedorNivel, null)
+	GestorNiveles.registrar_errantes($NPCsErrantes)
 
 	# Tope de conexiones ENet simultáneas — encontrado DEMASIADO bajo (16,
 	# por debajo incluso del default de Godot de 32) durante la prueba de

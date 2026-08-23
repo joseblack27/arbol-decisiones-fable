@@ -122,7 +122,9 @@ func _reemplazar_equipado(data) -> void:
 	fuente.can_equip = false
 	fuente.update_item()
 	GestorInventario.quitar_item(item_reemplazo)
-	GestorInventario.agregar_item(item)
+	# silencioso=true: "item" traía puesto en el EquipoSlot de origen, vuelve
+	# al inventario — no es botín nuevo, no debe disparar la notificación.
+	GestorInventario.agregar_item(item, -1, true)
 	fuente.slot_dragging.emit(false, item.type_equippable)
 	if panel:
 		panel.refrescar()

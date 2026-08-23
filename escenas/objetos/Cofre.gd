@@ -39,7 +39,7 @@ func _al_entrar_cuerpo(cuerpo: Node2D) -> void:
 		return
 	_cuerpos_dentro += 1
 	if _cuerpos_dentro == 1:
-		GestorInteraccion.registrar(self, texto_interaccion)
+		GestorInteraccion.registrar(self, nombre, acciones_interaccion())
 
 
 func _al_salir_cuerpo(cuerpo: Node2D) -> void:
@@ -50,12 +50,20 @@ func _al_salir_cuerpo(cuerpo: Node2D) -> void:
 		GestorInteraccion.quitar(self)
 
 
-## Llamado por GestorInteraccion.interactuar() al presionar el botón fijo
-## de interacción mientras este cofre es el interactuable activo. Mismo
-## modo que PanelTienda (GestorUI.Modo.DIALOGO: "hay un panel modal
-## abierto", bloquea moverse/pelear) — a diferencia de la tienda (que
-## siempre se abre DESDE un diálogo, con el modo ya activo), acá hace
-## falta activarlo acá mismo.
+## Llamado al tocar la acción "Abrir" (ver ListaInteraccion.gd) mientras
+## este cofre está en rango. Mismo modo que PanelTienda (GestorUI.Modo.
+## DIALOGO: "hay un panel modal abierto", bloquea moverse/pelear) — a
+## diferencia de la tienda (que siempre se abre DESDE un diálogo, con el
+## modo ya activo), acá hace falta activarlo acá mismo.
 func interactuar() -> void:
 	GestorUI.abrir_dialogo()
 	BusEventos.cofre_solicitado.emit(id, nombre)
+
+
+## Un solo cofre, una sola acción por ahora — lista de un elemento para
+## calzar con el contrato genérico de GestorInteraccion (ver ese archivo):
+## permite que un jugador elija ESTE cofre puntual cuando hay otro
+## interactuable superpuesto cerca, sin que el cofre necesite saber nada
+## de esa mecánica.
+func acciones_interaccion() -> Array[Dictionary]:
+	return [{"texto": texto_interaccion, "callback": interactuar}]
