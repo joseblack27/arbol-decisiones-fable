@@ -68,6 +68,15 @@ func _on_ejecutar() -> Estado:
 	if "direccion" in agente:
 		agente.set("direccion", _direccion_huida)
 	movimiento.comandar_direccion(_direccion_huida, movimiento.velocidad_base * multiplicador_velocidad)
+	# comandar_direccion() mueve en línea recta SIN pathfinding ni chequeo de
+	# malla — bug real reportado: "sigo viendo mobs fuera del mapa". Sin
+	# esto, un mob asustado podía escapar del mapa a velocidad aumentada y
+	# quedar visible ahí varios segundos hasta que SpawnerMobs._revisar_
+	# mobs_fuera_de_limites() (recién corre cada 5s) lo detectara. Mismo
+	# mecanismo correctivo que ya usa HabilidadCarga/HabilidadCargaJugador
+	# tras un dash — acá se llama CADA tick de huida (no solo al final), así
+	# el exceso queda acotado a como mucho un fotograma de más, no segundos.
+	movimiento.contener_dentro_del_mapa()
 	return Estado.EN_EJECUCION
 
 

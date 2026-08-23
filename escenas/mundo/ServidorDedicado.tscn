@@ -12,7 +12,7 @@ script = ExtResource("1_sd")
 [node name="NPCsErrantes" type="Node2D" parent="."]
 
 [node name="GeneradorNPCsErrantes" type="MultiplayerSpawner" parent="NPCsErrantes"]
-_spawnable_scenes = PackedStringArray("res://escenas/npc/leñador/Lenador.tscn")
+_spawnable_scenes = PackedStringArray("res://escenas/npc/leñador/Lenador.tscn", "res://escenas/npc/cazador/Cazador.tscn")
 spawn_path = NodePath("..")
 
 [node name="GeneradorJugadores" type="MultiplayerSpawner" parent="Jugadores"]

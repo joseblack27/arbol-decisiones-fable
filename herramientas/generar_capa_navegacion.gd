@@ -14,6 +14,18 @@
 # Idempotente para la parte "Libre": puedes re-ejecutarla tras redibujar el
 # Terreno; NO toca fichas ya pintadas a mano en Navegacion (solo añade
 # "Libre" donde la celda está vacía).
+#
+# TAMBIÉN recorta: cualquier celda de Navegacion sin celda correspondiente
+# en Terreno se borra — bug real reportado ("una araña está fuera del
+# mapa"): Navegacion nació sobredimensionada en varios niveles (Pradera,
+# Cueva, NidoArañaReina — hasta ~3.4x más ancha/3.2x más alta que el mapa
+# real, probablemente copiada entre escenas alguna vez sin recortar), así
+# que SpawnerMobs/MovimientoComponente daban por válida una franja
+# "caminable" bien afuera del mapa visible. Este recorte corre SIEMPRE
+# (no solo la primera vez que se crea la capa): a diferencia de agregar
+# "Libre" (aditivo, seguro re-ejecutar), acá si Terreno se redibuja más
+# chico después, las celdas viejas de Navegacion que quedaron huérfanas
+# también deben desaparecer.
 #   godot --headless --path . --script res://herramientas/generar_capa_navegacion.gd
 # =============================================================================
 extends SceneTree
@@ -21,6 +33,7 @@ extends SceneTree
 const NIVELES: Array[String] = [
 	"res://escenas/niveles/NivelPradera.tscn",
 	"res://escenas/niveles/NivelCueva.tscn",
+	"res://escenas/niveles/NivelNidoArañaReina.tscn",
 ]
 const RUTA_TILESET_NAV := "res://escenas/niveles/tileset_colisiones.tres"
 
@@ -69,6 +82,8 @@ func _procesar(ruta: String) -> void:
 				navegacion.set_cell(celda_nav, 0, Vector2i.ZERO)
 				pintadas += 1
 
+	var recortadas := _recortar_huerfanas(terreno, navegacion, celdas_por_lado)
+
 	var empaquetada := PackedScene.new()
 	var error := empaquetada.pack(nivel)
 	if error == OK:
@@ -76,10 +91,36 @@ func _procesar(ruta: String) -> void:
 	if error != OK:
 		push_error("No se pudo guardar %s (error %d)." % [ruta, error])
 	else:
-		print("%s: Navegacion %s, %d celdas 'Libre' añadidas." % [
-			ruta, "creada" if era_nueva else "actualizada", pintadas,
+		print("%s: Navegacion %s, %d celdas 'Libre' añadidas, %d celdas huérfanas recortadas." % [
+			ruta, "creada" if era_nueva else "actualizada", pintadas, recortadas,
 		])
 	nivel.free()
+
+
+## Borra cualquier celda de Navegacion cuya celda de Terreno correspondiente
+## (invirtiendo el mismo mapeo que arriba: celda_nav -> celda_terreno) NO
+## esté entre las usadas de Terreno — sin importar si esa celda de
+## Navegacion es "Libre" o una ficha de obstáculo pintada a mano, Navegacion
+## nunca debería extenderse más allá de donde Terreno de verdad pintó algo.
+## División con floori(): Vector2i "/" trunca hacia cero, no hacia abajo —
+## con coordenadas negativas (habitual acá, el origen del mapa suele quedar
+## a mitad de camino) truncar mal desplazaría el recorte una celda en el
+## borde negativo.
+func _recortar_huerfanas(terreno: TileMapLayer, navegacion: TileMapLayer, celdas_por_lado: int) -> int:
+	var celdas_terreno := {}
+	for celda in terreno.get_used_cells():
+		celdas_terreno[celda] = true
+
+	var recortadas := 0
+	for celda_nav in navegacion.get_used_cells():
+		var celda_terreno := Vector2i(
+			floori(float(celda_nav.x) / celdas_por_lado),
+			floori(float(celda_nav.y) / celdas_por_lado)
+		)
+		if not celdas_terreno.has(celda_terreno):
+			navegacion.erase_cell(celda_nav)
+			recortadas += 1
+	return recortadas
 
 
 func _es_solido(terreno: TileMapLayer, celda: Vector2i) -> bool:

@@ -42,9 +42,18 @@ const _TOLERANCIA_NAVEGACION := 6.0
 ## jugador (incluida su zona de aparición al entrar al nivel), que lo
 ## atacaban antes de que pudiera reaccionar ("el golpe al iniciar").
 const _DISTANCIA_MINIMA_JUGADOR := 350.0
+## Segundos entre barridos de "¿algún mob vivo quedó fuera del mapa?" (ver
+## _revisar_mobs_fuera_de_limites) — bug real reportado: "los respawn de
+## los mobs a veces quedan fuera del mapa". El punto de generación en sí
+## ya se valida (ver _punto_de_generacion_valido), pero deambular/huida
+## puede seguir empujando a un mob más allá del borde CON EL TIEMPO, ya
+## generado — esto es una red de seguridad aparte, más espaciada que
+## intervalo_spawn a propósito (no necesita reaccionar al instante).
+const _INTERVALO_REVISION_LIMITES := 5.0
 
 var _vivos: Array[Node] = []
 var _tiempo_restante: float = 0.0
+var _tiempo_restante_revision: float = 0.0
 var _contenedor: Node
 # La generación inicial espera a la malla de navegación (puede tardar algún
 # physics_frame); hasta que termine, _process no debe competir generando por
@@ -76,6 +85,7 @@ func _ready() -> void:
 		for _i in cantidad_inicial:
 			_generar_uno()
 	_tiempo_restante = intervalo_spawn
+	_tiempo_restante_revision = _INTERVALO_REVISION_LIMITES
 	_listo = true
 
 
@@ -117,15 +127,24 @@ func _debe_generar_localmente() -> bool:
 
 
 func _process(delta: float) -> void:
-	if not _listo or not activo or lista_mobs.is_empty() or _vivos.size() >= maximo_mobs:
-		return
-	if not _debe_generar_localmente():
+	if not _listo or not _debe_generar_localmente():
 		return
 	# Nivel sin nadie adentro: no tiene sentido poblarlo (en el servidor
 	# pueden convivir varios niveles a la vez, ver GestorNiveles). Además
 	# evita mandarle a los clientes eventos de spawn de un mapa que no
 	# tienen cargado — el motor los rechazaría con "node not found".
 	if not GestorNiveles.hay_jugadores_en(_nivel_propio()):
+		return
+
+	# Corre SIEMPRE, sin importar activo/maximo_mobs: justo cuando el
+	# spawner está "lleno" es cuando más importa detectar un fantasma
+	# afuera del mapa ocupando un lugar de verdad (ver la constante).
+	_tiempo_restante_revision -= delta
+	if _tiempo_restante_revision <= 0.0:
+		_tiempo_restante_revision = _INTERVALO_REVISION_LIMITES
+		_revisar_mobs_fuera_de_limites()
+
+	if not activo or lista_mobs.is_empty() or _vivos.size() >= maximo_mobs:
 		return
 	_tiempo_restante -= delta
 	if _tiempo_restante <= 0.0:
@@ -225,6 +244,31 @@ func _punto_de_generacion_valido() -> Variant:
 	if global_position.distance_to(mas_cercano_base) <= _TOLERANCIA_NAVEGACION:
 		return global_position
 	return null
+
+
+## Elimina (no reposiciona) a cualquier mob de _vivos que haya quedado más
+## lejos de _TOLERANCIA_NAVEGACION de la malla — más simple y sin riesgo
+## de "moverlo" a otro punto igual de inválido. Saca a "mob" de _vivos acá
+## mismo, SIN esperar a que tree_exiting dispare _al_salir_mob (queue_free()
+## es diferido al final del fotograma) — así el próximo _generar_uno() (o
+## una segunda pasada de esta misma revisión) ya ve el hueco libre de
+## inmediato, no recién en el fotograma siguiente. Sin botín ni XP ni
+## animación de muerte a propósito: esto no es una muerte de combate, es
+## descartar un estado anómalo.
+func _revisar_mobs_fuera_de_limites() -> void:
+	if _vivos.is_empty():
+		return
+	var mapa := GestorNiveles.mapa_navegacion_de(self)
+	if NavigationServer2D.map_get_regions(mapa).is_empty():
+		return
+	for mob in _vivos.duplicate():
+		if not is_instance_valid(mob) or not (mob is Node2D):
+			continue
+		var posicion: Vector2 = (mob as Node2D).global_position
+		var mas_cercano: Vector2 = NavigationServer2D.map_get_closest_point(mapa, posicion)
+		if posicion.distance_to(mas_cercano) > _TOLERANCIA_NAVEGACION:
+			_vivos.erase(mob)
+			mob.queue_free()
 
 
 func _demasiado_cerca_de_jugador(punto: Vector2) -> bool:
