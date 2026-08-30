@@ -18,7 +18,7 @@ campos = Array[ExtResource("ec_base")]([SubResource("Resource_recarga")])
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_fervor"]
 atlas = ExtResource("2_iconos")
-region = Rect2(320, 0, 32, 32)
+region = Rect2(352, 128, 32, 32)
 
 [resource]
 script = ExtResource("1_dh")

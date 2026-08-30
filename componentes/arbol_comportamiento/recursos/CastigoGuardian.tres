@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3 uid="uid://e71vq3lblqc"]
+
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="1_cgbt2"]
+
+[resource]
+script = ExtResource("1_cgbt2")
+nombre = "Castigo"
+rango_maximo = 100.0
+duracion_cooldown = 1.0
+requiere_acercarse = false
+ruta_nodo = NodePath("Habilidades/HabilidadGolpeVerdaderoCastigo")
+metadata/_custom_type_script = "uid://fr6tavpigufc"

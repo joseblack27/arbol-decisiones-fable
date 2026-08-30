@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=4 uid="uid://b3r2fxugtcblu"]
+[gd_scene load_steps=18 format=4 uid="uid://b3r2fxugtcblu"]
 
 [ext_resource type="Script" uid="uid://buv25r2fvbcxs" path="res://escenas/niveles/NivelBase.gd" id="1_qern7"]
 [ext_resource type="TileSet" uid="uid://srcylgoba2ge" path="res://escenas/niveles/tileset_juego.tres" id="2_mqdv6"]
@@ -9,6 +9,9 @@
 [ext_resource type="PackedScene" uid="uid://dppevmcsw5an7" path="res://escenas/objetos/Cofre.tscn" id="7_cofre"]
 [ext_resource type="Texture2D" uid="uid://b6kva54sk7tqj" path="res://assets/tilesets/tileset_01.png" id="8_xrf2a"]
 [ext_resource type="PackedScene" uid="uid://dhqlvt8wdg8mt" path="res://escenas/objetos/AlmacenLenador.tscn" id="9_almacen_lenador"]
+[ext_resource type="PackedScene" path="res://escenas/npc/aldeano/Aldeano.tscn" id="10_aldeano"]
+[ext_resource type="Resource" path="res://recursos/dialogo/ejemplo_aldeano_1.tres" id="11_dialogo_aldeano1"]
+[ext_resource type="Resource" path="res://recursos/dialogo/ejemplo_aldeano_2.tres" id="12_dialogo_aldeano2"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_g6ir3"]
 atlas = ExtResource("3_cpmdm")
@@ -104,3 +107,13 @@ position = Vector2(80, 32)
 
 [node name="NPCs" type="Node2D" parent="."]
 y_sort_enabled = true
+
+[node name="Aldeano1" parent="NPCs" instance=ExtResource("10_aldeano")]
+position = Vector2(-500, 40)
+nombre = "Aldeano"
+datos_dialogo = ExtResource("11_dialogo_aldeano1")
+
+[node name="Aldeano2" parent="NPCs" instance=ExtResource("10_aldeano")]
+position = Vector2(150, 40)
+nombre = "Aldeana"
+datos_dialogo = ExtResource("12_dialogo_aldeano2")

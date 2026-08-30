@@ -54,6 +54,15 @@ var pin_conexion := ""
 ## lo setea Jugador._rechazar_cuenta_red y lo muestra/limpia MenuInicio.
 var error_conexion := ""
 
+## true = este cliente se juega solo (ver BotIA.gd, agregado por Jugador.gd
+## en _ready() cuando esto está prendido) en vez de esperar input real —
+## pedido del usuario: probar el servidor con varias instancias de Godot
+## conectadas a la vez, viendo bots recorrer el mapa y pelear contra mobs
+## por su cuenta. Lo tilda MenuInicio (checkbox "Controlar como bot") justo
+## antes de cargar Mundo.tscn — a propósito NO se persiste en guardar_config
+## (arranca destildado siempre, no es una preferencia de usuario real).
+var modo_bot := false
+
 ## Muestra en partida los datos de DIAGNÓSTICO (contador de FPS, latencia,
 ## estado de conexión y el panel de log de red). Apagado por defecto: son
 ## herramientas de desarrollo, no información de juego — flotaban sueltas
@@ -109,7 +118,24 @@ const _RUTA_ID_JUGADOR := "user://id_jugador.txt"
 ## de otro a propósito (eso requeriría autenticación real, fuera de alcance
 ## acá), pero sí elimina las colisiones ACCIDENTALES, que eran el problema
 ## real a esta escala.
+## UUID de bot para ESTA sesión — nunca tocar _RUTA_ID_JUGADOR (ver más
+## abajo el porqué). Vacío hasta la primera llamada en modo bot.
+var _id_bot_actual := ""
+
 func id_jugador_local() -> String:
+	# "user://" es por INSTALACIÓN, no por proceso — todas las instancias de
+	# Godot corriendo en la MISMA PC (mismo usuario de Windows) comparten el
+	# mismo id_jugador.txt. Sin este corte, 2+ bots (o un bot + el jugador
+	# real) en la misma máquina terminaban con el MISMO id_jugador_local(),
+	# así que el servidor los trataba como la MISMA cuenta reconectándose
+	# una y otra vez — bug real reportado: "creaba el mundo en bucle...
+	# movía a todos los jugadores a la misma posición". Un UUID fresco EN
+	# MEMORIA (nunca escrito a disco) evita la colisión: cada bot es una
+	# cuenta nueva cada vez que arranca, nunca comparte identidad con nadie.
+	if modo_bot:
+		if _id_bot_actual == "":
+			_id_bot_actual = _generar_uuid()
+		return _id_bot_actual
 	if FileAccess.file_exists(_RUTA_ID_JUGADOR):
 		var archivo := FileAccess.open(_RUTA_ID_JUGADOR, FileAccess.READ)
 		var id := archivo.get_as_text().strip_edges()

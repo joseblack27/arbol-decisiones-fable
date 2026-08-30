@@ -44,6 +44,20 @@ func _terminar() -> void:
 	_al_terminar()
 
 
+## Corta este efecto ANTES de que se le acabe la duración — para que una
+## habilidad pueda destruirlo en el mundo (hoy: HabilidadCorte, pedido del
+## usuario: "permite atacar cualquier tipo de habilidad de los enemigos,
+## sea un proyectil, un ataque en área, un muro..."). Pasa por _terminar(),
+## que ya limpia bien: le saca el efecto a todos los que estaban adentro
+## antes de morir (si no, un charco de lentitud destruido dejaría al
+## jugador lento para siempre).
+## Muro NO usa esto: tiene su propio camino con vida/rotura replicada por
+## red (ver Muro._romper()), y Corte le pega con quitar_vida() como
+## cualquier otro ataque.
+func destruir() -> void:
+	_terminar()
+
+
 ## Sobreescribir en subclases.
 func _aplicar_efecto(_objetivo: Node) -> void:
 	pass

@@ -28,6 +28,16 @@ extends NodoHoja
 @export_group("Habilidades")
 ## Lista de habilidades disponibles. Añade aquí tus recursos HabilidadBT.
 @export var habilidades: Array[HabilidadBT] = []
+## Ruido aleatorio (0..valor) sumado a la prioridad de cada habilidad
+## DISPONIBLE antes de ordenar, para romper empates 100% deterministas —
+## 0.0 (default) no cambia nada para ningún mob existente. Pedido del
+## usuario para el Guardián Quebrado: "una IA un poco más inteligente"
+## — con prioridades enteras (1, 2, 3...), un valor por debajo de 1.0
+## solo desempata entre habilidades de la MISMA prioridad, sin alterar el
+## orden entre distintos niveles de prioridad. Calculado UNA vez por
+## selección (no dentro del comparador, que correría varias veces con
+## valores distintos para el mismo par y rompería el orden).
+@export var jitter_prioridad: float = 0.0
 
 @export_group("Claves Memoria")
 ## Clave en memoria que contiene el Node2D objetivo (para calcular distancia).
@@ -83,9 +93,14 @@ func _on_ejecutar() -> Estado:
 			_imprimir_estado_habilidades(distancia)
 		return Estado.FALLIDO
 
-	# Ordenar por prioridad (mayor primero) y elegir la primera.
+	# Ordenar por prioridad (mayor primero, con jitter opcional) y elegir la
+	# primera. El puntaje se calcula UNA vez por habilidad (ver el @export
+	# jitter_prioridad) para que el orden sea consistente durante todo el sort.
+	var puntajes: Dictionary = {}
+	for h: HabilidadBT in disponibles:
+		puntajes[h] = float(h.prioridad) + (randf() * jitter_prioridad if jitter_prioridad > 0.0 else 0.0)
 	disponibles.sort_custom(
-		func(a: HabilidadBT, b: HabilidadBT) -> bool: return a.prioridad > b.prioridad
+		func(a: HabilidadBT, b: HabilidadBT) -> bool: return puntajes[a] > puntajes[b]
 	)
 	var elegida: HabilidadBT = disponibles[0]
 

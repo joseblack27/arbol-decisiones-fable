@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" uid="uid://bvgpgmf67u2sw" path="res://escenas/habilidades/proyectil/Proyectil.gd" id="1_proy"]
+[ext_resource type="Texture2D" uid="uid://jy5qvrtxhjfg" path="res://assets/iconos/icons32x32.png" id="2_atlas"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_franco"]
+radius = 10.0
+
+[node name="ProyectilFrancotiradorGuardian" type="Area2D"]
+collision_mask = 4294967295
+monitorable = false
+script = ExtResource("1_proy")
+velocidad_base = 1000.0
+alcance_base = 900.0
+mostrar_debug = false
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_franco")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_atlas")
+region_enabled = true
+region_rect = Rect2(352, 384, 32, 32)

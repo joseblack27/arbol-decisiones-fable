@@ -1,0 +1,63 @@
+[gd_scene load_steps=9 format=3 uid="uid://bms40vx62wgrj"]
+
+[ext_resource type="Script" uid="uid://dn24ty07qsbih" path="res://escenas/habilidades/cepo/Cepo.gd" id="1_cepo"]
+[ext_resource type="Texture2D" uid="uid://devcb4i1w6wdx" path="res://assets/Bear_Trap.png" id="2_sheet"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pisado1"]
+atlas = ExtResource("2_sheet")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pisado2"]
+atlas = ExtResource("2_sheet")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_pisado3"]
+atlas = ExtResource("2_sheet")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_puesto"]
+atlas = ExtResource("2_sheet")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_cepo"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pisado1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pisado2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_pisado3")
+}],
+"loop": false,
+"name": &"pisado",
+"speed": 10.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_puesto")
+}],
+"loop": true,
+"name": &"puesto",
+"speed": 5.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cepo"]
+radius = 24.0
+
+[node name="Cepo" type="Area2D"]
+collision_mask = 2
+monitorable = false
+script = ExtResource("1_cepo")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+position = Vector2(-9.536743e-07, 4.2915344e-06)
+scale = Vector2(2, 2)
+sprite_frames = SubResource("SpriteFrames_cepo")
+animation = &"puesto"
+autoplay = "puesto"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_cepo")

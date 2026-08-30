@@ -27,6 +27,7 @@ extends PanelContainer
 const _TAMANO_FUENTE := 10
 
 @onready var _lista: VBoxContainer = %Lista
+@onready var _etiqueta_nombre: Label = %EtiquetaNombre
 
 var _items: Array[Dictionary] = []
 ## Índice en _items del objeto elegido en la lista de objetos — -1
@@ -55,8 +56,16 @@ func _reconstruir() -> void:
 	if _objeto_elegido == -1 and _items.size() == 1:
 		_objeto_elegido = 0
 	if _objeto_elegido == -1:
+		_etiqueta_nombre.visible = false
 		_mostrar_objetos()
 	else:
+		# Pedido del usuario: mostrar el nombre del objeto arriba SOLO
+		# cuando ya se sabe cuál es — eligiéndolo de la lista, o directo si
+		# era el único en rango. Mientras se ve la lista de objetos (elegir
+		# entre varios) el label queda invisible: ahí el nombre de cada uno
+		# ya está en su propio botón.
+		_etiqueta_nombre.text = _items[_objeto_elegido]["nombre"]
+		_etiqueta_nombre.visible = true
 		_mostrar_acciones(_objeto_elegido)
 	_ajustar_alto()
 

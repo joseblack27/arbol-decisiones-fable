@@ -1,4 +1,4 @@
-[gd_scene load_steps=20 format=3 uid="uid://brkcchgxseadn"]
+[gd_scene load_steps=21 format=3 uid="uid://brkcchgxseadn"]
 
 [ext_resource type="Script" uid="uid://b1k567eamw383" path="res://escenas/mundo/Mundo.gd" id="2_mundo"]
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="30_tema"]
@@ -21,6 +21,15 @@
 [ext_resource type="PackedScene" path="res://escenas/ui/hud/BarraBuffs.tscn" id="23_bb"]
 [ext_resource type="Script" uid="uid://4phss6l72t6l" path="res://escenas/ui/ui_habilidad/PaginadorHabilidades.gd" id="24_pag"]
 [ext_resource type="PackedScene" uid="uid://dqxk0lvxwj2rt" path="res://escenas/ui/hud/PanelLogRed.tscn" id="25_log"]
+
+[sub_resource type="StyleBoxFlat" id="SB_boton_fondo_negro"]
+bg_color = Color(0.05882353, 0.05882353, 0.05882353, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+corner_detail = 1
 
 [node name="Mundo" type="Node2D"]
 y_sort_enabled = true
@@ -110,6 +119,9 @@ offset_right = -20.0
 offset_bottom = -257.0
 grow_horizontal = 0
 grow_vertical = 0
+theme = ExtResource("30_tema")
+theme_override_styles/hover = SubResource("SB_boton_fondo_negro")
+theme_override_styles/normal = SubResource("SB_boton_fondo_negro")
 text = "1"
 script = ExtResource("24_pag")
 rutas_botones = Array[NodePath]([NodePath("../UIHabilidadSlot0"), NodePath("../UIHabilidadSlot1"), NodePath("../UIHabilidadSlot2"), NodePath("../UIHabilidadSlot3"), NodePath("../UIHabilidadSlot4")])
@@ -138,7 +150,19 @@ theme_override_constants/margin_top = 4
 theme_override_constants/margin_right = 4
 theme_override_constants/margin_bottom = 4
 
-[node name="Lista" type="VBoxContainer" parent="CanvasLayer/Control/ListaInteraccion/Margen"]
+[node name="VBoxRaiz" type="VBoxContainer" parent="CanvasLayer/Control/ListaInteraccion/Margen"]
+layout_mode = 2
+
+[node name="EtiquetaNombre" type="Label" parent="CanvasLayer/Control/ListaInteraccion/Margen/VBoxRaiz"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+horizontal_alignment = 1
+clip_text = true
+text_overrun_behavior = 3
+
+[node name="Lista" type="VBoxContainer" parent="CanvasLayer/Control/ListaInteraccion/Margen/VBoxRaiz"]
 unique_name_in_owner = true
 layout_mode = 2
 alignment = 2
@@ -220,6 +244,9 @@ anchor_right = 1.0
 offset_left = -48.0
 offset_bottom = 48.0
 grow_horizontal = 0
+theme = ExtResource("30_tema")
+theme_override_styles/hover = SubResource("SB_boton_fondo_negro")
+theme_override_styles/normal = SubResource("SB_boton_fondo_negro")
 text = "OS"
 script = ExtResource("15_bos")
 

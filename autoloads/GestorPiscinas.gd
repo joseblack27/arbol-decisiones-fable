@@ -99,6 +99,15 @@ func liberar(nodo: Node) -> void:
 	_libres[ruta] = lista
 
 
+## Todo lo que está "en vuelo" ahora mismo (copia — mutarla no toca la
+## lista real). Lo usa HabilidadCorte para encontrar los proyectiles
+## enemigos que puede cortar: NO alcanza con una consulta de física, porque
+## Proyectil.tscn tiene monitorable=false (nadie lo detecta a él, solo él
+## detecta a los demás) y por eso no aparece en intersect_shape().
+func activos() -> Array[Node]:
+	return _activos.duplicate()
+
+
 ## Recoge de golpe todo lo que esté "en vuelo" (proyectiles, números de daño
 ## a medio animar...). GestorNiveles lo llama justo antes de cambiar de
 ## nivel: con la pantalla ya en negro por el fundido, nada se nota.

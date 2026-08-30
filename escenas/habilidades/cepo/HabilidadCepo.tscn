@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/cepo/HabilidadCepo.gd" id="1_hcepo"]
+
+[node name="HabilidadCepo" type="Node"]
+script = ExtResource("1_hcepo")
+nombre_habilidad = "Cepo"
+duracion_recarga = 8.0
+costo_energia = 25.0
+requiere_direccion = true

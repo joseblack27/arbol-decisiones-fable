@@ -1,14 +1,17 @@
 extends CharacterBody2D
 class_name Cazador
 ## NPC autónomo (sin control de jugador): sale de la Ciudad, camina hasta la
-## Pradera, caza a distancia el Ratón vivo más cercano (combate REAL, no un
+## Pradera, caza a distancia la presa viva más cercana (combate REAL, no un
 ## kill instantáneo — a diferencia del leñador con los árboles) y vuelve a
 ## la Ciudad a descansar. Pedido explícito del usuario: "un npc cazador,
 ## que caze ratones y deje los recursos en el mismo cofre del leñador...
 ## combate real con el sistema existente, pero el cazador solo puede
 ## disparar flechas cada 1 segundo y a distancia". Comparte el pool de
-## Ratones de siempre (SpawnerMobs en la Pradera) — caza cualquiera que
-## haya, sin spawner dedicado (confirmado con el usuario).
+## mobs de siempre (SpawnerMobs en la Pradera) — caza cualquiera que haya,
+## sin spawner dedicado (confirmado con el usuario). Presas válidas (ver
+## _presa_mas_cercana): Ratón, Lobo y Araña — pedido explícito del usuario
+## de agregar estos dos últimos a la lista de cacería original (solo
+## Ratón).
 ##
 ## Mismo patrón de NPC errante que Lenador.gd — ver ese archivo para el
 ## porqué completo del diseño (única instancia, vive en GestorNiveles.
@@ -39,7 +42,7 @@ class_name Cazador
 const CAPA_NPC_ERRANTE := 16  # misma capa que ya usa Lenador.gd.
 const MARGEN_LLEGADA := 16.0
 const _ESPERA_EN_CASA := 4.0
-const _ESPERA_SIN_RATON := 3.0
+const _ESPERA_SIN_PRESA := 3.0
 const _FOTOGRAMAS_KEEPALIVE_RED := 30
 const _UMBRAL_REPLICAR := 4.0
 const _UMBRAL_SNAP_CLIENTE := 300.0
@@ -56,15 +59,16 @@ const _RANGO_DISPARO := 380.0
 ## Pedido explícito del usuario: "solo puede disparar flechas cada 1 segundo".
 const _COOLDOWN_DISPARO := 1.0
 ## Pedido explícito del usuario: "la flecha debe hacer 10 de daño" — 10
-## flechazos para los 100 HP de un Ratón sin defensa propia.
+## flechazos para los 100 HP de Ratón/Lobo/Araña, las tres presas válidas
+## tienen la misma vida_maxima.
 @export var dano_flecha: float = 10.0
 
 enum Estado {
 	ESPERANDO_CASA,          # en Ciudad: quieto un rato antes de salir
 	YENDO_AL_PORTAL_CIUDAD,  # en Ciudad: caminando al portal para cruzar a Pradera
-	BUSCANDO_RATON,          # en Pradera: eligiendo el Ratón vivo más cercano
-	ESPERANDO_RATON,         # en Pradera: no hay ninguno vivo, reintenta
-	YENDO_AL_RATON,          # en Pradera: acercándose a rango de tiro
+	BUSCANDO_PRESA,          # en Pradera: eligiendo la presa viva más cercana
+	ESPERANDO_PRESA,         # en Pradera: no hay ninguna viva, reintenta
+	YENDO_A_LA_PRESA,        # en Pradera: acercándose a rango de tiro
 	CAZANDO,                 # en Pradera: dentro de rango, dispara c/1s hasta que el objetivo muera/desaparezca
 	YENDO_AL_PORTAL_PRADERA, # en Pradera: caminando al portal para volver a Ciudad
 }
@@ -79,7 +83,7 @@ var _posicion_replicada: Vector2 = Vector2.ZERO
 
 var _estado: int = Estado.ESPERANDO_CASA
 var _espera_restante: float = 0.0
-var _raton_objetivo: EnemigoRaton = null
+var _presa_objetivo: Enemigo = null
 var _tiempo_desde_disparo: float = 0.0
 
 ## Resueltos una sola vez en _ready(), server-side — mismo motivo que
@@ -145,29 +149,29 @@ func _procesar_estado(delta: float) -> void:
 			movimiento.comandar_destino(_portal_ciudad.global_position)
 			if movimiento.llego_al_destino(MARGEN_LLEGADA):
 				_cruzar_a_pradera()
-				_estado = Estado.BUSCANDO_RATON
+				_estado = Estado.BUSCANDO_PRESA
 
-		Estado.BUSCANDO_RATON:
-			_raton_objetivo = _raton_mas_cercano()
-			if _raton_objetivo == null:
-				_espera_restante = _ESPERA_SIN_RATON
-				_estado = Estado.ESPERANDO_RATON
+		Estado.BUSCANDO_PRESA:
+			_presa_objetivo = _presa_mas_cercana()
+			if _presa_objetivo == null:
+				_espera_restante = _ESPERA_SIN_PRESA
+				_estado = Estado.ESPERANDO_PRESA
 			else:
-				_estado = Estado.YENDO_AL_RATON
+				_estado = Estado.YENDO_A_LA_PRESA
 
-		Estado.ESPERANDO_RATON:
+		Estado.ESPERANDO_PRESA:
 			movimiento.detener()
 			_espera_restante -= delta
 			if _espera_restante <= 0.0:
-				_estado = Estado.BUSCANDO_RATON
+				_estado = Estado.BUSCANDO_PRESA
 
-		Estado.YENDO_AL_RATON:
+		Estado.YENDO_A_LA_PRESA:
 			if not _objetivo_vivo():
-				_raton_objetivo = null
-				_estado = Estado.BUSCANDO_RATON
+				_presa_objetivo = null
+				_estado = Estado.BUSCANDO_PRESA
 				return
-			movimiento.comandar_destino(_raton_objetivo.global_position)
-			if global_position.distance_to(_raton_objetivo.global_position) <= _RANGO_DISPARO:
+			movimiento.comandar_destino(_presa_objetivo.global_position)
+			if global_position.distance_to(_presa_objetivo.global_position) <= _RANGO_DISPARO:
 				_estado = Estado.CAZANDO
 
 		Estado.CAZANDO:
@@ -176,14 +180,14 @@ func _procesar_estado(delta: float) -> void:
 				# (ej. un jugador de paso) — cualquiera de las dos formas
 				# termina la cacería igual, sin distinguir quién dio el
 				# golpe final más allá de lo que ya resuelve _ultimo_atacante.
-				_raton_objetivo = null
+				_presa_objetivo = null
 				_estado = Estado.YENDO_AL_PORTAL_PRADERA
 				return
-			if global_position.distance_to(_raton_objetivo.global_position) > _RANGO_DISPARO:
-				_estado = Estado.YENDO_AL_RATON
+			if global_position.distance_to(_presa_objetivo.global_position) > _RANGO_DISPARO:
+				_estado = Estado.YENDO_A_LA_PRESA
 				return
 			movimiento.detener()
-			direccion = global_position.direction_to(_raton_objetivo.global_position)
+			direccion = global_position.direction_to(_presa_objetivo.global_position)
 			direccion_mirada = direccion
 			_tiempo_desde_disparo += delta
 			if _tiempo_desde_disparo >= _COOLDOWN_DISPARO:
@@ -201,8 +205,8 @@ func _procesar_estado(delta: float) -> void:
 
 
 func _objetivo_vivo() -> bool:
-	return _raton_objetivo != null and is_instance_valid(_raton_objetivo) \
-		and not _raton_objetivo.esta_muerto()
+	return _presa_objetivo != null and is_instance_valid(_presa_objetivo) \
+		and not _presa_objetivo.esta_muerto()
 
 
 ## Combate real (ver Proyectil._resolver_colision()) — self como "fuente"
@@ -261,19 +265,25 @@ func _reproducir_flecha_visual_red(dir: Vector2) -> void:
 	proy.configurar(dir, 1.0, 0.0, self, Enums.Habilidad.TipoDano.FISICO)
 
 
-## Recorre el grupo "enemigos" y se queda con el Ratón vivo más cercano —
-## mismo criterio que Lenador._arbol_mas_cercano(). No filtra por nivel: hoy
-## solo la Pradera tiene SpawnerMobs, así que el grupo ya contiene nada más
-## que mobs de ahí (simplificación aceptada, ver el plan).
-func _raton_mas_cercano() -> EnemigoRaton:
-	var mejor: EnemigoRaton = null
+## Recorre el grupo "enemigos" y se queda con la presa viva más cercana —
+## mismo criterio que Lenador._arbol_mas_cercano(). Presas válidas: Ratón,
+## Lobo, Araña (pedido explícito del usuario: agregar estos dos últimos a
+## la lista original de solo Ratón) — Caballero/Arquero Esqueleto NO
+## cuentan como presa. No filtra por nivel: hoy solo la Pradera tiene
+## SpawnerMobs, así que el grupo ya contiene nada más que mobs de ahí
+## (simplificación aceptada, ver el plan).
+func _presa_mas_cercana() -> Enemigo:
+	var mejor: Enemigo = null
 	var mejor_distancia := INF
 	for nodo in get_tree().get_nodes_in_group("enemigos"):
-		if nodo is EnemigoRaton and not (nodo as EnemigoRaton).esta_muerto():
-			var distancia := global_position.distance_squared_to((nodo as Node2D).global_position)
-			if distancia < mejor_distancia:
-				mejor_distancia = distancia
-				mejor = nodo
+		if not (nodo is EnemigoRaton or nodo is EnemigoLobo or nodo is EnemigoAraña):
+			continue
+		if (nodo as Enemigo).esta_muerto():
+			continue
+		var distancia := global_position.distance_squared_to((nodo as Node2D).global_position)
+		if distancia < mejor_distancia:
+			mejor_distancia = distancia
+			mejor = nodo
 	return mejor
 
 

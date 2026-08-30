@@ -613,7 +613,7 @@ func parpadear(duracion: float = 0.1) -> void:
 
 ## Getter público — mismo criterio que ObjetoRecolectable.esta_agotado():
 ## _muerto en sí es privado, pero quien necesita saber "¿este mob sigue
-## vivo?" desde AFUERA (ej. Cazador._raton_mas_cercano()) no debería tocar
+## vivo?" desde AFUERA (ej. Cazador._presa_mas_cercana()) no debería tocar
 ## el campo directo.
 func esta_muerto() -> bool:
 	return _muerto

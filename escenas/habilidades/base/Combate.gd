@@ -89,8 +89,14 @@ static func golpear_area(
 		# argumento (VidaComponente, Enemigo, Jugador, y Muro — este último
 		# lo usa para no dejarse romper por su propio equipo, ver Muro.
 		# _bloqueado_por_equipo), así que siempre se puede pasar derecho.
+		# es_area=true + el origen REAL del golpe (la transform contra la que
+		# se hizo la query, o sea donde está anclado el hitbox) — lo consume
+		# ParryComponente para decidir si HabilidadCorte para este golpe:
+		# ESTA función es, por definición, "daño de área" (ver ParryComponente
+		# .bloquea). Un Muro no tiene ParryComponente, así que ignora los dos.
 		if vida is VidaComponente:
-			(vida as VidaComponente).quitar_vida(dano_final, fuente, tipo_dano, fue_critico)
+			(vida as VidaComponente).quitar_vida(dano_final, fuente, tipo_dano, fue_critico,
+				true, area.global_position)
 		else:
 			vida.quitar_vida(dano_final, fuente, tipo_dano, fue_critico)
 		# El número flotante local solo se muestra donde el cálculo ES el

@@ -28,7 +28,7 @@ campos = Array[ExtResource("ec_base")]([SubResource("Resource_potencia"), SubRes
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_sacrificio"]
 atlas = ExtResource("2_iconos")
-region = Rect2(384, 128, 32, 32)
+region = Rect2(288, 0, 32, 32)
 
 [resource]
 script = ExtResource("1_scr")

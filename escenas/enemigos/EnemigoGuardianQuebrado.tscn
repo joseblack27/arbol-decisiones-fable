@@ -1,0 +1,642 @@
+[gd_scene load_steps=89 format=3 uid="uid://bay043wn32udt"]
+
+[ext_resource type="Script" uid="uid://dedngnlv3fqis" path="res://escenas/enemigos/EnemigoGuardianQuebrado.gd" id="1_egq"]
+[ext_resource type="FontFile" uid="uid://dkajfhggmh7n4" path="res://assets/fonts/jet brain mono/JetBrainsMono-Bold.ttf" id="2b_fuente_etiqueta"]
+[ext_resource type="FontFile" uid="uid://cswnsiiorquix" path="res://assets/fonts/jet brain mono/JetBrainsMono-Medium.ttf" id="2c_fuente_nombre"]
+[ext_resource type="Resource" path="res://recursos/enemigos/GuardianQuebrado.tres" id="2_datos"]
+[ext_resource type="Texture2D" uid="uid://c6uo706eo6eio" path="res://assets/JugadorBase.png" id="3_tex"]
+[ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="4_anim"]
+[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="5_arbol"]
+[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="6_memoria"]
+[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="7_selector"]
+[ext_resource type="Script" uid="uid://ct4bjrtr7d8rn" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="8_secuencia"]
+[ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="9_atacar"]
+[ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="10_perseguir"]
+[ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="11_deambular"]
+[ext_resource type="Script" uid="uid://dn738h7elp7t4" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="12_condmem"]
+[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="13_selhab"]
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="14_habbt"]
+[ext_resource type="Resource" uid="uid://dxq408pvji4s5" path="res://componentes/arbol_comportamiento/recursos/ComboGuardian.tres" id="15_combobt"]
+[ext_resource type="Resource" uid="uid://ca8bckjcrkdjl" path="res://componentes/arbol_comportamiento/recursos/BarridoGuardian.tres" id="16_barridobt"]
+[ext_resource type="Resource" uid="uid://dla4elvj5smsc" path="res://componentes/arbol_comportamiento/recursos/AmagueGuardian.tres" id="17_amaguebt"]
+[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="18_mov"]
+[ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="19_vision"]
+[ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="20_atrib"]
+[ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="21_atribbase"]
+[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="22_vida"]
+[ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="23_energia"]
+[ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="24_barra"]
+[ext_resource type="Script" uid="uid://152kyn2ditn7" path="res://escenas/habilidades/combo_guardian/HabilidadComboGuardian.gd" id="25_combo"]
+[ext_resource type="Script" uid="uid://bkidy7t5qbq0n" path="res://escenas/habilidades/barrido_guardian/HabilidadBarridoGuardian.gd" id="26_barrido"]
+[ext_resource type="Script" uid="uid://beaut3c6tiy16" path="res://escenas/habilidades/amague_guardian/HabilidadAmagueGuardian.gd" id="27_amague"]
+[ext_resource type="Script" uid="uid://co1u3b8jcpcxj" path="res://escenas/habilidades/golpe_verdadero_guardian/HabilidadGolpeVerdaderoGuardian.gd" id="28_golpevt"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/lanza_guardian/HabilidadLluviaLanzasGuardian.tscn" id="33_lluvialanzas"]
+[ext_resource type="Script" uid="uid://2ovdagi4njm8" path="res://escenas/habilidades/francotirador_guardian/HabilidadFrancotiradorGuardian.gd" id="34_francotirador"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/francotirador_guardian/ProyectilFrancotiradorGuardian.tscn" id="35_proyfranco"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/LluviaLanzasGuardian.tres" id="36_lluvialanzasbt"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/FrancotiradorGuardian.tres" id="37_francotiradorbt"]
+[ext_resource type="Script" uid="uid://ccbyv40i3fl23" path="res://escenas/habilidades/golpe_corrupto_guardian/HabilidadGolpeCorruptoGuardian.gd" id="38_golpecorrupto"]
+[ext_resource type="Script" uid="uid://d02qw1gbu5v6w" path="res://escenas/habilidades/muro_guardian/HabilidadMuroGuardian.gd" id="39_muro"]
+[ext_resource type="Script" uid="uid://cj7xexcphgj8q" path="res://escenas/habilidades/escudo_reflectante_guardian/HabilidadEscudoReflectanteGuardian.gd" id="40_escudoreflectante"]
+[ext_resource type="Script" uid="uid://bn7amckloime2" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionHabilidadObjetivoEnCooldown.gd" id="41_condcooldown"]
+[ext_resource type="Resource" uid="uid://ben6n0ebxape6" path="res://componentes/arbol_comportamiento/recursos/GolpeCorruptoGuardian.tres" id="42_golpecorruptobt"]
+[ext_resource type="Resource" uid="uid://dblnpr2swoa1s" path="res://componentes/arbol_comportamiento/recursos/MuroGuardian.tres" id="43_murobt"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EscudoReflectanteGuardian.tres" id="44_escudoreflectantebt"]
+[ext_resource type="Resource" uid="uid://e71vq3lblqc" path="res://componentes/arbol_comportamiento/recursos/CastigoGuardian.tres" id="45_castigobt"]
+[ext_resource type="Script" uid="uid://bnvnkt8jra85p" path="res://escenas/habilidades/arremetida_guardian/HabilidadArremetidaGuardian.gd" id="46_arremetida"]
+[ext_resource type="Script" uid="uid://bgeeeut65x0yt" path="res://escenas/habilidades/miedo_guardian/HabilidadMiedoGuardian.gd" id="47_miedo"]
+[ext_resource type="Resource" uid="uid://b34pebyh22a0r" path="res://componentes/arbol_comportamiento/recursos/ArremetidaGuardian.tres" id="48_arremetidabt"]
+[ext_resource type="Resource" uid="uid://78njcndvxci8" path="res://componentes/arbol_comportamiento/recursos/MiedoGuardian.tres" id="49_miedobt"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cuerpo"]
+radius = 32.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vision"]
+radius = 500.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_base"]
+atlas = ExtResource("3_tex")
+region = Rect2(0, 0, 192, 360)
+
+[sub_resource type="Animation" id="Animation_reset"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_caminar_este"]
+resource_name = "caminar_este"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [16, 17, 18, 19]
+}
+
+[sub_resource type="Animation" id="Animation_caminar_norte"]
+resource_name = "caminar_norte"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [12, 13, 14, 15]
+}
+
+[sub_resource type="Animation" id="Animation_caminar_oeste"]
+resource_name = "caminar_oeste"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [8, 9, 10, 11]
+}
+
+[sub_resource type="Animation" id="Animation_caminar_sur"]
+resource_name = "caminar_sur"
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 1,
+"values": [4, 5, 6, 7]
+}
+
+[sub_resource type="Animation" id="Animation_idle_este"]
+resource_name = "idle_este"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [3]
+}
+
+[sub_resource type="Animation" id="Animation_idle_norte"]
+resource_name = "idle_norte"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [2]
+}
+
+[sub_resource type="Animation" id="Animation_idle_oeste"]
+resource_name = "idle_oeste"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [1]
+}
+
+[sub_resource type="Animation" id="Animation_idle_sur"]
+resource_name = "idle_sur"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_barrido"]
+resource_name = "barrido"
+length = 0.5
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [3]
+}
+
+[sub_resource type="Animation" id="Animation_golpe"]
+resource_name = "golpe"
+length = 0.3
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [16]
+}
+
+[sub_resource type="Animation" id="Animation_cargando"]
+resource_name = "cargando"
+length = 0.5
+loop_mode = 1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:frame")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [17]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_guardian"]
+_data = {
+&"RESET": SubResource("Animation_reset"),
+&"barrido": SubResource("Animation_barrido"),
+&"caminar_este": SubResource("Animation_caminar_este"),
+&"caminar_norte": SubResource("Animation_caminar_norte"),
+&"caminar_oeste": SubResource("Animation_caminar_oeste"),
+&"caminar_sur": SubResource("Animation_caminar_sur"),
+&"cargando": SubResource("Animation_cargando"),
+&"golpe": SubResource("Animation_golpe"),
+&"idle_este": SubResource("Animation_idle_este"),
+&"idle_norte": SubResource("Animation_idle_norte"),
+&"idle_oeste": SubResource("Animation_idle_oeste"),
+&"idle_sur": SubResource("Animation_idle_sur")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_barrido"]
+animation = &"barrido"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_caminar_oeste"]
+animation = &"caminar_oeste"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_caminar_este"]
+animation = &"caminar_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_caminar_norte"]
+animation = &"caminar_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_caminar_sur"]
+animation = &"caminar_sur"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_caminar"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_caminar_oeste")
+blend_point_0/pos = Vector2(-1, 0)
+blend_point_1/node = SubResource("AnimationNodeAnimation_caminar_este")
+blend_point_1/pos = Vector2(1, 0)
+blend_point_2/node = SubResource("AnimationNodeAnimation_caminar_norte")
+blend_point_2/pos = Vector2(0, -1)
+blend_point_3/node = SubResource("AnimationNodeAnimation_caminar_sur")
+blend_point_3/pos = Vector2(0, 1)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_cargando"]
+animation = &"cargando"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_golpe"]
+animation = &"golpe"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_idle_oeste"]
+animation = &"idle_oeste"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_idle_este"]
+animation = &"idle_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_idle_norte"]
+animation = &"idle_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_idle_sur"]
+animation = &"idle_sur"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_idle"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_idle_oeste")
+blend_point_0/pos = Vector2(-1, 0)
+blend_point_1/node = SubResource("AnimationNodeAnimation_idle_este")
+blend_point_1/pos = Vector2(1, 0)
+blend_point_2/node = SubResource("AnimationNodeAnimation_idle_norte")
+blend_point_2/pos = Vector2(0, -1)
+blend_point_3/node = SubResource("AnimationNodeAnimation_idle_sur")
+blend_point_3/pos = Vector2(0, 1)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_inicio"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_a_caminar"]
+advance_mode = 2
+advance_condition = &"debeCaminar"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_a_idle"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_a_barrido"]
+advance_mode = 2
+advance_condition = &"debeBarrido"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_barrido_a_idle"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_a_golpe"]
+advance_mode = 2
+advance_condition = &"debeGolpe"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_golpe_a_idle"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_a_cargando"]
+advance_mode = 2
+advance_condition = &"debeCargando"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="Transition_cargando_a_idle"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_guardian"]
+states/BARRIDO/node = SubResource("AnimationNodeAnimation_barrido")
+states/BARRIDO/position = Vector2(331, 220)
+states/CAMINAR/node = SubResource("AnimationNodeBlendSpace2D_caminar")
+states/CAMINAR/position = Vector2(539, 100)
+states/CARGANDO/node = SubResource("AnimationNodeAnimation_cargando")
+states/CARGANDO/position = Vector2(747, 220)
+states/GOLPE/node = SubResource("AnimationNodeAnimation_golpe")
+states/GOLPE/position = Vector2(539, 220)
+states/IDLE/node = SubResource("AnimationNodeBlendSpace2D_idle")
+states/IDLE/position = Vector2(331, 100)
+transitions = ["Start", "IDLE", SubResource("Transition_inicio"), "IDLE", "CAMINAR", SubResource("Transition_a_caminar"), "CAMINAR", "IDLE", SubResource("Transition_a_idle"), "IDLE", "BARRIDO", SubResource("Transition_a_barrido"), "BARRIDO", "IDLE", SubResource("Transition_barrido_a_idle"), "IDLE", "GOLPE", SubResource("Transition_a_golpe"), "GOLPE", "IDLE", SubResource("Transition_golpe_a_idle"), "IDLE", "CARGANDO", SubResource("Transition_a_cargando"), "CARGANDO", "IDLE", SubResource("Transition_cargando_a_idle")]
+graph_offset = Vector2(0, -7.995531)
+
+[sub_resource type="Resource" id="AtributosBase_guardian"]
+script = ExtResource("21_atribbase")
+regeneracion_energia = 5.0
+defensa = 15.0
+fortaleza = 25.0
+resistencia_fisica = 10.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vida"]
+radius = 30.0
+
+[node name="EnemigoGuardianQuebrado" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
+motion_mode = 1
+script = ExtResource("1_egq")
+habilidad_lluvia_lanzas_bt = ExtResource("36_lluvialanzasbt")
+habilidad_francotirador_bt = ExtResource("37_francotiradorbt")
+habilidad_golpe_corrupto_bt = ExtResource("42_golpecorruptobt")
+habilidad_muro_bt = ExtResource("43_murobt")
+habilidad_escudo_reflectante_bt = ExtResource("44_escudoreflectantebt")
+habilidad_castigo_bt = ExtResource("45_castigobt")
+habilidad_arremetida_bt = ExtResource("48_arremetidabt")
+habilidad_miedo_bt = ExtResource("49_miedobt")
+componente_vida = NodePath("VidaComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+componente_vision = NodePath("VisionComponente")
+componente_animacion = NodePath("AnimacionComponente")
+memoria = NodePath("ArbolComportamiento/MemoriaBT")
+datos = ExtResource("2_datos")
+mostrar_nombre = false
+altura_nombre = -112.0
+xp_otorgada = 1000
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_cuerpo")
+
+[node name="EnergiaComponente" type="Node" parent="."]
+script = ExtResource("23_energia")
+
+[node name="VisionComponente" type="Area2D" parent="."]
+script = ExtResource("19_vision")
+grupos_objetivo = Array[String](["jugadores"])
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionComponente"]
+visible = false
+shape = SubResource("CircleShape2D_vision")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -32)
+scale = Vector2(1.6, 1.6)
+texture = SubResource("AtlasTexture_base")
+hframes = 4
+vframes = 5
+
+[node name="BarraVidaEnergia" type="Node2D" parent="."]
+position = Vector2(0, -98)
+script = ExtResource("24_barra")
+
+[node name="NombreJefe" type="Label" parent="."]
+offset_left = -104.0
+offset_top = -118.0
+offset_right = 104.0
+offset_bottom = -99.0
+theme_override_colors/font_color = Color(1, 1, 1, 0.95)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("2c_fuente_nombre")
+theme_override_font_sizes/font_size = 8
+text = "Nv.12 El Guardián Quebrado"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EtiquetaHabilidad" type="Label" parent="."]
+visible = false
+offset_left = -104.0
+offset_top = -144.0
+offset_right = 104.0
+offset_bottom = -119.0
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 5
+theme_override_fonts/font = ExtResource("2b_fuente_etiqueta")
+theme_override_font_sizes/font_size = 18
+text = "Habilidad"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimacionComponente" type="Node" parent="." node_paths=PackedStringArray("animation_player", "animation_tree")]
+script = ExtResource("4_anim")
+animation_player = NodePath("AnimationPlayer")
+animation_tree = NodePath("AnimationTree")
+params_blend_adicionales = Array[String](["parameters/CAMINAR/blend_position", "parameters/IDLE/blend_position"])
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimacionComponente"]
+libraries = {
+&"": SubResource("AnimationLibrary_guardian")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="AnimacionComponente"]
+tree_root = SubResource("AnimationNodeStateMachine_guardian")
+anim_player = NodePath("../AnimationPlayer")
+parameters/conditions/debeBarrido = false
+parameters/conditions/debeCaminar = false
+parameters/conditions/debeCargando = false
+parameters/conditions/debeGolpe = false
+parameters/conditions/debeIdle = false
+parameters/CAMINAR/blend_position = Vector2(0, 0)
+parameters/IDLE/blend_position = Vector2(0, 1)
+
+[node name="ArbolComportamiento" type="Node" parent="."]
+script = ExtResource("5_arbol")
+agente = NodePath("..")
+ruta_memoria = NodePath("MemoriaBT")
+
+[node name="MemoriaBT" type="Node" parent="ArbolComportamiento"]
+script = ExtResource("6_memoria")
+
+[node name="Selector" type="Node" parent="ArbolComportamiento"]
+script = ExtResource("7_selector")
+nombre_nodo = "(Selector) Raiz"
+
+[node name="CastigoCorte" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("8_secuencia")
+nombre_nodo = "(Secuencia) Castigo si Corte está en cooldown"
+
+[node name="CondCastigoCorte" type="Node" parent="ArbolComportamiento/Selector/CastigoCorte"]
+script = ExtResource("41_condcooldown")
+nombre_nodo = "(Condición) Corte del objetivo en cooldown"
+
+[node name="AtacarCastigo" type="Node" parent="ArbolComportamiento/Selector/CastigoCorte"]
+script = ExtResource("9_atacar")
+usar_rango_de_habilidades = true
+velocidad_aproximacion = 0.0
+nombre_nodo = "(Acción) Castigo"
+
+[node name="SelectorCastigo" type="Node" parent="ArbolComportamiento/Selector/CastigoCorte/AtacarCastigo"]
+script = ExtResource("13_selhab")
+nombre_nodo = "Castigo"
+
+[node name="Atacar" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("9_atacar")
+usar_rango_de_habilidades = true
+distancia_minima_acercamiento = 25.0
+duracion_recuperacion = 0.8
+intervalo_entre_intentos = 0.4
+nombre_nodo = "(Acción) Atacar"
+
+[node name="SelectorHabilidades" type="Node" parent="ArbolComportamiento/Selector/Atacar"]
+script = ExtResource("13_selhab")
+habilidades = Array[ExtResource("14_habbt")]([ExtResource("15_combobt"), ExtResource("16_barridobt"), ExtResource("17_amaguebt")])
+jitter_prioridad = 0.9
+nombre_nodo = "Habilidades Guardián"
+
+[node name="AcercarseParaAtacar" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("8_secuencia")
+nombre_nodo = "(Secuencia) Acercarse hasta rango"
+
+[node name="CondJugadorDetectado" type="Node" parent="ArbolComportamiento/Selector/AcercarseParaAtacar"]
+script = ExtResource("12_condmem")
+nombre_variable = "jugador_detectado"
+nombre_nodo = "(Condición) Jugador detectado"
+
+[node name="Acercarse" type="Node" parent="ArbolComportamiento/Selector/AcercarseParaAtacar"]
+script = ExtResource("10_perseguir")
+distancia_ataque = 130.0
+distancia_abandono = 700.0
+distancia_minima_acercamiento = 25.0
+nombre_nodo = "(Acción) Acercarse a rango"
+
+[node name="Deambular" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("11_deambular")
+radio_deambulacion = 150.0
+nombre_nodo = "(Acción) Deambular"
+
+[node name="AgenteNavegacion" type="NavigationAgent2D" parent="."]
+path_desired_distance = 8.0
+target_desired_distance = 16.0
+
+[node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador", "agente_navegacion")]
+script = ExtResource("18_mov")
+jugador = NodePath("..")
+velocidad_base = 90.0
+agente_navegacion = NodePath("../AgenteNavegacion")
+
+[node name="Habilidades" type="Marker2D" parent="."]
+
+[node name="HabilidadComboGuardian" type="Node" parent="Habilidades"]
+script = ExtResource("25_combo")
+duracion_recarga = 1.5
+congela_movimiento_en_red = false
+
+[node name="HabilidadBarridoGuardian" type="Node" parent="Habilidades"]
+script = ExtResource("26_barrido")
+duracion_recarga = 3.5
+congela_movimiento_en_red = false
+
+[node name="HabilidadAmagueGuardian" type="Node" parent="Habilidades"]
+script = ExtResource("27_amague")
+duracion_recarga = 4.5
+congela_movimiento_en_red = false
+
+[node name="HabilidadGolpeVerdaderoTransicion" type="Node" parent="Habilidades"]
+script = ExtResource("28_golpevt")
+ignora_defensa = true
+duracion_recarga = 0.5
+congela_movimiento_en_red = false
+
+[node name="HabilidadLluviaLanzasGuardian" parent="Habilidades" instance=ExtResource("33_lluvialanzas")]
+
+[node name="HabilidadFrancotiradorGuardian" type="Node" parent="Habilidades"]
+script = ExtResource("34_francotirador")
+escena_proyectil = ExtResource("35_proyfranco")
+usar_icono_como_sprite = false
+duracion_recarga = 9.0
+congela_movimiento_en_red = false
+
+[node name="HabilidadGolpeCorruptoGuardian" type="Node" parent="Habilidades"]
+script = ExtResource("38_golpecorrupto")
+duracion_recarga = 3.0
+congela_movimiento_en_red = false
+
+[node name="HabilidadMuroGuardian" type="Node" parent="Habilidades"]
+script = ExtResource("39_muro")
+duracion_recarga = 10.0
+congela_movimiento_en_red = false
+
+[node name="HabilidadEscudoReflectanteGuardian" type="Node" parent="Habilidades"]
+script = ExtResource("40_escudoreflectante")
+duracion_recarga = 12.0
+congela_movimiento_en_red = false
+
+[node name="HabilidadGolpeVerdaderoCastigo" type="Node" parent="Habilidades"]
+script = ExtResource("28_golpevt")
+congela_movimiento_en_red = false
+
+[node name="HabilidadArremetidaGuardian" type="Node" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento")]
+script = ExtResource("46_arremetida")
+duracion_preparacion = 0.6
+dano_carga = 45.0
+multiplicador_velocidad_carga = 5.0
+distancia_maxima_dash = 350.0
+componente_movimiento = NodePath("../../MovimientoComponente")
+duracion_recarga = 8.0
+congela_movimiento_en_red = false
+
+[node name="HabilidadMiedoGuardian" type="Node" parent="Habilidades"]
+script = ExtResource("47_miedo")
+duracion_recarga = 7.0
+congela_movimiento_en_red = false
+
+[node name="AtributosComponente" type="Node" parent="."]
+script = ExtResource("20_atrib")
+base = SubResource("AtributosBase_guardian")
+
+[node name="VidaComponente" type="Area2D" parent="."]
+script = ExtResource("22_vida")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
+shape = SubResource("CircleShape2D_vida")
+debug_color = Color(0.98598844, 0.11810657, 0, 0.41960785)

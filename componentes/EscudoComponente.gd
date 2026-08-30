@@ -48,7 +48,12 @@ func tiempo_restante() -> float:
 ## Aplica la reducción al daño entrante. Llamar SIEMPRE (aunque no esté
 ## activo: en ese caso devuelve "dano" sin tocar) en vez de chequear
 ## esta_activo() aparte — un solo punto de verdad para la fórmula.
-func aplicar(dano: float) -> float:
+##
+## "fuente" (quién atacó) es opcional y esta clase base lo ignora — existe
+## en la firma para que EscudoReflectanteComponente (mismo call site en
+## VidaComponente.quitar_vida()) pueda devolverle al atacante la porción
+## que bloqueó, sin que el escudo normal del jugador cambie en nada.
+func aplicar(dano: float, _fuente: Node = null) -> float:
 	if not esta_activo():
 		return dano
 	return dano * (1.0 - _reduccion)

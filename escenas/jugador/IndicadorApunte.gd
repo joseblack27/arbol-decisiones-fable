@@ -109,11 +109,13 @@ func _draw() -> void:
 		"proyectil_abanico": _draw_proyectil_abanico()
 		"area":              _draw_area_efecto()
 		"trampa":            _draw_trampa()
+		"cepo":              _draw_cepo()
 		"carga":             _draw_carga()
 		"muro":              _draw_muro()
 		"parpadeo":          _draw_parpadeo()
 		"lanzallamas":       _draw_lanzallamas()
 		"vortice":           _draw_vortice()
+		"corte":             _draw_corte()
 
 
 ## Dibuja el círculo grande de rango: relleno tenue + borde configurables.
@@ -156,6 +158,24 @@ func _draw_proyectil() -> void:
 	_dibujar_area_golpe_poligono(esq)
 
 
+## Rectángulo alargado y ANCHO desde el jugador hacia donde apunta — la
+## zona real del tajo (ver HabilidadCorte._puntos_rectangulo, misma
+## geometría). Sin círculo de rango: el alcance de Corte es fijo (no
+## depende del poder del joystick), así que un círculo grande alrededor
+## solo agregaría ruido — lo único que hay que decidir es el ÁNGULO, y eso
+## es justo lo que muestra el rectángulo.
+func _draw_corte() -> void:
+	if _dir.length() < 0.05:
+		return
+	var largo: float = _hab.get("largo") if _hab and ("largo" in _hab) else 160.0
+	var ancho: float = _hab.get("ancho") if _hab and ("ancho" in _hab) else 70.0
+	var lado := Vector2(-_dir.y, _dir.x) * (ancho * 0.5)
+	var punta := _dir * largo
+	_dibujar_area_golpe_poligono(PackedVector2Array([
+		-lado, lado, punta + lado, punta - lado,
+	]))
+
+
 ## Mismo corredor que _draw_proyectil(), repetido una vez por cada dirección
 ## del abanico — así se ve de antemano hacia dónde va cada proyectil, no
 ## solo el rango total (círculo grande), antes de soltar el disparo.
@@ -188,6 +208,21 @@ func _draw_trampa() -> void:
 	var h              := _hab as HabilidadTrampa
 	var alcance        := h.alcance_maximo   if h else 150.0
 	var radio_deteccion := h.radio_deteccion if h else 40.0
+
+	_dibujar_rango(alcance)
+
+	var offset := _dir * alcance * _poder
+	_dibujar_area_golpe_circulo(offset, radio_deteccion)
+
+
+## Mismo esquema que _draw_trampa (círculo de rango + zona de golpe en el
+## punto de colocación) — el Cepo también queda invisible mientras se
+## apunta (a propósito, ver Cepo.gd), pero conviene ver dónde va a caer y
+## qué radio de detección va a tener antes de soltarlo.
+func _draw_cepo() -> void:
+	var h                := _hab as HabilidadCepo
+	var alcance          := h.alcance_maximo   if h else 150.0
+	var radio_deteccion  := h.radio_deteccion  if h else 15.0
 
 	_dibujar_rango(alcance)
 

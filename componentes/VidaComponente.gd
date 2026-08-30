@@ -169,9 +169,17 @@ func agregar_vida(cantidad: float) -> float:
 ## al cliente para que el número flotante se pinte del color del elemento.
 ## critico (opcional) — si el golpe acertó el crítico (mismo criterio: solo
 ## viaja para que el número flotante salga amarillo).
+## es_area / origen_dano (opcionales) — SOLO los usa ParryComponente (ver
+## ese archivo y HabilidadCorte): "¿este golpe fue de área?" y "¿desde qué
+## punto salió?". Con default (false / Vector2.INF = desconocido) ningún
+## llamador viejo cambia de comportamiento — los únicos que los pasan de
+## verdad son Combate.golpear_area() (origen = el atacante, que es donde
+## está anclado el hitbox) y EfectoDoT._aplicar_tick() (origen = el charco
+## en sí, no quien lo creó — puede estar del otro lado del mapa o muerto).
 func quitar_vida(cantidad: float, fuente: Node = null,
 		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO,
-		critico: bool = false) -> float:
+		critico: bool = false, es_area: bool = false,
+		origen_dano: Vector2 = Vector2.INF) -> float:
 	# Fase 3 del plan de multijugador: en red, solo el SERVIDOR decide
 	# cuánta vida queda — es el punto central por el que pasa TODO el daño
 	# (Proyectil, Arañazo, GolpeBasico, AreaEfecto, HabilidadCarga...), así
@@ -190,16 +198,27 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 	if _invulnerable_restante > 0.0:
 		return salud_actual
 
+	var padre := get_parent()
+
+	# Parry direccional de HabilidadCorte (ver ParryComponente): igual que
+	# la invulnerabilidad de arriba corta ANTES del escudo — un golpe
+	# parado con el corte no debería gastar escudo, no llegó a entrar.
+	# Sibling consultado por NOMBRE de nodo (no por tipo), mismo criterio
+	# que EscudoComponente acá abajo e InmunidadDebuffsComponente en
+	# EfectoTemporalPegado: nadie depende de que la clase exista.
+	var parry := padre.get_node_or_null("ParryComponente") if padre else null
+	if parry and parry.bloquea(es_area, origen_dano):
+		return salud_actual
+
 	# Escudo temporal (ver EscudoComponente/HabilidadEscudo): reduce o
 	# bloquea el daño ANTES de aplicarlo, en este mismo punto central por
 	# el que pasa TODO el daño real — así cualquier ataque (proyectil,
 	# arañazo, golpe, carga, área) respeta el escudo sin tener que meter el
 	# chequeo en cada habilidad por separado. Sibling, no hijo de este
 	# componente: vive colgado de la misma entidad dueña (ver Jugador.tscn).
-	var padre := get_parent()
 	var escudo := padre.get_node_or_null("EscudoComponente") as EscudoComponente if padre else null
 	if escudo:
-		cantidad = escudo.aplicar(cantidad)
+		cantidad = escudo.aplicar(cantidad, fuente)
 		if cantidad <= 0.0:
 			return salud_actual
 

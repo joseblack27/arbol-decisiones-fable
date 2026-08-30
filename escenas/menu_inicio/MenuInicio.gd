@@ -22,6 +22,7 @@ class_name MenuInicio
 @onready var _campo_puerto: LineEdit  = %CampoPuerto
 @onready var _campo_nombre: LineEdit  = %CampoNombre
 @onready var _campo_pin: LineEdit     = %CampoPin
+@onready var _casilla_bot: CheckBox   = %CasillaBot
 @onready var _boton_jugar: Button     = %BotonJugar
 @onready var _etiqueta_error: Label   = %EtiquetaError
 @onready var _titulo: Label           = %Titulo
@@ -75,6 +76,10 @@ func _on_jugar() -> void:
 	Utils.puerto_conexion = int(puerto_texto)
 	Utils.nombre_conexion = _campo_nombre.text.strip_edges().substr(0, 24)
 	Utils.pin_conexion = _campo_pin.text.strip_edges()
+	# No se persiste (a propósito): sirve para probar el servidor con varias
+	# instancias peleando solas, no es una preferencia que deba sobrevivir
+	# entre sesiones — arranca destildado siempre, pedido del usuario.
+	Utils.modo_bot = _casilla_bot.button_pressed
 	if Utils.pin_conexion != "" and Utils.nombre_conexion == "":
 		_etiqueta_error.text = "Para usar PIN, escribí también un nombre."
 		_etiqueta_error.visible = true

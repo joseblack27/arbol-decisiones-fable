@@ -107,6 +107,20 @@ func _process(delta: float) -> void:
 func puede_usarse() -> bool:
 	return _recarga_restante <= 0.0
 
+
+## ¿Esta habilidad se puede lanzar aunque el dueño esté con el control
+## bloqueado (aturdido, congelado por el margen de red de otra habilidad,
+## arrastrado por un gancho)? false salvo que la subclase declare la
+## propiedad "ignora_bloqueos" en true — ver el comentario en activar().
+## Lo consultan también Jugador._activar_slot() y UIHabilidad, que cortan
+## el toque antes de que la activación llegue hasta acá.
+func ignora_bloqueos_de_control() -> bool:
+	return _ignora_bloqueos()
+
+
+func _ignora_bloqueos() -> bool:
+	return ("ignora_bloqueos" in self) and self.get("ignora_bloqueos")
+
 ## Devuelve la proporción de recarga restante (0.0 = lista, 1.0 = recién usada).
 func obtener_ratio_recarga() -> float:
 	if duracion_recarga <= 0.0:
@@ -131,7 +145,16 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	# activar() (no en cada _activar_slot de la UI) para proteger también
 	# la copia autoritativa del servidor, que llega acá directo por
 	# _activar_red() sin pasar por la UI.
-	if is_instance_valid(entidad_dueña) and ("_bloqueos_control" in entidad_dueña) \
+	# ignora_bloqueos: escotilla de escape para una habilidad que DEBE poder
+	# lanzarse aunque el dueño esté aturdido/congelado (hoy solo
+	# HabilidadCorte, pedido del usuario: "este ataque siempre debe estar
+	# disponible para lanzarse, sin importar si el jugador está en algún
+	# estado alterado"). Duck typing, mismo criterio que "es_canal_continuo"
+	# de HabilidadLanzallamas — nadie tiene que conocer la clase.
+	# La MUERTE no entra acá a propósito: un muerto no lanza nada, y eso lo
+	# corta esta_bloqueado()/_muerto aguas arriba y en _activar_red().
+	if not _ignora_bloqueos() and is_instance_valid(entidad_dueña) \
+			and ("_bloqueos_control" in entidad_dueña) \
 			and entidad_dueña._bloqueos_control > 0:
 		return
 	if costo_energia > 0.0:
@@ -245,7 +268,13 @@ func _activar_red(direccion: Vector2, poder: float) -> void:
 	# Jugador.bloquear_por_transicion— no lanza habilidades. El cliente ya lo
 	# bloquea en su UI (Jugador._activar_slot), pero la autoridad real vive
 	# acá: un cliente modificado no puede saltárselo.
-	if entidad_dueña.has_method(&"esta_bloqueado"):
+	# Una habilidad con ignora_bloqueos (ver activar()) sí puede lanzarse
+	# aturdida — pero NUNCA muerta: por eso ahí se chequea solo _muerto en
+	# vez de esta_bloqueado() entero.
+	if _ignora_bloqueos():
+		if ("_muerto" in entidad_dueña) and entidad_dueña.get("_muerto"):
+			return
+	elif entidad_dueña.has_method(&"esta_bloqueado"):
 		if entidad_dueña.call(&"esta_bloqueado"):
 			return
 	elif ("_muerto" in entidad_dueña) and entidad_dueña.get("_muerto"):

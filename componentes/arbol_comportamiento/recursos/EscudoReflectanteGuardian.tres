@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="1_ergbt"]
+
+[resource]
+script = ExtResource("1_ergbt")
+nombre = "Escudo Reflectante"
+prioridad = 1
+rango_minimo = 0.0
+rango_maximo = -1.0
+duracion_cooldown = 12.0
+requiere_acercarse = false
+ruta_nodo = NodePath("Habilidades/HabilidadEscudoReflectanteGuardian")
+metadata/_custom_type_script = "uid://fr6tavpigufc"

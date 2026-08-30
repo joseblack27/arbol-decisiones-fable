@@ -363,11 +363,23 @@ func calcular_dano_entrante(
 ## Pipeline completo atacante → defensor.
 ## Llámalo desde launchers (Proyectil, AreaEfecto, etc.) antes de quitar_vida().
 ## Si alguno de los dos nodos no tiene AtributosComponente, el daño pasa sin cambios.
+##
+## ignora_defensa (opcional) — saltea ENTERO el lado defensivo (defensa
+## plana, fortaleza y resistencias elementales), dejando pasar el daño del
+## atacante tal cual. Hoy solo lo usa HabilidadCorte (pedido del usuario:
+## "sin importar qué buffos tenga encima, debe recibir el daño completo
+## ignorando defensa y resistencias"). El lado OFENSIVO sí se sigue
+## aplicando: potencia y crítico del atacante son suyos, no del defensor.
+## OJO: esto no es "ignora todo" — la invulnerabilidad total y el escudo
+## viven aguas abajo, en VidaComponente.quitar_vida(), así que un objetivo
+## invulnerable sigue sin recibir nada (que es justo la excepción que pidió
+## el usuario: "a menos que sea inmunidad").
 static func calcular_pipeline(
 		fuente: Node,
 		defensor: Node,
 		cantidad: float,
-		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO) -> float:
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO,
+		ignora_defensa: bool = false) -> float:
 
 	# Lado ofensivo
 	# is_instance_valid() (no "if fuente:") porque un efecto persistente
@@ -380,7 +392,9 @@ static func calcular_pipeline(
 	var dano := atrib_at.calcular_dano_saliente(cantidad, tipo) if atrib_at else cantidad
 	ultimo_pipeline_critico = atrib_at.ultimo_golpe_critico if atrib_at else false
 
-	# Lado defensivo
+	# Lado defensivo — salteado entero si ignora_defensa (ver arriba).
+	if ignora_defensa:
+		return dano
 	var atrib_def: AtributosComponente = null
 	if is_instance_valid(defensor):
 		atrib_def = defensor.get_node_or_null("AtributosComponente") as AtributosComponente

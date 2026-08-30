@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://cguardiangolpev01"]
+
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_verdadero_guardian/GolpeVerdaderoGuardian.gd" id="1_gvg01"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_gvg01"]
+radius = 56.0
+
+[node name="GolpeVerdaderoGuardian" type="Area2D"]
+monitoring = false
+script = ExtResource("1_gvg01")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_gvg01")

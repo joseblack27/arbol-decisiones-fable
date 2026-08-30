@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3 uid="uid://dblnpr2swoa1s"]
+
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="1_mgbt"]
+
+[resource]
+script = ExtResource("1_mgbt")
+nombre = "Muro Corrupto"
+prioridad = 2
+rango_minimo = 60.0
+rango_maximo = 125.0
+duracion_cooldown = 10.0
+requiere_acercarse = false
+ruta_nodo = NodePath("Habilidades/HabilidadMuroGuardian")
+metadata/_custom_type_script = "uid://fr6tavpigufc"

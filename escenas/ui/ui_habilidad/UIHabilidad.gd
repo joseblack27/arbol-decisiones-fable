@@ -221,10 +221,19 @@ func _apunte_bloqueado_por_cooldown() -> bool:
 ## También cubre la llegada a un nivel nuevo (ver
 ## Jugador.bloquear_por_transicion): durante esos segundos el botón no
 ## responde, igual que estando muerto.
+## La habilidad de ESTE slot puede declarar ignora_bloqueos (ver
+## HabilidadBase.activar/HabilidadCorte): en ese caso el toque solo se
+## bloquea estando MUERTO, no por aturdimiento ni por el margen de red —
+## si no, el botón ni siquiera armaría el joystick y la habilidad "siempre
+## disponible" que pidió el usuario sería inalcanzable justo cuando más
+## hace falta (aturdido por el jefe).
 func _dueño_muerto() -> bool:
 	if not _slot_habilidades or not is_instance_valid(_slot_habilidades.jugador):
 		return false
 	var jugador := _slot_habilidades.jugador
+	var hab := _slot_habilidades.obtener(slot_index)
+	if hab and hab.ignora_bloqueos_de_control():
+		return ("_muerto" in jugador) and jugador.get("_muerto")
 	if jugador.has_method(&"esta_bloqueado"):
 		return jugador.call(&"esta_bloqueado")
 	return ("_muerto" in jugador) and jugador.get("_muerto")

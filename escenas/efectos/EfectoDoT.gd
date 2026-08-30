@@ -40,7 +40,13 @@ func _aplicar_tick() -> void:
 			continue
 		var dano_final := AtributosComponente.calcular_pipeline(fuente_valida, objetivo, dano_por_tick, tipo_dano)
 		var fue_critico := AtributosComponente.ultimo_pipeline_critico
-		vida.quitar_vida(dano_final, fuente_valida, tipo_dano, fue_critico)
+		# es_area=true + origen = ESTE charco, no quien lo creó (que puede
+		# estar del otro lado del mapa, o muerto y liberado — ver arriba).
+		# Así ParryComponente resuelve bien el caso "el jugador está parado
+		# ENCIMA del ataque" que pidió el usuario para HabilidadCorte: el
+		# origen coincide con los pies del jugador, no con el jefe lejano.
+		vida.quitar_vida(dano_final, fuente_valida, tipo_dano, fue_critico,
+			true, global_position)
 		# Se emite SIEMPRE en single-player/servidor (incluso con
 		# fuente_valida = null): el golpe fue real y debe verse (número
 		# flotante vía GestorNumerosDano), aunque ya no haya quién reclamar

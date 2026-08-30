@@ -260,14 +260,24 @@ func _ready():
 	# lado del servidor el input SIEMPRE llega por RPC, nunca por acá.
 	var soy_dueño_local := not Utils.en_red() or peer_id_dueño == multiplayer.get_unique_id()
 	if soy_dueño_local and not (Utils.en_red() and multiplayer.is_server()):
-		SeñalManager.conectar("joystick_movimiento", self, "_joystick_movimiento")
-		# Un slot_N_activar/lanzar por CADA slot posible (no solo los que se
-		# ven a la vez en el HUD): PaginadorHabilidades reasigna qué slot_index
-		# muestra cada botón físico según la página, así que hay que estar
-		# suscripto a los 10 de entrada, aunque el HUD solo muestre 5 por vez.
-		for i in _total_slots_habilidad():
-			SeñalManager.conectar("slot_%d_activar" % i, self, "_on_slot_%d_activar" % i)
-			SeñalManager.conectar("slot_%d_lanzar"  % i, self, "_on_slot_%d_lanzar"  % i)
+		if Utils.modo_bot:
+			# Modo bot (tildado en MenuInicio, ver Utils.modo_bot): en vez de
+			# suscribirse a la UI real, cuelga el cerebro autónomo (BotIA) que
+			# llama _joystick_movimiento()/_activar_slot() por su cuenta —
+			# pedido del usuario: probar el servidor con varias instancias de
+			# Godot peleando solas contra los mobs del mapa.
+			var bot = (preload("res://escenas/jugador/BotIA.gd") as GDScript).new()
+			bot.name = "BotIA"
+			add_child(bot)
+		else:
+			SeñalManager.conectar("joystick_movimiento", self, "_joystick_movimiento")
+			# Un slot_N_activar/lanzar por CADA slot posible (no solo los que se
+			# ven a la vez en el HUD): PaginadorHabilidades reasigna qué slot_index
+			# muestra cada botón físico según la página, así que hay que estar
+			# suscripto a los 10 de entrada, aunque el HUD solo muestre 5 por vez.
+			for i in _total_slots_habilidad():
+				SeñalManager.conectar("slot_%d_activar" % i, self, "_on_slot_%d_activar" % i)
+				SeñalManager.conectar("slot_%d_lanzar"  % i, self, "_on_slot_%d_lanzar"  % i)
 
 	# Corre para CUALQUIER jugador (dueño local y réplicas): igual que el
 	# nombre de un mob, es visible para cualquiera que lo mire, no solo el
@@ -940,10 +950,16 @@ func _activar_slot(index: int, dir: Vector2 = Vector2.ZERO, poder: float = 1.0) 
 	# pantalla (el propio y los replicados de otros), no solo el mío.
 	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
 		return
-	# Muerto o recién llegado a un nivel nuevo: nada de habilidades.
-	if esta_bloqueado():
-		return
 	var h := slot_habilidades.obtener(index)
+	# Muerto o recién llegado a un nivel nuevo: nada de habilidades. La
+	# excepción son las que declaran ignora_bloqueos (ver HabilidadBase.
+	# activar y HabilidadCorte): esas se lanzan aunque estés aturdido, pero
+	# nunca estando muerto — por eso ahí se mira solo _muerto.
+	if h and h.ignora_bloqueos_de_control():
+		if _muerto:
+			return
+	elif esta_bloqueado():
+		return
 	if h:
 		var d := dir if dir.length() > 0.1 else _ultima_direccion
 		# Girar a mirar hacia donde se lanza — reportado: "el personaje no

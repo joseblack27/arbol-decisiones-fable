@@ -1,0 +1,39 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=11 format=3 uid="uid://dy8ge7xob6uf4"]
+
+[ext_resource type="Script" uid="uid://dm8kor0dij172" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/cepo/HabilidadCepo.tscn" id="3_esc"]
+[ext_resource type="Texture2D" uid="uid://devcb4i1w6wdx" path="res://assets/Bear_Trap.png" id="5_pn67k"]
+[ext_resource type="Script" uid="uid://ngej76xgiqma" path="res://recursos/habilidades/escalado/CampoEscalado.gd" id="ec_base"]
+[ext_resource type="Script" uid="uid://df3h2j8ow37gk" path="res://recursos/habilidades/escalado/EscaladoHabilidad.gd" id="ec_escalado"]
+[ext_resource type="Script" uid="uid://dpr1es1plim6g" path="res://recursos/habilidades/escalado/CampoEscaladoTabla.gd" id="ec_tabla"]
+
+[sub_resource type="Resource" id="Resource_dano_min"]
+script = ExtResource("ec_tabla")
+valores_por_nivel = Array[float]([8.0, 8.0, 8.0, 8.0, 8.0])
+
+[sub_resource type="Resource" id="Resource_dano_max"]
+script = ExtResource("ec_tabla")
+valores_por_nivel = Array[float]([12.0, 12.0, 12.0, 12.0, 12.0])
+campo = 1
+
+[sub_resource type="Resource" id="Resource_escalado"]
+script = ExtResource("ec_escalado")
+campos = Array[ExtResource("ec_base")]([SubResource("Resource_dano_min"), SubResource("Resource_dano_max")])
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_4gm0f"]
+atlas = ExtResource("5_pn67k")
+region = Rect2(0, 0, 32, 32)
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Cepo"
+icono = SubResource("AtlasTexture_4gm0f")
+descripcion = "Coloca un cepo oculto que inmoviliza y hace {damage1} cada 0.5s durante {duracion}s al primer enemigo que se acerque, o se apaga solo si nadie lo pisa"
+escena = ExtResource("3_esc")
+nivel = 1
+costo_energia = 25
+dano_base_min = 8
+dano_base_max = 12
+alcance_metros = 4
+enfriamiento = 8.0
+escalado = SubResource("Resource_escalado")

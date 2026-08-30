@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3 uid="uid://ben6n0ebxape6"]
+
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="1_gcgbt"]
+
+[resource]
+script = ExtResource("1_gcgbt")
+nombre = "Golpe Corrupto"
+prioridad = 2
+rango_maximo = 105.0
+duracion_cooldown = 3.0
+ruta_nodo = NodePath("Habilidades/HabilidadGolpeCorruptoGuardian")
+metadata/_custom_type_script = "uid://fr6tavpigufc"

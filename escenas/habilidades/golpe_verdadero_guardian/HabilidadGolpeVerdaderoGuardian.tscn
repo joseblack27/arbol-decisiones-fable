@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_verdadero_guardian/HabilidadGolpeVerdaderoGuardian.gd" id="1_hgvg"]
+
+[node name="HabilidadGolpeVerdaderoGuardian" type="Node"]
+script = ExtResource("1_hgvg")
+congela_movimiento_en_red = false

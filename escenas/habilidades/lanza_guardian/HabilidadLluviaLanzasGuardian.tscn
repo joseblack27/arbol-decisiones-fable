@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/proyectil/custom/HabilidadProyectilAbanico.gd" id="1_abanico"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/lanza_guardian/ProyectilLanzaGuardian.tscn" id="2_lanza"]
+
+[node name="HabilidadLluviaLanzasGuardian" type="Node"]
+script = ExtResource("1_abanico")
+daño_proyectil = 15.0
+escena_proyectil = ExtResource("2_lanza")
+usar_icono_como_sprite = false
+duracion_recarga = 5.0
+costo_energia = 0.0
+congela_movimiento_en_red = false
+cantidad_proyectiles = 5
+angulo_total_grados = 50.0

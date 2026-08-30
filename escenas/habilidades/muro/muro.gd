@@ -205,6 +205,25 @@ func _romper() -> void:
 	_al_terminar()
 
 
+## EfectoAreaBase._terminar() (duración agotada, ver ese archivo) no
+## emitía "muerte" — HabilidadMuroGuardian/HabilidadMuroJugador dependen
+## de esa señal para (a) borrar su entrada en el diccionario de muros
+## activos, (b) avisarle a los DEMÁS peers que lo destruyan (ver
+## _on_muro_muerte/_recibir_destruccion_muro_red ahí) y (c) que el
+## CONNECT_ONE_SHOT de esa conexión se desconecte solo antes de que la
+## piscina recicle esta MISMA instancia. Sin esto, un muro que se apagaba
+## solo (nadie lo rompió a tiempo) dejaba la conexión colgada para
+## siempre — el próximo muro reciclado de la piscina reventaba con
+## "Signal already connected" al intentar conectar de nuevo (bug real,
+## encontrado al hacer la IA del jefe más agresiva). El chequeo de
+## _salud_actual evita emitir dos veces si ya se rompió en combate justo
+## antes de que el timer de duración también dispare.
+func _terminar() -> void:
+	if _salud_actual > 0.0:
+		muerte.emit(0.0)
+	super._terminar()
+
+
 ## Sobreescribe EfectoAreaBase._al_terminar(): en vez de liberar de verdad,
 ## el muro vuelve a su piscina (ver GestorPiscinas) — llega acá tanto por
 ## duración agotada (_terminar(), heredado) como por romperse en combate
