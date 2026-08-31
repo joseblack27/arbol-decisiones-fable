@@ -15,6 +15,8 @@
 [ext_resource type="PackedScene" uid="uid://vx8rpfo3obau" path="res://escenas/ui/panel_os/paneles/habilidades/PanelHabilidades.tscn" id="11_rxrgu"]
 [ext_resource type="PackedScene" uid="uid://devgqv2nmuytk" path="res://escenas/ui/panel_os/paneles/eventos/PanelEventos.tscn" id="14_rwlrv"]
 [ext_resource type="PackedScene" path="res://escenas/ui/panel_os/paneles/configuracion/PanelConfiguracion.tscn" id="pc_config"]
+[ext_resource type="PackedScene" path="res://escenas/ui/panel_os/paneles/grupo/PanelGrupo.tscn" id="pg_grupo"]
+[ext_resource type="PackedScene" path="res://escenas/ui/panel_os/paneles/mapa/PanelMapa.tscn" id="pm_mapa"]
 
 [node name="OsPrincipal" type="Control"]
 custom_minimum_size = Vector2(720, 360)
@@ -265,6 +267,18 @@ size_flags_horizontal = 3
 toggle_mode = true
 text = "Configuración"
 
+[node name="BtnGrupo" type="Button" parent="ColorRect/Margin/VBox/Panel/BarraSuperior"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Grupo"
+
+[node name="BtnMapa" type="Button" parent="ColorRect/Margin/VBox/Panel/BarraSuperior"]
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Mapa"
+
 [node name="TabContainer" type="TabContainer" parent="ColorRect/Margin/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
@@ -333,4 +347,20 @@ layout_mode = 2
 metadata/_tab_index = 7
 
 [node name="PanelConfiguracion" parent="ColorRect/Margin/VBox/TabContainer/TabConfiguracion" instance=ExtResource("pc_config")]
+layout_mode = 1
+
+[node name="TabGrupo" type="Control" parent="ColorRect/Margin/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 8
+
+[node name="PanelGrupo" parent="ColorRect/Margin/VBox/TabContainer/TabGrupo" instance=ExtResource("pg_grupo")]
+layout_mode = 1
+
+[node name="TabMapa" type="Control" parent="ColorRect/Margin/VBox/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 9
+
+[node name="PanelMapa" parent="ColorRect/Margin/VBox/TabContainer/TabMapa" instance=ExtResource("pm_mapa")]
 layout_mode = 1

@@ -15,8 +15,11 @@ class_name EnemigoGuardianQuebrado
 ## francotirador, charco en golpes de área), Fase 3 "Corrupción" (golpe
 ## corrupto, muro, escudo reflectante, castigo por cooldown de Corte) y
 ## Fase 4 "Quiebre" (arremetida de daño verdadero, miedo/empujón, refuerzos).
-## Falta la prueba de integración de las 4 fases seguidas y las transiciones
-## completas de punta a punta.
+## Las 4 fases seguidas y las transiciones de punta a punta ya están
+## probadas (prueba_guardian_4_fases_completas.gd) — esa misma prueba
+## encontró y corrigió un bug real: dano_golpe_transicion nunca llegaba a
+## aplicarse de verdad (el golpe de transición pegaba 20 fijo, la mitad de
+## lo diseñado), ver el comentario en _ready() de más abajo.
 
 ## Umbrales de vida (fracción de la máxima) que disparan cada transición.
 const _UMBRAL_FASE_2 := 0.75
@@ -115,6 +118,15 @@ func _ready() -> void:
 	var lluvia_lanzas := get_node_or_null("Habilidades/HabilidadLluviaLanzasGuardian")
 	if lluvia_lanzas:
 		lluvia_lanzas.nombre_habilidad = "Lluvia de Lanzas"
+	# Bug real encontrado por la prueba de integración de las 4 fases
+	# (prueba_guardian_4_fases_completas.gd): dano_golpe_transicion nunca se
+	# conectaba con el nodo real — HabilidadGolpeVerdaderoTransicion no
+	# tiene override de "daño" en el .tscn, así que siempre pegaba el
+	# default del script (20.0) sin importar lo que dijera este export. El
+	# golpe de transición terminaba pegando la mitad de lo diseñado.
+	var golpe_transicion := get_node_or_null("Habilidades/HabilidadGolpeVerdaderoTransicion")
+	if golpe_transicion:
+		golpe_transicion.daño = dano_golpe_transicion
 
 
 func _process(delta: float) -> void:

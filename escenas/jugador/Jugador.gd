@@ -31,6 +31,7 @@ var direccion_mirada: Vector2 = Vector2.ZERO
 @onready var componente_atributos: AtributosComponente = $AtributosComponente
 @onready var componente_animacion: AnimacionComponente = $AnimacionComponente
 @onready var componente_energia: EnergiaComponente = $EnergiaComponente
+@onready var _etiqueta_nombre: Label = $EtiquetaNombre
 
 var _ultima_direccion: Vector2 = Vector2.RIGHT
 ## Posición del fotograma anterior — SOLO para inferir "caminando" en la
@@ -67,8 +68,6 @@ var _muerto := false
 ## físicos, así que sin colisión dejan de detectarlo y atacarlo solos).
 var _capa_colision_original: int = 0
 var _mascara_colision_original: int = 0
-## Cartel "Has muerto" — solo se crea para el dueño local (ver _morir).
-var _aviso_muerte: Label = null
 
 @export_group("Íconos de estado")
 ## Fila de íconos (veneno, lentitud, aturdido...) ENCIMA del jugador — mismo
@@ -116,7 +115,19 @@ var peer_id_dueño: int = -1
 ## el mismo MultiplayerSynchronizer que ya replica la posición. Leerlo
 ## siempre vía Utils.nombre_visible(nodo), que cae al nombre de nodo si está
 ## vacío. PUEDE repetirse entre jugadores sin problema — es solo estético.
-var nombre_visible: String = ""
+##
+## Cartel de nombre sobre el personaje (nodo real "EtiquetaNombre", ver
+## Jugador.tscn — mismo patrón que "NombreJefe" en EnemigoGuardianQuebrado):
+## el setter lo mantiene sincronizado en cada asignación, tanto la local
+## (_ready) como la que llega por replicación del MultiplayerSynchronizer.
+## Guardado con is_instance_valid() porque la replicación puede llegar antes
+## de que el @onready de _etiqueta_nombre esté resuelto — para ese caso,
+## _ready() vuelve a copiar el valor ya recibido una vez que el Label existe.
+var nombre_visible: String = "":
+	set(valor):
+		nombre_visible = valor
+		if is_instance_valid(_etiqueta_nombre):
+			_etiqueta_nombre.text = valor
 
 ## Fase 0 del plan de escalado a MMO: identidad ÚNICA y persistente del
 ## dueño (ver Utils.id_jugador_local — un UUID guardado en su disco, NO el
@@ -196,6 +207,9 @@ func _enter_tree() -> void:
 
 func _ready():
 	add_to_group("jugadores")
+	# Por si la replicación de nombre_visible llegó antes de que este
+	# @onready se resolviera (ver el setter de nombre_visible más arriba).
+	_etiqueta_nombre.text = nombre_visible
 	# Capa propia (8, fijada en Jugador.tscn) con máscara solo-mundo (1):
 	# los personajes NO chocan físicamente entre sí — ni jugador-jugador,
 	# ni jugador-mob (los mobs viven en la capa 2 con el mismo criterio,
@@ -232,6 +246,7 @@ func _ready():
 		# Conectar la muerte del componente de vida.
 		componente_vida.muerte.connect(self.manejar_muerte)
 		componente_vida.cambio_valor_vida.connect(_on_vida_cambiada)
+		componente_vida.cambio_valor_vida.connect(_on_vida_cambiada_para_grupo)
 		_vida_anterior = componente_vida.obtener_vida_maxima()
 		# Protección de aparición — ver TIEMPO_INVULNERABILIDAD_APARICION.
 		# Se activa en TODOS los peers, no solo en el servidor: allá es lo
@@ -452,10 +467,12 @@ func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> v
 			return
 		id_unico = id_cuenta
 		_expulsar_fantasma_de_la_misma_identidad()
+		GestorGrupos.registrar_conectado(peer_id_dueño, nombre_visible, id_unico)
 		return
 	if id_limpio != "":
 		id_unico = id_limpio
 		_expulsar_fantasma_de_la_misma_identidad()
+		GestorGrupos.registrar_conectado(peer_id_dueño, nombre_visible, id_unico)
 
 
 ## SERVIDOR: si YA existe otro Jugador vivo con la MISMA identidad (mismo
@@ -822,7 +839,7 @@ func _morir() -> void:
 	# Cadáver: oscurecido y semitransparente hasta reaparecer.
 	modulate = Color(0.35, 0.35, 0.35, 0.6)
 	if _es_dueño_local():
-		_mostrar_aviso_muerte()
+		BusEventos.jugador_murio.emit(TIEMPO_REAPARICION)
 		# Suelta cualquier joystick de habilidad que siguiera sostenido al
 		# morir — ver comentario de UIHabilidad.cancelar_todos_los_apuntes.
 		if is_inside_tree():
@@ -867,8 +884,8 @@ func _revivir() -> void:
 		# tras muerte sin poder reaccionar.
 		componente_vida.activar_invulnerabilidad(TIEMPO_INVULNERABILIDAD_REVIVIR)
 	modulate = Color.WHITE
-	if _aviso_muerte:
-		_aviso_muerte.hide()
+	if _es_dueño_local():
+		BusEventos.jugador_reaparecio.emit(global_position)
 	# Reaparecer teletransporta al spawn — sin esto la cámara se desliza
 	# desde donde moriste hasta ahí, un "fantasma" visible cruzando el mapa.
 	resetear_camara()
@@ -892,44 +909,6 @@ func _es_dueño_local() -> bool:
 	if not Utils.en_red():
 		return true
 	return peer_id_dueño == multiplayer.get_unique_id()
-
-
-func _mostrar_aviso_muerte() -> void:
-	if _aviso_muerte == null:
-		var capa := CanvasLayer.new()
-		capa.layer = 90
-		# CenterContainer, no PRESET_CENTER en el label: ese preset solo
-		# ancla la esquina SUPERIOR IZQUIERDA del label al centro de la
-		# pantalla (el texto quedaba corrido hacia abajo/derecha, no
-		# centrado de verdad — reportado). El CenterContainer sí centra el
-		# tamaño real del label, y se reacomoda solo aunque el texto
-		# cambie de largo (la cuenta regresiva pasa de "Reapareces en 5"
-		# a "en 0", ver más abajo).
-		var centro := CenterContainer.new()
-		centro.set_anchors_preset(Control.PRESET_FULL_RECT)
-		# Ignora mouse/touch: es un cartel de solo lectura tapando toda la
-		# pantalla, no debe robarle el toque al joystick/botones de abajo.
-		centro.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_aviso_muerte = Label.new()
-		_aviso_muerte.text = "Has muerto"
-		_aviso_muerte.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_aviso_muerte.add_theme_font_size_override("font_size", 36)
-		_aviso_muerte.add_theme_color_override("font_color", Color(1.0, 0.3, 0.3))
-		_aviso_muerte.add_theme_color_override("font_outline_color", Color.BLACK)
-		_aviso_muerte.add_theme_constant_override("outline_size", 8)
-		_aviso_muerte.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		centro.add_child(_aviso_muerte)
-		capa.add_child(centro)
-		add_child(capa)
-	_aviso_muerte.show()
-	# Cuenta regresiva simple en el propio label.
-	var restante := int(TIEMPO_REAPARICION)
-	_aviso_muerte.text = "Has muerto\nReapareces en %d..." % restante
-	for i in range(restante - 1, -1, -1):
-		await get_tree().create_timer(1.0).timeout
-		if _aviso_muerte == null or not _aviso_muerte.visible:
-			return
-		_aviso_muerte.text = "Has muerto\nReapareces en %d..." % i
 
 
 ## Cuántos slots de habilidad hay que escuchar por SeñalManager (0..N-1) —
@@ -1101,3 +1080,13 @@ func _on_vida_cambiada(nueva_vida: float) -> void:
 	if nueva_vida < _vida_anterior and _es_dueño_local():
 		parpadear()
 	_vida_anterior = nueva_vida
+
+
+## SERVIDOR: empuja la vida actualizada a los compañeros de grupo (ver
+## GestorGrupos.notificar_cambio_vida — solo se la manda a ELLOS, nunca a
+## todos los jugadores). Corre en la copia autoritativa de cada Jugador; en
+## un cliente puro esto no hace nada (GestorGrupos.notificar_cambio_vida ya
+## se guarda de aplicar nada fuera del servidor).
+func _on_vida_cambiada_para_grupo(nueva_vida: float) -> void:
+	if id_unico != "":
+		GestorGrupos.notificar_cambio_vida(id_unico, nueva_vida, componente_vida.obtener_vida_maxima())

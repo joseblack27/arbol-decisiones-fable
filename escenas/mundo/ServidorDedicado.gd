@@ -183,6 +183,7 @@ func _al_desconectar(id: int) -> void:
 	print("Peer desconectado: %d" % id)
 	_peers_pendientes.erase(id)
 	_cola_spawn.erase(id)
+	GestorGrupos.quitar_conectado(id)
 	# Sin esto sus entradas (nivel, generación, gracia) quedan colgadas para
 	# siempre — y un peer id reciclado heredaría el nivel del anterior.
 	GestorNiveles.olvidar_peer(id)

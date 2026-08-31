@@ -44,6 +44,8 @@ GestorInteraccion="*res://autoloads/GestorInteraccion.gd"
 GestorLenador="*res://autoloads/GestorLenador.gd"
 GestorCazador="*res://autoloads/GestorCazador.gd"
 _mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
+GestorChat="*res://autoloads/GestorChat.gd"
+GestorGrupos="*res://autoloads/GestorGrupos.gd"
 
 [display]
 

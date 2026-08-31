@@ -21,6 +21,10 @@
 [ext_resource type="PackedScene" path="res://escenas/ui/hud/BarraBuffs.tscn" id="23_bb"]
 [ext_resource type="Script" uid="uid://4phss6l72t6l" path="res://escenas/ui/ui_habilidad/PaginadorHabilidades.gd" id="24_pag"]
 [ext_resource type="PackedScene" uid="uid://dqxk0lvxwj2rt" path="res://escenas/ui/hud/PanelLogRed.tscn" id="25_log"]
+[ext_resource type="PackedScene" path="res://escenas/ui/panel_chat/PanelChat.tscn" id="31_chat"]
+[ext_resource type="PackedScene" path="res://escenas/ui/hud/BarraGrupo.tscn" id="32_bg"]
+[ext_resource type="PackedScene" path="res://escenas/ui/panel_invitacion_grupo/PanelInvitacionGrupo.tscn" id="33_invg"]
+[ext_resource type="PackedScene" path="res://escenas/ui/panel_game_over/PanelGameOver.tscn" id="34_go"]
 
 [sub_resource type="StyleBoxFlat" id="SB_boton_fondo_negro"]
 bg_color = Color(0.05882353, 0.05882353, 0.05882353, 1)
@@ -224,6 +228,18 @@ offset_top = 84.0
 offset_right = 292.0
 offset_bottom = 112.0
 
+[node name="BarraGrupo" parent="CanvasLayer" instance=ExtResource("32_bg")]
+offset_left = 8.0
+offset_top = 116.0
+offset_right = 158.0
+offset_bottom = 216.0
+
+[node name="PanelChat" parent="CanvasLayer" instance=ExtResource("31_chat")]
+offset_left = 8.0
+offset_top = 220.0
+offset_right = 90.0
+offset_bottom = 244.0
+
 [node name="BarraConsumibles" parent="CanvasLayer" instance=ExtResource("21_bc")]
 anchors_preset = 3
 anchor_left = 1.0
@@ -257,6 +273,10 @@ script = ExtResource("15_bos")
 [node name="PanelTienda" parent="CanvasLayer" instance=ExtResource("27_tienda")]
 
 [node name="PanelCofre" parent="CanvasLayer" instance=ExtResource("28_cofre")]
+
+[node name="PanelInvitacionGrupo" parent="CanvasLayer" instance=ExtResource("33_invg")]
+
+[node name="PanelGameOver" parent="CanvasLayer" instance=ExtResource("34_go")]
 
 [node name="Jugadores" type="Node2D" parent="."]
 y_sort_enabled = true

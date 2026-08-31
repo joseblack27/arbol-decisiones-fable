@@ -7,18 +7,40 @@ class_name TiendaComponente
 ## confirmando SOLO al dueño (no un broadcast) vía ComponenteConfirmacionesRed.
 
 ## API pública: comprar UN ItemTienda (item + precio) de un DatosTienda.
-func comprar_item(item_tienda: ItemTienda) -> void:
-	if item_tienda == null or item_tienda.item == null:
+## El precio de "item_tienda" solo se usa TAL CUAL en el camino local (sin
+## red, o ya siendo el servidor) — ahí quien llama ya es de confianza, no
+## cruza ningún límite de red. Cruzando a un cliente remoto es distinto: el
+## precio NUNCA viaja (ver _pedir_comprar_red) — el servidor lo vuelve a
+## mirar del catálogo real de "datos_tienda", nunca confía en lo que diga
+## un cliente. Antes esto no distinguía los dos casos y mandaba el precio
+## tal cual por RPC — un cliente modificado podía pedir precio=0 y llevarse
+## cualquier ítem gratis.
+func comprar_item(item_tienda: ItemTienda, datos_tienda: DatosTienda) -> void:
+	if item_tienda == null or item_tienda.item == null or datos_tienda == null:
 		return
 	if Utils.en_red() and not multiplayer.is_server():
-		rpc_id(1, "_pedir_comprar_red", item_tienda.item.resource_path, item_tienda.precio)
+		rpc_id(1, "_pedir_comprar_red", datos_tienda.resource_path, item_tienda.item.resource_path)
 		return
-	_comprar_por_ruta(item_tienda.item.resource_path, item_tienda.precio)
+	_comprar_local(item_tienda.item, item_tienda.precio)
 
 
-func _comprar_por_ruta(ruta_item: String, precio: int) -> bool:
-	var item: DatosItem = load(ruta_item) as DatosItem if ruta_item != "" else null
-	return _comprar_local(item, precio)
+## El precio REAL de "ruta_item" según el catálogo de "ruta_tienda" —
+## recorre datos_tienda.items_en_venta buscando el ItemTienda cuyo item
+## coincida y devuelve SU precio, nunca uno mandado por el cliente (mismo
+## criterio que _vender_local ya usa con DatosItem.valor). -1 si la tienda
+## no existe o el ítem no está realmente a la venta ahí — un cliente
+## modificado pidiendo un precio inventado, o un ítem que esa tienda ni
+## siquiera vende, se queda sin nada en vez de comprar gratis.
+func _precio_real_en_tienda(ruta_tienda: String, ruta_item: String) -> int:
+	if ruta_tienda == "" or ruta_item == "":
+		return -1
+	var datos := load(ruta_tienda) as DatosTienda
+	if datos == null:
+		return -1
+	for item_tienda: ItemTienda in datos.items_en_venta:
+		if item_tienda.item != null and item_tienda.item.resource_path == ruta_item:
+			return item_tienda.precio
+	return -1
 
 
 ## SERVIDOR: mismas verificaciones de dueño que el resto de los RPC "pedir"
@@ -28,7 +50,7 @@ func _comprar_por_ruta(ruta_item: String, precio: int) -> bool:
 ## el valor exacto que ya calculó el servidor (ver CreditosComponente.
 ## _fijar_creditos_local).
 @rpc("any_peer", "reliable")
-func _pedir_comprar_red(ruta_item: String, precio: int) -> void:
+func _pedir_comprar_red(ruta_tienda: String, ruta_item: String) -> void:
 	if not multiplayer.is_server():
 		return
 	var jugador := get_parent()
@@ -36,8 +58,9 @@ func _pedir_comprar_red(ruta_item: String, precio: int) -> void:
 		return
 	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
 		return
-	if _comprar_por_ruta(ruta_item, precio):
-		var item := load(ruta_item) as DatosItem
+	var precio := _precio_real_en_tienda(ruta_tienda, ruta_item)
+	var item: DatosItem = load(ruta_item) as DatosItem if ruta_item != "" else null
+	if precio >= 0 and _comprar_local(item, precio):
 		var creditos := jugador.get_node_or_null("CreditosComponente") as CreditosComponente
 		var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
 		if confirmaciones and creditos and item:

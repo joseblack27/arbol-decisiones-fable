@@ -16,6 +16,8 @@ signal main_button_close
 @onready var btn_encyclopedia: Button = $ColorRect/Margin/VBox/Panel/BarraSuperior/BtnEnciclopedia
 @onready var btn_world_log: Button = $ColorRect/Margin/VBox/Panel/BarraSuperior/BtnRegistroMundo
 @onready var btn_configuracion: Button = $ColorRect/Margin/VBox/Panel/BarraSuperior/BtnConfiguracion
+@onready var btn_grupo: Button = $ColorRect/Margin/VBox/Panel/BarraSuperior/BtnGrupo
+@onready var btn_mapa: Button = $ColorRect/Margin/VBox/Panel/BarraSuperior/BtnMapa
 @onready var btn_shortcut_os: Button = $ColorRect2/BotonOs
 @onready var btn_shortcut_message: Button = $ColorRect2/BotonMensaje
 @onready var btn_shortcut_missions : Button= $ColorRect2/BotonMisiones
@@ -40,6 +42,8 @@ func _ready():
 	btn_encyclopedia.pressed.connect(_on_btn_encyclopedia)
 	btn_world_log.pressed.connect(_on_btn_world_log)
 	btn_configuracion.pressed.connect(_on_btn_configuracion)
+	btn_grupo.pressed.connect(_on_btn_grupo)
+	btn_mapa.pressed.connect(_on_btn_mapa)
 	boton_cerrar.pressed.connect(_on_close_button)
 	boton_guardar.pressed.connect(GestorGuardado.guardar_partida)
 	boton_cargar.pressed.connect(GestorGuardado.cargar_partida)
@@ -112,6 +116,14 @@ func _on_btn_configuracion():
 	_on_tab_button_pressed(7)
 	set_active_topbar_button(btn_configuracion)
 
+func _on_btn_grupo():
+	_on_tab_button_pressed(8)
+	set_active_topbar_button(btn_grupo)
+
+func _on_btn_mapa():
+	_on_tab_button_pressed(9)
+	set_active_topbar_button(btn_mapa)
+
 func set_active_topbar_button(button: Button):
 	# Primero desactivo todos
 	btn_dashboard.button_pressed = false
@@ -130,6 +142,10 @@ func set_active_topbar_button(button: Button):
 	btn_world_log.disabled = false
 	btn_configuracion.button_pressed = false
 	btn_configuracion.disabled = false
+	btn_grupo.button_pressed = false
+	btn_grupo.disabled = false
+	btn_mapa.button_pressed = false
+	btn_mapa.disabled = false
 
 	# Activo solo el correcto
 	button.button_pressed = true

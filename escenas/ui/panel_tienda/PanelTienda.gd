@@ -297,7 +297,7 @@ func _on_accion() -> void:
 		return
 	if _origen_seleccion == "comprar" and _item_tienda_actual:
 		for _i in _cantidad_actual:
-			tienda.comprar_item(_item_tienda_actual)
+			tienda.comprar_item(_item_tienda_actual, _datos_tienda)
 	elif _origen_seleccion == "vender" and _item_jugador_actual:
 		tienda.vender_item(_item_jugador_actual, _cantidad_actual)
 	# Cubre el caso local/servidor (sincrónico, ya aplicado ahora mismo);

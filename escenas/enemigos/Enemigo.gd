@@ -686,34 +686,76 @@ func _notificar_objetivo_matar() -> void:
 
 
 func _otorgar_xp(cantidad: int) -> void:
-	var componente := _componente_del_atacante("ExperienciaComponente")
+	_otorgar_xp_a(_ultimo_atacante, cantidad)
+	_repartir_xp_de_grupo(cantidad)
+
+
+func _otorgar_xp_a(entidad: Node, cantidad: int) -> void:
+	var componente := _componente_de(entidad, "ExperienciaComponente")
 	if componente:
 		componente.agregar_xp(cantidad)
 	else:
 		GestorExperiencia.agregar_xp(cantidad)
-	var dueño := _peer_dueño_del_atacante()
+	var dueño := _peer_dueño_de(entidad)
 	if dueño >= 0:
-		var confirmaciones := _componente_del_atacante("ComponenteConfirmacionesRed")
+		var confirmaciones := _componente_de(entidad, "ComponenteConfirmacionesRed")
 		if confirmaciones:
 			confirmaciones.rpc_id(dueño, "_recibir_xp_red", cantidad)
 
 
-func _componente_del_atacante(nombre_componente: String) -> Node:
-	if not is_instance_valid(_ultimo_atacante):
+## Feature C del plan MMO ("grupos"): reparte "cantidad" de XP COMPLETA (sin
+## dividir — principio "sin roles, no depender de otro", ver memoria
+## sin-roles-supervivencia-solo) a cada compañero de grupo de
+## _ultimo_atacante que esté dentro de RADIO_PARTICIPACION_GRUPO_XP del
+## punto donde murió el mob — más chico que InteresEspacial.RADIO_INTERES a
+## propósito: "estaba participando del combate", no solo "conectado en el
+## mismo mapa". _ultimo_atacante ya recibió la suya en _otorgar_xp de
+## arriba, por eso se salta acá. Sin grupo, esto no hace nada — mismo
+## comportamiento de siempre.
+const RADIO_PARTICIPACION_GRUPO_XP := 600.0
+
+func _repartir_xp_de_grupo(cantidad: int) -> void:
+	if not (Utils.en_red() and multiplayer.is_server()):
+		return
+	if not is_instance_valid(_ultimo_atacante) or not ("id_unico" in _ultimo_atacante):
+		return
+	var id_atacante: String = _ultimo_atacante.id_unico
+	if id_atacante == "":
+		return
+	for id_miembro in GestorGrupos.miembros_del_grupo_de(id_atacante):
+		if id_miembro == id_atacante:
+			continue
+		var jugador := GestorGrupos.jugador_de_id_unico(id_miembro)
+		if jugador == null or not is_instance_valid(jugador):
+			continue
+		if jugador.global_position.distance_to(global_position) > RADIO_PARTICIPACION_GRUPO_XP:
+			continue
+		_otorgar_xp_a(jugador, cantidad)
+
+
+func _componente_de(entidad: Node, nombre_componente: String) -> Node:
+	if not is_instance_valid(entidad):
 		return null
-	return _ultimo_atacante.get_node_or_null(nombre_componente)
+	return entidad.get_node_or_null(nombre_componente)
 
 
-## Peer id dueño de _ultimo_atacante, o -1 si no aplica (sin multiplayer
-## activo, sin atacante identificado, servidor corriendo esto para otro
-## servidor, etc.) — en ese caso no hay a quién avisarle por RPC, y el
-## comportamiento sigue siendo el de siempre (todo local).
-func _peer_dueño_del_atacante() -> int:
+func _componente_del_atacante(nombre_componente: String) -> Node:
+	return _componente_de(_ultimo_atacante, nombre_componente)
+
+
+## Peer id dueño de "entidad", o -1 si no aplica (sin multiplayer activo,
+## entidad no identificada, etc.) — en ese caso no hay a quién avisarle por
+## RPC, y el comportamiento sigue siendo el de siempre (todo local).
+func _peer_dueño_de(entidad: Node) -> int:
 	if not Utils.en_red() or not multiplayer.is_server():
 		return -1
-	if not is_instance_valid(_ultimo_atacante) or not ("peer_id_dueño" in _ultimo_atacante):
+	if not is_instance_valid(entidad) or not ("peer_id_dueño" in entidad):
 		return -1
-	return _ultimo_atacante.peer_id_dueño
+	return entidad.peer_id_dueño
+
+
+func _peer_dueño_del_atacante() -> int:
+	return _peer_dueño_de(_ultimo_atacante)
 
 
 ## Hace desaparecer el cuerpo (queda en idle, se pone negro y luego se

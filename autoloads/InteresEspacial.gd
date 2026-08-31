@@ -68,6 +68,15 @@ func peers_cercanos(posicion: Vector2) -> Array[int]:
 	return resultado
 
 
+## Todos los peers a los que tiene sentido mandarles algo AHORA MISMO, sin
+## filtro de distancia — para lo que sí debe llegar a todo el servidor sin
+## importar el mapa/posición (ej. GestorChat, canal "Mundo"). Mismo criterio
+## defensivo que peers_cercanos (ver _peers_enviables): evita el chaparrón de
+## "Unable to send packet" contra un peer que ENet ya dio por caído.
+func peers_conectados_listos() -> Array[int]:
+	return _peers_enviables()
+
+
 ## Peers a los que TIENE SENTIDO mandarles algo ahora mismo, calculado UNA vez
 ## por fotograma físico y reusado por todos los mobs (antes cada mob rehacía
 ## esta lista entera en cada fotograma).

@@ -100,6 +100,22 @@ func nombre_jugador_local() -> String:
 
 
 const _RUTA_ID_JUGADOR := "user://id_jugador.txt"
+## Slots numerados para más de una ventana real en la MISMA PC a la vez —
+## ver el comentario grande en id_jugador_local() para el porqué. El slot 0
+## sigue siendo _RUTA_ID_JUGADOR de siempre (compatibilidad con partidas ya
+## guardadas); "_2", "_3"... son archivos NUEVOS, uno por ventana adicional.
+const _RUTA_ID_JUGADOR_SLOT_N := "user://id_jugador_%d.txt"
+const _RUTA_LOCK_SLOT_N := "user://id_jugador_%d.lock"
+## Cuántas ventanas simultáneas en la misma PC se soportan antes de
+## resignarse a una identidad de sesión sin persistir (ver el "else" final
+## de id_jugador_local()) — de sobra para cualquier prueba local real.
+const _MAX_SLOTS_ID_JUGADOR := 8
+## Un lock más viejo que esto se considera abandonado (la ventana que lo
+## escribió se cerró sin avisar, o directo crasheó) — bastante más que
+## _INTERVALO_HEARTBEAT_ID_JUGADOR para tolerar hiccups sin declarar el
+## slot libre por error mientras esa ventana sigue viva.
+const _VENTANA_LOCK_ID_JUGADOR_SEGUNDOS := 6.0
+const _INTERVALO_HEARTBEAT_ID_JUGADOR := 2.0
 
 ## Identidad ÚNICA y persistente de ESTE jugador en ESTA instalación: un
 ## UUID generado una sola vez (la primera vez que el juego corre acá) y
@@ -121,6 +137,9 @@ const _RUTA_ID_JUGADOR := "user://id_jugador.txt"
 ## UUID de bot para ESTA sesión — nunca tocar _RUTA_ID_JUGADOR (ver más
 ## abajo el porqué). Vacío hasta la primera llamada en modo bot.
 var _id_bot_actual := ""
+## Cache: id_jugador_local() decide el slot UNA sola vez por proceso (el
+## heartbeat necesita saber a qué archivo de lock seguir escribiéndole).
+var _id_jugador_local_cache := ""
 
 func id_jugador_local() -> String:
 	# "user://" es por INSTALACIÓN, no por proceso — todas las instancias de
@@ -136,18 +155,81 @@ func id_jugador_local() -> String:
 		if _id_bot_actual == "":
 			_id_bot_actual = _generar_uuid()
 		return _id_bot_actual
-	if FileAccess.file_exists(_RUTA_ID_JUGADOR):
-		var archivo := FileAccess.open(_RUTA_ID_JUGADOR, FileAccess.READ)
+	if _id_jugador_local_cache != "":
+		return _id_jugador_local_cache
+	# Mismo problema que el bloque de arriba, pero con JUGADORES REALES sin
+	# PIN: dos ventanas de Godot en la misma PC (sin cuenta por nombre+PIN)
+	# volvían a compartir _RUTA_ID_JUGADOR — reportado por el usuario: "se
+	# sobreescriben y se reinician cada rato" (el servidor expulsa al viejo
+	# apenas el nuevo se conecta con la MISMA identidad, ver Jugador.
+	# _expulsar_fantasma_de_la_misma_identidad, y el viejo reintenta solo,
+	# expulsando al nuevo a su vez — bucle infinito). A diferencia de los
+	# bots (que no necesitan progreso persistente), acá SÍ importa: en vez
+	# de una identidad de sesión descartable, cada ventana adicional reclama
+	# su PROPIO archivo numerado (slot 0 = _RUTA_ID_JUGADOR de siempre, "_2"
+	# en adelante para las que abren mientras otra ya está activa) y lo
+	# mantiene vivo con un heartbeat mientras dure el proceso — así cada
+	# ventana tiene una cuenta real y estable, no solo evita la colisión.
+	for slot in _MAX_SLOTS_ID_JUGADOR:
+		var ruta_id := _RUTA_ID_JUGADOR if slot == 0 else _RUTA_ID_JUGADOR_SLOT_N % slot
+		var ruta_lock := _RUTA_LOCK_SLOT_N % slot
+		if _lock_de_slot_activo(ruta_lock):
+			continue  # otra ventana ya está usando este slot AHORA MISMO.
+		_id_jugador_local_cache = _leer_o_crear_id_persistido(ruta_id)
+		_iniciar_heartbeat_lock(ruta_lock)
+		return _id_jugador_local_cache
+	# Los _MAX_SLOTS_ID_JUGADOR están todos activos a la vez (rarísimo):
+	# mejor una identidad de sesión sin persistir que romper la conexión.
+	_id_jugador_local_cache = _generar_uuid()
+	return _id_jugador_local_cache
+
+
+func _leer_o_crear_id_persistido(ruta: String) -> String:
+	if FileAccess.file_exists(ruta):
+		var archivo := FileAccess.open(ruta, FileAccess.READ)
 		var id := archivo.get_as_text().strip_edges()
 		archivo.close()
 		if id != "":
 			return id
 	var nuevo := _generar_uuid()
-	var archivo := FileAccess.open(_RUTA_ID_JUGADOR, FileAccess.WRITE)
+	var archivo := FileAccess.open(ruta, FileAccess.WRITE)
 	if archivo:
 		archivo.store_string(nuevo)
 		archivo.close()
 	return nuevo
+
+
+## true si "ruta" tiene un heartbeat MÁS RECIENTE que
+## _VENTANA_LOCK_ID_JUGADOR_SEGUNDOS — es decir, otra ventana en esta PC
+## está usando ese slot ahora mismo. Un lock viejo (ventana cerrada sin
+## avisar, o crasheada) se trata como libre.
+func _lock_de_slot_activo(ruta: String) -> bool:
+	if not FileAccess.file_exists(ruta):
+		return false
+	var archivo := FileAccess.open(ruta, FileAccess.READ)
+	var texto := archivo.get_as_text().strip_edges()
+	archivo.close()
+	if texto == "":
+		return false
+	return (Time.get_unix_time_from_system() - texto.to_float()) < _VENTANA_LOCK_ID_JUGADOR_SEGUNDOS
+
+
+## Escribe el primer heartbeat YA (para que una segunda ventana que arranque
+## un instante después ya vea el lock activo) y programa los siguientes.
+func _iniciar_heartbeat_lock(ruta: String) -> void:
+	_escribir_heartbeat_lock(ruta)
+	var temporizador := Timer.new()
+	temporizador.wait_time = _INTERVALO_HEARTBEAT_ID_JUGADOR
+	temporizador.autostart = true
+	temporizador.timeout.connect(_escribir_heartbeat_lock.bind(ruta))
+	add_child(temporizador)
+
+
+func _escribir_heartbeat_lock(ruta: String) -> void:
+	var archivo := FileAccess.open(ruta, FileAccess.WRITE)
+	if archivo:
+		archivo.store_string(str(Time.get_unix_time_from_system()))
+		archivo.close()
 
 
 ## UUID v4-like: 128 bits al azar formateados como 8-4-4-4-12 en hex. No

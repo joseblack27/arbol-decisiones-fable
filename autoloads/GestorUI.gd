@@ -1,6 +1,6 @@
 extends Node
 
-enum Modo { JUEGO, OS, DIALOGO }
+enum Modo { JUEGO, OS, DIALOGO, CHAT }
 
 signal modo_cambiado(modo: int)
 
@@ -30,6 +30,26 @@ func abrir_dialogo() -> void:
 
 func cerrar_dialogo() -> void:
 	if modo_actual != Modo.DIALOGO:
+		return
+	modo_actual = Modo.JUEGO
+	modo_cambiado.emit(Modo.JUEGO)
+
+## Chat expandido (PanelChat) — sin esto, tocar el cuadro de texto/botón
+## Enviar del chat también le llegaba al joystick de atrás: ComponenteToque
+## escucha _input() global sin ningún filtro de qué UI está encima (ver ese
+## script), así que el único freno real del proyecto es este modo +
+## ControlJuego (desactiva el subárbol del joystick/slots de habilidad
+## mientras el modo no sea JUEGO) — mismo mecanismo que ya usan Diálogo/OS,
+## reportado por el usuario: "al abrir el chat, el joystick de atrás
+## también recibe el click".
+func abrir_chat() -> void:
+	if modo_actual == Modo.CHAT:
+		return
+	modo_actual = Modo.CHAT
+	modo_cambiado.emit(Modo.CHAT)
+
+func cerrar_chat() -> void:
+	if modo_actual != Modo.CHAT:
 		return
 	modo_actual = Modo.JUEGO
 	modo_cambiado.emit(Modo.JUEGO)

@@ -10,9 +10,14 @@ extends Node
 # ── JUGADOR ──────────────────────────────────────────────────────────────────
 ## Emitida cuando la vida del jugador cambia (vida_actual, vida_maxima).
 signal salud_jugador_cambiada(vida_actual: float, vida_maxima: float)
-## Emitida cuando el jugador muere.
-signal jugador_murio()
-## Emitida cuando el jugador reaparece en una posición.
+## Emitida cuando el jugador LOCAL muere (nunca por la muerte de un jugador
+## replicado ajeno — ver Jugador._morir, gateado a _es_dueño_local()).
+## "tiempo_reaparicion" es Jugador.TIEMPO_REAPARICION, para que quien
+## escuche (PanelGameOver) arme la cuenta regresiva sin acoplarse a esa
+## constante directo.
+signal jugador_murio(tiempo_reaparicion: float)
+## Emitida cuando el jugador LOCAL reaparece en una posición (mismo gateo
+## que jugador_murio — ver Jugador._revivir).
 signal jugador_reaparecio(posicion: Vector2)
 
 # ── COMBATE ──────────────────────────────────────────────────────────────────
