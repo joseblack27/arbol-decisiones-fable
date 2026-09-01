@@ -600,6 +600,85 @@ func llenar_caracteristicas_item(vbox: VBoxContainer, item: DatosItem) -> void:
 			if valor == 0.0:
 				continue
 			_agregar_fila_caracteristica_item(vbox, etiqueta, valor)
+	if item.conjunto != null:
+		_agregar_fila_conjunto(vbox, item.conjunto)
+
+
+## Tramos de conjunto y sus bonos — el NOMBRE del conjunto ya no se repite
+## acá: pedido explícito del usuario, ahora vive arriba, junto a Tipo/
+## Cantidad (ver PanelInventario._update_details, conjunto_label/
+## conjunto_value). Cuántas piezas tiene puestas AHORA el jugador local sale
+## de GestorEquipo (no de "item" — sirve igual mirando un ítem sin equipar
+## del inventario o uno en la vidriera de un NPC, ver PanelTienda que reusa
+## este mismo helper), para que se entienda de un vistazo si falta poco
+## para el próximo tramo de bono (ver AtributosComponente.
+## _sumar_bonos_de_conjuntos).
+func _agregar_fila_conjunto(vbox: VBoxContainer, conjunto: ConjuntoDatos) -> void:
+	var piezas_equipadas := 0
+	for equipado in GestorEquipo.equipados:
+		if equipado and equipado.conjunto == conjunto:
+			piezas_equipadas += 1
+
+	# Pedido explícito del usuario: "un pequeño espacio entre las
+	# estadisticas del objeto y estos bonus extras" — para que se lean como
+	# dos bloques separados, no una lista continua.
+	var espaciador := Control.new()
+	espaciador.custom_minimum_size = Vector2(0, 8)
+	vbox.add_child(espaciador)
+
+	for tramo in conjunto.tramos:
+		var activo: bool = piezas_equipadas >= tramo.piezas_requeridas
+		var texto_estado := "✓" if activo else "(%d/%d)" % [piezas_equipadas, tramo.piezas_requeridas]
+		_agregar_fila_indentada(vbox, "%d piezas" % tramo.piezas_requeridas, texto_estado)
+
+		# Pedido explícito del usuario: "no se sabe que efectos da el usar 2
+		# o 4 parte del mismo set" — antes solo se veía "(2/4)" sin decir
+		# QUÉ otorgaba ese tramo. Pedido explícito, segunda vuelta: "colocar
+		# en lista las bonificaciones" — una fila por bono, no un solo
+		# renglón con todo junto separado por comas.
+		if tramo.bonos:
+			for par in ETIQUETAS_ATRIBUTOS_ITEM:
+				var campo: String = par[0]
+				var etiqueta: String = par[1]
+				var valor: float = tramo.bonos.get(campo)
+				if valor == 0.0:
+					continue
+				var texto_valor := ("+%s" % _formatear_valor_caracteristica(valor)) if valor > 0.0 else _formatear_valor_caracteristica(valor)
+				_agregar_fila_indentada(vbox, etiqueta, texto_valor)
+
+
+## Fila SIN sangría — pedido explícito del usuario tras ver una sangría de
+## 12px que agregué en la vuelta anterior: "quiero que lo de las piezas y
+## los bonus de conjunto aparezcan todo a la izquierda asi como las
+## estadisticas de arriba" — mismo margen izquierdo que
+## _agregar_fila_caracteristica_item, no un nivel más adentro. Sigue siendo
+## una función propia (no la reusa directo) porque acá el valor ya viene
+## formateado como texto ("✓", "(2/4)"), no como float con el signo "+"
+## automático.
+## Pedido explícito del usuario: "reduce un poco la fuente del panel de
+## detalles" — theme_override_font_sizes puesto en un Control ancestro
+## (ej. ContenidoDetalle) NO se hereda a los hijos (confirmado a mano en
+## headless: cada Label resuelve su propio tamaño, no el del padre) — hay
+## que aplicarlo nodo por nodo. Estas dos filas se arman por código, así
+## que van acá; las estáticas del .tscn (Tipo/Cantidad/Descripción/etc.)
+## tienen su propio override en PanelInventario.tscn con el mismo valor.
+const _TAMANO_FUENTE_CARACTERISTICAS := 10
+
+
+func _agregar_fila_indentada(vbox: VBoxContainer, etiqueta: String, valor_texto: String) -> void:
+	var fila := HBoxContainer.new()
+	var nombre := Label.new()
+	nombre.text = etiqueta
+	nombre.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	nombre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nombre.add_theme_font_size_override("font_size", _TAMANO_FUENTE_CARACTERISTICAS)
+	var valor := Label.new()
+	valor.text = valor_texto
+	valor.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	valor.add_theme_font_size_override("font_size", _TAMANO_FUENTE_CARACTERISTICAS)
+	fila.add_child(nombre)
+	fila.add_child(valor)
+	vbox.add_child(fila)
 
 
 func _agregar_fila_caracteristica_item(vbox: VBoxContainer, etiqueta: String, valor: float) -> void:
@@ -607,9 +686,11 @@ func _agregar_fila_caracteristica_item(vbox: VBoxContainer, etiqueta: String, va
 	var nombre := Label.new()
 	nombre.text = etiqueta
 	nombre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	nombre.add_theme_font_size_override("font_size", _TAMANO_FUENTE_CARACTERISTICAS)
 	var cantidad := Label.new()
 	cantidad.text = ("+%s" % _formatear_valor_caracteristica(valor)) if valor > 0.0 else _formatear_valor_caracteristica(valor)
 	cantidad.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	cantidad.add_theme_font_size_override("font_size", _TAMANO_FUENTE_CARACTERISTICAS)
 	fila.add_child(nombre)
 	fila.add_child(cantidad)
 	vbox.add_child(fila)

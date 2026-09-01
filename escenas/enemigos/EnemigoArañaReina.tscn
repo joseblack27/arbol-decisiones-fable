@@ -1,9 +1,13 @@
-[gd_scene load_steps=85 format=3 uid="uid://dcokaxp7pgikc"]
+[gd_scene load_steps=93 format=3 uid="uid://dcokaxp7pgikc"]
 
 [ext_resource type="Resource" path="res://recursos/enemigos/AranaReina.tres" id="0_datos_arana"]
 [ext_resource type="Script" uid="uid://bqvog6b3y0wx0" path="res://escenas/enemigos/EnemigoArañaReina.gd" id="1_0tb4j"]
 [ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="2_lgvut"]
 [ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="2_qvumm"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/casco_arania_reina.tres" id="2_loot_casco_ar"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/cuerpo_arania_reina.tres" id="2_loot_cuerpo_ar"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/pantalon_arania_reina.tres" id="2_loot_pantalon_ar"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/botas_arania_reina.tres" id="2_loot_botas_ar"]
 [ext_resource type="Texture2D" uid="uid://c86lvjpjy0hvk" path="res://assets/monster-spider.png" id="3_cilxc"]
 [ext_resource type="Resource" path="res://recursos/items/recursos/hoja_2.tres" id="3_cqeou"]
 [ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="4_33eb0"]
@@ -92,6 +96,26 @@ metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 script = ExtResource("2_qvumm")
 item = ExtResource("esc_escudo_roca")
 probabilidad = 0.15
+
+[sub_resource type="Resource" id="Loot_arania_casco"]
+script = ExtResource("2_qvumm")
+item = ExtResource("2_loot_casco_ar")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Loot_arania_cuerpo"]
+script = ExtResource("2_qvumm")
+item = ExtResource("2_loot_cuerpo_ar")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Loot_arania_pantalon"]
+script = ExtResource("2_qvumm")
+item = ExtResource("2_loot_pantalon_ar")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Loot_arania_botas"]
+script = ExtResource("2_qvumm")
+item = ExtResource("2_loot_botas_ar")
+probabilidad = 0.35
 metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_0tb4j"]
@@ -684,7 +708,7 @@ componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("0_datos_arana")
 altura_nombre = -50.0
-tabla_botin = Array[ExtResource("2_qvumm")]([SubResource("Resource_vdkck"), SubResource("Resource_d42sf"), SubResource("Resource_qvumm"), SubResource("Resource_8ri25"), SubResource("Resource_xmh4o"), SubResource("Resource_cwwu6"), SubResource("Resource_hh83h"), SubResource("Loot_escudo_roca")])
+tabla_botin = Array[ExtResource("2_qvumm")]([SubResource("Resource_vdkck"), SubResource("Resource_d42sf"), SubResource("Resource_qvumm"), SubResource("Resource_8ri25"), SubResource("Resource_xmh4o"), SubResource("Resource_cwwu6"), SubResource("Resource_hh83h"), SubResource("Loot_escudo_roca"), SubResource("Loot_arania_casco"), SubResource("Loot_arania_cuerpo"), SubResource("Loot_arania_pantalon"), SubResource("Loot_arania_botas")])
 xp_otorgada = 400
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

@@ -74,6 +74,26 @@ func _pedir_aceptar_mision_red(id_mision: String) -> void:
 			confirmaciones.rpc_id(jugador.peer_id_dueño, "_recibir_mision_aceptada_red", id_mision)
 
 
+## true si ESTE jugador cumple los requisitos para aceptar "datos" ahora
+## mismo (hoy, solo nivel_requerido — el único requisito que existe en
+## DatosMision). Público porque PanelDialogo lo necesita para decidir si
+## ofrecer "aceptar misión X" como opción (pedido del usuario: una misión
+## que el jugador no puede aceptar todavía no debe aparecer en el diálogo
+## del NPC, aunque sí siga listada en PanelMisiones) — sin este método el
+## chequeo quedaba enterrado adentro de _aceptar_mision_local, solo
+## consultable intentando aceptar de verdad.
+func cumple_requisitos(datos: DatosMision) -> bool:
+	if datos == null:
+		return false
+	var padre := get_parent()
+	if padre == null:
+		return true
+	var experiencia := padre.get_node_or_null("ExperienciaComponente")
+	if experiencia and experiencia.nivel < datos.nivel_requerido:
+		return false
+	return true
+
+
 ## Aplica DE VERDAD — reusado por aceptar_mision() (fuera de red o ya
 ## siendo el servidor) y por el flujo RPC. true si se concretó.
 func _aceptar_mision_local(datos: DatosMision) -> bool:
@@ -81,11 +101,10 @@ func _aceptar_mision_local(datos: DatosMision) -> bool:
 		return false
 	if progreso.has(datos.id):
 		return false  # ya aceptada (o completada) — no reiniciar progreso.
+	if not cumple_requisitos(datos):
+		return false
 	var padre := get_parent()
 	if padre == null:
-		return false
-	var experiencia := padre.get_node_or_null("ExperienciaComponente")
-	if experiencia and experiencia.nivel < datos.nivel_requerido:
 		return false
 	var objetivos := {}
 	for objetivo in datos.objetivos:

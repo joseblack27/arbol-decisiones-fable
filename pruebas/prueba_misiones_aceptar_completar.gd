@@ -15,6 +15,8 @@ var _datos_mision: DatosMision
 
 var _sender_ajeno_rechaza_ok := false
 var _aceptar_valido_ok := false
+var _nivel_insuficiente_rechaza_ok := false
+var _nivel_suficiente_acepta_ok := false
 var _completar_sin_aceptar_rechaza_ok := false
 var _completar_con_objetivo_incompleto_rechaza_ok := false
 var _completar_valido_ok := false
@@ -26,6 +28,7 @@ func _process(_delta: float) -> bool:
 	_montar()
 	_probar_sender_ajeno()
 	_probar_aceptar_valido()
+	_probar_nivel_insuficiente_rechaza_aceptar()
 	_probar_aplicar_progreso_local_avisa_ui()
 	_probar_completar_sin_aceptar()
 	_probar_completar_con_objetivo_incompleto()
@@ -70,6 +73,37 @@ func _probar_aceptar_valido() -> void:
 	_misiones._pedir_aceptar_mision_red(_datos_mision.id)
 	_aceptar_valido_ok = _misiones.estado_de(_datos_mision.id) == Enums.Mision.Estado.EN_PROGRESO
 	print("Sender dueño acepta la misión (esperado true, EN_PROGRESO): %s" % _aceptar_valido_ok)
+
+
+## Pedido explícito del usuario (1 sep 2026): una misión con nivel_requerido
+## mayor al nivel actual del jugador se rechaza al aceptar (server-side, ya
+## existía) Y MisionesComponente.cumple_requisitos() lo refleja ANTES de
+## intentar aceptar (lo que usa PanelDialogo para no ofrecerla como opción).
+func _probar_nivel_insuficiente_rechaza_aceptar() -> void:
+	var mision_alta := DatosMision.new()
+	mision_alta.id = "mision_nivel_alto"
+	mision_alta.nivel_requerido = 5
+	mision_alta.objetivos = []
+	mision_alta.recompensas = DatosRecompensaMision.new()
+	root.get_node("/root/GestorMisiones").catalogo.append(mision_alta)
+
+	var experiencia = _jugador.get_node("ExperienciaComponente")
+	experiencia.nivel = 1
+	var cumple_antes: bool = _misiones.cumple_requisitos(mision_alta)
+	_jugador.peer_id_dueño = 0
+	_misiones._pedir_aceptar_mision_red(mision_alta.id)
+	var rechazada: bool = _misiones.estado_de(mision_alta.id) == Enums.Mision.Estado.BLOQUEADA
+	_nivel_insuficiente_rechaza_ok = not cumple_antes and rechazada
+	print("Nivel insuficiente: cumple_requisitos()=false y el servidor rechaza aceptar (esperado true): %s" \
+		% _nivel_insuficiente_rechaza_ok)
+
+	experiencia.nivel = 5
+	var cumple_despues: bool = _misiones.cumple_requisitos(mision_alta)
+	_misiones._pedir_aceptar_mision_red(mision_alta.id)
+	var aceptada: bool = _misiones.estado_de(mision_alta.id) == Enums.Mision.Estado.EN_PROGRESO
+	_nivel_suficiente_acepta_ok = cumple_despues and aceptada
+	print("Nivel suficiente: cumple_requisitos()=true y el servidor acepta (esperado true): %s" \
+		% _nivel_suficiente_acepta_ok)
 
 
 ## Bug reportado en juego real: el progreso se guardaba bien pero el panel
@@ -130,7 +164,8 @@ func _crear_datos_enemigo(id_objetivo: String) -> EnemigoDatos:
 func _informar() -> bool:
 	var exito := _sender_ajeno_rechaza_ok and _aceptar_valido_ok and _completar_sin_aceptar_rechaza_ok \
 		and _completar_con_objetivo_incompleto_rechaza_ok and _completar_valido_ok \
-		and _aplicar_progreso_local_avisa_ui_ok
+		and _aplicar_progreso_local_avisa_ui_ok \
+		and _nivel_insuficiente_rechaza_ok and _nivel_suficiente_acepta_ok
 	print("PRUEBA MISIONES ACEPTAR COMPLETAR %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

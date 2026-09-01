@@ -438,7 +438,7 @@ layout_mode = 2
 [node name="NombreItem" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_font_sizes/font_size = 10
+theme_override_font_sizes/font_size = 9
 text = "Godot Engine"
 vertical_alignment = 1
 autowrap_mode = 3
@@ -452,70 +452,100 @@ text = "x"
 [node name="HSeparator" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
 layout_mode = 2
 
-[node name="IconoItem" type="TextureRect" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+[node name="ScrollBody" type="ScrollContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="VBoxScrollBody" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="IconoItem" type="TextureRect" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody"]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 texture = ExtResource("2_2qy46")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="HSeparator2" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+[node name="HSeparator2" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody"]
 layout_mode = 2
 
-[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+[node name="MarginContainer" type="MarginContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody"]
 layout_mode = 2
 theme_override_constants/margin_left = 2
 theme_override_constants/margin_right = 2
 
-[node name="RejillaInfo" type="GridContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer"]
+[node name="RejillaInfo" type="GridContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer"]
 layout_mode = 2
 columns = 2
 
-[node name="TypeLabel" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo"]
+[node name="TypeLabel" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 10
 text = "Tipo:"
 
-[node name="ValorTipo" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo"]
+[node name="ValorTipo" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
 text = "Recurso"
 
-[node name="QtyLabel" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo"]
+[node name="QtyLabel" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 10
 text = "Cantidad:"
 
-[node name="ValorCantidad" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo"]
+[node name="ValorCantidad" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo"]
 layout_mode = 2
 size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 10
 text = "1"
 
-[node name="HSeparator3" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+[node name="ConjuntoLabel" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo"]
+visible = false
+layout_mode = 2
+theme_override_font_sizes/font_size = 10
+text = "Conjunto:"
+
+[node name="ValorConjunto" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo"]
+visible = false
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 10
+text = "Guardián Quebrado"
+
+[node name="HSeparator3" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody"]
 layout_mode = 2
 
-[node name="MarginContainer2" type="MarginContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+[node name="MarginContainer2" type="MarginContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody"]
 layout_mode = 2
 theme_override_constants/margin_left = 2
 theme_override_constants/margin_right = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer2"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="EtiquetaDescripcion" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2/VBoxContainer"]
+[node name="EtiquetaDescripcion" type="Label" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer2/VBoxContainer"]
 layout_mode = 2
+theme_override_font_sizes/font_size = 10
 text = "Descripción:"
 
-[node name="TextoDescripcion" type="RichTextLabel" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2/VBoxContainer"]
+[node name="TextoDescripcion" type="RichTextLabel" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer2/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
+theme_override_font_sizes/normal_font_size = 10
 text = "Godot Engine es un motor de videojuegos gratuito y de código abierto que permite desarrollar juegos en 2D y 3D de forma intuitiva y eficiente. Fue creado por Juan Linietsky y Ariel Manzur, y liberado públicamente el 14 de enero de 2014 bajo licencia MIT"
 fit_content = true
 
-[node name="HSeparator4" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+[node name="HSeparator4" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody"]
 layout_mode = 2
 theme_override_constants/separation = 0
 
-[node name="VBoxCaracteristicas" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
+[node name="VBoxCaracteristicas" type="VBoxContainer" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody"]
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 2
@@ -528,6 +558,7 @@ theme_override_constants/separation = 2
 custom_minimum_size = Vector2(78, 32)
 layout_mode = 2
 size_flags_horizontal = 8
+theme_override_font_sizes/font_size = 10
 text = "Acción"
 
 [node name="PanelAccionPrincipal" type="PanelContainer" parent="Margin/HBox/PanelDetalle"]

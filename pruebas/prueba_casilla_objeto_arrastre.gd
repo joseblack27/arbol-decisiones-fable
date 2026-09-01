@@ -491,11 +491,11 @@ func _probar_tipo_descripcion_equipable() -> void:
 
 
 ## Pedido del usuario: "la búsqueda por texto" — reusa los 4 ítems que dejó
-## _probar_ordenar_items (Anillo Sencillo, Armadura Ligera, Hoja Verde,
-## Poción de Vida) en _grilla_inventario. Sin importar mayúsculas/acentos
-## de más ("HOJA" encuentra "Hoja Verde"), busca en cualquier parte del
-## nombre (no solo el inicio: "dura" encuentra "Armadura"), y borrar el
-## texto vuelve a mostrar todo.
+## _probar_ordenar_items (Anillo Sencillo, Casco del Guardián Quebrado,
+## Hoja Verde, Poción de Vida) en _grilla_inventario. Sin importar
+## mayúsculas/acentos de más ("HOJA" encuentra "Hoja Verde"), busca en
+## cualquier parte del nombre (no solo el inicio: "ebrad" encuentra
+## "Quebrado"), y borrar el texto vuelve a mostrar todo.
 func _probar_busqueda_por_texto() -> void:
 	_grilla_inventario.mostrar_busqueda = true
 	_grilla_inventario._orden_actual = GrillaObjetos.OrdenItems.SIN_ORDENAR
@@ -507,12 +507,12 @@ func _probar_busqueda_por_texto() -> void:
 	print("Buscar 'HOJA' (mayúsculas) deja solo la hoja (esperado ['Hoja Verde']): %s" % nombres_hoja)
 	var busca_sin_distinguir_mayusculas_ok: bool = nombres_hoja == ["Hoja Verde"]
 
-	_grilla_inventario._on_busqueda_cambiada("dura")
+	_grilla_inventario._on_busqueda_cambiada("ebrad")
 	var nombres_dura: Array = []
 	for c in _grilla_inventario._contenedor.get_children():
 		nombres_dura.append(c.item_data.name)
-	print("Buscar 'dura' (mitad de la palabra) encuentra 'Armadura Ligera' (esperado ['Armadura Ligera']): %s" % nombres_dura)
-	var busca_en_cualquier_parte_ok: bool = nombres_dura == ["Armadura Ligera"]
+	print("Buscar 'ebrad' (mitad de la palabra) encuentra 'Casco del Guardián Quebrado' (esperado ['Casco del Guardián Quebrado']): %s" % nombres_dura)
+	var busca_en_cualquier_parte_ok: bool = nombres_dura == ["Casco del Guardián Quebrado"]
 
 	_grilla_inventario._on_busqueda_cambiada("")
 	print("Borrar el texto vuelve a mostrar todos (esperado 4): %d" % \

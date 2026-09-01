@@ -155,6 +155,23 @@ func recalcular_con_equipo(items_equipados: Array[DatosItem]) -> void:
 	for item in items_equipados:
 		if item and item.bonos:
 			_sumar_bonos(base, item.bonos)
+	_sumar_bonos_de_conjuntos(items_equipados)
+
+
+## Bonos de CONJUNTO (ver ConjuntoDatos): piezas que comparten el mismo
+## DatosItem.conjunto suman, ADEMÁS de sus bonos individuales (ya sumados
+## arriba), el/los tramo(s) cuya piezas_requeridas se alcance con la
+## cantidad de piezas de ese conjunto puestas ahora mismo.
+func _sumar_bonos_de_conjuntos(items_equipados: Array[DatosItem]) -> void:
+	var piezas_por_conjunto: Dictionary = {}
+	for item in items_equipados:
+		if item and item.conjunto:
+			piezas_por_conjunto[item.conjunto] = piezas_por_conjunto.get(item.conjunto, 0) + 1
+	for conjunto in piezas_por_conjunto:
+		var piezas: int = piezas_por_conjunto[conjunto]
+		for tramo in (conjunto as ConjuntoDatos).tramos:
+			if tramo.bonos and piezas >= tramo.piezas_requeridas:
+				_sumar_bonos(base, tramo.bonos)
 
 
 ## Aplica un crecimiento PERMANENTE (p. ej. al subir de nivel, o al

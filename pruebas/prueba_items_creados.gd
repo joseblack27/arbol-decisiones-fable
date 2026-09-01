@@ -1,5 +1,5 @@
 # =============================================================================
-# Prueba: los 27 recursos DatosItem creados en recursos/items/ cargan bien,
+# Prueba: los recursos DatosItem creados en recursos/items/ cargan bien,
 # tienen sus campos básicos completos y su ícono existe (no quedó ninguno
 # con la textura vacía por una ruta mal escrita).
 #   godot --headless --path . --script res://pruebas/prueba_items_creados.gd
@@ -27,6 +27,10 @@ const RUTAS := [
 	"res://recursos/items/equipables/accesorio_2.tres",
 	"res://recursos/items/equipables/accesorio_3.tres",
 	"res://recursos/items/equipables/accesorio_4.tres",
+	"res://recursos/items/equipables/casco_arania_reina.tres",
+	"res://recursos/items/equipables/cuerpo_arania_reina.tres",
+	"res://recursos/items/equipables/pantalon_arania_reina.tres",
+	"res://recursos/items/equipables/botas_arania_reina.tres",
 	"res://recursos/items/recursos/bateria_1.tres",
 	"res://recursos/items/recursos/bateria_7.tres",
 	"res://recursos/items/recursos/bateria_8.tres",

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="DatosItem" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" path="res://assets/items/equippables/botas_arania_reina.png" id="2_ico"]
+[ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="3_atr"]
+[ext_resource type="Resource" path="res://recursos/items/conjuntos/conjunto_arania_reina.tres" id="4_conj"]
+
+[sub_resource type="Resource" id="AtributosBase_bonos"]
+script = ExtResource("3_atr")
+potencia = 3.0
+
+[resource]
+script = ExtResource("1_scr")
+name = "Botines de la Araña Reina"
+icon = ExtResource("2_ico")
+valor = 65
+description = "Como si ocho patas cupieran en dos botas, y ninguna hiciera ruido."
+type = 3
+type_equippable = 4
+can_equip = true
+bonos = SubResource("AtributosBase_bonos")
+conjunto = ExtResource("4_conj")
+id_recurso = "res://recursos/items/equipables/botas_arania_reina.tres"

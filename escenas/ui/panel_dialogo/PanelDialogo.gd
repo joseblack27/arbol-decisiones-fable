@@ -91,6 +91,13 @@ func _mostrar_linea() -> void:
 ## explícito del usuario: "ya me encargué de los lobos" no debería
 ## ofrecerse antes de aceptar la misión ni mientras sigue en curso, solo
 ## cuando los objetivos ya están cumplidos.
+##
+## NO_ACEPTADA además exige MisionesComponente.cumple_requisitos() — pedido
+## explícito del usuario: "las misiones que el jugador no pueda aceptar por
+## nivel o alguna otra condición no deben mostrarse en los diálogos, pero
+## sí en el panel de misiones" (1 sep 2026). PanelMisiones sigue listando
+## TODO el catálogo sin este filtro a propósito — ahí el jugador tiene que
+## poder ver qué le falta para desbloquearla.
 func _opcion_visible(opcion: OpcionDialogo) -> bool:
 	if opcion.condicion == Enums.Dialogo.CondicionMision.SIEMPRE or opcion.mision_condicion == null:
 		return true
@@ -101,7 +108,8 @@ func _opcion_visible(opcion: OpcionDialogo) -> bool:
 	var estado := misiones.estado_de(id_mision)
 	match opcion.condicion:
 		Enums.Dialogo.CondicionMision.NO_ACEPTADA:
-			return estado == Enums.Mision.Estado.BLOQUEADA or estado == Enums.Mision.Estado.DISPONIBLE
+			return (estado == Enums.Mision.Estado.BLOQUEADA or estado == Enums.Mision.Estado.DISPONIBLE) \
+				and misiones.cumple_requisitos(opcion.mision_condicion)
 		Enums.Dialogo.CondicionMision.EN_PROGRESO:
 			return estado == Enums.Mision.Estado.EN_PROGRESO and not misiones.objetivos_completos(id_mision)
 		Enums.Dialogo.CondicionMision.LISTA_PARA_ENTREGAR:

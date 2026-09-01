@@ -77,7 +77,7 @@ func _probar_sincroniza_desde_vacio() -> void:
 		["res://recursos/items/consumibles/botiquin.tres", 3],
 	])
 	_inventario._pedir_sincronizar_red(par[0], par[1])
-	var armadura := _buscar_por_nombre("Armadura Ligera")
+	var armadura := _buscar_por_nombre("Casco del Guardián Quebrado")
 	var botiquin := _buscar_por_nombre("Botiquín")
 	_sincroniza_desde_inventario_vacio_ok = _inventario.items.size() == 2 \
 		and armadura != null and armadura.valor == 30 \
@@ -100,7 +100,7 @@ func _probar_vender_funciona_tras_sincronizar() -> void:
 	_tienda._pedir_vender_red("res://recursos/items/equipables/armadura_1.tres", 1)
 	var pago_esperado := int(30 * TiendaComponente.PORCENTAJE_VENTA)
 	_vender_funciona_tras_sincronizar_ok = _creditos.obtener_creditos() == creditos_antes + pago_esperado \
-		and _buscar_por_nombre("Armadura Ligera") == null
+		and _buscar_por_nombre("Casco del Guardián Quebrado") == null
 	print("Vender funciona después de sincronizar (esperado true): %s" % _vender_funciona_tras_sincronizar_ok)
 
 

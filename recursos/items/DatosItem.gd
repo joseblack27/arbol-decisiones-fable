@@ -44,6 +44,12 @@ class_name DatosItem
 ## base de quien lo tenga puesto. Dejar vacío (null) = sin bono.
 @export var bonos: AtributosBase
 
+## Conjunto de equipo al que pertenece esta pieza (ver ConjuntoDatos) — null
+## = no pertenece a ningún conjunto. Varias piezas distintas deben apuntar
+## a la MISMA instancia de .tres para contar como parte del mismo conjunto
+## (AtributosComponente las agrupa por igualdad de este recurso).
+@export var conjunto: ConjuntoDatos
+
 ## Escena de PasivaBase que este ítem desbloquea al usarse (solo tiene
 ## sentido si type == PASIVA y can_use == true) — ver InventarioComponente
 ## .usar_item()/PasivasComponente.desbloquear_gatillo(). null = sin efecto.

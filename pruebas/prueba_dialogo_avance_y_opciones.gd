@@ -30,6 +30,8 @@ var _click_entre_lineas_con_opciones_no_deja_botones_pegados_ok := false
 var _linea_next_line_explicito_salta_ahi_ok := false
 var _icono_de_categoria_correcto_ok := false
 var _sin_categoria_no_pone_icono_ok := false
+var _mision_bloqueada_por_nivel_oculta_la_opcion_ok := false
+var _mision_desbloqueada_por_nivel_muestra_la_opcion_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -40,6 +42,7 @@ func _process(_delta: float) -> bool:
 	_probar_opcion_cierra()
 	_probar_fin_de_lineas_cierra()
 	_probar_opciones_condicionadas_por_mision()
+	_probar_opcion_oculta_por_nivel_insuficiente()
 	_probar_click_entre_lineas_con_opciones()
 	_probar_linea_next_line_explicito()
 	_probar_icono_por_categoria()
@@ -209,6 +212,67 @@ func _probar_opciones_condicionadas_por_mision() -> void:
 	print("Con el objetivo cumplido: aparece 'ya me encargué', ya no 'tengo una misión' (esperado true): %s" % _condicion_lista_para_entregar_oculta_no_aceptada_ok)
 
 
+## Pedido explícito del usuario (1 sep 2026): "las misiones que el jugador
+## no pueda aceptar por nivel o alguna otra condición no deben mostrarse en
+## los diálogos" — una misión NO_ACEPTADA pero con nivel_requerido mayor al
+## nivel actual del jugador no debe ofrecerse como opción, aunque su estado
+## siga siendo BLOQUEADA/DISPONIBLE. PanelMisiones (fuera de este archivo,
+## sin filtro por nivel a propósito) sigue listando el catálogo entero.
+func _probar_opcion_oculta_por_nivel_insuficiente() -> void:
+	# Reusa el jugador que ya dejó en el árbol _probar_opciones_condicionadas_
+	# por_mision() (el "primer" nodo del grupo "jugadores") — Utils.jugador_
+	# local()/_opcion_visible() resuelven por ese mismo criterio (get_first_
+	# node_in_group), así que crear OTRO Jugador acá no serviría: el panel
+	# seguiría consultando el nivel del primero, no el de este nuevo (bug
+	# real encontrado armando esta prueba: el caso "nivel suficiente" daba
+	# falso porque tocaba el ExperienciaComponente de un jugador que nadie
+	# miraba).
+	var jugador: Node = root.get_node("/root/Utils").jugador_local()
+	var experiencia := jugador.get_node("ExperienciaComponente")
+	var nivel_original: int = experiencia.nivel
+
+	var mision := DatosMision.new()
+	mision.id = "mision_nivel_prueba"
+	mision.nivel_requerido = 5
+	mision.recompensas = DatosRecompensaMision.new()
+	root.get_node("/root/GestorMisiones").catalogo = [mision] as Array[DatosMision]
+
+	var op_ofrecer := OpcionDialogo.new()
+	op_ofrecer.texto = "Tengo una misión para vos"
+	op_ofrecer.condicion = Enums.Dialogo.CondicionMision.NO_ACEPTADA
+	op_ofrecer.mision_condicion = mision
+	op_ofrecer.siguiente_linea = -1
+
+	var linea := LineaDialogo.new()
+	linea.hablante = "Comerciante"
+	linea.texto = "¿En qué te ayudo?"
+	linea.opciones = [op_ofrecer]
+
+	var datos := DatosDialogo.new()
+	datos.lineas = [linea]
+
+	# Nivel 1 (default) < nivel_requerido 5: sin opciones condicionales, la
+	# línea cae al respaldo de "continuar" (ver _mostrar_linea).
+	experiencia.nivel = 1
+	_bus.dialogo_solicitado.emit(_npc, datos)
+	var boton_continuar: Button = _panel.get_node("%BotonContinuar")
+	var opciones: Node = _panel.get_node("%Opciones")
+	_mision_bloqueada_por_nivel_oculta_la_opcion_ok = opciones.get_child_count() == 0 \
+		and boton_continuar.visible
+	print("Nivel insuficiente: la opción de la misión no aparece (esperado true): %s" \
+		% _mision_bloqueada_por_nivel_oculta_la_opcion_ok)
+
+	# Nivel 5 (cumple el requisito): la opción vuelve a aparecer.
+	experiencia.nivel = 5
+	_bus.dialogo_solicitado.emit(_npc, datos)
+	opciones = _panel.get_node("%Opciones")
+	_mision_desbloqueada_por_nivel_muestra_la_opcion_ok = opciones.get_child_count() == 1
+	print("Nivel suficiente: la opción de la misión vuelve a aparecer (esperado true): %s" \
+		% _mision_desbloqueada_por_nivel_muestra_la_opcion_ok)
+
+	experiencia.nivel = nivel_original  # no filtrar estado a las pruebas siguientes.
+
+
 ## Repro directa del bug reportado: NO alcanza con re-emitir dialogo_solicitado
 ## (eso prueba otro camino) — acá se hace clic (pressed.emit(), igual que el
 ## resto de este archivo) sobre un botón de una línea CON opciones que lleva
@@ -352,7 +416,8 @@ func _informar() -> bool:
 		and _condicion_lista_para_entregar_oculta_no_aceptada_ok \
 		and _click_entre_lineas_con_opciones_no_deja_botones_pegados_ok \
 		and _linea_next_line_explicito_salta_ahi_ok \
-		and _icono_de_categoria_correcto_ok and _sin_categoria_no_pone_icono_ok
+		and _icono_de_categoria_correcto_ok and _sin_categoria_no_pone_icono_ok \
+		and _mision_bloqueada_por_nivel_oculta_la_opcion_ok and _mision_desbloqueada_por_nivel_muestra_la_opcion_ok
 	print("PRUEBA DIALOGO AVANCE Y OPCIONES %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

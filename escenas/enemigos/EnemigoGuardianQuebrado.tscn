@@ -1,6 +1,11 @@
-[gd_scene load_steps=89 format=3 uid="uid://bay043wn32udt"]
+[gd_scene load_steps=98 format=3 uid="uid://bay043wn32udt"]
 
 [ext_resource type="Script" uid="uid://dedngnlv3fqis" path="res://escenas/enemigos/EnemigoGuardianQuebrado.gd" id="1_egq"]
+[ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="1_lootdrop"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_1.tres" id="1_loot_casco"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_2.tres" id="1_loot_cuerpo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_3.tres" id="1_loot_pantalon"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_4.tres" id="1_loot_botas"]
 [ext_resource type="FontFile" uid="uid://dkajfhggmh7n4" path="res://assets/fonts/jet brain mono/JetBrainsMono-Bold.ttf" id="2b_fuente_etiqueta"]
 [ext_resource type="FontFile" uid="uid://cswnsiiorquix" path="res://assets/fonts/jet brain mono/JetBrainsMono-Medium.ttf" id="2c_fuente_nombre"]
 [ext_resource type="Resource" path="res://recursos/enemigos/GuardianQuebrado.tres" id="2_datos"]
@@ -392,6 +397,26 @@ resistencia_fisica = 10.0
 [sub_resource type="CircleShape2D" id="CircleShape2D_vida"]
 radius = 30.0
 
+[sub_resource type="Resource" id="Loot_guardian_casco"]
+script = ExtResource("1_lootdrop")
+item = ExtResource("1_loot_casco")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Loot_guardian_cuerpo"]
+script = ExtResource("1_lootdrop")
+item = ExtResource("1_loot_cuerpo")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Loot_guardian_pantalon"]
+script = ExtResource("1_lootdrop")
+item = ExtResource("1_loot_pantalon")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Loot_guardian_botas"]
+script = ExtResource("1_lootdrop")
+item = ExtResource("1_loot_botas")
+probabilidad = 0.35
+
 [node name="EnemigoGuardianQuebrado" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
 motion_mode = 1
 script = ExtResource("1_egq")
@@ -411,6 +436,7 @@ memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("2_datos")
 mostrar_nombre = false
 altura_nombre = -112.0
+tabla_botin = Array[ExtResource("1_lootdrop")]([SubResource("Loot_guardian_casco"), SubResource("Loot_guardian_cuerpo"), SubResource("Loot_guardian_pantalon"), SubResource("Loot_guardian_botas")])
 xp_otorgada = 1000
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]

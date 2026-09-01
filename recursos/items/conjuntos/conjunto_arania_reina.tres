@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="ConjuntoDatos" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://recursos/items/ConjuntoDatos.gd" id="1_cd"]
+[ext_resource type="Script" path="res://recursos/items/TramoConjunto.gd" id="2_tc"]
+[ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="3_atr"]
+
+[sub_resource type="Resource" id="Bonos_2"]
+script = ExtResource("3_atr")
+probabilidad_critico = 5.0
+
+[sub_resource type="Resource" id="Tramo_2"]
+script = ExtResource("2_tc")
+piezas_requeridas = 2
+bonos = SubResource("Bonos_2")
+
+[sub_resource type="Resource" id="Bonos_4"]
+script = ExtResource("3_atr")
+danos = 5.0
+dano_critico = 15.0
+
+[sub_resource type="Resource" id="Tramo_4"]
+script = ExtResource("2_tc")
+piezas_requeridas = 4
+bonos = SubResource("Bonos_4")
+
+[resource]
+script = ExtResource("1_cd")
+nombre = "Araña Reina"
+tramos = Array[ExtResource("2_tc")]([SubResource("Tramo_2"), SubResource("Tramo_4")])

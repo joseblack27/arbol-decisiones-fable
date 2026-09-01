@@ -1,9 +1,17 @@
-[gd_resource type="Resource" script_class="DatosTienda" load_steps=7 format=3 uid="uid://dvmqh4vfxdpv"]
+[gd_resource type="Resource" script_class="DatosTienda" load_steps=15 format=3 uid="uid://dvmqh4vfxdpv"]
 
 [ext_resource type="Script" uid="uid://bf3t8w1pa2mx7" path="res://recursos/tienda/ItemTienda.gd" id="1_utp3b"]
 [ext_resource type="Resource" path="res://recursos/items/consumibles/botiquin.tres" id="2_767sc"]
 [ext_resource type="Resource" path="res://recursos/items/consumibles/pocion_vida.tres" id="3_1xo2x"]
 [ext_resource type="Script" uid="uid://dppfsempb3kk" path="res://recursos/tienda/DatosTienda.gd" id="4_irwbs"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_1.tres" id="5_guardian_casco"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_2.tres" id="6_guardian_cuerpo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_3.tres" id="7_guardian_pantalon"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/armadura_4.tres" id="8_guardian_botas"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/casco_arania_reina.tres" id="9_arania_casco"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/cuerpo_arania_reina.tres" id="10_arania_cuerpo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/pantalon_arania_reina.tres" id="11_arania_pantalon"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/botas_arania_reina.tres" id="12_arania_botas"]
 
 [sub_resource type="Resource" id="Resource_x8bc6"]
 script = ExtResource("1_utp3b")
@@ -15,6 +23,46 @@ script = ExtResource("1_utp3b")
 item = ExtResource("3_1xo2x")
 precio = 25
 
+[sub_resource type="Resource" id="Venta_guardian_casco"]
+script = ExtResource("1_utp3b")
+item = ExtResource("5_guardian_casco")
+precio = 70
+
+[sub_resource type="Resource" id="Venta_guardian_cuerpo"]
+script = ExtResource("1_utp3b")
+item = ExtResource("6_guardian_cuerpo")
+precio = 120
+
+[sub_resource type="Resource" id="Venta_guardian_pantalon"]
+script = ExtResource("1_utp3b")
+item = ExtResource("7_guardian_pantalon")
+precio = 190
+
+[sub_resource type="Resource" id="Venta_guardian_botas"]
+script = ExtResource("1_utp3b")
+item = ExtResource("8_guardian_botas")
+precio = 280
+
+[sub_resource type="Resource" id="Venta_arania_casco"]
+script = ExtResource("1_utp3b")
+item = ExtResource("9_arania_casco")
+precio = 100
+
+[sub_resource type="Resource" id="Venta_arania_cuerpo"]
+script = ExtResource("1_utp3b")
+item = ExtResource("10_arania_cuerpo")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_arania_pantalon"]
+script = ExtResource("1_utp3b")
+item = ExtResource("11_arania_pantalon")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_arania_botas"]
+script = ExtResource("1_utp3b")
+item = ExtResource("12_arania_botas")
+precio = 140
+
 [resource]
 script = ExtResource("4_irwbs")
-items_en_venta = Array[ExtResource("1_utp3b")]([SubResource("Resource_x8bc6"), SubResource("Resource_ndrfy")])
+items_en_venta = Array[ExtResource("1_utp3b")]([SubResource("Resource_x8bc6"), SubResource("Resource_ndrfy"), SubResource("Venta_guardian_casco"), SubResource("Venta_guardian_cuerpo"), SubResource("Venta_guardian_pantalon"), SubResource("Venta_guardian_botas"), SubResource("Venta_arania_casco"), SubResource("Venta_arania_cuerpo"), SubResource("Venta_arania_pantalon"), SubResource("Venta_arania_botas")])

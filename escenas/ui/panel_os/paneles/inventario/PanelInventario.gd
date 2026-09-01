@@ -9,11 +9,26 @@ class_name PanelInventario
 @onready var flow: FlujoItems = $Margin/HBox/PanelItems/MarginContainer/VBoxItems/MarginContainer/ScrollContainer/FlujoItems
 
 @onready var item_name         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre/NombreItem
-@onready var item_icon         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/IconoItem
-@onready var type_value        := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo/ValorTipo
-@onready var qty_value         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer/RejillaInfo/ValorCantidad
-@onready var description_text  := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/MarginContainer2/VBoxContainer/TextoDescripcion
-@onready var vbox_caracteristicas: VBoxContainer = $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/VBoxCaracteristicas
+## A partir de IconoItem, todo vive dentro de ScrollBody (ver PanelInventario
+## .tscn) — pedido explícito del usuario: con el nombre en 2 líneas MÁS un
+## conjunto con varios tramos, el contenido podía necesitar más alto que el
+## espacio fijo de la columna de detalle, y nada de eso tenía cómo
+## desplazarse (la descripción, con fit_content=true, tampoco se desplaza
+## sola — depende de que algo de afuera le haga lugar). HeaderNombre se
+## queda AFUERA del scroll a propósito (título + botón cerrar siempre
+## visibles arriba).
+@onready var item_icon         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/IconoItem
+@onready var type_value        := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo/ValorTipo
+@onready var qty_value         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo/ValorCantidad
+## Fila "Conjunto:" en la misma grilla que Tipo/Cantidad — pedido explícito
+## del usuario: si la pieza pertenece a un conjunto, su nombre aparece ACÁ
+## arriba (no solo mezclado con los tramos de bono más abajo). Oculta por
+## defecto en el .tscn; _update_details()/_clear_details() la muestran solo
+## cuando item.conjunto != null.
+@onready var conjunto_label    := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo/ConjuntoLabel
+@onready var conjunto_value    := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo/ValorConjunto
+@onready var description_text  := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer2/VBoxContainer/TextoDescripcion
+@onready var vbox_caracteristicas: VBoxContainer = $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/VBoxCaracteristicas
 
 @onready var close_button      := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre/BotonCerrar
 ## Lo que se muestra/oculta según haya algo seleccionado o no — el PANEL en
@@ -34,6 +49,9 @@ class_name PanelInventario
 @onready var _label_creditos: Label = $Margin/HBox/PanelDetalle/MarginCreditos/Creditos
 var _creditos: CreditosComponente = null
 
+## Pedido explícito del usuario: el botón de acción se queda FIJO abajo (no
+## adentro de ScrollBody) — solo el contenido de arriba (ícono, descripción,
+## características/conjunto) se desplaza.
 @onready var action_button     := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/BotonAccion
 @onready var main_action_panel: PanelContainer = $Margin/HBox/PanelDetalle/PanelAccionPrincipal
 @onready var use_action_button   := $Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonUsar
@@ -316,6 +334,8 @@ func _clear_details():
 	item_icon.texture = null
 	type_value.text = "-"
 	qty_value.text = "-"
+	conjunto_label.visible = false
+	conjunto_value.visible = false
 	description_text.text = ""
 	_actualizar_caracteristicas(null)
 	use_action_button.disabled = true
@@ -329,6 +349,10 @@ func _update_details(item: SlotItem):
 	item_icon.texture = item.item_data.icon
 	type_value.text = item.item_data.type_descripcion
 	qty_value.text = str(item.item_data.quantity)
+	var conjunto := item.item_data.conjunto
+	conjunto_label.visible = conjunto != null
+	conjunto_value.visible = conjunto != null
+	conjunto_value.text = conjunto.nombre if conjunto != null else ""
 	description_text.text = item.item_data.description
 	_actualizar_caracteristicas(item.item_data)
 	use_action_button.disabled   = not item.can_use
@@ -420,21 +444,28 @@ func _equip_item(item_equip: SlotItem):
 		target_slot.item_data = item
 		target_slot.can_equip = false
 	refrescar()
-	notificar_equipo_cambiado()
-	_on_close_button()
+	notificar_equipo_cambiado()  # también cierra el detalle — ver su comentario.
 
 
-## Avisa (vía GestorEquipo/BusEventos) la lista completa de ítems puestos
-## ahora mismo — quien escuche (típicamente AtributosComponente del jugador)
-## recalcula sus bonos de atributos desde cero con esta lista. Pública:
-## EquipoSlot._drop_data() también la llama (arrastrar directo a un slot de
-## equipo cambia el equipo sin pasar por _equip_item()).
+## Único punto de entrada de "el equipo cambió" — lo llaman TODOS los
+## caminos que pueden cambiarlo: botón Equipar/Soltar, arrastre directo a
+## un EquipoSlot (EquipoSlot._drop_data), desequipar arrastrando fuera
+## (EquipoSlot._desequipar), soltarlo en la grilla general (FlujoItems) y
+## restaurar_equipo() al cargar partida. Cerrar el detalle ACÁ (no en cada
+## caller por separado) es a propósito: antes solo el botón Equipar lo
+## cerraba (pedido del usuario), y el arrastre directo se quedó afuera sin
+## que nadie lo notara — item_data_details seguía apuntando a la
+## referencia VIEJA, así que un ítem de CONJUNTO mostraba la cuenta de
+## "X/N piezas equipadas" congelada de ANTES de este cambio. Centralizarlo
+## acá cubre cualquier camino nuevo que aparezca después sin tener que
+## acordarse de repetir la llamada.
 func notificar_equipo_cambiado() -> void:
 	var equipados: Array[DatosItem] = []
 	for slot: EquipoSlot in slots_equippable:
 		if slot and slot.item_data:
 			equipados.append(slot.item_data)
 	GestorEquipo.actualizar(equipados)
+	_on_close_button()
 
 
 ## Llenado directo de los slots de equipo desde una lista plana de ítems
