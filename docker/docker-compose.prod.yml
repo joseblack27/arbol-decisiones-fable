@@ -1,0 +1,11 @@
+services:
+  servidor:
+    image: ghcr.io/joseblack27/arbol-decisiones-fable:latest
+    ports:
+      - "8920:8920/udp"
+    restart: unless-stopped
+    volumes:
+      - datos_partidas:/root/.local/share/godot/app_userdata/RPGO
+
+volumes:
+  datos_partidas:
