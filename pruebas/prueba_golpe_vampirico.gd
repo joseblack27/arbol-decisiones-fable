@@ -26,6 +26,10 @@ var _mob_lejos
 var _aliado
 var _habilidad
 var _fotogramas := 0
+## Ver el mismo comentario en prueba_vortice.gd: la consulta de daño ahora
+## corre en _physics_process, así que hay que esperar a que AVANCE un
+## fotograma físico real, no solo contar fotogramas idle de este script.
+var _fisica_en_activacion := -1
 
 var _vida_antes := 0.0
 var _golpea_a_ambos_cercanos := false
@@ -37,34 +41,35 @@ var _tres_real_carga_radio_correcto := false
 
 func _process(_delta: float) -> bool:
 	_fotogramas += 1
-	match _fotogramas:
-		1:
-			_montar()
-		2:
-			_vida_jugador.quitar_vida(50.0)  # vida: 100 -> 50, para poder ver la curación subir.
-			_vida_antes = _vida_jugador.obtener_vida()
-			_habilidad._ejecutar(Vector2.ZERO, 1.0)
-		4:
-			# configurar() difiere _aplicar_daño() un fotograma (call_deferred) —
-			# margen extra para que ya haya corrido.
-			_golpea_a_ambos_cercanos = _mob_cerca_a.golpes == 1 and _mob_cerca_b.golpes == 1
-			_no_golpea_al_lejano = _mob_lejos.golpes == 0
-			_aliado_sin_dano = _aliado.golpes == 0
-			print("Golpea a ambos mobs dentro del radio (esperado true): %s" % _golpea_a_ambos_cercanos)
-			print("No golpea al mob fuera del radio (esperado true): %s" % _no_golpea_al_lejano)
-			print("El aliado no recibe daño (esperado true): %s" % _aliado_sin_dano)
+	if _fotogramas == 1:
+		_montar()
+		return false
+	if _fotogramas == 2:
+		_vida_jugador.quitar_vida(50.0)  # vida: 100 -> 50, para poder ver la curación subir.
+		_vida_antes = _vida_jugador.obtener_vida()
+		_habilidad._ejecutar(Vector2.ZERO, 1.0)
+		_fisica_en_activacion = Engine.get_physics_frames()
+		return false
+	if _fotogramas > 2 and Engine.get_physics_frames() == _fisica_en_activacion:
+		return false  # todavía no corrió ningún _physics_process nuevo.
 
-			# daño=10 por golpe (sin AtributosComponente en los mobs ni en el
-			# jugador acá, calcular_pipeline devuelve el mismo valor de
-			# entrada) * 2 golpeados = 20 de daño total * 0.5 de robo = 10.
-			var vida_despues: float = _vida_jugador.obtener_vida()
-			var curado: float = vida_despues - _vida_antes
-			_se_cura_el_total_correcto = is_equal_approx(curado, 10.0)
-			print("Se cura el 50%% del daño TOTAL infligido (esperado true, +10, real +%.1f): %s" % [
-				curado, _se_cura_el_total_correcto])
-			_probar_tres_real()
-			return _informar()
-	return false
+	_golpea_a_ambos_cercanos = _mob_cerca_a.golpes == 1 and _mob_cerca_b.golpes == 1
+	_no_golpea_al_lejano = _mob_lejos.golpes == 0
+	_aliado_sin_dano = _aliado.golpes == 0
+	print("Golpea a ambos mobs dentro del radio (esperado true): %s" % _golpea_a_ambos_cercanos)
+	print("No golpea al mob fuera del radio (esperado true): %s" % _no_golpea_al_lejano)
+	print("El aliado no recibe daño (esperado true): %s" % _aliado_sin_dano)
+
+	# daño=10 por golpe (sin AtributosComponente en los mobs ni en el
+	# jugador acá, calcular_pipeline devuelve el mismo valor de
+	# entrada) * 2 golpeados = 20 de daño total * 0.5 de robo = 10.
+	var vida_despues: float = _vida_jugador.obtener_vida()
+	var curado: float = vida_despues - _vida_antes
+	_se_cura_el_total_correcto = is_equal_approx(curado, 10.0)
+	print("Se cura el 50%% del daño TOTAL infligido (esperado true, +10, real +%.1f): %s" % [
+		curado, _se_cura_el_total_correcto])
+	_probar_tres_real()
+	return _informar()
 
 
 static func _script_objetivo() -> GDScript:

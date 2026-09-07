@@ -19,6 +19,13 @@ var _fotogramas := 0
 var _jefe
 var _jugador
 var _vida_jugador
+## Ver el mismo comentario en prueba_vortice.gd: la consulta de daño de
+## GolpeCorruptoGuardian ahora corre en _physics_process, así que hay que
+## esperar a que AVANCE un fotograma físico real (no solo contar fotogramas
+## idle) antes de leer el resultado.
+var _antes_golpe_corrupto := 0.0
+var _fisica_en_golpe_corrupto := -1
+var _golpe_corrupto_verificado := false
 
 var _golpe_corrupto_dano_ok := false
 var _golpe_corrupto_debuff_ok := false
@@ -31,6 +38,11 @@ var _fase3_activa_castigo_ok := false
 
 func _process(_delta: float) -> bool:
 	_fotogramas += 1
+	if _fotogramas > 5 and not _golpe_corrupto_verificado:
+		if Engine.get_physics_frames() == _fisica_en_golpe_corrupto:
+			return false  # todavía no corrió ningún _physics_process nuevo.
+		_golpe_corrupto_verificado = true
+		_probar_golpe_corrupto_resultado(_antes_golpe_corrupto)
 	match _fotogramas:
 		1:
 			_montar()
@@ -90,12 +102,13 @@ func _montar() -> void:
 
 func _probar_golpe_corrupto() -> void:
 	var golpe = _jefe.get_node("Habilidades/HabilidadGolpeCorruptoGuardian")
-	var antes: float = _vida_jugador.salud_actual
+	_antes_golpe_corrupto = _vida_jugador.salud_actual
 	golpe.activar(Vector2.RIGHT, 1.0)
-	# El daño de GolpeCorruptoGuardian se aplica deferred (igual que
-	# GolpeBasico/GolpeVerdaderoGuardian) — un fotograma más de margen antes
-	# de leer el resultado, ver _probar_golpe_corrupto_resultado.
-	call_deferred("_probar_golpe_corrupto_resultado", antes)
+	# El daño de GolpeCorruptoGuardian se aplica en el próximo
+	# _physics_process (igual que GolpeBasico/GolpeVerdaderoGuardian) — el
+	# chequeo real ocurre en _process() una vez que Engine.get_physics_frames()
+	# avanza, ver ahí.
+	_fisica_en_golpe_corrupto = Engine.get_physics_frames()
 
 
 func _probar_golpe_corrupto_resultado(antes: float) -> void:

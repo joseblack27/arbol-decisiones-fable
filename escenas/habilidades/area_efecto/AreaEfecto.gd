@@ -14,6 +14,10 @@ var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 var _forma: CircleShape2D
 var _timer: float   = 0.0
 var _activado: bool = false
+## Ver el comentario grande en GolpeBasico.gd: la consulta de física de
+## _aplicar_daño() tiene que correr en _physics_process, no en el paso idle
+## (antes era call_deferred, medido como costo real bajo carga real).
+var _daño_pendiente: bool = false
 
 func _ready() -> void:
 	_forma = _col_shape.shape as CircleShape2D
@@ -32,7 +36,7 @@ func configurar(cantidad_daño: float, fuente: Node, tipo: Enums.Habilidad.TipoD
 	_timer      = 0.0
 	_activado   = false
 	set_deferred("monitorable", true)
-	call_deferred("_aplicar_daño")
+	_daño_pendiente = true
 
 ## GestorPiscinas.liberar() llama esto justo antes de esconder el nodo: sin
 ## esto, un área "en espera" en la piscina seguiría siendo un collider válido
@@ -46,6 +50,11 @@ func _aplicar_daño() -> void:
 	# ni entre jugadores ni entre enemigos (antes golpeaban a TODO lo que
 	# pisaran, aliados incluidos; se cambió junto con el resto de habilidades).
 	Combate.golpear_area(self, _forma, daño, entidad_fuente, tipo_dano, "area_efecto")
+
+func _physics_process(_delta: float) -> void:
+	if _daño_pendiente:
+		_daño_pendiente = false
+		_aplicar_daño()
 
 func _process(delta: float) -> void:
 	if not _activado:

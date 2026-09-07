@@ -9,6 +9,18 @@ var _timer: float          = 0.0
 var _entidad_fuente: Node  = null
 var _configurado: bool     = false
 var _tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
+## true = aplicar el daño en el próximo _physics_process(). Antes esto era
+## call_deferred("_aplicar_daño"), que corre en el paso IDLE — una consulta
+## de física (direct_space_state.intersect_shape, ver _aplicar_daño) fuera de
+## _physics_process obliga al motor a sincronizar todo el estado físico
+## pendiente antes de responder, un costo que crece con la cantidad de
+## cuerpos en el mundo. Medido en una prueba de carga real: con varios
+## jugadores golpeando, Performance.TIME_PROCESS (el paso idle) subía a
+## ~17-20ms de golpe apenas había combate real, mientras TIME_PHYSICS_
+## PROCESS se mantenía sano — la firma clásica de una consulta de física mal
+## ubicada. Un fotograma físico de espera (en vez de uno idle) es la misma
+## demora que ya había, solo que en el lugar correcto.
+var _daño_pendiente: bool  = false
 
 @onready var _col_shape: CollisionShape2D = $CollisionShape2D
 var _forma: CircleShape2D
@@ -33,7 +45,7 @@ func configurar(cantidad_daño: float, radio: float, fuente: Node, duracion: flo
 	# instancia puede llegar recién creada o reciclada de un golpe anterior.
 	_timer = 0.0
 	set_deferred("monitorable", true)
-	call_deferred("_aplicar_daño")
+	_daño_pendiente = true
 
 ## GestorPiscinas.liberar() llama esto justo antes de esconder el nodo: sin
 ## esto, un golpe "en espera" en la piscina seguiría siendo un collider
@@ -43,6 +55,11 @@ func _al_liberar_a_piscina() -> void:
 
 func _aplicar_daño() -> void:
 	Combate.golpear_area(self, _forma, _daño, _entidad_fuente, _tipo_dano, "golpe_basico")
+
+func _physics_process(_delta: float) -> void:
+	if _daño_pendiente:
+		_daño_pendiente = false
+		_aplicar_daño()
 
 func _process(delta: float) -> void:
 	if not _configurado:

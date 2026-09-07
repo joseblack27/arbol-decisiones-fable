@@ -17,6 +17,10 @@ var _entidad_fuente: Node = null
 var _timer: float = 0.0
 var _configurado: bool = false
 var _tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
+## Ver el comentario grande en GolpeBasico.gd: la consulta de física de
+## _aplicar_daño() tiene que correr en _physics_process, no en el paso idle
+## (antes era call_deferred, medido como costo real bajo carga real).
+var _daño_pendiente: bool = false
 
 @onready var _col_shape: CollisionShape2D = $CollisionShape2D
 var _forma: CircleShape2D
@@ -36,11 +40,17 @@ func configurar(cantidad_daño: float, radio: float, fuente: Node, duracion: flo
 	_configurado = true
 	_timer = 0.0
 	set_deferred("monitorable", true)
-	call_deferred("_aplicar_daño")
+	_daño_pendiente = true
 
 
 func _al_liberar_a_piscina() -> void:
 	set_deferred("monitorable", false)
+
+
+func _physics_process(_delta: float) -> void:
+	if _daño_pendiente:
+		_daño_pendiente = false
+		_aplicar_daño()
 
 
 func _aplicar_daño() -> void:

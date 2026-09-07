@@ -19,6 +19,10 @@ var _mob_derecha
 var _mob_abajo
 var _aliado
 var _fotogramas := 0
+## Ver el mismo comentario en prueba_vortice.gd: la consulta de daño ahora
+## corre en _physics_process, así que hay que esperar a que AVANCE un
+## fotograma físico real, no solo contar fotogramas idle de este script.
+var _fisica_en_activacion := -1
 
 var _dano_a_enemigos := false
 var _empuje_apunta_lejos_derecha := false
@@ -28,33 +32,34 @@ var _aliado_sin_dano_ni_empuje := false
 
 func _process(_delta: float) -> bool:
 	_fotogramas += 1
-	match _fotogramas:
-		1:
-			_montar()
-		2:
-			_habilidad._ejecutar(Vector2.ZERO, 1.0)
-		4:
-			# configurar() difiere _aplicar_daño() un fotograma (call_deferred) —
-			# margen extra para que ya haya corrido.
-			_dano_a_enemigos = _mob_derecha.golpes == 1 and _mob_abajo.golpes == 1
-			print("Daña a los enemigos en el radio (esperado true): %s" % _dano_a_enemigos)
+	if _fotogramas == 1:
+		_montar()
+		return false
+	if _fotogramas == 2:
+		_habilidad._ejecutar(Vector2.ZERO, 1.0)
+		_fisica_en_activacion = Engine.get_physics_frames()
+		return false
+	if _fotogramas > 2 and Engine.get_physics_frames() == _fisica_en_activacion:
+		return false  # todavía no corrió ningún _physics_process nuevo.
 
-			var mov_derecha = _mob_derecha.get_node("MovimientoComponente")
-			var mov_abajo = _mob_abajo.get_node("MovimientoComponente")
-			# El mob a la derecha (positivo en X) debe empujarse hacia +X;
-			# el de abajo (positivo en Y) hacia +Y.
-			_empuje_apunta_lejos_derecha = mov_derecha._empuje_restante > 0.0 and mov_derecha._empuje_velocidad.x > 0.0
-			_empuje_apunta_lejos_abajo = mov_abajo._empuje_restante > 0.0 and mov_abajo._empuje_velocidad.y > 0.0
-			print("Empuje del mob a la derecha apunta lejos (+X) (esperado true, vel=%s): %s" % [
-				mov_derecha._empuje_velocidad, _empuje_apunta_lejos_derecha])
-			print("Empuje del mob de abajo apunta lejos (+Y) (esperado true, vel=%s): %s" % [
-				mov_abajo._empuje_velocidad, _empuje_apunta_lejos_abajo])
+	_dano_a_enemigos = _mob_derecha.golpes == 1 and _mob_abajo.golpes == 1
+	print("Daña a los enemigos en el radio (esperado true): %s" % _dano_a_enemigos)
 
-			var mov_aliado = _aliado.get_node("MovimientoComponente")
-			_aliado_sin_dano_ni_empuje = _aliado.golpes == 0 and mov_aliado._empuje_restante <= 0.0
-			print("El aliado no recibe daño ni empuje (esperado true): %s" % _aliado_sin_dano_ni_empuje)
-			return _informar()
-	return false
+	var mov_derecha = _mob_derecha.get_node("MovimientoComponente")
+	var mov_abajo = _mob_abajo.get_node("MovimientoComponente")
+	# El mob a la derecha (positivo en X) debe empujarse hacia +X;
+	# el de abajo (positivo en Y) hacia +Y.
+	_empuje_apunta_lejos_derecha = mov_derecha._empuje_restante > 0.0 and mov_derecha._empuje_velocidad.x > 0.0
+	_empuje_apunta_lejos_abajo = mov_abajo._empuje_restante > 0.0 and mov_abajo._empuje_velocidad.y > 0.0
+	print("Empuje del mob a la derecha apunta lejos (+X) (esperado true, vel=%s): %s" % [
+		mov_derecha._empuje_velocidad, _empuje_apunta_lejos_derecha])
+	print("Empuje del mob de abajo apunta lejos (+Y) (esperado true, vel=%s): %s" % [
+		mov_abajo._empuje_velocidad, _empuje_apunta_lejos_abajo])
+
+	var mov_aliado = _aliado.get_node("MovimientoComponente")
+	_aliado_sin_dano_ni_empuje = _aliado.golpes == 0 and mov_aliado._empuje_restante <= 0.0
+	print("El aliado no recibe daño ni empuje (esperado true): %s" % _aliado_sin_dano_ni_empuje)
+	return _informar()
 
 
 static func _script_objetivo() -> GDScript:

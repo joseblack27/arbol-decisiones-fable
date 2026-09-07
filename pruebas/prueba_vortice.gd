@@ -31,6 +31,15 @@ var _mob_cerca_b
 var _mob_lejos
 var _aliado
 var _fotogramas := 0
+## Fotograma físico vigente al activar la habilidad — la consulta de daño/
+## atracción ahora corre en _physics_process (ver el comentario grande en
+## GolpeBasico.gd), así que hay que esperar a que AVANCE al menos un
+## fotograma físico real, no solo N fotogramas idle de este script: en este
+## arnés headless, varios fotogramas idle pueden pasar sin que el motor
+## alcance a correr uno físico nuevo (confirmado en vivo: 3 fotogramas idle
+## seguidos con el mismo Engine.get_physics_frames()).
+var _fisica_en_activacion := -1
+var _verificado_tras_activacion := false
 
 var _cae_en_el_punto_de_apuntado := false
 var _atrae_hacia_el_centro_a := false
@@ -44,35 +53,41 @@ var _se_libera_al_vencer_la_duracion := false
 
 func _process(_delta: float) -> bool:
 	_fotogramas += 1
+	if _fotogramas == 1:
+		_montar()
+		return false
+	if _fotogramas == 2:
+		_habilidad._ejecutar(Vector2.RIGHT, 1.0)
+		_vortice = _piscinas._activos[-1]
+		_fisica_en_activacion = Engine.get_physics_frames()
+		return false
+	if not _verificado_tras_activacion:
+		if _fotogramas > 2 and Engine.get_physics_frames() == _fisica_en_activacion:
+			return false  # todavía no corrió ningún _physics_process nuevo.
+		_verificado_tras_activacion = true
+		_cae_en_el_punto_de_apuntado = _vortice.global_position.distance_to(Vector2(100, 0)) < 1.0
+		print("El campo cae en el punto de apuntado, no en el jugador (esperado true, pos=%s): %s" % [
+			_vortice.global_position, _cae_en_el_punto_de_apuntado])
+
+		var mov_a = _mob_cerca_a.get_node("MovimientoComponente")
+		var mov_b = _mob_cerca_b.get_node("MovimientoComponente")
+		_atrae_hacia_el_centro_a = mov_a._empuje_restante > 0.0 and mov_a._empuje_velocidad.x < 0.0
+		_atrae_hacia_el_centro_b = mov_b._empuje_restante > 0.0 and mov_b._empuje_velocidad.y < 0.0
+		print("Atrae al mob A hacia el centro (esperado true, vel=%s): %s" % [mov_a._empuje_velocidad, _atrae_hacia_el_centro_a])
+		print("Atrae al mob B hacia el centro (esperado true, vel=%s): %s" % [mov_b._empuje_velocidad, _atrae_hacia_el_centro_b])
+
+		_sin_dano_a_los_enemigos = _mob_cerca_a.golpes == 0 and _mob_cerca_b.golpes == 0
+		print("No hace daño a los enemigos (esperado true): %s" % _sin_dano_a_los_enemigos)
+
+		var mov_aliado = _aliado.get_node("MovimientoComponente")
+		_aliado_sin_atraccion_ni_dano = _aliado.golpes == 0 and mov_aliado._empuje_restante <= 0.0
+		print("El aliado no recibe atracción ni daño (esperado true): %s" % _aliado_sin_atraccion_ni_dano)
+
+		var mov_lejos = _mob_lejos.get_node("MovimientoComponente")
+		_mob_lejos_sin_atraccion = mov_lejos._empuje_restante <= 0.0
+		print("El mob fuera del radio no recibe atracción (esperado true): %s" % _mob_lejos_sin_atraccion)
+		return false
 	match _fotogramas:
-		1:
-			_montar()
-		2:
-			_habilidad._ejecutar(Vector2.RIGHT, 1.0)
-		4:
-			# configurar() difiere el primer tirón un fotograma (call_deferred).
-			_vortice = _piscinas._activos[-1]
-			_cae_en_el_punto_de_apuntado = _vortice.global_position.distance_to(Vector2(100, 0)) < 1.0
-			print("El campo cae en el punto de apuntado, no en el jugador (esperado true, pos=%s): %s" % [
-				_vortice.global_position, _cae_en_el_punto_de_apuntado])
-
-			var mov_a = _mob_cerca_a.get_node("MovimientoComponente")
-			var mov_b = _mob_cerca_b.get_node("MovimientoComponente")
-			_atrae_hacia_el_centro_a = mov_a._empuje_restante > 0.0 and mov_a._empuje_velocidad.x < 0.0
-			_atrae_hacia_el_centro_b = mov_b._empuje_restante > 0.0 and mov_b._empuje_velocidad.y < 0.0
-			print("Atrae al mob A hacia el centro (esperado true, vel=%s): %s" % [mov_a._empuje_velocidad, _atrae_hacia_el_centro_a])
-			print("Atrae al mob B hacia el centro (esperado true, vel=%s): %s" % [mov_b._empuje_velocidad, _atrae_hacia_el_centro_b])
-
-			_sin_dano_a_los_enemigos = _mob_cerca_a.golpes == 0 and _mob_cerca_b.golpes == 0
-			print("No hace daño a los enemigos (esperado true): %s" % _sin_dano_a_los_enemigos)
-
-			var mov_aliado = _aliado.get_node("MovimientoComponente")
-			_aliado_sin_atraccion_ni_dano = _aliado.golpes == 0 and mov_aliado._empuje_restante <= 0.0
-			print("El aliado no recibe atracción ni daño (esperado true): %s" % _aliado_sin_atraccion_ni_dano)
-
-			var mov_lejos = _mob_lejos.get_node("MovimientoComponente")
-			_mob_lejos_sin_atraccion = mov_lejos._empuje_restante <= 0.0
-			print("El mob fuera del radio no recibe atracción (esperado true): %s" % _mob_lejos_sin_atraccion)
 		30:
 			# ~0.43s reales desde el primer tirón: duracion_empuje_por_tiron=0.4s
 			# ya venció, pero intervalo_atraccion=0.3s ya debería haber disparado

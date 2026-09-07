@@ -16,6 +16,13 @@ extends SceneTree
 
 var _id: int = 0
 var _duracion: float = 60.0
+## Vacíos = no tocar Utils.ip_conexion/puerto_conexion (comportamiento de
+## siempre: prueba_carga.sh arranca su propio servidor local y los bots se
+## conectan con lo que ya haya configurado/guardado en esta máquina). Con
+## --ip= explícito, este bot apunta a un servidor YA desplegado en otro lado
+## (una VM real) — ver herramientas/carga/prueba_carga_remota.sh.
+var _ip := ""
+var _puerto := -1
 var _fotogramas: int = 0
 var _mundo: Node2D
 var _jugador: CharacterBody2D
@@ -54,12 +61,29 @@ func _init() -> void:
 			_teleporta_lejos = true
 		elif arg == "--observa":
 			_observa = true
+		elif arg.begins_with("--ip="):
+			_ip = arg.substr(5)
+		elif arg.begins_with("--puerto="):
+			_puerto = int(arg.substr(9))
 
 
 func _process(delta: float) -> bool:
 	_fotogramas += 1
 
 	if _fotogramas == 1:
+		if _ip != "" or _puerto > 0:
+			# Autoload por ruta, no por identificador global — ver el mismo
+			# comentario en _buscar_jugador_propio() más abajo (este script ES
+			# el MainLoop, no un Node: los autoloads no resuelven "a pelo" acá).
+			var utils = root.get_node("/root/Utils")
+			if _ip != "":
+				utils.ip_conexion = _ip
+			if _puerto > 0:
+				utils.puerto_conexion = _puerto
+			# Nombre único por corrida: evita que bots de pruebas repetidas
+			# colisionen contra el mismo progreso guardado en el servidor real
+			# (mismo criterio que bot_viaje_cueva.gd).
+			utils.nombre_conexion = "BotCarga%d_%d" % [_id, Time.get_unix_time_from_system() as int % 100000]
 		_mundo = (load("res://escenas/mundo/Mundo.tscn") as PackedScene).instantiate()
 		root.add_child(_mundo)
 		current_scene = _mundo
