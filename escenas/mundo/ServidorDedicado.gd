@@ -91,7 +91,7 @@ func _ready() -> void:
 # contenedor. Para una sesión de medición: poner esta constante en true,
 # reconstruir la imagen, y volver a false al terminar.
 # =============================================================================
-const _INSTRUMENTACION_ACTIVA := false
+const _INSTRUMENTACION_ACTIVA := true
 const _INTERVALO_REPORTE := 5.0
 
 func _iniciar_instrumentacion() -> void:
