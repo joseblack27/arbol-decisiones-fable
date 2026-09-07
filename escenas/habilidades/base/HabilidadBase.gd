@@ -36,6 +36,13 @@ signal recarga_terminada(habilidad: HabilidadBase)
 ## nombre_habilidad/tipo_habilidad hardcodeado ahí (ej. "Arañazo") sigue
 ## ganando por sobre lo cosmético que traiga el recurso.
 @export var datos: DatosHabilidad = null
+## Sonido opcional reproducido UNA vez por _ejecutar() (posicional, en
+## entidad_dueña) — null = silencio, sin cambio de comportamiento para
+## ninguna instancia existente. Las subclases que lo soporten llaman
+## _reproducir_sonido() desde su propio _ejecutar(); como corre ahí (no en
+## activar()), replica igual que el resto del efecto visual — ver
+## _reproducir_visual_red().
+@export var sonido: AudioStream = null
 ## Apagar SOLO en habilidades cuyo propósito ES moverse (dash, parpadeo):
 ## para esas, congelar al activar no tiene sentido (el desplazamiento es la
 ## habilidad misma) y ya tienen su propio manejo de posición. El resto
@@ -396,6 +403,14 @@ func aplicar_nivel_mejora(nivel: int) -> void:
 ## Lógica específica de la habilidad. Sobreescribir en cada subclase.
 func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 	pass
+
+## Reproduce [sonido] por GestorSonido (bus "SFX", ver
+## NotificacionLoot.gd para el mismo patrón) — no-op si sonido es null
+## (todas las instancias existentes que no lo configuran).
+func _reproducir_sonido() -> void:
+	if sonido == null:
+		return
+	GestorSonido.reproducir(sonido)
 
 func _iniciar_recarga() -> void:
 	_recarga_restante = duracion_recarga

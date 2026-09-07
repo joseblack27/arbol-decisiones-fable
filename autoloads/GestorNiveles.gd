@@ -53,6 +53,7 @@ const NIVELES := [
 	"res://escenas/niveles/NivelNidoArañaReina.tscn",
 	"res://escenas/niveles/NivelCiudad.tscn",
 	"res://escenas/niveles/NivelSantuarioGuardian.tscn",
+	"res://escenas/niveles/NivelMina.tscn",
 ]
 ## Separación entre niveles. Enorme a propósito: tiene que superar de sobra
 ## el tamaño de cualquier mapa y el radio de interés (1400 px), para que dos

@@ -78,3 +78,4 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 	# la llamada dejaba ese sprite viejo colgado para siempre (reportado:
 	# "lanza un proyectil de uno y los otros de otro sprite").
 	proy.poner_textura_icono(icono_provisional if usar_icono_como_sprite else null)
+	_reproducir_sonido()

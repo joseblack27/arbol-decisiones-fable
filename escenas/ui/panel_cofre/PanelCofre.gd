@@ -34,9 +34,13 @@ class_name PanelCofre
 ## retirar", nadie deposita ahí arrastrando, solo el leñador) y enruta
 ## quitar()/quitar_cantidad() por GestorLenador.pedir_retirar() (validado
 ## por el servidor, async en red — a diferencia de un cofre por jugador,
-## sin RPC). _modo_almacen distingue cuál de los dos está abierto ahora
+## sin RPC). _modo distingue cuál de las tres fuentes está abierta ahora
 ## mismo, para que _tomar_todo()/el refresco en caliente actúen sobre la
-## fuente correcta.
+## correcta.
+##
+## Mismo tratamiento para el almacén compartido del minero (ver
+## GestorMinero.gd/AlmacenMinero.gd/FuenteAlmacenMinero.gd) — un tercer modo
+## más en el mismo panel, en vez de un panel aparte.
 
 @onready var _grilla_cofre: GrillaObjetos = %GrillaCofre
 @onready var _grilla_jugador: GrillaObjetos = %GrillaJugador
@@ -55,17 +59,19 @@ class_name PanelCofre
 @onready var _vbox_caracteristicas: VBoxContainer = %VBoxCaracteristicas
 
 var _id_cofre: String = ""
-## true mientras lo abierto es el almacén compartido del leñador en vez de
-## un cofre por jugador (ver _abrir_almacen) — decide qué fuente usa
-## _tomar_todo() y si el refresco en caliente de GestorLenador.
-## almacen_actualizado debe tocar esta grilla ahora mismo.
-var _modo_almacen: bool = false
+## Qué fuente está abierta ahora mismo (ver _abrir/_abrir_almacen/
+## _abrir_almacen_minero) — decide qué fuente usa _tomar_todo() y cuál de
+## los refrescos en caliente (GestorLenador/GestorMinero.almacen_actualizado)
+## debe tocar esta grilla ahora mismo.
+enum Modo { COFRE, ALMACEN_LENADOR, ALMACEN_MINERO }
+var _modo: Modo = Modo.COFRE
 
 
 func _ready() -> void:
 	visible = false
 	BusEventos.cofre_solicitado.connect(_abrir)
 	BusEventos.almacen_lenador_solicitado.connect(_abrir_almacen)
+	BusEventos.almacen_minero_solicitado.connect(_abrir_almacen_minero)
 	_grilla_cofre.cerrar_solicitado.connect(_cerrar)
 	_grilla_jugador.cerrar_solicitado.connect(_cerrar)
 	_grilla_cofre.tomar_todo_solicitado.connect(_tomar_todo)
@@ -80,10 +86,11 @@ func _ready() -> void:
 	if not BusEventos.item_agregado.is_connected(_al_cambiar_inventario):
 		BusEventos.item_agregado.connect(_al_cambiar_inventario)
 	GestorLenador.almacen_actualizado.connect(_al_cambiar_almacen)
+	GestorMinero.almacen_actualizado.connect(_al_cambiar_almacen_minero)
 
 
 func _abrir(id_cofre: String, nombre_cofre: String = "Cofre") -> void:
-	_modo_almacen = false
+	_modo = Modo.COFRE
 	_id_cofre = id_cofre
 	_grilla_cofre.titulo = nombre_cofre
 	_grilla_cofre.texto_vacio = "El cofre está vacío"
@@ -113,7 +120,7 @@ func _abrir(id_cofre: String, nombre_cofre: String = "Cofre") -> void:
 ## FuenteAlmacenLenador (solo retiro, ver ese archivo) en vez de
 ## CofresComponente/FuenteCofre.
 func _abrir_almacen() -> void:
-	_modo_almacen = true
+	_modo = Modo.ALMACEN_LENADOR
 	_id_cofre = ""
 	_grilla_cofre.titulo = "Almacén del Leñador"
 	_grilla_cofre.texto_vacio = "El almacén está vacío"
@@ -127,6 +134,23 @@ func _abrir_almacen() -> void:
 	_limpiar_detalle()
 
 	_grilla_cofre.poblar(_obtener_items_almacen, FuenteAlmacenLenador.new())
+	_poblar_grilla_jugador()
+
+
+## Almacén compartido del minero (ver GestorMinero.gd) — mismo tratamiento
+## que _abrir_almacen(), fuente distinta.
+func _abrir_almacen_minero() -> void:
+	_modo = Modo.ALMACEN_MINERO
+	_id_cofre = ""
+	_grilla_cofre.titulo = "Almacén del Minero"
+	_grilla_cofre.texto_vacio = "El almacén está vacío"
+	_grilla_cofre.mostrar_filtro_categorias = false
+	_grilla_cofre.mostrar_ordenar = false
+	_grilla_cofre.mostrar_busqueda = false
+	visible = true
+	_limpiar_detalle()
+
+	_grilla_cofre.poblar(_obtener_items_almacen_minero, FuenteAlmacenMinero.new())
 	_poblar_grilla_jugador()
 
 
@@ -163,13 +187,37 @@ func _obtener_items_almacen() -> Array:
 	return resultado
 
 
+## Mismo criterio que _obtener_items_almacen(), leyendo GestorMinero en vez
+## de GestorLenador.
+func _obtener_items_almacen_minero() -> Array:
+	var resultado: Array[DatosItem] = []
+	for ruta_item: String in GestorMinero.almacen_replicado.keys():
+		var cantidad: int = GestorMinero.almacen_replicado[ruta_item]
+		if cantidad <= 0:
+			continue
+		var original := load(ruta_item) as DatosItem
+		if original == null:
+			continue
+		var item := original.duplicate() as DatosItem
+		item.quantity = cantidad
+		item.id_recurso = ruta_item
+		resultado.append(item)
+	return resultado
+
+
 ## GestorLenador.almacen_actualizado dispara por depósito del leñador,
 ## retiro propio o eco de red — mismo criterio que _al_cambiar_inventario
 ## para la grilla del jugador: solo refresca si el almacén es lo que está
-## abierto AHORA, para no pisar una vista de cofre por jugador que
-## coincidiera en estar visible.
+## abierto AHORA, para no pisar una vista de cofre por jugador (u otro
+## almacén) que coincidiera en estar visible.
 func _al_cambiar_almacen() -> void:
-	if _modo_almacen and is_visible_in_tree():
+	if _modo == Modo.ALMACEN_LENADOR and is_visible_in_tree():
+		_grilla_cofre.notificar_cambio()
+
+
+## Mismo criterio que _al_cambiar_almacen(), para GestorMinero.
+func _al_cambiar_almacen_minero() -> void:
+	if _modo == Modo.ALMACEN_MINERO and is_visible_in_tree():
 		_grilla_cofre.notificar_cambio()
 
 
@@ -222,7 +270,7 @@ func _limpiar_detalle() -> void:
 ## "todo" no tiene nada que preguntar) usando los fuente_grilla que ya
 ## tienen las dos grillas — genérico a propósito (ver GrillaObjetos.
 ## obtener_items_actuales): funciona igual de cofre por jugador que de
-## almacén compartido (ver _modo_almacen), sin importar cuál está abierto.
+## cualquier almacén compartido (ver _modo), sin importar cuál está abierto.
 ## .duplicate() de la lista: para un cofre, obtener_items_actuales()
 ## devuelve la MISMA referencia mutable que fuente_grilla.quitar() va a ir
 ## vaciando en el camino, recorrerla sin copiar saltearía ítems (para el

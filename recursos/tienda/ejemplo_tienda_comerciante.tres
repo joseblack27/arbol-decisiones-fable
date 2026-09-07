@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="DatosTienda" load_steps=15 format=3 uid="uid://dvmqh4vfxdpv"]
+[gd_resource type="Resource" script_class="DatosTienda" load_steps=39 format=3 uid="uid://dvmqh4vfxdpv"]
 
 [ext_resource type="Script" uid="uid://bf3t8w1pa2mx7" path="res://recursos/tienda/ItemTienda.gd" id="1_utp3b"]
 [ext_resource type="Resource" path="res://recursos/items/consumibles/botiquin.tres" id="2_767sc"]
@@ -12,6 +12,18 @@
 [ext_resource type="Resource" path="res://recursos/items/equipables/cuerpo_arania_reina.tres" id="10_arania_cuerpo"]
 [ext_resource type="Resource" path="res://recursos/items/equipables/pantalon_arania_reina.tres" id="11_arania_pantalon"]
 [ext_resource type="Resource" path="res://recursos/items/equipables/botas_arania_reina.tres" id="12_arania_botas"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/casco_cristal.tres" id="13_cristal_casco"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/cuerpo_cristal.tres" id="14_cristal_cuerpo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/pantalon_cristal.tres" id="15_cristal_pantalon"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/botas_cristal.tres" id="16_cristal_botas"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/casco_forja.tres" id="17_forja_casco"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/cuerpo_forja.tres" id="18_forja_cuerpo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/pantalon_forja.tres" id="19_forja_pantalon"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/botas_forja.tres" id="20_forja_botas"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/casco_corrupcion.tres" id="21_corrupcion_casco"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/cuerpo_corrupcion.tres" id="22_corrupcion_cuerpo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/pantalon_corrupcion.tres" id="23_corrupcion_pantalon"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/botas_corrupcion.tres" id="24_corrupcion_botas"]
 
 [sub_resource type="Resource" id="Resource_x8bc6"]
 script = ExtResource("1_utp3b")
@@ -63,6 +75,66 @@ script = ExtResource("1_utp3b")
 item = ExtResource("12_arania_botas")
 precio = 140
 
+[sub_resource type="Resource" id="Venta_cristal_casco"]
+script = ExtResource("1_utp3b")
+item = ExtResource("13_cristal_casco")
+precio = 100
+
+[sub_resource type="Resource" id="Venta_cristal_cuerpo"]
+script = ExtResource("1_utp3b")
+item = ExtResource("14_cristal_cuerpo")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_cristal_pantalon"]
+script = ExtResource("1_utp3b")
+item = ExtResource("15_cristal_pantalon")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_cristal_botas"]
+script = ExtResource("1_utp3b")
+item = ExtResource("16_cristal_botas")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_forja_casco"]
+script = ExtResource("1_utp3b")
+item = ExtResource("17_forja_casco")
+precio = 100
+
+[sub_resource type="Resource" id="Venta_forja_cuerpo"]
+script = ExtResource("1_utp3b")
+item = ExtResource("18_forja_cuerpo")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_forja_pantalon"]
+script = ExtResource("1_utp3b")
+item = ExtResource("19_forja_pantalon")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_forja_botas"]
+script = ExtResource("1_utp3b")
+item = ExtResource("20_forja_botas")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_corrupcion_casco"]
+script = ExtResource("1_utp3b")
+item = ExtResource("21_corrupcion_casco")
+precio = 100
+
+[sub_resource type="Resource" id="Venta_corrupcion_cuerpo"]
+script = ExtResource("1_utp3b")
+item = ExtResource("22_corrupcion_cuerpo")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_corrupcion_pantalon"]
+script = ExtResource("1_utp3b")
+item = ExtResource("23_corrupcion_pantalon")
+precio = 140
+
+[sub_resource type="Resource" id="Venta_corrupcion_botas"]
+script = ExtResource("1_utp3b")
+item = ExtResource("24_corrupcion_botas")
+precio = 140
+
 [resource]
 script = ExtResource("4_irwbs")
-items_en_venta = Array[ExtResource("1_utp3b")]([SubResource("Resource_x8bc6"), SubResource("Resource_ndrfy"), SubResource("Venta_guardian_casco"), SubResource("Venta_guardian_cuerpo"), SubResource("Venta_guardian_pantalon"), SubResource("Venta_guardian_botas"), SubResource("Venta_arania_casco"), SubResource("Venta_arania_cuerpo"), SubResource("Venta_arania_pantalon"), SubResource("Venta_arania_botas")])
+items_en_venta = Array[ExtResource("1_utp3b")]([SubResource("Resource_x8bc6"), SubResource("Resource_ndrfy"), SubResource("Venta_guardian_casco"), SubResource("Venta_guardian_cuerpo"), SubResource("Venta_guardian_pantalon"), SubResource("Venta_guardian_botas"), SubResource("Venta_arania_casco"), SubResource("Venta_arania_cuerpo"), SubResource("Venta_arania_pantalon"), SubResource("Venta_arania_botas"), SubResource("Venta_cristal_casco"), SubResource("Venta_cristal_cuerpo"), SubResource("Venta_cristal_pantalon"), SubResource("Venta_cristal_botas"), SubResource("Venta_forja_casco"), SubResource("Venta_forja_cuerpo"), SubResource("Venta_forja_pantalon"), SubResource("Venta_forja_botas"), SubResource("Venta_corrupcion_casco"), SubResource("Venta_corrupcion_cuerpo"), SubResource("Venta_corrupcion_pantalon"), SubResource("Venta_corrupcion_botas")])

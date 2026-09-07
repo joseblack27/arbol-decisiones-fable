@@ -277,15 +277,24 @@ func _actualizar_posiciones() -> void:
 	else:
 		_marcador_jugador.visible = false
 
+	# Bug real reportado: "muere un mob con el minimapa abierto y da error" —
+	# NO tipar la variable como Node2D en la MISMA línea que get_meta(): si
+	# el nodo original ya se liberó de verdad (no solo queue_free() en
+	# camino, sino ya destruido), Godot revienta ahí mismo al forzar el
+	# cast, ANTES de llegar siquiera a is_instance_valid() — ese chequeo
+	# quedaba inútil porque el crash pasaba una línea antes de alcanzarlo.
+	# Sin anotar el tipo, get_meta() da un Variant plano que is_instance_
+	# valid() sabe manejar aunque apunte a algo ya destruido; el cast a
+	# Node2D se hace RECIÉN después de confirmar que sigue vivo.
 	for marcador in _marcadores_portal:
-		var portal: Node2D = marcador.get_meta("portal")
+		var portal = marcador.get_meta("portal")
 		if is_instance_valid(portal):
-			marcador.position = _proyectar(portal.global_position)
+			marcador.position = _proyectar((portal as Node2D).global_position)
 
 	for marcador in _marcadores_entidad:
-		var entidad: Node2D = marcador.get_meta("entidad")
+		var entidad = marcador.get_meta("entidad")
 		if is_instance_valid(entidad):
-			marcador.position = _proyectar(entidad.global_position) - marcador.size / 2.0
+			marcador.position = _proyectar((entidad as Node2D).global_position) - marcador.size / 2.0
 			marcador.visible = true
 		else:
 			marcador.visible = false

@@ -1,0 +1,924 @@
+[gd_scene load_steps=86 format=3]
+
+[ext_resource type="Script" path="res://escenas/enemigos/EnemigoCorazonCristal.gd" id="1_ycchd"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EsquirlasCristal.tres" id="2_m6elj"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/ErupcionCristal.tres" id="3_cio31"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/MuroCristal.tres" id="4_mjnhu"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/PulsoCristal.tres" id="5_q5won"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EmbestidaCristal.tres" id="6_oyiy5"]
+[ext_resource type="Resource" path="res://recursos/enemigos/CorazonCristal.tres" id="7_f41g4"]
+[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="8_xr661"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/casco_cristal.tres" id="9_2vyu7"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/cuerpo_cristal.tres" id="10_saw8e"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/pantalon_cristal.tres" id="11_26bcm"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/botas_cristal.tres" id="12_b7fkv"]
+[ext_resource type="Script" path="res://componentes/EnergiaComponente.gd" id="13_e48s8"]
+[ext_resource type="Script" path="res://componentes/VisionComponente.gd" id="14_axjem"]
+[ext_resource type="Texture2D" path="res://assets/JugadorBase.png" id="15_sq7tn"]
+[ext_resource type="Script" path="res://componentes/BarraVidaEnergiaComponente.gd" id="16_g6x6l"]
+[ext_resource type="Script" path="res://componentes/AnimacionComponente.gd" id="17_i8ege"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="18_23buh"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="19_e0rmc"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="20_xe7bw"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="21_ym2va"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="22_p5k5x"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="23_anoy4"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/GolpeCristal.tres" id="24_p4vlh"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/ZarpazoCristal.tres" id="25_tvuey"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="26_j3elt"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="27_fwccw"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="28_vqspf"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="29_th4c3"]
+[ext_resource type="Script" path="res://componentes/MovimientoComponente.gd" id="30_k1yu2"]
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.gd" id="31_3n7af"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="32_du1p4"]
+[ext_resource type="Script" path="res://escenas/habilidades/arañazo/HabilidadArañazo.gd" id="33_ykybh"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/Arañazo.tscn" id="34_q7lyu"]
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_verdadero_guardian/HabilidadGolpeVerdaderoGuardian.gd" id="35_bulif"]
+[ext_resource type="Script" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="36_mq0uy"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_cristal_de_hielo_32x32.png" id="37_jmuvw"]
+[ext_resource type="Script" path="res://escenas/habilidades/area_efecto/HabilidadAreaEfecto.gd" id="38_8byfp"]
+[ext_resource type="Script" path="res://escenas/habilidades/muro_guardian/HabilidadMuroGuardian.gd" id="39_tks4d"]
+[ext_resource type="Script" path="res://escenas/habilidades/sacudida/HabilidadSacudida.gd" id="40_sf2fp"]
+[ext_resource type="Script" path="res://escenas/habilidades/carga/HabilidadCarga.gd" id="41_td8sh"]
+[ext_resource type="Script" path="res://componentes/AtributosComponente.gd" id="42_b66vo"]
+[ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="43_ybu40"]
+[ext_resource type="Script" path="res://componentes/VidaComponente.gd" id="44_sktgr"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ataque_area_1.mp3" id="45_snd1"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/muro_puff_1.mp3" id="46_snd2"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/sacudida.mp3" id="47_snd3"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/proyectil.mp3" id="48_snd4"]
+
+[sub_resource type="Resource" id="Resource_dgoo1"]
+script = ExtResource("8_xr661")
+item = ExtResource("9_2vyu7")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Resource_qibxo"]
+script = ExtResource("8_xr661")
+item = ExtResource("10_saw8e")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Resource_uraio"]
+script = ExtResource("8_xr661")
+item = ExtResource("11_26bcm")
+probabilidad = 0.35
+
+[sub_resource type="Resource" id="Resource_gryyk"]
+script = ExtResource("8_xr661")
+item = ExtResource("12_b7fkv")
+probabilidad = 0.35
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_e1jm7"]
+radius = 32.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_2ihst"]
+radius = 500.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_abje5"]
+atlas = ExtResource("15_sq7tn")
+region = Rect2(0, 0, 192, 360)
+
+[sub_resource type="Animation" id="Animation_6jtqv"]
+length = 0.25
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_yjgjv"]
+length = 0.25
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0]
+}
+
+[sub_resource type="Animation" id="Animation_d7um1"]
+length = 0.25
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [1]
+}
+
+[sub_resource type="Animation" id="Animation_vv4vi"]
+length = 0.25
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [2]
+}
+
+[sub_resource type="Animation" id="Animation_xjpq2"]
+length = 0.25
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [3]
+}
+
+[sub_resource type="Animation" id="Animation_v8enq"]
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [4, 5, 6, 7]
+}
+
+[sub_resource type="Animation" id="Animation_5r6ig"]
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [8, 9, 10, 11]
+}
+
+[sub_resource type="Animation" id="Animation_ym4yq"]
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [12, 13, 14, 15]
+}
+
+[sub_resource type="Animation" id="Animation_wy0vc"]
+length = 0.4
+loop_mode = 1
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0, 0.1, 0.2, 0.3),
+"transitions": PackedFloat32Array(1, 1, 1, 1),
+"update": 0,
+"values": [16, 17, 18, 19]
+}
+
+[sub_resource type="Animation" id="Animation_3jwed"]
+length = 0.25
+step = 0.1
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("../Sprite2D:texture")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [SubResource("AtlasTexture_abje5")]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("../Sprite2D:hframes")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [4]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("../Sprite2D:vframes")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [5]
+}
+tracks/3/type = "value"
+tracks/3/imported = false
+tracks/3/enabled = true
+tracks/3/path = NodePath("../Sprite2D:frame")
+tracks/3/interp = 1
+tracks/3/loop_wrap = true
+tracks/3/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [0]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_5ifcd"]
+_data = {
+&"RESET": SubResource("Animation_6jtqv"),
+&"caminar_este": SubResource("Animation_wy0vc"),
+&"caminar_norte": SubResource("Animation_ym4yq"),
+&"caminar_oeste": SubResource("Animation_5r6ig"),
+&"caminar_sur": SubResource("Animation_v8enq"),
+&"cargando": SubResource("Animation_3jwed"),
+&"idle_este": SubResource("Animation_xjpq2"),
+&"idle_norte": SubResource("Animation_vv4vi"),
+&"idle_oeste": SubResource("Animation_d7um1"),
+&"idle_sur": SubResource("Animation_yjgjv")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_ie1fy"]
+animation = &"caminar_oeste"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_75fg4"]
+animation = &"caminar_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_n5mq7"]
+animation = &"caminar_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_if81l"]
+animation = &"caminar_sur"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_wehbs"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_ie1fy")
+blend_point_0/pos = Vector2(-1, 0)
+blend_point_1/node = SubResource("AnimationNodeAnimation_75fg4")
+blend_point_1/pos = Vector2(1, 0)
+blend_point_2/node = SubResource("AnimationNodeAnimation_n5mq7")
+blend_point_2/pos = Vector2(0, -1)
+blend_point_3/node = SubResource("AnimationNodeAnimation_if81l")
+blend_point_3/pos = Vector2(0, 1)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_msu1f"]
+animation = &"cargando"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_a0aoa"]
+animation = &"idle_oeste"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_owjek"]
+animation = &"idle_este"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_xspgw"]
+animation = &"idle_norte"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_qymdp"]
+animation = &"idle_sur"
+
+[sub_resource type="AnimationNodeBlendSpace2D" id="AnimationNodeBlendSpace2D_t05cg"]
+blend_point_0/node = SubResource("AnimationNodeAnimation_a0aoa")
+blend_point_0/pos = Vector2(-1, 0)
+blend_point_1/node = SubResource("AnimationNodeAnimation_owjek")
+blend_point_1/pos = Vector2(1, 0)
+blend_point_2/node = SubResource("AnimationNodeAnimation_xspgw")
+blend_point_2/pos = Vector2(0, -1)
+blend_point_3/node = SubResource("AnimationNodeAnimation_qymdp")
+blend_point_3/pos = Vector2(0, 1)
+blend_mode = 1
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_j52yj"]
+advance_mode = 2
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_rk538"]
+advance_mode = 2
+advance_condition = &"debeCaminar"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_fp555"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_k00d1"]
+advance_mode = 2
+advance_condition = &"debeCargando"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_radsx"]
+advance_mode = 2
+advance_condition = &"debeIdle"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_xar1w"]
+states/CAMINAR/node = SubResource("AnimationNodeBlendSpace2D_wehbs")
+states/CAMINAR/position = Vector2(539, 100)
+states/CARGANDO/node = SubResource("AnimationNodeAnimation_msu1f")
+states/CARGANDO/position = Vector2(539, 220)
+states/IDLE/node = SubResource("AnimationNodeBlendSpace2D_t05cg")
+states/IDLE/position = Vector2(331, 100)
+transitions = ["Start", "IDLE", SubResource("AnimationNodeStateMachineTransition_j52yj"), "IDLE", "CAMINAR", SubResource("AnimationNodeStateMachineTransition_rk538"), "CAMINAR", "IDLE", SubResource("AnimationNodeStateMachineTransition_fp555"), "IDLE", "CARGANDO", SubResource("AnimationNodeStateMachineTransition_k00d1"), "CARGANDO", "IDLE", SubResource("AnimationNodeStateMachineTransition_radsx")]
+
+[sub_resource type="Resource" id="Resource_suixw"]
+script = ExtResource("43_ybu40")
+defensa = 18.0
+fortaleza = 20.0
+resistencia_tierra = 15.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_mc8as"]
+radius = 32.0
+
+[node name="EnemigoCorazonCristal" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
+motion_mode = 1
+script = ExtResource("1_ycchd")
+habilidad_esquirlas_bt = ExtResource("2_m6elj")
+habilidad_erupcion_bt = ExtResource("3_cio31")
+habilidad_muro_bt = ExtResource("4_mjnhu")
+habilidad_pulso_bt = ExtResource("5_q5won")
+habilidad_embestida_bt = ExtResource("6_oyiy5")
+componente_vida = NodePath("VidaComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+componente_vision = NodePath("VisionComponente")
+componente_animacion = NodePath("AnimacionComponente")
+memoria = NodePath("ArbolComportamiento/MemoriaBT")
+datos = ExtResource("7_f41g4")
+mostrar_nombre = false
+altura_nombre = -112.0
+tabla_botin = Array[ExtResource("8_xr661")]([SubResource("Resource_dgoo1"), SubResource("Resource_qibxo"), SubResource("Resource_uraio"), SubResource("Resource_gryyk")])
+xp_otorgada = 900
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_e1jm7")
+
+[node name="EnergiaComponente" type="Node" parent="."]
+script = ExtResource("13_e48s8")
+
+[node name="VisionComponente" type="Area2D" parent="."]
+script = ExtResource("14_axjem")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VisionComponente"]
+visible = false
+shape = SubResource("CircleShape2D_2ihst")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+position = Vector2(0, -32)
+scale = Vector2(1.7, 1.7)
+texture = SubResource("AtlasTexture_abje5")
+hframes = 4
+vframes = 5
+
+[node name="BarraVidaEnergia" type="Node2D" parent="."]
+position = Vector2(0, -104)
+script = ExtResource("16_g6x6l")
+
+[node name="NombreJefe" type="Label" parent="."]
+offset_left = -104.0
+offset_top = -124.0
+offset_right = 104.0
+offset_bottom = -105.0
+theme_override_colors/font_color = Color(0.75, 0.9, 1, 0.95)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 8
+text = "Nv.14 Corazón de Cristal"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EtiquetaHabilidad" type="Label" parent="."]
+visible = false
+offset_left = -104.0
+offset_top = -150.0
+offset_right = 104.0
+offset_bottom = -125.0
+theme_override_colors/font_color = Color(0.6, 0.85, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 16
+text = "Habilidad"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AnimacionComponente" type="Node" parent="." node_paths=PackedStringArray("animation_player", "animation_tree")]
+script = ExtResource("17_i8ege")
+animation_player = NodePath("AnimationPlayer")
+animation_tree = NodePath("AnimationTree")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="AnimacionComponente"]
+libraries = {
+&"": SubResource("AnimationLibrary_5ifcd")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="AnimacionComponente"]
+tree_root = SubResource("AnimationNodeStateMachine_xar1w")
+anim_player = NodePath("../AnimationPlayer")
+parameters/conditions/debeCaminar = false
+parameters/conditions/debeCargando = false
+parameters/conditions/debeIdle = false
+parameters/CAMINAR/blend_position = Vector2(0, 0)
+parameters/IDLE/blend_position = Vector2(0, 1)
+
+[node name="ArbolComportamiento" type="Node" parent="."]
+script = ExtResource("18_23buh")
+agente = NodePath("..")
+ruta_memoria = NodePath("MemoriaBT")
+
+[node name="MemoriaBT" type="Node" parent="ArbolComportamiento"]
+script = ExtResource("19_e0rmc")
+
+[node name="Selector" type="Node" parent="ArbolComportamiento"]
+script = ExtResource("20_xe7bw")
+nombre_nodo = "(Selector) Raiz"
+
+[node name="Atacar" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("21_ym2va")
+usar_rango_de_habilidades = true
+distancia_minima_acercamiento = 25.0
+duracion_recuperacion = 0.8
+intervalo_entre_intentos = 0.4
+nombre_nodo = "(Acción) Atacar"
+
+[node name="SelectorHabilidades" type="Node" parent="ArbolComportamiento/Selector/Atacar"]
+script = ExtResource("22_p5k5x")
+habilidades = Array[ExtResource("23_anoy4")]([ExtResource("24_p4vlh"), ExtResource("25_tvuey")])
+jitter_prioridad = 0.9
+nombre_nodo = "Habilidades Corazón de Cristal"
+
+[node name="AcercarseParaAtacar" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("26_j3elt")
+nombre_nodo = "(Secuencia) Acercarse hasta rango"
+
+[node name="CondJugadorDetectado" type="Node" parent="ArbolComportamiento/Selector/AcercarseParaAtacar"]
+script = ExtResource("27_fwccw")
+nombre_variable = "jugador_detectado"
+nombre_nodo = "(Condición) Jugador detectado"
+
+[node name="Acercarse" type="Node" parent="ArbolComportamiento/Selector/AcercarseParaAtacar"]
+script = ExtResource("28_vqspf")
+distancia_ataque = 130.0
+distancia_abandono = 700.0
+distancia_minima_acercamiento = 25.0
+nombre_nodo = "(Acción) Acercarse a rango"
+
+[node name="Deambular" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("29_th4c3")
+radio_deambulacion = 150.0
+nombre_nodo = "(Acción) Deambular"
+
+[node name="AgenteNavegacion" type="NavigationAgent2D" parent="."]
+path_desired_distance = 8.0
+target_desired_distance = 16.0
+
+[node name="MovimientoComponente" type="Node" parent="." node_paths=PackedStringArray("jugador", "agente_navegacion")]
+script = ExtResource("30_k1yu2")
+jugador = NodePath("..")
+velocidad_base = 85.0
+agente_navegacion = NodePath("../AgenteNavegacion")
+
+[node name="Habilidades" type="Marker2D" parent="."]
+
+[node name="HabilidadGolpeCristal" type="Node" parent="Habilidades"]
+script = ExtResource("31_3n7af")
+duracion_recarga = 1.5
+tipo_dano = 0
+sonido = ExtResource("45_snd1")
+congela_movimiento_en_red = false
+
+[node name="HabilidadZarpazoCristal" type="Node" parent="Habilidades" instance=ExtResource("32_du1p4")]
+script = ExtResource("33_ykybh")
+radio_golpe = 15.0
+escena_golpe = ExtResource("34_q7lyu")
+duracion_recarga = 2.0
+tipo_dano = 0
+congela_movimiento_en_red = false
+
+[node name="HabilidadGolpeVerdaderoTransicion" type="Node" parent="Habilidades"]
+script = ExtResource("35_bulif")
+ignora_defensa = true
+duracion_recarga = 0.5
+congela_movimiento_en_red = false
+
+[node name="HabilidadEsquirlasCristal" type="Node" parent="Habilidades"]
+script = ExtResource("36_mq0uy")
+"daño_proyectil" = 22.0
+icono_provisional = ExtResource("37_jmuvw")
+duracion_recarga = 4.0
+tipo_dano = 0
+sonido = ExtResource("48_snd4")
+congela_movimiento_en_red = false
+
+[node name="HabilidadErupcionCristal" type="Node" parent="Habilidades"]
+script = ExtResource("38_8byfp")
+radio_area = 90.0
+duracion_recarga = 5.0
+tipo_dano = 0
+congela_movimiento_en_red = false
+
+[node name="HabilidadMuroCristal" type="Node" parent="Habilidades"]
+script = ExtResource("39_tks4d")
+duracion_recarga = 10.0
+sonido = ExtResource("46_snd2")
+congela_movimiento_en_red = false
+
+[node name="HabilidadPulsoCristal" type="Node" parent="Habilidades"]
+script = ExtResource("40_sf2fp")
+radio = 100.0
+icono_debuff = ExtResource("37_jmuvw")
+duracion_recarga = 8.0
+sonido = ExtResource("47_snd3")
+congela_movimiento_en_red = false
+
+[node name="HabilidadEmbestidaCristal" type="Node" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento")]
+script = ExtResource("41_td8sh")
+duracion_preparacion = 0.6
+dano_carga = 42.0
+multiplicador_velocidad_carga = 5.0
+distancia_maxima_dash = 350.0
+componente_movimiento = NodePath("../../MovimientoComponente")
+duracion_recarga = 9.0
+tipo_dano = 0
+congela_movimiento_en_red = false
+
+[node name="AtributosComponente" type="Node" parent="."]
+script = ExtResource("42_b66vo")
+base = SubResource("Resource_suixw")
+
+[node name="VidaComponente" type="Area2D" parent="."]
+script = ExtResource("44_sktgr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
+shape = SubResource("CircleShape2D_mc8as")

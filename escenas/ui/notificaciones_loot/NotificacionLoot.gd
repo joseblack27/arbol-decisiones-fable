@@ -14,6 +14,10 @@ signal terminada
 
 @export var duracion_visible: float = 2.5
 @export var duracion_fundido: float = 0.4
+## Primer sonido del proyecto — ver GestorSonido. Volumen ya grabado bajito
+## a propósito (pedido del usuario), y encima pasa por el bus "SFX"
+## configurable desde Configuración (Utils.volumen_sfx).
+@export var sonido_aparicion: AudioStream = preload("res://assets/audio/sfx/loot_pickup.wav")
 
 @onready var _icono: TextureRect = $Margen/HBox/Icono
 @onready var _texto: Label       = $Margen/HBox/Texto
@@ -36,6 +40,7 @@ func configurar_texto(texto: String) -> void:
 
 func _iniciar_fundido() -> void:
 	show()
+	GestorSonido.reproducir(sonido_aparicion)
 	modulate.a = 0.0
 	var tween := create_tween()
 	tween.tween_property(self, "modulate:a", 1.0, 0.2)

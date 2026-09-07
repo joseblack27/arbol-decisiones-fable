@@ -142,6 +142,10 @@ signal cofre_solicitado(id_cofre: String, nombre_cofre: String)
 ## cofre normal, autosuscrito igual que cofre_solicitado.
 signal almacen_lenador_solicitado()
 
+## Mismo criterio que almacen_lenador_solicitado, para el almacén compartido
+## del minero (ver AlmacenMinero.gd/GestorMinero.gd).
+signal almacen_minero_solicitado()
+
 # ── DIÁLOGO ───────────────────────────────────────────────────────────────────
 ## Un NPC pide abrir el panel de diálogo con estos datos — PanelDialogo se
 ## autosuscribe a esta señal (mismo patrón que PanelInventario con el resto

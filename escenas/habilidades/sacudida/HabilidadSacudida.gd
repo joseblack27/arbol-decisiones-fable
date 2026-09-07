@@ -81,3 +81,4 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 		efecto.duracion = duracion_aturdimiento
 		efecto.icono_debuff = icono_debuff
 		(cuerpo as Node).add_child(efecto)
+	_reproducir_sonido()

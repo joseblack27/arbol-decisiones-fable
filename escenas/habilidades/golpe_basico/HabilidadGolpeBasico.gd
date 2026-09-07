@@ -36,6 +36,7 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	golpe.global_position = posicion
 	golpe.configurar(_calcular_dano(int(daño)), radio_golpe, entidad_dueña, duracion_golpe, tipo_dano)
 	_mostrar_indicador_golpe(posicion)
+	_reproducir_sonido()
 
 ## Feedback visual de la zona real de golpe — pedido del usuario ("colocales
 ## un indicador de la zona de golpe"), mismo patrón ya usado por Sacudida/

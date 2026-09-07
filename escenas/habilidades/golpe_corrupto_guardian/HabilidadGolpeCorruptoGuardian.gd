@@ -28,6 +28,7 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	golpe.global_position = posicion
 	golpe.configurar(_calcular_dano(int(daño)), radio_golpe, entidad_dueña, duracion_golpe, tipo_dano)
 	_mostrar_indicador_golpe(posicion)
+	_reproducir_sonido()
 
 
 func _mostrar_indicador_golpe(posicion: Vector2) -> void:

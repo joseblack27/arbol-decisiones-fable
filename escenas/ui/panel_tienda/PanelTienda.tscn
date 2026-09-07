@@ -1,8 +1,7 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=6 format=3 uid="uid://dlssjqx7a8j60"]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tema"]
-[ext_resource type="Script" path="res://escenas/ui/panel_tienda/PanelTienda.gd" id="1_tienda"]
-[ext_resource type="PackedScene" uid="uid://cp7vpuqjt24rq" path="res://escenas/ui/panel_os/paneles/inventario/SlotItem.tscn" id="2_slot"]
+[ext_resource type="Script" uid="uid://iopj685u3e0n" path="res://escenas/ui/panel_tienda/PanelTienda.gd" id="1_tienda"]
 [ext_resource type="PackedScene" uid="uid://detnq67ilbdn4" path="res://escenas/ui/panel_os/comunes/barra_desplazamiento_v/BarraDesplazamientoV.tscn" id="3_scrollv"]
 
 [sub_resource type="ButtonGroup" id="BG_comerciante"]
@@ -64,8 +63,10 @@ text = "0 créditos"
 
 [node name="BotonSalir" type="Button" parent="Fondo/Margin/VBoxRaiz/Header"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
-text = "Salir"
+theme_override_font_sizes/font_size = 15
+text = "x"
 
 [node name="HSeparatorHeader" type="HSeparator" parent="Fondo/Margin/VBoxRaiz"]
 layout_mode = 2
@@ -78,7 +79,6 @@ theme_override_constants/separation = 4
 [node name="PanelComerciante" type="Panel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.0
 
 [node name="Margin" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelComerciante"]
 layout_mode = 1
@@ -192,13 +192,6 @@ theme_override_constants/margin_bottom = 8
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="IconoItem" type="TextureRect" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 72)
-layout_mode = 2
-expand_mode = 1
-stretch_mode = 5
-
 [node name="NombreItem" type="Label" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
@@ -206,6 +199,16 @@ theme_override_font_sizes/font_size = 13
 text = "Seleccioná un ítem"
 horizontal_alignment = 1
 autowrap_mode = 2
+
+[node name="HSeparatorTitulo" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+layout_mode = 2
+
+[node name="IconoItem" type="TextureRect" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="HSeparator" type="HSeparator" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelDetalle/Margin/VBox"]
 layout_mode = 2
@@ -286,14 +289,11 @@ custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
 disabled = true
 text = "—"
-alignment = 1
-icon_alignment = 0
 expand_icon = true
 
 [node name="PanelJugador" type="Panel" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas"]
 layout_mode = 2
 size_flags_horizontal = 3
-size_flags_stretch_ratio = 1.0
 
 [node name="Margin" type="MarginContainer" parent="Fondo/Margin/VBoxRaiz/HBoxColumnas/PanelJugador"]
 layout_mode = 1

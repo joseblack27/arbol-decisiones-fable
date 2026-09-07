@@ -5,7 +5,10 @@
 #   2. Al morir un enemigo con xp_otorgada > 0, esa XP llega a
 #      GestorExperiencia automáticamente.
 #   3. PanelNotificacionesLoot también reacciona a xp_agregada con una fila
-#      de solo texto ("+N XP"), sin ícono.
+#      de solo texto ("+N XP"), sin ícono. Pedido explícito del usuario
+#      (2 sep 2026): una sola fila a la vez (ver prueba_notificaciones_loot.gd)
+#      — acá se fuerza el avance de la cola (fila.terminada.emit(), sin
+#      esperar los ~2.9s reales) para llegar a la última de las 3 emisiones.
 #   4. PanelTablero (la pestaña "Atributos") muestra el progreso DENTRO del
 #      nivel actual ("X / Y", ver TablaNiveles) — no el campo suelto
 #      DatosJugador.experiencia_max (fijo, nunca se movía) ni el acumulado
@@ -71,11 +74,16 @@ func _montar() -> void:
 func _informar() -> bool:
 	print("XP tras matar al ratón (esperado 22 = 15 + 7): %d" % _gestor.xp_total)
 
+	# Una sola fila a la vez (pedido del usuario): se instanció 1 sola vez y
+	# se recicla; se fuerza el avance de la cola hasta llegar a la 3ra
+	# emisión (+7 XP, la del ratón) sin esperar la animación real.
 	var filas := _panel.get_child_count()
-	var ultima_fila: Node = _panel.get_child(filas - 1)
-	var icono_oculto: bool = not (ultima_fila.get_node("Margen/HBox/Icono") as CanvasItem).visible
-	var texto: String = ultima_fila.get_node("Margen/HBox/Texto").text
-	print("Filas de notificación generadas (esperado 3): %d" % filas)
+	var fila_activa: Node = _panel.get_child(0)
+	fila_activa.terminada.emit()
+	fila_activa.terminada.emit()
+	var icono_oculto: bool = not (fila_activa.get_node("Margen/HBox/Icono") as CanvasItem).visible
+	var texto: String = fila_activa.get_node("Margen/HBox/Texto").text
+	print("Una sola fila instanciada, reciclada (esperado 1): %d" % filas)
 	print("Última fila es de XP: ícono oculto=%s texto=%s (esperado '+7 XP')" % [icono_oculto, texto])
 
 	var lbl_experiencia: Label = _tablero.get("_lbl_experiencia")
@@ -86,7 +94,7 @@ func _informar() -> bool:
 
 	var xp_total: int = _gestor.xp_total
 	var exito: bool = xp_total == 22 \
-		and filas == 3 \
+		and filas == 1 \
 		and icono_oculto \
 		and texto == "+7 XP" \
 		and texto_tablero == "22 / 100"

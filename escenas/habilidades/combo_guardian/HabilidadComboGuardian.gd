@@ -90,6 +90,7 @@ func _golpear(id_este: int, dir: Vector2, indice: int) -> void:
 		var charco := _ESCENA_CHARCO.instantiate()
 		origen.get_tree().current_scene.add_child(charco)
 		charco.global_position = posicion
+	_reproducir_sonido()
 
 	var siguiente := indice + 1
 	if siguiente >= cantidad_golpes:

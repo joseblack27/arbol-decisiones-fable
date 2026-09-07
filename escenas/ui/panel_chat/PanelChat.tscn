@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=4 format=3 uid="uid://cmnjtfods2p0e"]
 
-[ext_resource type="Script" path="res://escenas/ui/panel_chat/PanelChat.gd" id="1_chat"]
+[ext_resource type="Script" uid="uid://cx0wd5x8r72lv" path="res://escenas/ui/panel_chat/PanelChat.gd" id="1_chat"]
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="2_tema"]
 
 [sub_resource type="StyleBoxFlat" id="SB_boton_toggle_chat"]
@@ -15,35 +15,48 @@ corner_detail = 1
 [node name="PanelChat" type="Control"]
 process_mode = 3
 layout_mode = 3
-anchors_preset = 0
-offset_left = 8.0
-offset_top = 116.0
-offset_right = 90.0
-offset_bottom = 140.0
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 0
 mouse_filter = 2
 theme = ExtResource("2_tema")
 script = ExtResource("1_chat")
 
 [node name="BotonToggle" type="Button" parent="."]
 process_mode = 3
+custom_minimum_size = Vector2(50, 24)
 layout_mode = 1
-anchors_preset = 0
-offset_right = 82.0
-offset_bottom = 24.0
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -15.5
+offset_top = -27.0
+offset_right = 15.5
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 0
+theme = ExtResource("2_tema")
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = SubResource("SB_boton_toggle_chat")
-theme_override_styles/hover = SubResource("SB_boton_toggle_chat")
 theme_override_styles/pressed = SubResource("SB_boton_toggle_chat")
+theme_override_styles/hover = SubResource("SB_boton_toggle_chat")
 text = "Chat"
 
 [node name="Panel" type="PanelContainer" parent="."]
 process_mode = 3
-layout_mode = 1
-anchors_preset = 0
-offset_top = 28.0
-offset_right = 332.0
-offset_bottom = 220.0
 self_modulate = Color(1, 1, 1, 0.75)
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_top = -192.0
+offset_right = 332.0
+grow_vertical = 0
 mouse_filter = 1
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
@@ -68,6 +81,7 @@ autowrap_mode = 2
 
 [node name="Entrada" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
+theme_override_constants/separation = 0
 
 [node name="Campo" type="LineEdit" parent="Panel/VBox/Entrada"]
 layout_mode = 2
@@ -77,4 +91,8 @@ max_length = 200
 
 [node name="BotonEnviar" type="Button" parent="Panel/VBox/Entrada"]
 layout_mode = 2
-text = "Enviar"
+theme = ExtResource("2_tema")
+theme_override_styles/normal = SubResource("SB_boton_toggle_chat")
+theme_override_styles/pressed = SubResource("SB_boton_toggle_chat")
+theme_override_styles/hover = SubResource("SB_boton_toggle_chat")
+text = " Enviar "

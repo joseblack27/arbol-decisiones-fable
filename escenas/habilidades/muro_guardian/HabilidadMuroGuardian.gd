@@ -86,6 +86,7 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	)
 	_muros_activos[id_muro] = muro
 	muro.muerte.connect(_on_muro_muerte.bind(id_muro), CONNECT_ONE_SHOT)
+	_reproducir_sonido()
 
 
 ## Mismo criterio de sincronización que HabilidadMuroJugador._on_muro_muerte

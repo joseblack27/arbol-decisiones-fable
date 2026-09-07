@@ -22,7 +22,7 @@
 [ext_resource type="Script" uid="uid://4phss6l72t6l" path="res://escenas/ui/ui_habilidad/PaginadorHabilidades.gd" id="24_pag"]
 [ext_resource type="PackedScene" uid="uid://dqxk0lvxwj2rt" path="res://escenas/ui/hud/PanelLogRed.tscn" id="25_log"]
 [ext_resource type="PackedScene" path="res://escenas/ui/panel_chat/PanelChat.tscn" id="31_chat"]
-[ext_resource type="PackedScene" path="res://escenas/ui/hud/BarraGrupo.tscn" id="32_bg"]
+[ext_resource type="PackedScene" path="res://escenas/ui/hud/BarraLateral.tscn" id="32_bg"]
 [ext_resource type="PackedScene" path="res://escenas/ui/panel_invitacion_grupo/PanelInvitacionGrupo.tscn" id="33_invg"]
 [ext_resource type="PackedScene" path="res://escenas/ui/panel_game_over/PanelGameOver.tscn" id="34_go"]
 
@@ -179,12 +179,6 @@ offset_top = 48.0
 offset_right = 0.0
 offset_bottom = 144.0
 
-[node name="PanelNotificacionesLoot" parent="CanvasLayer" instance=ExtResource("17_pnl")]
-offset_left = 16.0
-offset_top = 122.0
-offset_right = 16.0
-offset_bottom = 122.0
-
 [node name="ContadorFPS" parent="CanvasLayer" instance=ExtResource("18_fps")]
 offset_left = 232.0
 offset_top = 8.0
@@ -228,17 +222,13 @@ offset_top = 84.0
 offset_right = 292.0
 offset_bottom = 112.0
 
-[node name="BarraGrupo" parent="CanvasLayer" instance=ExtResource("32_bg")]
+[node name="BarraLateral" parent="CanvasLayer" instance=ExtResource("32_bg")]
 offset_left = 8.0
 offset_top = 116.0
 offset_right = 158.0
 offset_bottom = 216.0
 
 [node name="PanelChat" parent="CanvasLayer" instance=ExtResource("31_chat")]
-offset_left = 8.0
-offset_top = 220.0
-offset_right = 90.0
-offset_bottom = 244.0
 
 [node name="BarraConsumibles" parent="CanvasLayer" instance=ExtResource("21_bc")]
 anchors_preset = 3
@@ -278,13 +268,22 @@ script = ExtResource("15_bos")
 
 [node name="PanelGameOver" parent="CanvasLayer" instance=ExtResource("34_go")]
 
+[node name="CanvasLayerNotificaciones" type="CanvasLayer" parent="."]
+layer = 10
+
+[node name="PanelNotificacionesLoot" parent="CanvasLayerNotificaciones" instance=ExtResource("17_pnl")]
+offset_left = 16.0
+offset_top = 122.0
+offset_right = 16.0
+offset_bottom = 122.0
+
 [node name="Jugadores" type="Node2D" parent="."]
 y_sort_enabled = true
 
 [node name="NPCsErrantes" type="Node2D" parent="."]
 
 [node name="GeneradorNPCsErrantes" type="MultiplayerSpawner" parent="NPCsErrantes"]
-_spawnable_scenes = PackedStringArray("res://escenas/npc/leñador/Lenador.tscn", "res://escenas/npc/cazador/Cazador.tscn")
+_spawnable_scenes = PackedStringArray("res://escenas/npc/leñador/Lenador.tscn", "res://escenas/npc/cazador/Cazador.tscn", "res://escenas/npc/minero/Minero.tscn")
 spawn_path = NodePath("..")
 
 [node name="GeneradorJugadores" type="MultiplayerSpawner" parent="Jugadores"]

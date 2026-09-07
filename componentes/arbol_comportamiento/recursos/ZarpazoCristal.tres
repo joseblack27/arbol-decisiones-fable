@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="HabilidadBT" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="1_hbt"]
+
+[resource]
+script = ExtResource("1_hbt")
+nombre = "Zarpazo de Cristal"
+prioridad = 1
+rango_maximo = 90.0
+duracion_cooldown = 2.0
+ruta_nodo = NodePath("Habilidades/HabilidadZarpazoCristal")

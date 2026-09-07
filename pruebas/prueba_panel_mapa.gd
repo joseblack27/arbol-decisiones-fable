@@ -47,6 +47,7 @@ var _otro_jugador
 var _mob
 var _jefe
 var _aliado
+var _mob_a_liberar
 var _panel
 
 var _muestra_nombre_nivel_ok := false
@@ -61,6 +62,7 @@ var _otro_jugador_verde_ok := false
 var _mob_rojo_ok := false
 var _jefe_amarillo_ok := false
 var _aliado_verde_ok := false
+var _entidad_liberada_no_rompe_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -74,6 +76,7 @@ func _process(_delta: float) -> bool:
 		_probar_proyeccion_jugador()
 		_probar_recorte_en_el_borde()
 		_probar_marcadores_de_entidades()
+		_probar_entidad_liberada_no_rompe()
 		return _informar()
 	return false
 
@@ -122,6 +125,13 @@ func _montar() -> void:
 	_aliado = (load("res://escenas/enemigos/AliadoInvocado.tscn") as PackedScene).instantiate()
 	_nivel.add_child(_aliado)
 	_aliado.global_position = _jugador.global_position + Vector2(200, 0)
+
+	# Aparte de _mob (que otras pruebas siguen usando después): este se
+	# libera de verdad a mitad de la prueba, ver _probar_entidad_liberada_
+	# no_rompe().
+	_mob_a_liberar = (load("res://escenas/enemigos/EnemigoLobo.tscn") as PackedScene).instantiate()
+	_nivel.add_child(_mob_a_liberar)
+	_mob_a_liberar.global_position = _jugador.global_position + Vector2(250, 0)
 
 	_panel = (load("res://escenas/ui/panel_os/paneles/mapa/PanelMapa.tscn") as PackedScene).instantiate()
 	root.add_child(_panel)
@@ -245,6 +255,38 @@ func _probar_marcadores_de_entidades() -> void:
 		% [color_aliado, _aliado_verde_ok])
 
 
+## Bug real reportado por el usuario: "muere un mob con el minimapa abierto
+## y da error" — _actualizar_posiciones() tipaba la variable como Node2D en
+## la MISMA línea que get_meta("entidad"), así que si la entidad original
+## YA estaba liberada de verdad (no solo queue_free() en camino, sino
+## destruida — usa .free() acá, no queue_free(), justamente para simular
+## "ya no existe" DENTRO del mismo fotograma, ver memoria del proyecto
+## sobre esto), el cast reventaba ANTES de llegar al is_instance_valid()
+## de la línea siguiente. Si esta prueba llega a imprimir su resultado sin
+## que el script entero se caiga con un SCRIPT ERROR, el arreglo funciona.
+func _probar_entidad_liberada_no_rompe() -> void:
+	_panel._actualizar_entidades()  # asegura que _mob_a_liberar tenga marcador.
+	var tenia_marcador := false
+	for marcador in _panel._marcadores_entidad:
+		if marcador.get_meta("entidad") == _mob_a_liberar:
+			tenia_marcador = true
+			break
+
+	_mob_a_liberar.free()
+	_panel._actualizar_posiciones()
+
+	# Si llegamos hasta acá sin que Godot aborte el script con un cast
+	# fallido, ya se probó lo importante — de paso, confirma que el
+	# marcador de la entidad liberada quedó invisible.
+	var marcador_invisible_ok := true
+	for marcador in _panel._marcadores_entidad:
+		if marcador.visible and not is_instance_valid(marcador.get_meta("entidad")):
+			marcador_invisible_ok = false
+	_entidad_liberada_no_rompe_ok = tenia_marcador and marcador_invisible_ok
+	print("Liberar una entidad de verdad con el mapa abierto no rompe _actualizar_posiciones (esperado true — tenía marcador=%s, quedó invisible=%s): %s" % [
+		tenia_marcador, marcador_invisible_ok, _entidad_liberada_no_rompe_ok])
+
+
 func _color_de_marcador_de(entidad: Node) -> Variant:
 	for marcador in _panel._marcadores_entidad:
 		if marcador.get_meta("entidad") == entidad:
@@ -256,7 +298,8 @@ func _informar() -> bool:
 	var exito := _muestra_nombre_nivel_ok and _fondo_terreno_duplicado_ok and _mundo_aislado_ok and _camara_encuadrada_ok \
 		and _crea_marcador_por_portal_ok and _etiqueta_portal_correcta_ok \
 		and _jugador_proyectado_correcto_ok and _recorta_en_el_borde_ok \
-		and _otro_jugador_verde_ok and _mob_rojo_ok and _jefe_amarillo_ok and _aliado_verde_ok
+		and _otro_jugador_verde_ok and _mob_rojo_ok and _jefe_amarillo_ok and _aliado_verde_ok \
+		and _entidad_liberada_no_rompe_ok
 	print("PRUEBA PANEL MAPA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

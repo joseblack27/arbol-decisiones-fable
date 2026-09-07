@@ -12,7 +12,16 @@ class_name PanelNotificacionesLoot
 ## se sentía como un tirón notable en Android cada vez que moría un enemigo.
 
 @export var escena_notificacion: PackedScene = preload("res://escenas/ui/notificaciones_loot/NotificacionLoot.tscn")
-@export var max_filas_visibles: int = 5
+## Pedido explícito del usuario: "que no se vean 5 a la vez sino uno a la
+## vez" — ocupaban demasiado espacio y a veces era información irrelevante,
+## como los números flotantes de daño que muestran un valor a la vez.
+@export var max_filas_visibles: int = 1
+
+## Pedido explícito del usuario: si es la única notificación (o la última
+## que queda en cola), se queda leíble 3s; si hay más detrás esperando,
+## pasa rápido (0.5s) para no atrasar al resto — ver _mostrar().
+const DURACION_UNICA: float = 3.0
+const DURACION_ENCOLADA: float = 0.5
 
 var _cola: Array[Dictionary] = []
 var _libres: Array[NotificacionLoot] = []
@@ -40,7 +49,14 @@ func _on_xp_agregada(cantidad: int, _xp_total: int) -> void:
 
 func _encolar(datos: Dictionary) -> void:
 	_cola.append(datos)
-	_procesar_cola()
+	# Diferido (no _procesar_cola() directo): un botín con varias filas
+	# (ej. tabla_botin de un mob) emite item_agregado varias veces SEGUIDAS
+	# dentro del mismo fotograma — si se procesara al toque, la primera fila
+	# se mostraría antes de que las demás siquiera se hayan encolado, y
+	# _mostrar() la creería "la última" (3s) por error. Diferir a fin de
+	# fotograma deja que toda la tanda del mismo golpe entre a _cola ANTES
+	# de decidir qué dura 0.5s y qué dura 3s.
+	_procesar_cola.call_deferred()
 
 
 func _procesar_cola() -> void:
@@ -51,6 +67,9 @@ func _procesar_cola() -> void:
 func _mostrar(datos: Dictionary) -> void:
 	var noti := _obtener_notificacion()
 	_activas += 1
+	# _cola ya no tiene a "datos" (se sacó con pop_front() antes de llamar
+	# acá) — que esté vacía significa que esta es la última (o la única).
+	noti.duracion_visible = DURACION_UNICA if _cola.is_empty() else DURACION_ENCOLADA
 	if datos.tipo == "item":
 		noti.configurar(datos.item, datos.cantidad)
 	else:

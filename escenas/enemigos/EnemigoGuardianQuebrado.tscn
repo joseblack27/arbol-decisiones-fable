@@ -1,4 +1,4 @@
-[gd_scene load_steps=98 format=3 uid="uid://bay043wn32udt"]
+[gd_scene load_steps=101 format=3 uid="uid://bay043wn32udt"]
 
 [ext_resource type="Script" uid="uid://dedngnlv3fqis" path="res://escenas/enemigos/EnemigoGuardianQuebrado.gd" id="1_egq"]
 [ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="1_lootdrop"]
@@ -52,6 +52,9 @@
 [ext_resource type="Script" uid="uid://bgeeeut65x0yt" path="res://escenas/habilidades/miedo_guardian/HabilidadMiedoGuardian.gd" id="47_miedo"]
 [ext_resource type="Resource" uid="uid://b34pebyh22a0r" path="res://componentes/arbol_comportamiento/recursos/ArremetidaGuardian.tres" id="48_arremetidabt"]
 [ext_resource type="Resource" uid="uid://78njcndvxci8" path="res://componentes/arbol_comportamiento/recursos/MiedoGuardian.tres" id="49_miedobt"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ataque_area_1.mp3" id="50_snd1"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/ataque_area_2.mp3" id="51_snd2"]
+[ext_resource type="AudioStream" path="res://assets/audio/sfx/muro_puff_1.mp3" id="52_snd3"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_cuerpo"]
 radius = 32.0
@@ -595,6 +598,7 @@ agente_navegacion = NodePath("../AgenteNavegacion")
 [node name="HabilidadComboGuardian" type="Node" parent="Habilidades"]
 script = ExtResource("25_combo")
 duracion_recarga = 1.5
+sonido = ExtResource("50_snd1")
 congela_movimiento_en_red = false
 
 [node name="HabilidadBarridoGuardian" type="Node" parent="Habilidades"]
@@ -625,11 +629,13 @@ congela_movimiento_en_red = false
 [node name="HabilidadGolpeCorruptoGuardian" type="Node" parent="Habilidades"]
 script = ExtResource("38_golpecorrupto")
 duracion_recarga = 3.0
+sonido = ExtResource("51_snd2")
 congela_movimiento_en_red = false
 
 [node name="HabilidadMuroGuardian" type="Node" parent="Habilidades"]
 script = ExtResource("39_muro")
 duracion_recarga = 10.0
+sonido = ExtResource("52_snd3")
 congela_movimiento_en_red = false
 
 [node name="HabilidadEscudoReflectanteGuardian" type="Node" parent="Habilidades"]

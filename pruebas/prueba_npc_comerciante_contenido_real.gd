@@ -82,16 +82,22 @@ func _probar_catalogo() -> void:
 	print("GestorMisiones.catalogo tiene las 3 misiones de ejemplo (esperado true): %s" % _catalogo_tiene_3_misiones_ok)
 
 
+## reina_nido pide nivel_requerido=8 (ver _probar_reina) y el jugador recién
+## instanciado nace en nivel 1 — la oferta de esa misión NO debe aparecer
+## todavía (pedido explícito del usuario, 1 sep 2026: "las misiones que el
+## jugador no pueda aceptar por nivel... no deben mostrarse en los
+## diálogos"), así que acá son 4 opciones, no 5. _probar_reina() sube el
+## nivel antes de volver a abrir el diálogo, momento en el que sí aparece.
 func _probar_estado_inicial() -> void:
 	_abrir_en_linea_de_opciones()
 	var textos := _textos_opciones_actuales()
-	_estado_inicial_ok = textos.size() == 5 \
+	_estado_inicial_ok = textos.size() == 4 \
 		and "Ver mercancía" in textos \
 		and "Tengo una misión para vos" in textos \
 		and "También hay una plaga que atender" in textos \
-		and "¿Alguien se anima a la Araña Reina?" in textos \
+		and not ("¿Alguien se anima a la Araña Reina?" in textos) \
 		and "Nada, gracias" in textos
-	print("Sin ninguna misión aceptada: 5 opciones, ninguna de 'entregar' (esperado true): %s" % _estado_inicial_ok)
+	print("Sin ninguna misión aceptada (y sin nivel para la Reina todavía): 4 opciones, ninguna de 'entregar' (esperado true): %s" % _estado_inicial_ok)
 
 
 func _probar_plaga() -> void:

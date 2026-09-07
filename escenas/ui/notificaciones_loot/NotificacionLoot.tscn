@@ -5,7 +5,7 @@
 
 [node name="NotificacionLoot" type="PanelContainer"]
 process_mode = 3
-custom_minimum_size = Vector2(220, 32)
+custom_minimum_size = Vector2(170, 32)
 mouse_filter = 2
 theme = ExtResource("2_tema")
 theme_type_variation = &"PanelAviso"

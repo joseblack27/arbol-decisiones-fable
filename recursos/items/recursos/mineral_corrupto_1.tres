@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="DatosItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icono_veneno_32x32.png" id="2_ico"]
+
+[resource]
+script = ExtResource("1_scr")
+name = "Mineral Corrupto"
+icon = ExtResource("2_ico")
+quantity = 1
+valor = 2
+description = "Una piedra oscura que late apenas, como si todavía estuviera viva."
+type = 4
+type_equippable = 0
+can_use = false
+can_equip = false
+can_drop = true

@@ -1,16 +1,18 @@
 # =============================================================================
-# UI de grupos (Feature C) — PanelGrupo, BarraGrupo, PanelInvitacionGrupo.
+# UI de grupos (Feature C) — PanelGrupo, PanelInvitacionGrupo.
 # Solo el lado de PRESENTACIÓN (reacciona a GestorGrupos.roster/mi_grupo y
 # a sus señales) — la lógica de red de GestorGrupos ya se prueba aparte en
 # prueba_gestor_grupos_ciclo_completo.gd, acá no se clickea ningún botón
 # que dispare RPCs, solo se verifica qué se muestra/oculta.
 #
+# BarraGrupo (el widget de HUD) se fusionó con el de misiones en
+# BarraLateral.gd/.tscn (1 sep 2026, pedido del usuario) — ver
+# prueba_barra_lateral.gd para esa parte, ya no vive acá.
+#
 # Verifica:
 #   1. PanelGrupo: sin grupo, muestra el roster de conectados (menos a vos
 #      mismo); con grupo, muestra a los miembros y oculta el roster.
-#   2. BarraGrupo: oculta sin grupo, visible con una fila por miembro
-#      cuando GestorGrupos.mi_grupo tiene datos.
-#   3. PanelInvitacionGrupo: oculto por defecto, aparece al recibir
+#   2. PanelInvitacionGrupo: oculto por defecto, aparece al recibir
 #      invitacion_recibida con el nombre del invitante en el texto.
 #   godot --headless --path . --script res://pruebas/prueba_panel_grupo_ui.gd
 # =============================================================================
@@ -19,15 +21,11 @@ extends SceneTree
 var _fotogramas := 0
 var _gg
 var _panel_grupo
-var _barra_grupo
 var _panel_invitacion
 
 var _roster_sin_grupo_ok := false
 var _propio_peer_excluido_ok := false
 var _vista_de_grupo_ok := false
-var _barra_oculta_sin_grupo_ok := false
-var _barra_visible_con_grupo_ok := false
-var _toggle_oculta_y_muestra_ok := false
 var _invitacion_oculta_por_defecto_ok := false
 var _invitacion_muestra_nombre_ok := false
 
@@ -47,13 +45,10 @@ func _montar() -> void:
 
 	_panel_grupo = (load("res://escenas/ui/panel_os/paneles/grupo/PanelGrupo.tscn") as PackedScene).instantiate()
 	root.add_child(_panel_grupo)
-	_barra_grupo = (load("res://escenas/ui/hud/BarraGrupo.tscn") as PackedScene).instantiate()
-	root.add_child(_barra_grupo)
 	_panel_invitacion = (load("res://escenas/ui/panel_invitacion_grupo/PanelInvitacionGrupo.tscn") as PackedScene).instantiate()
 	root.add_child(_panel_invitacion)
 
 	_invitacion_oculta_por_defecto_ok = not _panel_invitacion.visible
-	_barra_oculta_sin_grupo_ok = not _barra_grupo.visible
 
 	_probar_roster_sin_grupo()
 	_probar_vista_de_grupo()
@@ -96,24 +91,6 @@ func _probar_vista_de_grupo() -> void:
 	print("Con grupo, PanelGrupo oculta el roster y muestra 2 miembros (esperado true): %s" \
 		% _vista_de_grupo_ok)
 
-	_barra_visible_con_grupo_ok = _barra_grupo.visible \
-		and _barra_grupo.get_node("Panel/Lista").get_child_count() == 2
-	print("BarraGrupo se muestra con una fila por miembro (esperado true): %s" \
-		% _barra_visible_con_grupo_ok)
-
-	# Pedido del usuario: "que este panel se pueda ocultar y mostrar" — el
-	# botón colapsa/expande el contenido sin ocultar el botón mismo.
-	var panel_contenido: PanelContainer = _barra_grupo.get_node("Panel")
-	var boton: Button = _barra_grupo.get_node("BotonToggle")
-	var expandido_por_defecto := panel_contenido.visible
-	boton.pressed.emit()
-	var colapsado_tras_un_toque := not panel_contenido.visible
-	boton.pressed.emit()
-	var expandido_de_nuevo := panel_contenido.visible
-	_toggle_oculta_y_muestra_ok = expandido_por_defecto and colapsado_tras_un_toque and expandido_de_nuevo
-	print("El botón de BarraGrupo oculta y vuelve a mostrar el contenido (esperado true): %s" \
-		% _toggle_oculta_y_muestra_ok)
-
 
 func _probar_invitacion() -> void:
 	_gg.invitacion_recibida.emit("Cora")
@@ -125,7 +102,6 @@ func _probar_invitacion() -> void:
 
 func _informar() -> bool:
 	var exito := _roster_sin_grupo_ok and _propio_peer_excluido_ok and _vista_de_grupo_ok \
-		and _barra_oculta_sin_grupo_ok and _barra_visible_con_grupo_ok and _toggle_oculta_y_muestra_ok \
 		and _invitacion_oculta_por_defecto_ok and _invitacion_muestra_nombre_ok
 	print("PRUEBA PANEL GRUPO UI %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)

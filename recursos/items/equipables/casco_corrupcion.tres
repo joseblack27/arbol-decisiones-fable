@@ -1,0 +1,28 @@
+[gd_resource type="Resource" script_class="DatosItem" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" path="res://assets/iconos/icons32x32.png" id="2_ico"]
+[ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="3_atr"]
+[ext_resource type="Resource" path="res://recursos/items/conjuntos/conjunto_corrupcion.tres" id="4_conj"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icono"]
+atlas = ExtResource("2_ico")
+region = Rect2(480, 800, 32, 32)
+
+[sub_resource type="Resource" id="AtributosBase_bonos"]
+script = ExtResource("3_atr")
+defensa = 3.0
+resistencia_fisica = 5.0
+
+[resource]
+script = ExtResource("1_scr")
+name = "Yelmo Corrupto"
+icon = SubResource("AtlasTexture_icono")
+valor = 32
+description = "El metal está manchado de un negro que nunca termina de limpiarse."
+type = 3
+type_equippable = 1
+can_equip = true
+bonos = SubResource("AtributosBase_bonos")
+conjunto = ExtResource("4_conj")
+id_recurso = "res://recursos/items/equipables/casco_corrupcion.tres"

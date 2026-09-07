@@ -25,39 +25,61 @@ theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 2
 theme_override_constants/margin_bottom = 2
 
-[node name="Columnas" type="HBoxContainer" parent="Margin"]
+[node name="VBox" type="VBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 2
+theme_override_constants/separation = 0
 
-[node name="PanelIzquierda" type="Panel" parent="Margin/Columnas"]
+[node name="BarraTabs" type="HBoxContainer" parent="Margin/VBox"]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="BtnInterfaz" type="Button" parent="Margin/VBox/BarraTabs"]
+unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+toggle_mode = true
+text = "Interfaz"
 
-[node name="MargenIzq" type="MarginContainer" parent="Margin/Columnas/PanelIzquierda"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+[node name="BtnAudio" type="Button" parent="Margin/VBox/BarraTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Audio"
+
+[node name="BtnPartida" type="Button" parent="Margin/VBox/BarraTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Partida"
+
+[node name="BtnCuenta" type="Button" parent="Margin/VBox/BarraTabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+text = "Cuenta"
+
+[node name="Tabs" type="TabContainer" parent="Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+tabs_visible = false
+
+[node name="Interfaz" type="MarginContainer" parent="Margin/VBox/Tabs"]
+layout_mode = 2
 theme_override_constants/margin_left = 10
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 10
 theme_override_constants/margin_bottom = 8
 
-[node name="VBoxIzq" type="VBoxContainer" parent="Margin/Columnas/PanelIzquierda/MargenIzq"]
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/Tabs/Interfaz"]
 layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="TituloInterfaz" type="Label" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Interfaz"
-
-[node name="SepInterfaz" type="HSeparator" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
-layout_mode = 2
-
-[node name="CasillaDepuracion" type="CheckBox" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
+[node name="CasillaDepuracion" type="CheckBox" parent="Margin/VBox/Tabs/Interfaz/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9490196, 0.9490196, 0.9490196, 1)
@@ -69,63 +91,220 @@ theme_override_colors/font_disabled_color = Color(0.42, 0.42, 0.47, 1)
 theme_override_font_sizes/font_size = 11
 text = "Mostrar datos de desarrollo"
 
-[node name="AyudaDepuracion" type="Label" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
+[node name="AyudaDepuracion" type="Label" parent="Margin/VBox/Tabs/Interfaz/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
 theme_override_font_sizes/font_size = 10
 text = "FPS, latencia y log de red. Se aplica al instante."
 autowrap_mode = 3
 
-[node name="EspacioA" type="Control" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
-custom_minimum_size = Vector2(0, 12)
+[node name="Audio" type="MarginContainer" parent="Margin/VBox/Tabs"]
+visible = false
 layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
 
-[node name="TituloPartida" type="Label" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/Tabs/Audio"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Partida"
+theme_override_constants/separation = 4
 
-[node name="SepPartida" type="HSeparator" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
-layout_mode = 2
-
-[node name="FilaPartida" type="HBoxContainer" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
+[node name="FilaVolumenSfx" type="HBoxContainer" parent="Margin/VBox/Tabs/Audio/VBox"]
 layout_mode = 2
 theme_override_constants/separation = 6
 
-[node name="BotonGuardarPartida" type="Button" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq/FilaPartida"]
+[node name="LblVolumenSfx" type="Label" parent="Margin/VBox/Tabs/Audio/VBox/FilaVolumenSfx"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "Volumen SFX"
+vertical_alignment = 1
+
+[node name="SliderVolumenSfx" type="HSlider" parent="Margin/VBox/Tabs/Audio/VBox/FilaVolumenSfx"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="AyudaAudio" type="Label" parent="Margin/VBox/Tabs/Audio/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "Efectos de sonido (recolectar ítems, etc.). Se aplica al instante."
+autowrap_mode = 3
+
+[node name="FilaVolumenMusica" type="HBoxContainer" parent="Margin/VBox/Tabs/Audio/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LblVolumenMusica" type="Label" parent="Margin/VBox/Tabs/Audio/VBox/FilaVolumenMusica"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "Volumen Música"
+vertical_alignment = 1
+
+[node name="SliderVolumenMusica" type="HSlider" parent="Margin/VBox/Tabs/Audio/VBox/FilaVolumenMusica"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 20)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.6
+
+[node name="AyudaMusica" type="Label" parent="Margin/VBox/Tabs/Audio/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "Música de fondo. Volumen independiente de los efectos, se aplica al instante."
+autowrap_mode = 3
+
+[node name="Partida" type="MarginContainer" parent="Margin/VBox/Tabs"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/Tabs/Partida"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="FilaPartida" type="HBoxContainer" parent="Margin/VBox/Tabs/Partida/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="BotonGuardarPartida" type="Button" parent="Margin/VBox/Tabs/Partida/VBox/FilaPartida"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Guardar"
 
-[node name="BotonCargarPartida" type="Button" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq/FilaPartida"]
+[node name="BotonCargarPartida" type="Button" parent="Margin/VBox/Tabs/Partida/VBox/FilaPartida"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
 size_flags_horizontal = 3
 text = "Cargar"
 
-[node name="AyudaPartida" type="Label" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
+[node name="AyudaPartida" type="Label" parent="Margin/VBox/Tabs/Partida/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
 theme_override_font_sizes/font_size = 10
 text = "El servidor guarda tu progreso solo cada tanto."
 autowrap_mode = 3
 
-[node name="EspacioB" type="Control" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
-custom_minimum_size = Vector2(0, 12)
+[node name="Cuenta" type="MarginContainer" parent="Margin/VBox/Tabs"]
+visible = false
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="Margin/VBox/Tabs/Cuenta"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="FilaNombre" type="HBoxContainer" parent="Margin/VBox/Tabs/Cuenta/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LblNombre" type="Label" parent="Margin/VBox/Tabs/Cuenta/VBox/FilaNombre"]
+custom_minimum_size = Vector2(56, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "Nombre"
+vertical_alignment = 1
+
+[node name="CampoNombre" type="LineEdit" parent="Margin/VBox/Tabs/Cuenta/VBox/FilaNombre"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+max_length = 24
+
+[node name="FilaPin" type="HBoxContainer" parent="Margin/VBox/Tabs/Cuenta/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LblPin" type="Label" parent="Margin/VBox/Tabs/Cuenta/VBox/FilaPin"]
+custom_minimum_size = Vector2(56, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "PIN"
+vertical_alignment = 1
+
+[node name="CampoPin" type="LineEdit" parent="Margin/VBox/Tabs/Cuenta/VBox/FilaPin"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+layout_mode = 2
+size_flags_horizontal = 3
+secret = true
+max_length = 12
+
+[node name="FilaServidor" type="HBoxContainer" parent="Margin/VBox/Tabs/Cuenta/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="LblServidor" type="Label" parent="Margin/VBox/Tabs/Cuenta/VBox/FilaServidor"]
+custom_minimum_size = Vector2(56, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
+theme_override_font_sizes/font_size = 11
+text = "Servidor"
+vertical_alignment = 1
+
+[node name="ValorServidor" type="Label" parent="Margin/VBox/Tabs/Cuenta/VBox/FilaServidor"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.85, 0.85, 0.88, 1)
+theme_override_font_sizes/font_size = 11
+text = "-"
+vertical_alignment = 1
+
+[node name="BotonAplicarCuenta" type="Button" parent="Margin/VBox/Tabs/Cuenta/VBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 30)
+layout_mode = 2
+text = "Guardar cuenta"
+
+[node name="Aviso" type="Label" parent="Margin/VBox/Tabs/Cuenta/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 10
+autowrap_mode = 3
+
+[node name="AyudaCuenta" type="Label" parent="Margin/VBox/Tabs/Cuenta/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
+theme_override_font_sizes/font_size = 10
+text = "El nombre y el PIN identifican tu cuenta ante el servidor: se aplican recién en la próxima conexión. La IP y el puerto se cambian desde la pantalla de inicio."
+autowrap_mode = 3
+
+[node name="EspacioSesion" type="Control" parent="Margin/VBox/Tabs/Cuenta/VBox"]
+custom_minimum_size = Vector2(0, 10)
 layout_mode = 2
 
-[node name="TituloSesion" type="Label" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Sesión"
-
-[node name="SepSesion" type="HSeparator" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
+[node name="SepSesion" type="HSeparator" parent="Margin/VBox/Tabs/Cuenta/VBox"]
 layout_mode = 2
 
-[node name="BotonCerrarSesion" type="Button" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
+[node name="BotonCerrarSesion" type="Button" parent="Margin/VBox/Tabs/Cuenta/VBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 30)
 layout_mode = 2
@@ -136,117 +315,9 @@ theme_override_colors/font_hover_pressed_color = Color(1, 0.8, 0.8, 1)
 theme_override_colors/font_focus_color = Color(1, 0.8, 0.8, 1)
 text = "Cerrar sesión"
 
-[node name="AyudaSesion" type="Label" parent="Margin/Columnas/PanelIzquierda/MargenIzq/VBoxIzq"]
+[node name="AyudaSesion" type="Label" parent="Margin/VBox/Tabs/Cuenta/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
 theme_override_font_sizes/font_size = 10
 text = "Te desconecta y vuelve a la pantalla de inicio."
-autowrap_mode = 3
-
-[node name="PanelDerecha" type="Panel" parent="Margin/Columnas"]
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="MargenDer" type="MarginContainer" parent="Margin/Columnas/PanelDerecha"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 10
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 10
-theme_override_constants/margin_bottom = 8
-
-[node name="VBoxDer" type="VBoxContainer" parent="Margin/Columnas/PanelDerecha/MargenDer"]
-layout_mode = 2
-theme_override_constants/separation = 4
-
-[node name="TituloCuenta" type="Label" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "Cuenta"
-
-[node name="SepCuenta" type="HSeparator" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer"]
-layout_mode = 2
-
-[node name="FilaNombre" type="HBoxContainer" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="LblNombre" type="Label" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer/FilaNombre"]
-custom_minimum_size = Vector2(56, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
-theme_override_font_sizes/font_size = 11
-text = "Nombre"
-vertical_alignment = 1
-
-[node name="CampoNombre" type="LineEdit" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer/FilaNombre"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-size_flags_horizontal = 3
-max_length = 24
-
-[node name="FilaPin" type="HBoxContainer" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="LblPin" type="Label" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer/FilaPin"]
-custom_minimum_size = Vector2(56, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
-theme_override_font_sizes/font_size = 11
-text = "PIN"
-vertical_alignment = 1
-
-[node name="CampoPin" type="LineEdit" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer/FilaPin"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 28)
-layout_mode = 2
-size_flags_horizontal = 3
-secret = true
-max_length = 12
-
-[node name="FilaServidor" type="HBoxContainer" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer"]
-layout_mode = 2
-theme_override_constants/separation = 6
-
-[node name="LblServidor" type="Label" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer/FilaServidor"]
-custom_minimum_size = Vector2(56, 0)
-layout_mode = 2
-theme_override_colors/font_color = Color(0.62, 0.62, 0.66, 1)
-theme_override_font_sizes/font_size = 11
-text = "Servidor"
-vertical_alignment = 1
-
-[node name="ValorServidor" type="Label" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer/FilaServidor"]
-unique_name_in_owner = true
-layout_mode = 2
-size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.85, 0.85, 0.88, 1)
-theme_override_font_sizes/font_size = 11
-text = "-"
-vertical_alignment = 1
-
-[node name="BotonAplicarCuenta" type="Button" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 30)
-layout_mode = 2
-text = "Guardar cuenta"
-
-[node name="Aviso" type="Label" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.85, 0.55, 1)
-theme_override_font_sizes/font_size = 10
-autowrap_mode = 3
-
-[node name="AyudaCuenta" type="Label" parent="Margin/Columnas/PanelDerecha/MargenDer/VBoxDer"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.45, 0.45, 0.5, 1)
-theme_override_font_sizes/font_size = 10
-text = "El nombre y el PIN identifican tu cuenta ante el servidor: se aplican recién en la próxima conexión. La IP y el puerto se cambian desde la pantalla de inicio."
 autowrap_mode = 3

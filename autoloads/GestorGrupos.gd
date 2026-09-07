@@ -19,7 +19,7 @@ extends Node
 ## crea una invitación pendiente con TTL -> el destino ve un popup
 ## (PanelInvitacionGrupo) -> acepta/rechaza -> el servidor arma/suma al
 ## grupo y difunde la vista actualizada a cada miembro (nombre + vida de
-## todos, para BarraGrupo/PanelGrupo). Rechazar avisa al invitante por el
+## todos, para BarraLateral/PanelGrupo). Rechazar avisa al invitante por el
 ## mismo canal de GestorChat (mensaje de sistema), sin inventar otro tipo
 ## de notificación aparte.
 
@@ -44,7 +44,7 @@ var _invitaciones: Dictionary = {}
 var _conectados: Dictionary = {}
 
 ## CLIENTE: copia local de lo último que mandó el servidor — lo que leen
-## PanelGrupo/PanelInvitacionGrupo/BarraGrupo.
+## PanelGrupo/PanelInvitacionGrupo/BarraLateral.
 var roster: Array = []
 var mi_grupo: Dictionary = {}   # {} si no estás en ningún grupo.
 
@@ -292,7 +292,7 @@ func _difundir_grupo_a_lista(extra_id_unico: String, destinatarios: Array) -> vo
 
 
 ## La "vista" que recibe un cliente: su propio grupo con nombre + vida/vida
-## máxima de cada miembro (para BarraGrupo/PanelGrupo), o {} si no tiene.
+## máxima de cada miembro (para BarraLateral/PanelGrupo), o {} si no tiene.
 ##
 ## "soy_lider" se calcula ACÁ, del lado servidor, en vez de que cada cliente
 ## compare su propio id_unico contra "lider" — el cliente no siempre conoce

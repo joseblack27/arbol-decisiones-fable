@@ -190,6 +190,17 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 	if cantidad <= 0:
 		return salud_actual
 
+	# Ya murió: salud_actual llegó a 0 con un golpe anterior, pero la hurtbox
+	# real recién se desactiva en el próximo frame físico (_apagar_colision_
+	# de_muerto usa set_deferred) — un segundo golpe que aterriza en el MISMO
+	# frame (área de efecto con dos fuentes, combo multi-golpe, dos
+	# proyectiles simultáneos) volvía a restar vida y a emitir "muerte" de
+	# nuevo, que Enemigo._on_muerte() no protegía contra reentradas: el botín
+	# y la XP se repartían dos veces (reportado: "mato un mob y me da como 9
+	# objetos cuando da como mucho 4").
+	if salud_actual <= 0.0:
+		return 0.0
+
 	# Invulnerabilidad (aparición/carga, ver activar_invulnerabilidad): corta
 	# ANTES que nada — ni siquiera gasta el escudo temporal de abajo, que
 	# sería un recurso desperdiciado contra un golpe que igual no iba a

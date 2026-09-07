@@ -1,0 +1,139 @@
+[gd_scene load_steps=6 format=3 uid="uid://b7hl27afmi6u8"]
+
+[ext_resource type="Script" path="res://escenas/ui/hud/BarraLateral.gd" id="1_bl"]
+[ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="2_tema"]
+
+[sub_resource type="StyleBoxFlat" id="SB_tab_normal"]
+bg_color = Color(0.05882353, 0.05882353, 0.05882353, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_tab_activo"]
+bg_color = Color(0.21960784, 0.21960784, 0.28235295, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.4, 0.5, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_tab_hover"]
+bg_color = Color(0.12156863, 0.12156863, 0.12156863, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+corner_detail = 1
+
+[node name="BarraLateral" type="Control"]
+custom_minimum_size = Vector2(150, 106)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 150.0
+offset_bottom = 106.0
+mouse_filter = 2
+theme = ExtResource("2_tema")
+script = ExtResource("1_bl")
+
+[node name="TirasTabs" type="VBoxContainer" parent="."]
+layout_mode = 1
+offset_right = 30.0
+offset_bottom = 106.0
+theme_override_constants/separation = 0
+
+[node name="BotonGrupo" type="Button" parent="TirasTabs"]
+custom_minimum_size = Vector2(30, 52)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/normal = SubResource("SB_tab_normal")
+theme_override_styles/pressed = SubResource("SB_tab_activo")
+theme_override_styles/hover = SubResource("SB_tab_hover")
+theme_override_styles/hover_pressed = SubResource("SB_tab_activo")
+toggle_mode = true
+
+[node name="EtiquetaGrupo" type="Label" parent="TirasTabs/BotonGrupo"]
+custom_minimum_size = Vector2(52, 30)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -11.0
+offset_top = -5.5
+offset_right = 11.0
+offset_bottom = 6.5
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -1.5707964
+pivot_offset = Vector2(26, 15)
+theme_override_font_sizes/font_size = 7
+text = "Grupo"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BotonMisiones" type="Button" parent="TirasTabs"]
+custom_minimum_size = Vector2(30, 52)
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_styles/normal = SubResource("SB_tab_normal")
+theme_override_styles/pressed = SubResource("SB_tab_activo")
+theme_override_styles/hover = SubResource("SB_tab_hover")
+theme_override_styles/hover_pressed = SubResource("SB_tab_activo")
+toggle_mode = true
+
+[node name="EtiquetaMisiones" type="Label" parent="TirasTabs/BotonMisiones"]
+custom_minimum_size = Vector2(52, 30)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -26.0
+offset_top = -15.0
+offset_right = 26.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = -1.5707964
+pivot_offset = Vector2(26, 15)
+theme_override_font_sizes/font_size = 7
+text = "Misiones"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Panel" type="PanelContainer" parent="."]
+visible = false
+self_modulate = Color(1, 1, 1, 0.75)
+layout_mode = 1
+offset_left = 32.0
+offset_right = 152.0
+offset_bottom = 106.0
+mouse_filter = 1
+
+[node name="ScrollGrupo" type="ScrollContainer" parent="Panel"]
+visible = false
+custom_minimum_size = Vector2(118, 104)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="ListaGrupo" type="VBoxContainer" parent="Panel/ScrollGrupo"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ScrollMisiones" type="ScrollContainer" parent="Panel"]
+visible = false
+custom_minimum_size = Vector2(118, 104)
+layout_mode = 2
+horizontal_scroll_mode = 0
+
+[node name="ListaMisiones" type="VBoxContainer" parent="Panel/ScrollMisiones"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4

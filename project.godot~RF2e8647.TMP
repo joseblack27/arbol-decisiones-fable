@@ -1,0 +1,74 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="RPGO"
+run/main_scene="res://escenas/menu_inicio/MenuInicio.tscn"
+config/features=PackedStringArray("4.5")
+run/max_fps=60
+config/icon="uid://crulm186ucr"
+
+[autoload]
+
+"SeñalManager"="*res://autoloads/SeñalManager.gd"
+BusEventos="*res://autoloads/BusEventos.gd"
+GestorUI="*res://autoloads/GestorUI.gd"
+Enums="*res://autoloads/Enums.gd"
+Utils="*res://autoloads/Utils.gd"
+GestorEventos="*res://autoloads/GestorEventos.gd"
+FabricaEventos="*res://autoloads/FabricaEventos.gd"
+GestorNiveles="*res://autoloads/GestorNiveles.gd"
+GestorPiscinas="*res://autoloads/GestorPiscinas.gd"
+GestorNumerosDano="*res://autoloads/GestorNumerosDano.gd"
+GestorNumerosCuracion="*res://autoloads/GestorNumerosCuracion.gd"
+GestorCarga="*res://escenas/ui/pantalla_carga/PantallaCarga.tscn"
+GestorInventario="*res://autoloads/GestorInventario.gd"
+GestorExperiencia="*res://autoloads/GestorExperiencia.gd"
+GestorEquipo="*res://autoloads/GestorEquipo.gd"
+GestorGuardado="*res://autoloads/GestorGuardado.gd"
+GestorCuentas="*res://autoloads/GestorCuentas.gd"
+GestorBarraRapida="*res://autoloads/GestorBarraRapida.gd"
+InteresEspacial="*res://autoloads/InteresEspacial.gd"
+GestorLogRed="*res://autoloads/GestorLogRed.gd"
+GestorMisiones="*res://autoloads/GestorMisiones.tscn"
+GestorCofres="*res://autoloads/GestorCofres.tscn"
+GestorInteraccion="*res://autoloads/GestorInteraccion.gd"
+GestorLenador="*res://autoloads/GestorLenador.gd"
+GestorCazador="*res://autoloads/GestorCazador.gd"
+_mcp_game_helper="*res://addons/godot_ai/runtime/game_helper.gd"
+GestorChat="*res://autoloads/GestorChat.gd"
+GestorGrupos="*res://autoloads/GestorGrupos.gd"
+GestorSonido="*res://autoloads/GestorSonido.gd"
+GestorMinero="*res://autoloads/GestorMinero.gd"
+
+[display]
+
+window/size/viewport_width=800
+window/size/viewport_height=480
+window/stretch/mode="viewport"
+window/stretch/aspect="expand"
+window/stretch/scale_mode="integer"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/godot_ai/plugin.cfg")
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[rendering]
+
+textures/canvas_textures/default_texture_filter=0
+renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
+2d/snap/snap_2d_transforms_to_pixel=true
+2d/snap/snap_2d_vertices_to_pixel=true
