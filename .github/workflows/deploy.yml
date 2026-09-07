@@ -1,0 +1,22 @@
+name: Deploy Godot Server
+
+on:
+  push:
+    branches: [online]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/arbol-decisiones-fable
+            git fetch origin online
+            git reset --hard origin/online
+            cd docker
+            docker compose up -d --build
