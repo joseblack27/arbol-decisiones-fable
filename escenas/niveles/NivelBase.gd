@@ -118,6 +118,14 @@ func punto_aparicion() -> Node2D:
 	return get_node_or_null("PuntoAparicion")
 
 
+## Contenedor de los mobs hostiles del nivel — ver GestorNiveles.
+## _actualizar_actividad_niveles(), que lo apaga por separado del resto del
+## nivel cuando no hay jugadores, aunque el nivel esté marcado "siempre
+## activo" (Pradera/Ciudad/Mina, por los NPCs errantes).
+func contenedor_enemigos() -> Node:
+	return get_node_or_null("Enemigos")
+
+
 ## Rectángulo del mundo (coordenadas globales) que ocupa el Terreno del
 ## nivel, para que la cámara del jugador no muestre el vacío fuera del mapa.
 ## Rect2() vacío si el nivel no tiene Terreno (sin límite conocido).

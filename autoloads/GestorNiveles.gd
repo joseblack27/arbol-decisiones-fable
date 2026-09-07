@@ -617,11 +617,29 @@ func _actualizar_actividad_niveles() -> void:
 	for hijo in _contenedor.get_children():
 		if not (hijo is NivelBase):
 			continue
-		var activo := hay_jugadores_en(hijo as NivelBase) \
-			or _rutas_siempre_activas.has((hijo as NivelBase).scene_file_path)
-		var modo := Node.PROCESS_MODE_INHERIT if activo else Node.PROCESS_MODE_DISABLED
-		if hijo.process_mode != modo:
-			hijo.process_mode = modo
+		var nivel := hijo as NivelBase
+		var hay_jugadores := hay_jugadores_en(nivel)
+		var siempre_activo := _rutas_siempre_activas.has(nivel.scene_file_path)
+		var modo := Node.PROCESS_MODE_INHERIT if (hay_jugadores or siempre_activo) else Node.PROCESS_MODE_DISABLED
+		if nivel.process_mode != modo:
+			nivel.process_mode = modo
+		# Un nivel "siempre activo" (Pradera/Ciudad/Mina, por los NPCs
+		# errantes que necesitan su terreno/portales funcionando — ver
+		# mantener_siempre_activo()) no tiene por qué mantener a TODOS sus
+		# mobs hostiles pensando sin nadie mirando: eso es la mayor parte del
+		# costo real (medido en la VM de producción: ~200ms de física por
+		# fotograma con 0 jugadores conectados, contra un presupuesto de
+		# ~16ms). El terreno/navegación/portales del nivel siguen activos
+		# arriba (siempre_activo los deja en INHERIT); acá se apaga aparte
+		# solo "Enemigos" (IA + física de lobos/arañas/jefes, ver
+		# NivelBase.contenedor_enemigos) cuando no hay jugadores, sin tocar
+		# nada de lo que el leñador/cazador/minero necesitan.
+		if siempre_activo:
+			var enemigos := nivel.contenedor_enemigos()
+			if enemigos:
+				var modo_enemigos := Node.PROCESS_MODE_INHERIT if hay_jugadores else Node.PROCESS_MODE_DISABLED
+				if enemigos.process_mode != modo_enemigos:
+					enemigos.process_mode = modo_enemigos
 
 
 ## true si hay al menos un jugador dentro de ese nivel. Lo usa SpawnerMobs
