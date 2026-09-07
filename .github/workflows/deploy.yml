@@ -31,7 +31,10 @@ jobs:
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            cd ~/arbol-decisiones-fable
+            git fetch origin online
+            git reset --hard origin/online
             echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u joseblack27 --password-stdin
             docker pull ghcr.io/joseblack27/arbol-decisiones-fable:latest
-            cd ~/arbol-decisiones-fable/docker
+            cd docker
             docker compose -f docker-compose.prod.yml up -d
