@@ -40,6 +40,15 @@ var _cola_spawn: Array[int] = []
 
 
 func _ready() -> void:
+	# Bajado de 60 (default) a 30 ticks/s SOLO en el servidor — el cliente no
+	# toca esta línea, así que su propia física local sigue a 60. Reduce a la
+	# mitad cuántas veces por segundo corre _physics_process de cada mob (ahí
+	# vive la IA/movimiento — ver Enemigo.gd), que es exactamente lo que
+	# medía "fisica=" en el log [CARGA]. El movimiento sigue usando delta, así
+	# que la velocidad en pantalla no cambia — los pasos quedan más grandes,
+	# no más lentos. Probado tras diagnosticar tirones en producción con
+	# fisica≈200ms por frame incluso con 0 jugadores conectados.
+	Engine.physics_ticks_per_second = 30
 	get_tree().current_scene = self
 	GestorNiveles.registrar($ContenedorNivel, null)
 	GestorNiveles.registrar_errantes($NPCsErrantes)
