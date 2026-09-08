@@ -83,11 +83,16 @@ func _probar_sender_sin_jugador_rechaza() -> void:
 	# transporte real — sacamos al jugador "0" de la escena así
 	# InteresEspacial.jugador_de_peer(0) no encuentra a nadie.
 	root.remove_child(_jugador_a)
+	# InteresEspacial cachea jugador_de_peer() por fotograma físico (ver ese
+	# archivo) — sacar/meter el nodo DENTRO del mismo fotograma (sin
+	# transporte real de por medio) necesita invalidar a mano.
+	root.get_node("/root/InteresEspacial").invalidar_cache_jugadores()
 	_gl._pedir_retirar_red(_RUTA_LENA, 1)
 	var total: int = _gl._almacen.get(_RUTA_LENA, 0)
 	print("Sender sin jugador identificable no descuenta nada (esperado 1): %d" % total)
 	_sender_sin_jugador_rechaza_ok = total == 1
 	root.add_child(_jugador_a)
+	root.get_node("/root/InteresEspacial").invalidar_cache_jugadores()
 
 
 func _probar_retiro_valido() -> void:
@@ -122,6 +127,7 @@ func _probar_segundo_jugador_ve_el_mismo_total() -> void:
 	root.remove_child(_jugador_a)
 	_jugador_a.queue_free()
 	_jugador_b.name = "0"
+	root.get_node("/root/InteresEspacial").invalidar_cache_jugadores()
 	_jugador_b.peer_id_dueño = 0
 	_gl._pedir_retirar_red(_RUTA_LENA, 1)
 

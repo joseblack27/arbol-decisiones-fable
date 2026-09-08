@@ -31,11 +31,43 @@ const RADIO_INTERES_CUADRADO := RADIO_INTERES * RADIO_INTERES
 ## Devuelve el Jugador (CharacterBody2D) que corresponde a un peer_id, o
 ## null si no existe. Mismo criterio que GestorGuardado._jugador_de_peer —
 ## centralizado acá porque ahora lo necesitan varios sistemas.
+##
+## Cacheado UNA vez por fotograma físico (mismo criterio que
+## _peers_enviables() más abajo): antes recorría el grupo "jugadores" en
+## CADA llamada, y esto se llama una vez por peer cercano en CADA activación
+## de CUALQUIER habilidad de CUALQUIER mob (ver HabilidadBase._disparar) —
+## con varios mobs atacando a la vez el recorrido se repetía cientos de
+## veces por segundo. Medido en una prueba de carga real: Performance.
+## TIME_PROCESS subía sostenido a ~19-24ms según crecía la cantidad de mobs
+## enganchados en combate simultáneo, mientras TIME_PHYSICS_PROCESS se
+## mantenía sano — la misma firma que ya se vio con la consulta de física
+## de golpear_area() mal ubicada (ver el comentario grande en GolpeBasico.gd),
+## esta vez por recorrer el árbol de más en vez de por una consulta física.
+var _jugador_por_peer_cache: Dictionary = {}
+var _fotograma_cache_jugadores: int = -1
+
+## SOLO para pruebas: varias (prueba_objeto_recolectable, prueba_almacen_
+## lenador_compartido, prueba_almacen_minero_compartido, prueba_gestor_
+## grupos_ciclo_completo) simulan "el pedido vino de otro peer" renombrando
+## el mismo nodo Jugador de prueba (jugador.name = "999" / "0") DENTRO del
+## mismo fotograma físico, sin transporte de red real de por medio — la
+## caché de arriba no tiene forma de enterarse de ese renombrado (no cambia
+## la cantidad de fotogramas físicos transcurridos), así que sin este
+## escape hatch quedaban leyendo el valor viejo. En juego real esto nunca
+## hace falta: el nombre de un Jugador se fija una sola vez al spawnear
+## (ver ServidorDedicado._spawnear_jugador) y no cambia en su vida.
+func invalidar_cache_jugadores() -> void:
+	_fotograma_cache_jugadores = -1
+
+
 func jugador_de_peer(peer_id: int) -> Node2D:
-	for jugador in get_tree().get_nodes_in_group("jugadores"):
-		if String(jugador.name) == str(peer_id):
-			return jugador as Node2D
-	return null
+	var fotograma := Engine.get_physics_frames()
+	if fotograma != _fotograma_cache_jugadores:
+		_fotograma_cache_jugadores = fotograma
+		_jugador_por_peer_cache.clear()
+		for jugador in get_tree().get_nodes_in_group("jugadores"):
+			_jugador_por_peer_cache[String(jugador.name)] = jugador
+	return _jugador_por_peer_cache.get(str(peer_id)) as Node2D
 
 
 ## true si la posición dada está a RADIO_INTERES o menos del jugador de ese

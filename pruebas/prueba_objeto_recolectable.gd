@@ -125,6 +125,11 @@ func _probar_validacion_red() -> void:
 	# Sender sin ningún jugador con ese nombre (InteresEspacial.jugador_de_
 	# peer(0) no lo encuentra) — rechaza sin tocar nada.
 	jugador2.name = "999"
+	# InteresEspacial cachea jugador_de_peer() por fotograma físico (ver ese
+	# archivo) — sin invalidar a mano acá, un renombrado DENTRO del mismo
+	# fotograma (no hay transporte real de por medio) seguiría leyendo el
+	# valor viejo. En juego real esto nunca hace falta.
+	root.get_node("/root/InteresEspacial").invalidar_cache_jugadores()
 	jugador2.global_position = arbol.global_position
 	arbol._pedir_recolectar_red()
 	print("Sender sin jugador identificable rechaza (esperado 0, false): %d, %s" % [
@@ -135,6 +140,7 @@ func _probar_validacion_red() -> void:
 	# Jugador identificable (nombre "0" == get_remote_sender_id()) pero
 	# LEJOS del árbol — anti-spoof de proximidad, rechaza igual.
 	jugador2.name = "0"
+	root.get_node("/root/InteresEspacial").invalidar_cache_jugadores()
 	jugador2.global_position = Vector2(5000, 5000)
 	arbol._pedir_recolectar_red()
 	print("Jugador identificable pero lejos rechaza (esperado 0, false): %d, %s" % [
@@ -191,6 +197,7 @@ func _probar_servidor_coincide_con_boton_local() -> void:
 	var jugador2 = (load("res://escenas/jugador/Jugador.tscn") as PackedScene).instantiate()
 	root.add_child(jugador2)
 	jugador2.name = "0"
+	root.get_node("/root/InteresEspacial").invalidar_cache_jugadores()
 	jugador2.peer_id_dueño = 0
 	var area := arbol.get_node("AreaInteraccion") as Area2D
 	jugador2.global_position = area.global_position

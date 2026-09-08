@@ -40,15 +40,17 @@ var _cola_spawn: Array[int] = []
 
 
 func _ready() -> void:
-	# Bajado de 60 (default) a 30 ticks/s SOLO en el servidor — el cliente no
-	# toca esta línea, así que su propia física local sigue a 60. Reduce a la
-	# mitad cuántas veces por segundo corre _physics_process de cada mob (ahí
-	# vive la IA/movimiento — ver Enemigo.gd), que es exactamente lo que
-	# medía "fisica=" en el log [CARGA]. El movimiento sigue usando delta, así
-	# que la velocidad en pantalla no cambia — los pasos quedan más grandes,
-	# no más lentos. Probado tras diagnosticar tirones en producción con
-	# fisica≈200ms por frame incluso con 0 jugadores conectados.
-	Engine.physics_ticks_per_second = 30
+	# Se probó bajar esto a 30 ticks/s (la mitad del default) para aliviar la
+	# CPU del servidor — pero la causa real de esa carga no era la cantidad
+	# de ticks, eran dos consultas mal ubicadas (ver el comentario grande en
+	# GolpeBasico.gd y en InteresEspacial.jugador_de_peer()): una consulta de
+	# física fuera de _physics_process, y un recorrido sin caché del grupo
+	# "jugadores" en cada aviso de habilidad. Con esas dos arregladas, ya no
+	# hace falta el recorte — y a 30 ticks/s la posición replicada de mobs/
+	# otros jugadores se actualizaba la mitad de seguido (más "a saltos"), y
+	# un cepo (Cepo.gd, detección por body_entered, sin barrido como el
+	# proyectil) tenía el doble de chance de que un mob rápido lo cruzara sin
+	# activarlo. Volviendo al default de 60 (igual que el cliente).
 	get_tree().current_scene = self
 	GestorNiveles.registrar($ContenedorNivel, null)
 	GestorNiveles.registrar_errantes($NPCsErrantes)

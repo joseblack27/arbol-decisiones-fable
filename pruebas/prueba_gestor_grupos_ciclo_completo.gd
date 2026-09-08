@@ -84,6 +84,10 @@ func _fijar_identidades(actor, otros: Dictionary) -> void:
 	actor.name = "0"
 	for nodo in otros:
 		nodo.name = str(otros[nodo])
+	# InteresEspacial cachea jugador_de_peer() por fotograma físico (ver ese
+	# archivo) — renombrar DENTRO del mismo fotograma (sin transporte real
+	# de por medio) necesita invalidar a mano.
+	root.get_node("/root/InteresEspacial").invalidar_cache_jugadores()
 
 
 func _probar_invitacion_y_aceptacion() -> void:
