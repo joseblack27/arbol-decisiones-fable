@@ -149,6 +149,11 @@ var _posicion_replicada: Vector2 = Vector2.ZERO
 ## "pegado" a la red pero más notorio el salto; más bajo = más suave pero
 ## más "elástico"). 1/seg ≈ alcanza el 63% de la distancia cada segundo.
 const VELOCIDAD_INTERPOLACION_RED := 12.0
+## Por debajo de esta distancia (px) entre la posición predicha localmente y
+## el último eco del servidor, NO se corrige nada — ver el uso en
+## _physics_process. Sin este margen, corregir hasta el último píxel de
+## ruido normal de red se sentía como vibración al moverse.
+const _UMBRAL_RECONCILIACION := 4.0
 ## Segundos que quedan de "copiar la posición del servidor tal cual, sin
 ## suavizar" — ver el uso en _physics_process y sincronizar_posicion_dura().
 var _sincronizacion_dura := 0.0
@@ -633,12 +638,22 @@ func _physics_process(delta: float) -> void:
 			# (drift grande — conexión que se recupera, etc.) se corrige
 			# de un tirón, igual que Enemigo.gd con los mobs.
 			var diferencia := _posicion_replicada - global_position
-			if diferencia.length() > 60.0:
+			var distancia_diferencia := diferencia.length()
+			if distancia_diferencia > 60.0:
 				global_position = _posicion_replicada
-			else:
+			elif distancia_diferencia > _UMBRAL_RECONCILIACION:
 				global_position = global_position.lerp(
 					_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
 				)
+			# Debajo del umbral: no corregir nada — reportado "el personaje
+			# tiembla" al mover con el servidor ya a 60 ticks/s (el doble de
+			# ecos de posición por segundo que antes): cada eco nuevo,
+			# aunque sea de 1-2px de diferencia con la predicción local,
+			# disparaba una corrección visible; jugando seguido, eso se lee
+			# como vibración en vez de fluidez. Un margen chico deja que la
+			# predicción local mande sola mientras la diferencia sea
+			# ruido de red normal, y sigue corrigiendo drift real por
+			# encima del umbral.
 			return
 		# Réplica de OTRO jugador en mi pantalla: no hay velocity local que
 		# consultar (nunca corre su componente_movimiento acá), así que
