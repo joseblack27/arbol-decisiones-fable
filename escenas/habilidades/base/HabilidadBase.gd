@@ -59,7 +59,11 @@ signal recarga_terminada(habilidad: HabilidadBase)
 ## sigue pasando incluso con el congelamiento funcionando, así que no era
 ## (solo) un problema de timing del freeze. Se deja en 0.5s — más margen
 ## que el 0.25 original, sin el costo de sentirse "pegado" al disparar.
-const _MARGEN_CONGELAMIENTO_RED := 0.5
+## @export (no const): Cepo/Trampa lo pisan a 0.2s — no lanzan nada que
+## pueda "atravesar sin dañar" (esperan a que un enemigo pise su radio, no
+## impactan al salir), así que les alcanza con mucho menos margen que a un
+## proyectil para que la posición de colocación deje de correrse.
+@export var margen_congelamiento_red: float = 0.5
 
 ## Entidad a la que pertenece esta habilidad (asignada automáticamente en _ready).
 var entidad_dueña: Node = null
@@ -217,7 +221,7 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 		# frenado de llegar y aplicarse ANTES de que la posición importe.
 		entidad_dueña.bloquear_control()
 		var dueño_congelado := entidad_dueña
-		get_tree().create_timer(_MARGEN_CONGELAMIENTO_RED).timeout.connect(func():
+		get_tree().create_timer(margen_congelamiento_red).timeout.connect(func():
 			if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
 				dueño_congelado.desbloquear_control()
 			_disparar(direccion, poder)

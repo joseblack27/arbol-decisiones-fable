@@ -2,11 +2,10 @@ class_name HabilidadTrampa
 extends HabilidadBase
 ## Coloca una trampa oculta a cierta distancia (dirección + poder, igual
 ## que AreaEfecto/Muro) que espera a que un enemigo pise su radio de
-## detección — recién ahí explota con daño en área. A diferencia del
-## resto de las habilidades ofensivas (que golpean al toque), esta es
-## "preparar y esperar": el jugador la deja atrás y sigue de largo, por
-## eso NO congela su movimiento al colocarla (ver congela_movimiento_en_
-## red más abajo — a diferencia del default heredado de HabilidadBase).
+## detección — recién ahí explota con daño en área. Congela brevemente al
+## colocarla (0.2s, ver congela_movimiento_en_red más abajo) para que la
+## posición no se corra si el jugador sigue moviéndose después de soltar
+## el touch.
 
 @export var escena_trampa: PackedScene = preload("res://escenas/habilidades/trampa/Trampa.tscn")
 
@@ -33,7 +32,8 @@ func _ready() -> void:
 	nombre_habilidad = "Trampa"
 	tipo_habilidad   = "trampa"
 	requiere_direccion = true
-	congela_movimiento_en_red = false
+	congela_movimiento_en_red = true
+	margen_congelamiento_red = 0.2
 
 
 func aplicar_datos(d: DatosHabilidad) -> void:
