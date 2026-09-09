@@ -4,6 +4,19 @@ on:
   push:
     branches: [online]
 
+# Si se pushean dos commits seguidos (ej. dos instrumentaciones cortas
+# rápido una de la otra), sin esto podían correr dos workflows en paralelo
+# — si el más viejo tardaba más en build-and-push, su deploy por SSH podía
+# terminar DESPUÉS que el del commit nuevo y pisarlo, dejando la VM en el
+# código viejo aunque el Action del commit nuevo mostrara verde (pasó de
+# verdad: 8717a9b nunca llegó a desplegarse, quedó corriendo ca377db).
+# cancel-in-progress cancela cualquier corrida vieja de ESTE mismo grupo
+# apenas empieza una nueva — nunca hay dos deploys del mismo branch
+# compitiendo por quién termina último.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
