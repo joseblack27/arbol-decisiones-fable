@@ -141,8 +141,15 @@ func _reportar_capacidad() -> void:
 	# jugador llega por RPC (_activar_red), fuera del temporizado del árbol.
 	var ms_habilidades_por_seg := (HabilidadBase.us_acumulados_ejecutar_habilidades / 1000.0) / _INTERVALO_REPORTE
 	HabilidadBase.us_acumulados_ejecutar_habilidades = 0
-	print("[CARGA] peers=%d mobs=%d nodos=%d mem=%.1fMB proceso=%.2fms fisica=%.2fms fps=%d arboles=%.2fms/s habilidades=%.2fms/s" % [
-		peers, mobs, nodos, mem_mb, ms_proceso, ms_fisica, fps, ms_arboles_por_seg, ms_habilidades_por_seg])
+	# INSTRUMENTACIÓN TEMPORAL (ver Enemigo.us_acumulados_replicacion_estado):
+	# ms/s del bloque de replicación de estado (peers_cercanos + rpc_id de
+	# _recibir_estado_red) de todos los mobs — corre a 60Hz por mob, a
+	# diferencia del árbol (10Hz), y arboles+habilidades juntas solo cubrían
+	# ~15-18% del pico de proceso= medido en combate real.
+	var ms_replicacion_por_seg := (Enemigo.us_acumulados_replicacion_estado / 1000.0) / _INTERVALO_REPORTE
+	Enemigo.us_acumulados_replicacion_estado = 0
+	print("[CARGA] peers=%d mobs=%d nodos=%d mem=%.1fMB proceso=%.2fms fisica=%.2fms fps=%d arboles=%.2fms/s habilidades=%.2fms/s replicacion=%.2fms/s" % [
+		peers, mobs, nodos, mem_mb, ms_proceso, ms_fisica, fps, ms_arboles_por_seg, ms_habilidades_por_seg, ms_replicacion_por_seg])
 
 
 func _al_conectar(id: int) -> void:

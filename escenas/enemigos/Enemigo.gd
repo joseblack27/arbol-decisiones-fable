@@ -205,6 +205,16 @@ var _peers_relevantes_anterior: Array[int] = []
 ## este keepalive el cliente quedaría desincronizado para siempre.
 const _FOTOGRAMAS_KEEPALIVE_RED := 30
 
+## INSTRUMENTACIÓN TEMPORAL (ver ArbolComportamiento.us_acumulados_todos_los_
+## arboles y HabilidadBase.us_acumulados_ejecutar_habilidades): microsegundos
+## acumulados en el bloque de replicación de estado (peers_cercanos() +
+## rpc_id de _recibir_estado_red) de TODOS los mobs desde el último reporte.
+## A diferencia del árbol (10Hz) esto corre en _physics_process, 60 veces por
+## segundo, para CADA mob vivo — candidato fuerte para el resto del costo
+## idle sostenido en combate real que ni "arboles=" ni "habilidades=" explican
+## (juntas apenas cubrían ~15-18% del pico medido).
+static var us_acumulados_replicacion_estado: int = 0
+
 
 
 ## Fase 5 del plan de multijugador: en red, todos los mobs son autoridad
@@ -330,6 +340,7 @@ func _physics_process(delta: float) -> void:
 	# cliente corre la misma _aplicar_presentacion con estos datos.
 	_posicion_replicada = global_position
 	if Utils.en_red() and multiplayer.is_server():
+		var _inicio_us := Time.get_ticks_usec()
 		_fotogramas_sin_enviar += 1
 		var cambio := global_position.distance_squared_to(_ultima_pos_enviada) > 0.25 \
 			or direccion != _ultima_dir_enviada \
@@ -360,6 +371,7 @@ func _physics_process(delta: float) -> void:
 			# tocar el resto del throttle (no cuenta como el envío normal).
 			for peer_id in peers_nuevos:
 				rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
+		us_acumulados_replicacion_estado += Time.get_ticks_usec() - _inicio_us
 
 
 ## ÚNICA lógica de presentación, compartida entre servidor/single-player y
