@@ -4,8 +4,13 @@ services:
     ports:
       - "8920:8920/udp"
     restart: unless-stopped
+    # Bind mount a un Persistent Disk aparte del disco de arranque de la VM
+    # (montado en /mnt/datos_partidas, ver el disco "datos-partidas-disk") —
+    # antes esto era un volumen de Docker con nombre, que sí sobrevive un
+    # rebuild/restart del contenedor, pero vive en el MISMO disco que la
+    # VM: si se borra la VM (pasó de verdad esta sesión, de game-server-sp
+    # a game-server-test-std2), el volumen se borra con ella. Un disco
+    # aparte se desmonta de una VM y se monta en la siguiente sin perder
+    # nada — las partidas viajan con el disco, no con la máquina.
     volumes:
-      - datos_partidas:/root/.local/share/godot/app_userdata/RPGO
-
-volumes:
-  datos_partidas:
+      - /mnt/datos_partidas:/root/.local/share/godot/app_userdata/RPGO
