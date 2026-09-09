@@ -52,6 +52,18 @@ var _tiempo_acumulado: float = 0.0
 ## Número de ticks ejecutados. DepuradorBT lo usa para detectar nodos no evaluados.
 var tick_actual: int = 0
 
+## INSTRUMENTACIÓN TEMPORAL — microsegundos acumulados evaluando árboles de
+## comportamiento (actualizar(), de TODOS los mobs) desde el último reporte
+## de ServidorDedicado._reportar_capacidad(), que lo lee y lo resetea cada
+## _INTERVALO_REPORTE. Objetivo: separar cuánto del costo idle sostenido
+## medido en producción (Performance.TIME_PROCESS, "proceso=" en el log
+## [CARGA]) es evaluar el árbol de cada mob en combate, contra el resto
+## (el aviso RPC de cada habilidad usada, ver HabilidadBase._disparar).
+## static: un contador ÚNICO compartido por todas las instancias (cada mob
+## tiene la suya de ArbolComportamiento), no uno por mob — sumar todos a
+## mano en cada reporte sería más caro que la propia medición.
+static var us_acumulados_todos_los_arboles: int = 0
+
 ## Emitida al final de cada tick con el estado resultante del árbol.
 signal arbol_actualizado(estado: NodoBT.Estado)
 
@@ -80,7 +92,9 @@ func _process(delta: float) -> void:
 	_tiempo_acumulado += delta
 	if _tiempo_acumulado >= intervalo_tick:
 		_tiempo_acumulado = 0.0
+		var _inicio_us := Time.get_ticks_usec()
 		actualizar()
+		us_acumulados_todos_los_arboles += Time.get_ticks_usec() - _inicio_us
 
 
 # =============================================================================

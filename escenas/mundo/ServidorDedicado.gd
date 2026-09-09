@@ -128,8 +128,15 @@ func _reportar_capacidad() -> void:
 	var ms_fisica := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 	var mem_mb := Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0
 	var fps := Engine.get_frames_per_second()
-	print("[CARGA] peers=%d mobs=%d nodos=%d mem=%.1fMB proceso=%.2fms fisica=%.2fms fps=%d" % [
-		peers, mobs, nodos, mem_mb, ms_proceso, ms_fisica, fps])
+	# INSTRUMENTACIÓN TEMPORAL (ver ArbolComportamiento.us_acumulados_todos_
+	# los_arboles): ms de árbol de comportamiento por segundo real, para
+	# compararlo contra proceso*fps (≈ ms de trabajo idle por segundo real)
+	# y saber qué fracción del costo sostenido en combate es evaluar el
+	# árbol de cada mob contra el resto (el aviso RPC de cada habilidad).
+	var ms_arboles_por_seg := (ArbolComportamiento.us_acumulados_todos_los_arboles / 1000.0) / _INTERVALO_REPORTE
+	ArbolComportamiento.us_acumulados_todos_los_arboles = 0
+	print("[CARGA] peers=%d mobs=%d nodos=%d mem=%.1fMB proceso=%.2fms fisica=%.2fms fps=%d arboles=%.2fms/s" % [
+		peers, mobs, nodos, mem_mb, ms_proceso, ms_fisica, fps, ms_arboles_por_seg])
 
 
 func _al_conectar(id: int) -> void:
