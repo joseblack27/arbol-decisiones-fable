@@ -34,6 +34,13 @@ const _ESCENA_EFECTO := "res://escenas/efectos/EfectoCepo.gd"
 
 var entidad_fuente: Node = null
 var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
+## A quién avisarle si ESTA copia (la real, con detección) se activa — ver
+## _on_body_entrada() y HabilidadCepo._ejecutar()/avisar_cepo_activado().
+## Sin tipo estático (HabilidadCepo referenciaría a Cepo y viceversa): duck
+## typing, mismo criterio que otras referencias cruzadas del proyecto.
+## null en las copias puramente visuales (ver mostrar_solo_visual) — nunca
+## avisan nada, solo reflejan lo que les llega por RPC.
+var _habilidad_dueña = null
 
 @onready var _col_shape: CollisionShape2D = $CollisionShape2D
 @onready var _sprite: AnimatedSprite2D = $AnimatedSprite2D
@@ -61,7 +68,7 @@ func _ready() -> void:
 func configurar(dano_tick: float, intervalo: float, duracion_ci: float, radio_det: float,
 		fuente: Node, duracion: float,
 		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO,
-		icono: Texture2D = null) -> void:
+		icono: Texture2D = null, habilidad_dueña = null) -> void:
 	dano_por_tick             = dano_tick
 	intervalo_tick            = intervalo
 	duracion_inmovilizacion   = duracion_ci
@@ -70,6 +77,7 @@ func configurar(dano_tick: float, intervalo: float, duracion_ci: float, radio_de
 	duracion_maxima           = duracion
 	tipo_dano                 = tipo
 	icono_debuff              = icono
+	_habilidad_dueña          = habilidad_dueña
 	# Reinicio para reutilización desde la piscina (ver GestorPiscinas):
 	# esta instancia puede llegar recién creada o reciclada de un cepo
 	# anterior.
@@ -77,6 +85,29 @@ func configurar(dano_tick: float, intervalo: float, duracion_ci: float, radio_de
 	_activada    = false
 	_configurada = true
 	set_deferred("monitoring", true)
+	_sprite.play("puesto")
+	queue_redraw()
+
+
+## Copia SOLO visual, para todo peer que no tenga autoridad real (ver
+## HabilidadCepo._ejecutar()/_mostrar_cepo_red): mismo sprite y tiempo de
+## vida que el cepo real, pero SIN "monitoring" — nunca decide nada por su
+## cuenta (ni activarse, ni aplicar EfectoCepo), solo refleja lo que le
+## avisa el servidor vía activar_visual(). Antes CADA peer instanciaba y
+## posicionaba su PROPIO cepo real a partir de su propia vista de la
+## posición del dueño (con hasta el ping de diferencia entre ellos):
+## a veces no detenía al pisarlo, a veces quedaba "puesto" en un cliente
+## mientras el servidor ya lo había activado, a veces faltaba el ícono de
+## inmovilizado — cada copia decidía sola en vez de reflejar una única
+## fuente de verdad.
+func mostrar_solo_visual(duracion: float, fuente: Node = null) -> void:
+	duracion_maxima  = duracion
+	entidad_fuente   = fuente
+	_habilidad_dueña = null
+	_timer       = 0.0
+	_activada    = false
+	_configurada = true
+	set_deferred("monitoring", false)
 	_sprite.play("puesto")
 	queue_redraw()
 
@@ -99,6 +130,20 @@ func _on_body_entrada(cuerpo: Node2D) -> void:
 	# agregar un nodo al árbol acá mismo dispara "flushing queries" (mismo
 	# criterio que Proyectil._spawnear_efecto_impacto).
 	call_deferred("_aplicar_efecto", cuerpo)
+	if is_instance_valid(_habilidad_dueña):
+		_habilidad_dueña.avisar_cepo_activado(global_position)
+	queue_redraw()
+
+
+## El servidor avisó (HabilidadCepo._activar_cepo_visual_red) que la copia
+## REAL ya se activó — reproduce el mismo cambio visual acá, sin volver a
+## decidir nada ni aplicar ningún efecto por su cuenta.
+func activar_visual() -> void:
+	if _activada or not _configurada:
+		return
+	_activada = true
+	_timer = 0.0
+	_sprite.play("pisado")
 	queue_redraw()
 
 

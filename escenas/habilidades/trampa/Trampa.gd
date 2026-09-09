@@ -27,6 +27,10 @@ const _CAPA_MOB := 2
 
 var entidad_fuente: Node = null
 var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
+## A quién avisarle si ESTA copia (la real, con detección) se activa — ver
+## _on_body_entrada() y HabilidadTrampa._ejecutar()/avisar_trampa_activada().
+## null en las copias puramente visuales (ver mostrar_solo_visual).
+var _habilidad_dueña = null
 
 @onready var _col_shape: CollisionShape2D = $CollisionShape2D
 var _forma_deteccion: CircleShape2D
@@ -50,13 +54,15 @@ func _ready() -> void:
 ## tipo            — tipo de daño (afecta resistencias del defensor).
 func configurar(cantidad_daño: float, radio_det: float, radio_impacto: float,
 		fuente: Node, duracion: float,
-		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO) -> void:
+		tipo: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO,
+		habilidad_dueña = null) -> void:
 	daño              = cantidad_daño
 	_forma_deteccion.radius = radio_det
 	radio_dano        = radio_impacto
 	entidad_fuente    = fuente
 	duracion_maxima   = duracion
 	tipo_dano         = tipo
+	_habilidad_dueña  = habilidad_dueña
 	# Reinicio para reutilización desde la piscina (ver GestorPiscinas):
 	# esta instancia puede llegar recién creada o reciclada de una trampa
 	# anterior.
@@ -64,6 +70,24 @@ func configurar(cantidad_daño: float, radio_det: float, radio_impacto: float,
 	_activada   = false
 	_configurada = true
 	set_deferred("monitoring", true)
+	queue_redraw()
+
+
+## Copia SOLO visual, para todo peer que no tenga autoridad real — mismo
+## criterio que Cepo.mostrar_solo_visual (ver el comentario grande ahí):
+## antes cada peer instanciaba y posicionaba su PROPIA trampa a partir de
+## su propia vista de la posición del dueño, así que la explosión (cuando
+## de verdad se activaba) podía verse en un punto distinto en cada
+## pantalla. Sin "monitoring": nunca decide nada por su cuenta, solo
+## refleja lo que le avisa el servidor vía activar_visual().
+func mostrar_solo_visual(duracion: float, fuente: Node = null) -> void:
+	duracion_maxima  = duracion
+	entidad_fuente   = fuente
+	_habilidad_dueña = null
+	_timer      = 0.0
+	_activada   = false
+	_configurada = true
+	set_deferred("monitoring", false)
 	queue_redraw()
 
 
@@ -87,6 +111,19 @@ func _activar() -> void:
 	var forma_dano := CircleShape2D.new()
 	forma_dano.radius = radio_dano
 	Combate.golpear_area(self, forma_dano, daño, entidad_fuente, tipo_dano, "trampa")
+	if is_instance_valid(_habilidad_dueña):
+		_habilidad_dueña.avisar_trampa_activada(global_position)
+	queue_redraw()
+
+
+## El servidor avisó (HabilidadTrampa._activar_trampa_visual_red) que la
+## copia REAL ya explotó — reproduce el mismo cambio visual acá, sin volver
+## a decidir nada ni aplicar ningún daño por su cuenta.
+func activar_visual() -> void:
+	if _activada or not _configurada:
+		return
+	_activada = true
+	_timer = 0.0
 	queue_redraw()
 
 
