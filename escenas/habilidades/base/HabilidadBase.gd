@@ -76,6 +76,17 @@ var _dano_max: int = 0
 ## dueño, nunca a sí misma) — nadie más debería escribir esto a mano.
 var multiplicador_recarga: float = 1.0
 
+## INSTRUMENTACIÓN TEMPORAL (ver ArbolComportamiento.us_acumulados_todos_los_
+## arboles y ServidorDedicado._reportar_capacidad): microsegundos acumulados
+## dentro de _ejecutar() al disparar CUALQUIER habilidad (mob vía árbol de
+## comportamiento, o jugador vía _activar_red) desde el último reporte.
+## Objetivo: la medición de "arboles=" solo mide actualizar() del árbol — el
+## _ejecutar() que dispara una habilidad de JUGADOR llega por el RPC
+## _activar_red(), fuera de ese temporizado, así que la sospecha de que el
+## costo idle restante en combate real es el disparo de habilidades en sí
+## (no la evaluación del árbol) necesita su propio contador.
+static var us_acumulados_ejecutar_habilidades: int = 0
+
 ## Puntos de mejora invertidos en ESTA habilidad (ver MejorasComponente) —
 ## 1 = base, sin invertir nada. QUÉ escala y CÓMO (fórmula porcentual o
 ## tabla de valores exactos) lo define datos.escalado, no esta clase — ver
@@ -229,7 +240,9 @@ func _disparar(direccion: Vector2, poder: float) -> void:
 		# ve y se anima al instante en vez de esperar la ida y vuelta de
 		# red, sin aplicar daño de verdad (VidaComponente ya lo bloquea).
 		rpc_id(1, "_activar_red", direccion, poder)
+	var _inicio_us := Time.get_ticks_usec()
 	_ejecutar(direccion, poder)
+	us_acumulados_ejecutar_habilidades += Time.get_ticks_usec() - _inicio_us
 	# Avisar a los DEMÁS clientes (espectadores, y toda habilidad de
 	# enemigos — _debe_pedirle_al_servidor() siempre da false para mobs,
 	# así que esta rama es la única que corre para ellos) para que también

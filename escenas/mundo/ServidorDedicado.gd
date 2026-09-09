@@ -135,8 +135,14 @@ func _reportar_capacidad() -> void:
 	# árbol de cada mob contra el resto (el aviso RPC de cada habilidad).
 	var ms_arboles_por_seg := (ArbolComportamiento.us_acumulados_todos_los_arboles / 1000.0) / _INTERVALO_REPORTE
 	ArbolComportamiento.us_acumulados_todos_los_arboles = 0
-	print("[CARGA] peers=%d mobs=%d nodos=%d mem=%.1fMB proceso=%.2fms fisica=%.2fms fps=%d arboles=%.2fms/s" % [
-		peers, mobs, nodos, mem_mb, ms_proceso, ms_fisica, fps, ms_arboles_por_seg])
+	# INSTRUMENTACIÓN TEMPORAL (ver HabilidadBase.us_acumulados_ejecutar_
+	# habilidades): ms/s de _ejecutar() de CUALQUIER habilidad disparada
+	# (mob o jugador) — separado de "arboles" porque el disparo de un
+	# jugador llega por RPC (_activar_red), fuera del temporizado del árbol.
+	var ms_habilidades_por_seg := (HabilidadBase.us_acumulados_ejecutar_habilidades / 1000.0) / _INTERVALO_REPORTE
+	HabilidadBase.us_acumulados_ejecutar_habilidades = 0
+	print("[CARGA] peers=%d mobs=%d nodos=%d mem=%.1fMB proceso=%.2fms fisica=%.2fms fps=%d arboles=%.2fms/s habilidades=%.2fms/s" % [
+		peers, mobs, nodos, mem_mb, ms_proceso, ms_fisica, fps, ms_arboles_por_seg, ms_habilidades_por_seg])
 
 
 func _al_conectar(id: int) -> void:
