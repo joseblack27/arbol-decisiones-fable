@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=34 format=3 uid="uid://ddlr8menttf7k"]
+[gd_resource type="Theme" load_steps=36 format=3 uid="uid://ddlr8menttf7k"]
 
 [ext_resource type="FontFile" uid="uid://53dduvrn2yrw" path="res://assets/fonts/jet brain mono/JetBrainsMono-Light.ttf" id="1_asgch"]
 
@@ -92,6 +92,28 @@ corner_detail = 2
 
 [sub_resource type="StyleBoxLine" id="StyleBoxLine_asgch"]
 color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+
+[sub_resource type="StyleBoxFlat" id="SB_popup_panel"]
+content_margin_left = 4.0
+content_margin_top = 4.0
+content_margin_right = 4.0
+content_margin_bottom = 4.0
+bg_color = Color(0.058, 0.058, 0.066, 0.98)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.26666668, 0.26666668, 0.26666668, 1)
+corner_detail = 1
+
+[sub_resource type="StyleBoxFlat" id="SB_popup_hover"]
+bg_color = Color(0.14, 0.14, 0.15, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.6666667, 0.6666667, 0.6666667, 1)
+corner_detail = 1
 
 [sub_resource type="StyleBoxFlat" id="SB_campo_foco"]
 content_margin_left = 8.0
@@ -286,6 +308,11 @@ PanelAviso/styles/panel = SubResource("SB_panel_aviso")
 PanelContainer/styles/panel = SubResource("StyleBoxFlat_66ff0")
 PanelHud/base_type = &"PanelContainer"
 PanelHud/styles/panel = SubResource("SB_panel_hud")
+PopupMenu/colors/font_color = Color(0.9490196, 0.9490196, 0.9490196, 1)
+PopupMenu/colors/font_hover_color = Color(0.9490196, 0.9490196, 0.9490196, 1)
+PopupMenu/colors/font_disabled_color = Color(0.42, 0.42, 0.47, 1)
+PopupMenu/styles/panel = SubResource("SB_popup_panel")
+PopupMenu/styles/hover = SubResource("SB_popup_hover")
 ProgressBar/colors/font_outline_color = Color(0.05882353, 0.05882353, 0.05882353, 1)
 ProgressBar/styles/background = SubResource("StyleBoxFlat_ju6hu")
 ProgressBar/styles/fill = SubResource("StyleBoxFlat_gw1d5")

@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=3 uid="uid://i6fd1rmd2pj"]
+[gd_scene load_steps=9 format=3 uid="uid://i6fd1rmd2pj"]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tema"]
 [ext_resource type="Script" uid="uid://c3mnx8pso7yom" path="res://escenas/menu_inicio/MenuInicio.gd" id="2_script"]
 [ext_resource type="FontFile" uid="uid://dkajfhggmh7n4" path="res://assets/fonts/jet brain mono/JetBrainsMono-Bold.ttf" id="3_bold"]
 [ext_resource type="FontFile" uid="uid://cswnsiiorquix" path="res://assets/fonts/jet brain mono/JetBrainsMono-Medium.ttf" id="4_medium"]
+[ext_resource type="Script" path="res://escenas/menu_inicio/BotonSilencio.gd" id="5_silencio"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_panel"]
 content_margin_left = 22.0
@@ -131,6 +132,15 @@ size_flags_horizontal = 3
 placeholder_text = "127.0.0.1"
 max_length = 64
 
+[node name="BotonListaIp" type="MenuButton" parent="Margen/Columnas/Panel/VBox/FilaServidor"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+tooltip_text = "IPs rápidas"
+theme_type_variation = &"RanuraHud"
+text = "▾"
+flat = false
+
 [node name="CampoPuerto" type="LineEdit" parent="Margen/Columnas/Panel/VBox/FilaServidor"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(84, 32)
@@ -221,3 +231,18 @@ theme_override_colors/font_color = Color(0.32, 0.32, 0.36, 1)
 theme_override_font_sizes/font_size = 10
 text = "v0.1"
 horizontal_alignment = 2
+
+[node name="BotonSilencio" type="Button" parent="."]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_top = 0.0
+offset_right = 0.0
+offset_bottom = 40.0
+grow_horizontal = 0
+custom_minimum_size = Vector2(40, 40)
+focus_mode = 0
+theme_type_variation = &"RanuraHud"
+script = ExtResource("5_silencio")

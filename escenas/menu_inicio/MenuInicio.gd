@@ -18,8 +18,18 @@ class_name MenuInicio
 ## configurar todo"). Se guarda solo al confirmar "Jugar" — nunca mientras
 ## el usuario todavía está escribiendo.
 
-@onready var _campo_ip: LineEdit      = %CampoIp
-@onready var _campo_puerto: LineEdit  = %CampoPuerto
+## Atajos del desplegable de IP (ver _boton_lista_ip): CampoIp sigue siendo
+## un LineEdit normal, así que esto NUNCA reemplaza poder escribir una IP a
+## mano — solo evita tener que borrar/reescribir a mano al alternar entre
+## la local y la del servidor. Pedido explícito del usuario.
+const _IPS_RAPIDAS: Array[Dictionary] = [
+	{"etiqueta": "Local (192.168.40.27)", "ip": "192.168.40.27"},
+	{"etiqueta": "Servidor (34.148.236.58)", "ip": "34.148.236.58"},
+]
+
+@onready var _campo_ip: LineEdit          = %CampoIp
+@onready var _boton_lista_ip: MenuButton  = %BotonListaIp
+@onready var _campo_puerto: LineEdit      = %CampoPuerto
 @onready var _campo_nombre: LineEdit  = %CampoNombre
 @onready var _campo_pin: LineEdit     = %CampoPin
 @onready var _casilla_bot: CheckBox   = %CasillaBot
@@ -54,6 +64,11 @@ func _ready() -> void:
 		_etiqueta_error.visible = true
 		Utils.error_conexion = ""
 
+	var popup_ip := _boton_lista_ip.get_popup()
+	for i in _IPS_RAPIDAS.size():
+		popup_ip.add_item(_IPS_RAPIDAS[i]["etiqueta"], i)
+	popup_ip.id_pressed.connect(_al_elegir_ip_rapida)
+
 	_boton_jugar.pressed.connect(_on_jugar)
 	# Enter en cualquier campo confirma igual que tocar el botón — no hace
 	# falta ir a buscarlo a propósito en pantallas táctiles chicas.
@@ -61,6 +76,13 @@ func _ready() -> void:
 	_campo_puerto.text_submitted.connect(func(_t): _on_jugar())
 	_campo_nombre.text_submitted.connect(func(_t): _on_jugar())
 	_campo_pin.text_submitted.connect(func(_t): _on_jugar())
+
+
+## El id coincide con el índice en _IPS_RAPIDAS (asignado a mano en _ready(),
+## no el autoincremental de PopupMenu) — ver el comentario ahí.
+func _al_elegir_ip_rapida(id: int) -> void:
+	_campo_ip.text = _IPS_RAPIDAS[id]["ip"]
+	_campo_ip.grab_focus()
 
 
 func _on_jugar() -> void:
