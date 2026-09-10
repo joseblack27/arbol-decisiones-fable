@@ -3,7 +3,7 @@ extends HabilidadBase
 ## Coloca una trampa oculta a cierta distancia (dirección + poder, igual
 ## que AreaEfecto/Muro) que espera a que un enemigo pise su radio de
 ## detección — recién ahí explota con daño en área. Congela brevemente al
-## colocarla (0.2s, ver congela_movimiento_en_red más abajo) para que la
+## colocarla (ver congela_movimiento_en_red más abajo) para que la
 ## posición no se corra si el jugador sigue moviéndose después de soltar
 ## el touch.
 
@@ -33,7 +33,6 @@ func _ready() -> void:
 	tipo_habilidad   = "trampa"
 	requiere_direccion = true
 	congela_movimiento_en_red = true
-	margen_congelamiento_red = 0.2
 
 
 func aplicar_datos(d: DatosHabilidad) -> void:

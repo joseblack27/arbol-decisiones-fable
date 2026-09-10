@@ -4,9 +4,9 @@ extends HabilidadBase
 ## HabilidadTrampa) que espera a que un enemigo pise su radio de detección
 ## — recién ahí lo inmoviliza y le hace daño por tick durante
 ## duracion_aturdimiento segundos (ver Cepo.gd/EfectoCepo.gd). Congela
-## brevemente al colocarlo (0.2s, ver congela_movimiento_en_red más abajo)
-## para que la posición no se corra si el jugador sigue moviéndose después
-## de soltar el touch.
+## brevemente al colocarlo (ver congela_movimiento_en_red más abajo) para
+## que la posición no se corra si el jugador sigue moviéndose después de
+## soltar el touch.
 
 @export var escena_cepo: PackedScene = preload("res://escenas/habilidades/cepo/Cepo.tscn")
 
@@ -45,12 +45,10 @@ func _ready() -> void:
 	# moviéndose después de soltar el touch, el servidor calculaba la
 	# posición desde SU posición más nueva (la ida y vuelta de red de por
 	# medio), y el cepo terminaba corrido de donde se apuntó ("se sigue
-	# moviendo la posición de lanzamiento", reportado). Margen más corto
-	# que el de un proyectil (0.5s, ver HabilidadBase): el cepo no impacta
-	# al salir, solo espera a que alguien pise su radio, así que no hay
-	# riesgo de "atravesar sin dañar" que exija más margen.
+	# moviendo la posición de lanzamiento", reportado). Un margen de 0.2s
+	# no alcanzó en juego real (seguía corriéndose) — mismo margen que el
+	# resto (0.5s, default de HabilidadBase), sin override propio.
 	congela_movimiento_en_red = true
-	margen_congelamiento_red = 0.2
 
 
 func aplicar_datos(d: DatosHabilidad) -> void:

@@ -59,10 +59,11 @@ signal recarga_terminada(habilidad: HabilidadBase)
 ## sigue pasando incluso con el congelamiento funcionando, así que no era
 ## (solo) un problema de timing del freeze. Se deja en 0.5s — más margen
 ## que el 0.25 original, sin el costo de sentirse "pegado" al disparar.
-## @export (no const): Cepo/Trampa lo pisan a 0.2s — no lanzan nada que
-## pueda "atravesar sin dañar" (esperan a que un enemigo pise su radio, no
-## impactan al salir), así que les alcanza con mucho menos margen que a un
-## proyectil para que la posición de colocación deje de correrse.
+## @export (no const): Cepo/Trampa también lo usan (congela al colocarse
+## para que la posición no se corra si el jugador sigue moviéndose después
+## de soltar el touch) — se probó un margen propio más corto (0.2s) pero
+## no alcanzaba en juego real, así que quedaron con el mismo default que
+## el resto en vez de un override.
 @export var margen_congelamiento_red: float = 0.5
 
 ## Entidad a la que pertenece esta habilidad (asignada automáticamente en _ready).
