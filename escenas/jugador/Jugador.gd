@@ -572,15 +572,19 @@ func _pedir_mover_red(direccion_pedida: Vector2) -> void:
 
 ## Aviso de "parate ya" — reliable (a diferencia de _pedir_mover_red, que es
 ## unreliable_ordered: estado continuo donde un paquete de más no importa).
-## Este SÍ importa que llegue y en orden respecto al RPC de activar()
-## siguiente (ver bloquear_control()/HabilidadBase.activar()): la ida y
-## vuelta de red completa que tarda "activar la habilidad" es EXACTAMENTE
-## la ventana en la que, si el servidor seguía moviendo este cuerpo con la
-## última dirección recibida, terminaba spawneando el proyectil real desde
-## un punto distinto al que el cliente ya mostraba quieto — "el golpe no
-## acierta, más si disparo en movimiento". Mandarlo por el mismo canal
-## reliable que _activar_red asegura que llegue ANTES (mismo orden de
-## envío del lado del cliente, ver bloquear_control()).
+## Zonzeo de una sola vez, redundante con el bloqueo de verdad: la
+## protección real contra "el proyectil nace desde una posición ya corrida"
+## la da _bloqueos_control (ver HabilidadBase.activar()) — el SERVIDOR se
+## bloquea a sí mismo al recibir _activar_red, y _pedir_mover_red() ya
+## descarta cualquier pedido de movimiento mientras ese bloqueo esté
+## activo. Confiar en que ESTE aviso llegara ANTES que _activar_red (mismo
+## canal reliable, orden de envío) no alcanzaba: si el jugador retomaba el
+## joystick apenas se descongelaba localmente (mismo instante en que se
+## mandaba el disparo), ese "seguí moviéndome" viajaba por el canal
+## UNRELIABLE de _pedir_mover_red, sin ninguna garantía de orden contra
+## esto — el bug seguía pasando con el margen ya funcionando (reportado
+## con Cepo/Trampa). Se deja igual porque no molesta: zonzeo temprano de
+## "quedate quieto" nunca está de más mientras se resuelve el bloqueo real.
 @rpc("any_peer", "reliable")
 func _pedir_detener_red() -> void:
 	if not multiplayer.is_server():

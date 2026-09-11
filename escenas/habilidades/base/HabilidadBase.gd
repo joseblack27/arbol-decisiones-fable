@@ -66,6 +66,16 @@ signal recarga_terminada(habilidad: HabilidadBase)
 ## el resto en vez de un override.
 @export var margen_congelamiento_red: float = 0.5
 
+## Cuánto de margen_congelamiento_red pasa ANTES de que el SERVIDOR fije la
+## posición y dispare de verdad — el resto (margen_congelamiento_red menos
+## esto) es un colchón EXTRA después del disparo, antes de soltar el
+## bloqueo de movimiento. Separar "cuándo se dispara" de "cuándo se puede
+## volver a mover" evita soltar el bloqueo en el MISMO instante en que se
+## decidió la posición: pedido explícito del usuario tras seguir viendo la
+## posición de Cepo/Trampa correrse con las dos fases pegadas en el mismo
+## instante (ver activar()).
+@export var margen_previo_disparo: float = 0.4
+
 ## Entidad a la que pertenece esta habilidad (asignada automáticamente en _ready).
 var entidad_dueña: Node = null
 ## Índice del slot donde está equipada. -1 si no está en ningún slot (ej: enemigos).
@@ -204,29 +214,59 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 			and entidad_dueña.is_in_group("jugadores") and "direccion_mirada" in entidad_dueña:
 		entidad_dueña.direccion_mirada = direccion.normalized()
 
-	if _debe_pedirle_al_servidor() and congela_movimiento_en_red \
+	if Utils.en_red() and congela_movimiento_en_red \
 			and entidad_dueña and entidad_dueña.has_method("bloquear_control"):
-		# Congelar YA (bloquear_control ya manda su propio aviso de "parate"
-		# al servidor por un canal reliable — ver Jugador.bloquear_control),
-		# pero el DISPARO en sí (RPC + _ejecutar, lo que de verdad importa
-		# para dónde nace un proyectil) se pospone _MARGEN_CONGELAMIENTO_RED
-		# — antes salía en el mismo instante que el freeze, así que si el
-		# jugador venía en movimiento, el "párate" y el disparo viajaban
-		# juntos: el servidor podía procesar el disparo ANTES de que el
-		# "párate" surtiera efecto, y el proyectil real nacía unos píxeles
-		# más adelante de donde el cliente ya lo mostraba quieto — más
-		# notorio disparando justo al borde de un objetivo en movimiento
-		# ("a veces traspasa haciendo daño, o choca y no hace daño",
-		# reportado). Esperar el mismo margen que ya se usaba para
-		# descongelar (no uno nuevo) le da tiempo real a la orden de
-		# frenado de llegar y aplicarse ANTES de que la posición importe.
+		# Congelar corre en LAS DOS puntas, con roles distintos:
+		#
+		# - Cliente dueño: bloquear_control() para la sensación local de
+		#   frenar YA, pero el disparo (RPC _activar_red) sale de una, sin
+		#   esperar ningún margen acá. Esperarlo ACÁ nunca protegía nada real
+		#   — lo que de verdad importa es qué posición usa el SERVIDOR, y
+		#   eso ya lo cubre la rama de abajo. Antes se posponía el disparo
+		#   este mismo margen pensando que le daba tiempo a la orden de
+		#   frenado (_pedir_detener_red) de llegar antes que el disparo —
+		#   pero bloquear_control() no le impide al servidor aceptar un
+		#   pedido de movimiento NUEVO que el propio cliente mandara apenas
+		#   se descongelara localmente (mismo instante en que se disparaba):
+		#   si el jugador seguía con el joystick apretado, ese aviso de
+		#   "seguí moviéndome" viaja por un canal distinto (unreliable) sin
+		#   ninguna garantía de orden contra el disparo (reliable), y el
+		#   servidor terminaba usando una posición ya corrida ("se sigue
+		#   moviendo la posición de lanzamiento", reportado con Cepo/Trampa
+		#   incluso con este margen ya funcionando).
+		# - Servidor (autoridad real, llega por _activar_red): bloquear_
+		#   control() acá SÍ frena de verdad — incrementa _bloqueos_control,
+		#   que _pedir_mover_red() ya respeta (descarta cualquier pedido de
+		#   movimiento mientras esté activo). Esperar el margen ACÁ, con el
+		#   bloqueo real ya puesto, es lo que de verdad garantiza que la
+		#   posición no cambie pase lo que pase del lado del cliente.
 		entidad_dueña.bloquear_control()
 		var dueño_congelado := entidad_dueña
-		get_tree().create_timer(margen_congelamiento_red).timeout.connect(func():
-			if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
-				dueño_congelado.desbloquear_control()
+		if multiplayer.is_server():
+			# Dos tramos, no uno: a los margen_previo_disparo segundos la
+			# posición ya está asentada (el bloqueo real lleva puesto todo
+			# ese tiempo) — ahí se fija y se dispara. Soltar el bloqueo recién
+			# margen_congelamiento_red segundos DESPUÉS de activar() (no en el
+			# mismo instante del disparo) es el colchón extra: nada puede
+			# volver a mover a este jugador hasta bien después de que la
+			# posición ya quedó decidida.
+			var espera_previa := clampf(margen_previo_disparo, 0.0, margen_congelamiento_red)
+			var espera_posterior := margen_congelamiento_red - espera_previa
+			get_tree().create_timer(espera_previa).timeout.connect(func():
+				if not is_instance_valid(dueño_congelado):
+					return
+				_disparar(direccion, poder)
+				get_tree().create_timer(espera_posterior).timeout.connect(func():
+					if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
+						dueño_congelado.desbloquear_control()
+				)
+			)
+		else:
+			get_tree().create_timer(margen_congelamiento_red).timeout.connect(func():
+				if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
+					dueño_congelado.desbloquear_control()
+			)
 			_disparar(direccion, poder)
-		)
 	else:
 		_disparar(direccion, poder)
 
