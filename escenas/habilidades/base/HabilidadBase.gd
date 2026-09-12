@@ -250,57 +250,45 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 
 	if Utils.en_red() and congela_movimiento_en_red \
 			and entidad_dueña and entidad_dueña.has_method("bloquear_control"):
-		# Congelar corre en LAS DOS puntas, con roles distintos:
-		#
-		# - Cliente dueño: bloquear_control() para la sensación local de
-		#   frenar YA, pero el disparo (RPC _activar_red) sale de una, sin
-		#   esperar ningún margen acá. Esperarlo ACÁ nunca protegía nada real
-		#   — lo que de verdad importa es qué posición usa el SERVIDOR, y
-		#   eso ya lo cubre la rama de abajo. Antes se posponía el disparo
-		#   este mismo margen pensando que le daba tiempo a la orden de
-		#   frenado (_pedir_detener_red) de llegar antes que el disparo —
-		#   pero bloquear_control() no le impide al servidor aceptar un
-		#   pedido de movimiento NUEVO que el propio cliente mandara apenas
-		#   se descongelara localmente (mismo instante en que se disparaba):
-		#   si el jugador seguía con el joystick apretado, ese aviso de
-		#   "seguí moviéndome" viaja por un canal distinto (unreliable) sin
-		#   ninguna garantía de orden contra el disparo (reliable), y el
-		#   servidor terminaba usando una posición ya corrida ("se sigue
-		#   moviendo la posición de lanzamiento", reportado con Cepo/Trampa
-		#   incluso con este margen ya funcionando).
-		# - Servidor (autoridad real, llega por _activar_red): bloquear_
-		#   control() acá SÍ frena de verdad — incrementa _bloqueos_control,
-		#   que _pedir_mover_red() ya respeta (descarta cualquier pedido de
-		#   movimiento mientras esté activo). Esperar el margen ACÁ, con el
-		#   bloqueo real ya puesto, es lo que de verdad garantiza que la
-		#   posición no cambie pase lo que pase del lado del cliente.
-		entidad_dueña.bloquear_control()
-		var dueño_congelado := entidad_dueña
+		# El CLIENTE dueño marca todo el ritmo — el servidor nunca decide su
+		# propio timing, solo reacciona a lo que el cliente le avisa (ver
+		# _congelar_real_red/_descongelar_real_red más abajo). Regresión real
+		# encontrada con la versión anterior (el servidor esperaba su PROPIO
+		# margen_previo_disparo antes de disparar, mientras el cliente ya
+		# disparaba de una): el proyectil que veía quien lo tiraba salía al
+		# instante, pero el real (el que decide el golpe) recién nacía 0.4s
+		# después, desde una posición ya distinta — "golpes fantasma": pegan
+		# visualmente pero no hacen daño, o el proyectil sigue de largo
+		# mientras el daño real pega al costado. Server y cliente TIENEN que
+		# disparar en el mismo instante relativo (salvo el ping en sí, que
+		# siempre existió) para que la predicción visual coincida con lo que
+		# de verdad pasó.
 		if multiplayer.is_server():
-			# Dos tramos, no uno: a los margen_previo_disparo segundos la
-			# posición ya está asentada (el bloqueo real lleva puesto todo
-			# ese tiempo) — ahí se fija y se dispara. Soltar el bloqueo recién
-			# margen_congelamiento_red segundos DESPUÉS de activar() (no en el
-			# mismo instante del disparo) es el colchón extra: nada puede
-			# volver a mover a este jugador hasta bien después de que la
-			# posición ya quedó decidida.
-			var espera_previa := clampf(margen_previo_disparo, 0.0, margen_congelamiento_red)
-			var espera_posterior := margen_congelamiento_red - espera_previa
-			get_tree().create_timer(espera_previa).timeout.connect(func():
-				if not is_instance_valid(dueño_congelado):
-					return
-				_disparar(direccion, poder)
-				get_tree().create_timer(espera_posterior).timeout.connect(func():
-					if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
-						dueño_congelado.desbloquear_control()
-				)
-			)
+			# Autoridad real: el bloqueo de verdad (Jugador._congelamientos_
+			# disparo, ver congelar_disparo_pendiente()) ya está puesto desde
+			# bastante antes (llegó por _congelar_real_red, en el mismo canal
+			# reliable y por lo tanto ANTES que este _activar_red) — la
+			# posición ya está asentada, no hay nada que esperar más:
+			# disparar YA.
+			_disparar(direccion, poder)
 		else:
+			# Cliente dueño: frenar YA (sensación local) y avisarle al
+			# servidor que se congele DE VERDAD ya mismo — no como antes,
+			# que solo ponía la dirección en cero una vez y no impedía que
+			# un pedido de movimiento nuevo la pisara.
+			entidad_dueña.bloquear_control()
+			rpc_id(1, "_congelar_real_red")
+			var dueño_congelado := entidad_dueña
+			var espera_previa := clampf(margen_previo_disparo, 0.0, margen_congelamiento_red)
+			get_tree().create_timer(espera_previa).timeout.connect(func():
+				if is_instance_valid(dueño_congelado):
+					_disparar(direccion, poder)
+			)
 			get_tree().create_timer(margen_congelamiento_red).timeout.connect(func():
 				if is_instance_valid(dueño_congelado) and dueño_congelado.has_method("desbloquear_control"):
 					dueño_congelado.desbloquear_control()
+				rpc_id(1, "_descongelar_real_red")
 			)
-			_disparar(direccion, poder)
 	else:
 		_disparar(direccion, poder)
 
@@ -379,6 +367,35 @@ func _activar_red(direccion: Vector2, poder: float) -> void:
 	elif ("_muerto" in entidad_dueña) and entidad_dueña.get("_muerto"):
 		return
 	activar(direccion, poder)
+
+
+## SERVIDOR: el cliente dueño avisa "ya voy a disparar, congelame de
+## verdad" — congelar_disparo_pendiente() bloquea el movimiento real
+## (_pedir_mover_red la respeta) sin tocar _bloqueos_control/esta_
+## bloqueado(), para que el propio _activar_red que llega después no se
+## auto-rechace. Mismo criterio de autoridad que _activar_red.
+@rpc("any_peer", "reliable")
+func _congelar_real_red() -> void:
+	if not multiplayer.is_server():
+		return
+	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
+		return
+	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+		return
+	if entidad_dueña.has_method("congelar_disparo_pendiente"):
+		entidad_dueña.congelar_disparo_pendiente()
+
+
+@rpc("any_peer", "reliable")
+func _descongelar_real_red() -> void:
+	if not multiplayer.is_server():
+		return
+	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
+		return
+	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+		return
+	if entidad_dueña.has_method("descongelar_disparo_pendiente"):
+		entidad_dueña.descongelar_disparo_pendiente()
 
 
 # ── Lentitud mientras se apunta (ver factor_velocidad_apuntando) ─────────────

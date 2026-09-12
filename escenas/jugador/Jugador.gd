@@ -344,6 +344,25 @@ func desbloquear_control() -> void:
 	_bloqueos_control = maxi(0, _bloqueos_control - 1)
 
 
+## Contador APARTE de _bloqueos_control: bloquea SOLO el movimiento
+## (_pedir_mover_red lo respeta, ver ahí), nunca la activación de
+## habilidades (esta_bloqueado()/_activar_red NO lo consultan). Necesario
+## porque HabilidadBase.activar() lo pone ANTES de que la propia habilidad
+## dispare de verdad (ver _congelar_real_red) — si usara _bloqueos_control,
+## el propio _activar_red de ESA misma habilidad se auto-rechazaría por
+## "esta_bloqueado()" antes de llegar a disparar.
+var _congelamientos_disparo := 0
+
+
+func congelar_disparo_pendiente() -> void:
+	_congelamientos_disparo += 1
+	direccion = Vector2.ZERO
+
+
+func descongelar_disparo_pendiente() -> void:
+	_congelamientos_disparo = maxi(0, _congelamientos_disparo - 1)
+
+
 ## Solo reintenta encontrar BuffsComponente (ver _intentar_conectar_buffs_
 ## estado) — se crea recién con el primer debuff, no siempre existe todavía
 ## cuando el jugador arranca. Mismo criterio que Enemigo.gd/BarraBuffs.gd.
@@ -566,6 +585,13 @@ func _pedir_mover_red(direccion_pedida: Vector2) -> void:
 	# curso): el cliente dueño ya no manda intención mientras está bloqueado,
 	# pero un paquete rezagado (o manipulado) no debe mover el cuerpo real.
 	if _bloqueos_control > 0:
+		return
+	# Congelamiento pendiente de disparo (ver congelar_disparo_pendiente() /
+	# HabilidadBase._congelar_real_red) — aparte de _bloqueos_control a
+	# propósito: esto SÍ tiene que rechazar movimiento, pero NO debe hacer
+	# que esta_bloqueado() rechace la propia habilidad que lo puso cuando
+	# llegue a disparar.
+	if _congelamientos_disparo > 0:
 		return
 	direccion = direccion_pedida
 
