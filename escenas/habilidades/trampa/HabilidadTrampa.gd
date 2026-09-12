@@ -33,6 +33,11 @@ func _ready() -> void:
 	tipo_habilidad   = "trampa"
 	requiere_direccion = true
 	congela_movimiento_en_red = true
+	# Pedido explícito del usuario: reducir la velocidad al apuntar (no solo
+	# congelar al soltar) para forzar a pensar mejor dónde colocarla, Y de
+	# paso reducir el margen real de drift — ver factor_velocidad_apuntando
+	# en HabilidadBase, mismo criterio que HabilidadCepo.
+	factor_velocidad_apuntando = 0.2
 
 
 func aplicar_datos(d: DatosHabilidad) -> void:

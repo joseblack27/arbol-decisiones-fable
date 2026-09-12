@@ -49,6 +49,12 @@ func _ready() -> void:
 	# no alcanzó en juego real (seguía corriéndose) — mismo margen que el
 	# resto (0.5s, default de HabilidadBase), sin override propio.
 	congela_movimiento_en_red = true
+	# Pedido explícito del usuario: reducir la velocidad al apuntar (no solo
+	# congelar al soltar) para forzar a pensar mejor dónde colocarlo, Y de
+	# paso reducir el margen real de drift — a un quinto de la velocidad,
+	# cualquier resto de movimiento que se cuele durante la ida y vuelta de
+	# red pesa mucho menos (ver factor_velocidad_apuntando en HabilidadBase).
+	factor_velocidad_apuntando = 0.2
 
 
 func aplicar_datos(d: DatosHabilidad) -> void:

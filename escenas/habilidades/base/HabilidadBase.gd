@@ -102,6 +102,19 @@ var multiplicador_recarga: float = 1.0
 ## (no la evaluación del árbol) necesita su propio contador.
 static var us_acumulados_ejecutar_habilidades: int = 0
 
+## Factor de velocidad (0..1, mismo significado que MovimientoComponente.
+## agregar_lentitud) aplicado al dueño MIENTRAS arma el apunte de ESTA
+## habilidad (entre tocar el joystick y soltar/cancelar) — 1.0 = sin
+## cambio (default, la inmensa mayoría de las habilidades). Pedido
+## explícito del usuario para Cepo/Trampa (0.2 = 20% de la velocidad
+## máxima): obliga a pensar mejor cuándo y dónde colocarlas, y de paso
+## reduce el margen real de "la posición de colocación se corre" (ver
+## activar()) — a un quinto de la velocidad, cualquier resto de
+## movimiento que se cuele durante la ida y vuelta de red pesa un quinto
+## de lo que pesaría a velocidad normal.
+@export_range(0.05, 1.0, 0.05) var factor_velocidad_apuntando: float = 1.0
+var _lentitud_apuntando_activa: bool = false
+
 ## Puntos de mejora invertidos en ESTA habilidad (ver MejorasComponente) —
 ## 1 = base, sin invertir nada. QUÉ escala y CÓMO (fórmula porcentual o
 ## tabla de valores exactos) lo define datos.escalado, no esta clase — ver
@@ -125,6 +138,27 @@ func _ready() -> void:
 		entidad_dueña = get_parent().get_parent()
 	if datos:
 		aplicar_datos(datos)
+	# Diferido (no acá directo): la subclase recién fija su propio
+	# factor_velocidad_apuntando DESPUÉS de llamar a super._ready() (mismo
+	# orden que congela_movimiento_en_red), así que filtrar por el factor
+	# ACÁ vería siempre el default 1.0. call_deferred corre después de que
+	# TODO _ready() (base + subclase) terminó, con el valor real ya puesto.
+	# Filtrar por factor < 1.0 (no conectar siempre) importa de verdad: una
+	# habilidad como HabilidadLanzallamas ya escucha su PROPIA señal de
+	# apunte con este mismo self, y SeñalManager solo admite UN método por
+	# (señal, suscriptor) — conectar acá sin condición le robaba el lugar a
+	# su conexión real (quedaba sin registrar, "ya está conectado" en el
+	# log), rompiéndole el apuntado de verdad. Con el factor en 1.0 (su
+	# default) esto nunca llega a conectar nada, cero choque posible.
+	call_deferred("_conectar_lentitud_al_apuntar")
+
+
+func _conectar_lentitud_al_apuntar() -> void:
+	if factor_velocidad_apuntando >= 1.0 or slot_index < 0:
+		return
+	SeñalManager.conectar("slot_%d_apunte"   % slot_index, self, "_al_empezar_apunte_lento")
+	SeñalManager.conectar("slot_%d_lanzar"   % slot_index, self, "_al_terminar_apunte_lento")
+	SeñalManager.conectar("slot_%d_cancelar" % slot_index, self, "_al_terminar_apunte_lento")
 
 func _process(delta: float) -> void:
 	if _recarga_restante > 0.0:
@@ -345,6 +379,92 @@ func _activar_red(direccion: Vector2, poder: float) -> void:
 	elif ("_muerto" in entidad_dueña) and entidad_dueña.get("_muerto"):
 		return
 	activar(direccion, poder)
+
+
+# ── Lentitud mientras se apunta (ver factor_velocidad_apuntando) ─────────────
+
+## Entrada cruda del propio slot (ver UIHabilidad._emitir_apunte) — arranca
+## el joystick. No-op para la inmensa mayoría (factor_velocidad_apuntando
+## == 1.0, ver el comentario de esa variable) y para réplicas de OTROS
+## jugadores (el bus de señales es global, sin distinción de dueño — mismo
+## criterio que HabilidadLanzallamas._soy_quien_controla).
+func _al_empezar_apunte_lento(_direccion: Vector2, _poder: float) -> void:
+	if factor_velocidad_apuntando >= 1.0 or _lentitud_apuntando_activa:
+		return
+	if not is_instance_valid(entidad_dueña) or not entidad_dueña.is_in_group("jugadores"):
+		return
+	if Utils.en_red() and ("peer_id_dueño" in entidad_dueña) \
+			and entidad_dueña.peer_id_dueño != multiplayer.get_unique_id():
+		return
+	_lentitud_apuntando_activa = true
+	_aplicar_lentitud_apuntando()
+	# Avisarle al SERVIDOR (autoridad real de la posición) que aplique la
+	# misma lentitud a SU copia — sin esto, el cliente se vería lento pero
+	# el cuerpo autoritativo seguiría moviéndose a velocidad normal, y la
+	# reconciliación tironearía al jugador de vuelta constantemente.
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_empezar_apunte_lento_red")
+
+
+## Soltar (lanzar) o cancelar el apunte — cualquiera de las dos termina la
+## lentitud igual, nunca se llega acá sin haber pasado por _al_empezar_
+## apunte_lento primero (mismo _lentitud_apuntando_activa lo garantiza).
+func _al_terminar_apunte_lento(_direccion: Vector2 = Vector2.ZERO, _poder: float = 0.0) -> void:
+	if not _lentitud_apuntando_activa:
+		return
+	_lentitud_apuntando_activa = false
+	_quitar_lentitud_apuntando()
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_terminar_apunte_lento_red")
+
+
+func _aplicar_lentitud_apuntando() -> void:
+	var mov := _movimiento_del_dueño()
+	if mov:
+		mov.agregar_lentitud(factor_velocidad_apuntando)
+
+
+func _quitar_lentitud_apuntando() -> void:
+	var mov := _movimiento_del_dueño()
+	if mov:
+		mov.quitar_lentitud(factor_velocidad_apuntando)
+
+
+## componente_movimiento (no un get_node por nombre): es un @export de
+## Jugador.gd, cableado a mano en el .tscn — no hay garantía de que el
+## nodo real se llame "MovimientoComponente" ni de que cuelgue directo.
+func _movimiento_del_dueño() -> MovimientoComponente:
+	if not is_instance_valid(entidad_dueña) or not ("componente_movimiento" in entidad_dueña):
+		return null
+	return entidad_dueña.get("componente_movimiento") as MovimientoComponente
+
+
+## SERVIDOR: mismo chequeo de autoridad que _activar_red — el remitente
+## tiene que ser el dueño real de esta habilidad.
+@rpc("any_peer", "reliable")
+func _empezar_apunte_lento_red() -> void:
+	if not multiplayer.is_server():
+		return
+	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
+		return
+	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+		return
+	if factor_velocidad_apuntando >= 1.0:
+		return
+	_aplicar_lentitud_apuntando()
+
+
+@rpc("any_peer", "reliable")
+func _terminar_apunte_lento_red() -> void:
+	if not multiplayer.is_server():
+		return
+	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
+		return
+	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+		return
+	if factor_velocidad_apuntando >= 1.0:
+		return
+	_quitar_lentitud_apuntando()
 
 
 ## El servidor le avisa a TODOS los clientes que reproduzcan el efecto
