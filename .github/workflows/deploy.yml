@@ -51,3 +51,14 @@ jobs:
             docker pull ghcr.io/joseblack27/arbol-decisiones-fable:latest
             cd docker
             docker compose -f docker-compose.prod.yml up -d
+            # Sin esto, la imagen anterior queda huérfana (sin tag) en cada
+            # deploy y se acumula -- el disco de 9.7GB de esta VM se llenó
+            # así MÁS DE UNA VEZ (confirmado en vivo, docker image prune
+            # liberaba 5GB+ de golpe), rompiendo en silencio git fetch/
+            # docker pull del PRÓXIMO deploy (sin espacio para escribir) y
+            # dejando el servidor corriendo una imagen vieja pese a que el
+            # Action mostrara verde -- exactamente la causa de que el
+            # guardado de partidas pareciera "romperse solo" repetidas
+            # veces. Sin -a: solo borra imágenes SIN tag (la vieja, recién
+            # reemplazada arriba), nunca la que está en uso.
+            docker image prune -f
