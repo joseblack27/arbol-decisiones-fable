@@ -24,4 +24,8 @@ android
 /addons/godot_ai
 /addons/godot_ai/*
 godot_ai
-addons
+
+# Candados temporales que Windows/antivirus dejan al tocar un .dll abierto
+# (visto en addons/godot-sqlite/bin/) — se colaron 54 de estos en el repo,
+# ~170MB de basura pura copiada a cada imagen de Docker sin servir para nada.
+~*
