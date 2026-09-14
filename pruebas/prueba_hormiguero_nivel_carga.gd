@@ -70,8 +70,30 @@ func _informar() -> bool:
 	var registrado_ok: bool = "res://escenas/niveles/NivelHormiguero.tscn" in GestorNiveles.NIVELES
 	print("NivelHormiguero.tscn registrado en GestorNiveles.NIVELES (esperado true): %s" % registrado_ok)
 
+	# Salas 1-8 pobladas (56 mobs teóricos), sala 1 activa de entrada, 2-8
+	# con su propio activador -- ver poblar_nivel_hormiguero.gd.
+	var total_teorico := 0
+	var spawners_ok := true
+	var sala1_activa_ok := true
+	for i in range(1, 9):
+		var spawner = enemigos.get_node_or_null("SpawnerMobs%d" % i) if enemigos else null
+		if spawner == null:
+			spawners_ok = false
+			continue
+		total_teorico += int(spawner.maximo_mobs)
+		if i == 1 and not spawner.activo:
+			sala1_activa_ok = false
+		if i > 1:
+			var activador = decoraciones.get_node_or_null("ActivadorSala%d" % i) if decoraciones else null
+			if activador == null or spawner.activo:
+				spawners_ok = false
+	var poblacion_ok: bool = spawners_ok and sala1_activa_ok and total_teorico >= 50
+	print("8 salas pobladas con activador correcto, >=50 mobs teóricos (esperado true, total=%d): %s" % [
+		total_teorico, poblacion_ok])
+
 	var exito := nombre_nivel_ok and punto_aparicion_ok and terreno_ok and navegacion_ok \
-		and mapa_nav_ok and contenedores_ok and portal_salida_ok and portal_entrada_ok and registrado_ok
+		and mapa_nav_ok and contenedores_ok and portal_salida_ok and portal_entrada_ok \
+		and registrado_ok and poblacion_ok
 	print("PRUEBA HORMIGUERO NIVEL CARGA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

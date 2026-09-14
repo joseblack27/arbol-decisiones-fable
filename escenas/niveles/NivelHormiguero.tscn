@@ -1,10 +1,15 @@
-[gd_scene load_steps=6 format=4]
+[gd_scene load_steps=11 format=4]
 
 [ext_resource type="Script" path="res://escenas/niveles/NivelBase.gd" id="1_wsxm3"]
 [ext_resource type="TileSet" path="res://escenas/niveles/tileset_juego.tres" id="2_lu525"]
 [ext_resource type="TileSet" path="res://escenas/niveles/tileset_colisiones.tres" id="3_ydfg2"]
 [ext_resource type="PackedScene" path="res://escenas/niveles/PortalNivel.tscn" id="4_318oh"]
 [ext_resource type="Script" path="res://escenas/niveles/PortalNivel.gd" id="5_3j65v"]
+[ext_resource type="Script" path="res://escenas/enemigos/SpawnerMobs.gd" id="6_d4m37"]
+[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoHormigaObrera.tscn" id="7_0t4c8"]
+[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoHormigaSoldado.tscn" id="8_ehcqq"]
+[ext_resource type="PackedScene" path="res://escenas/objetos/ActivadorSalaSpawners.tscn" id="9_4fo8o"]
+[ext_resource type="Script" path="res://escenas/objetos/ActivadorSalaSpawners.gd" id="10_wgsxx"]
 
 [node name="NivelHormiguero" type="Node2D"]
 y_sort_enabled = true
@@ -36,5 +41,132 @@ etiqueta = "→ Pradera"
 [node name="Enemigos" type="Node2D" parent="."]
 y_sort_enabled = true
 
+[node name="SpawnerMobs1" type="Node2D" parent="Enemigos"]
+position = Vector2(-1584, -624)
+script = ExtResource("6_d4m37")
+lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
+maximo_mobs = 7
+radio_spawn = 140.0
+cantidad_inicial = 7
+
+[node name="SpawnerMobs2" type="Node2D" parent="Enemigos"]
+position = Vector2(16, -624)
+script = ExtResource("6_d4m37")
+lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
+maximo_mobs = 7
+radio_spawn = 140.0
+cantidad_inicial = 7
+activo = false
+
+[node name="SpawnerMobs3" type="Node2D" parent="Enemigos"]
+position = Vector2(1616, -624)
+script = ExtResource("6_d4m37")
+lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
+maximo_mobs = 7
+radio_spawn = 140.0
+cantidad_inicial = 7
+activo = false
+
+[node name="SpawnerMobs4" type="Node2D" parent="Enemigos"]
+position = Vector2(3216, -624)
+script = ExtResource("6_d4m37")
+lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
+maximo_mobs = 7
+radio_spawn = 140.0
+cantidad_inicial = 7
+activo = false
+
+[node name="SpawnerMobs5" type="Node2D" parent="Enemigos"]
+position = Vector2(3216, 816)
+script = ExtResource("6_d4m37")
+lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
+maximo_mobs = 7
+radio_spawn = 140.0
+cantidad_inicial = 7
+activo = false
+
+[node name="SpawnerMobs6" type="Node2D" parent="Enemigos"]
+position = Vector2(1616, 816)
+script = ExtResource("6_d4m37")
+lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
+maximo_mobs = 7
+radio_spawn = 140.0
+cantidad_inicial = 7
+activo = false
+
+[node name="SpawnerMobs7" type="Node2D" parent="Enemigos"]
+position = Vector2(16, 816)
+script = ExtResource("6_d4m37")
+lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
+maximo_mobs = 7
+radio_spawn = 140.0
+cantidad_inicial = 7
+activo = false
+
+[node name="SpawnerMobs8" type="Node2D" parent="Enemigos"]
+position = Vector2(-1584, 816)
+script = ExtResource("6_d4m37")
+lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
+maximo_mobs = 7
+radio_spawn = 140.0
+cantidad_inicial = 7
+activo = false
+
 [node name="Decoraciones" type="Node2D" parent="."]
 y_sort_enabled = true
+
+[node name="ActivadorSala2" type="Area2D" parent="Decoraciones" instance=ExtResource("9_4fo8o")]
+position = Vector2(-784, -624)
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+script = ExtResource("10_wgsxx")
+spawners = Array[NodePath]([NodePath("../../Enemigos/SpawnerMobs2")])
+
+[node name="ActivadorSala3" type="Area2D" parent="Decoraciones" instance=ExtResource("9_4fo8o")]
+position = Vector2(816, -624)
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+script = ExtResource("10_wgsxx")
+spawners = Array[NodePath]([NodePath("../../Enemigos/SpawnerMobs3")])
+
+[node name="ActivadorSala4" type="Area2D" parent="Decoraciones" instance=ExtResource("9_4fo8o")]
+position = Vector2(2416, -624)
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+script = ExtResource("10_wgsxx")
+spawners = Array[NodePath]([NodePath("../../Enemigos/SpawnerMobs4")])
+
+[node name="ActivadorSala5" type="Area2D" parent="Decoraciones" instance=ExtResource("9_4fo8o")]
+position = Vector2(3216, 96)
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+script = ExtResource("10_wgsxx")
+spawners = Array[NodePath]([NodePath("../../Enemigos/SpawnerMobs5")])
+
+[node name="ActivadorSala6" type="Area2D" parent="Decoraciones" instance=ExtResource("9_4fo8o")]
+position = Vector2(2416, 816)
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+script = ExtResource("10_wgsxx")
+spawners = Array[NodePath]([NodePath("../../Enemigos/SpawnerMobs6")])
+
+[node name="ActivadorSala7" type="Area2D" parent="Decoraciones" instance=ExtResource("9_4fo8o")]
+position = Vector2(816, 816)
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+script = ExtResource("10_wgsxx")
+spawners = Array[NodePath]([NodePath("../../Enemigos/SpawnerMobs7")])
+
+[node name="ActivadorSala8" type="Area2D" parent="Decoraciones" instance=ExtResource("9_4fo8o")]
+position = Vector2(-784, 816)
+collision_layer = 0
+collision_mask = 8
+monitorable = false
+script = ExtResource("10_wgsxx")
+spawners = Array[NodePath]([NodePath("../../Enemigos/SpawnerMobs8")])
