@@ -56,6 +56,14 @@ func _process(_d: float) -> bool:
 	raiz.y_sort_enabled = true
 
 	var terreno := _crear_capa("Terreno", TILESET_JUEGO, raiz)
+	# Sin esto el Terreno se dibuja al mismo z_index que jugador/mobs (0) --
+	# con y_sort_enabled mezclando cada tile individual en ese mismo orden,
+	# algunas celdas (sobre todo paredes) terminaban tapando sprites por
+	# encima, y el indicador de apunte de las habilidades (que dibuja en el
+	# mismo espacio) también quedaba tapado. Todos los demás niveles ya
+	# tienen esto -- se me pasó acá. z_index bien negativo fuerza a la capa
+	# ENTERA detrás de todo lo demás, sin importar el y_sort interno.
+	terreno.z_index = -10
 	terreno.y_sort_enabled = true
 	terreno.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 
