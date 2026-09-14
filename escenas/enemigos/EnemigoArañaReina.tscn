@@ -36,6 +36,7 @@
 [ext_resource type="Script" uid="uid://dcjiu4f5gcy6r" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionObjetivoSinHabilidades.gd" id="20_castigo_cond"]
 [ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="21_araña"]
 [ext_resource type="PackedScene" uid="uid://j0em8y0y47g7" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.tscn" id="21_castigo_golpe"]
+[ext_resource type="Resource" path="res://recursos/habilidades/castigo_reina.tres" id="datos_castigo_reina"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="22_araña"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/CastigoReina.tres" id="22_castigo_bt"]
 [ext_resource type="Resource" uid="uid://btelaran001bt" path="res://componentes/arbol_comportamiento/recursos/BolaTelaraña.tres" id="23_araña"]
@@ -892,8 +893,8 @@ tipo_dano = 0
 
 [node name="HabilidadGolpeCastigo" parent="Habilidades" instance=ExtResource("21_castigo_golpe")]
 radio_golpe = 90.0
-duracion_recarga = 3.5
 costo_energia = 0.0
+datos = ExtResource("datos_castigo_reina")
 
 [node name="HabilidadVenenoParalizante" parent="Habilidades" instance=ExtResource("23_sacudida")]
 radio = 110.0
