@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="EnemigoDatos" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://recursos/enemigos/EnemigoDatos.gd" id="1_ed"]
+
+[resource]
+script = ExtResource("1_ed")
+nombre_tipo = "Hormiga Soldado"
+color = Color(0.25, 0.1, 0.05, 1)
+nivel = 3
+vida_maxima = 180.0
+velocidad_base = 120.0
+energia_maxima = 120.0
+regeneracion_energia = 9.0

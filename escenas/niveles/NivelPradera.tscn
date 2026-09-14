@@ -401,3 +401,12 @@ punto_llegada = NodePath("Marker2D")
 
 [node name="Marker2D" type="Marker2D" parent="PortalAMina"]
 position = Vector2(0, 64)
+
+[node name="PortalAHormiguero" parent="." node_paths=PackedStringArray("punto_llegada") instance=ExtResource("10_u3oy8")]
+position = Vector2(-752, 304)
+ruta_nivel_destino = "res://escenas/niveles/NivelHormiguero.tscn"
+etiqueta = "→ Hormiguero"
+punto_llegada = NodePath("Marker2D")
+
+[node name="Marker2D" type="Marker2D" parent="PortalAHormiguero"]
+position = Vector2(0, -64)
