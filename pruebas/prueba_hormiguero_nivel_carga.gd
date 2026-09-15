@@ -91,9 +91,15 @@ func _informar() -> bool:
 	print("8 salas pobladas con activador correcto, >=50 mobs teóricos (esperado true, total=%d): %s" % [
 		total_teorico, poblacion_ok])
 
+	var reina: Node = enemigos.get_node_or_null("EnemigoReinaHormigas") if enemigos else null
+	var reina_script: Script = reina.get_script() if reina else null
+	var reina_ok: bool = reina != null and reina_script != null \
+		and reina_script.resource_path.ends_with("EnemigoReinaHormigas.gd")
+	print("Reina de las Hormigas colocada en la sala final (esperado true): %s" % reina_ok)
+
 	var exito := nombre_nivel_ok and punto_aparicion_ok and terreno_ok and navegacion_ok \
 		and mapa_nav_ok and contenedores_ok and portal_salida_ok and portal_entrada_ok \
-		and registrado_ok and poblacion_ok
+		and registrado_ok and poblacion_ok and reina_ok
 	print("PRUEBA HORMIGUERO NIVEL CARGA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

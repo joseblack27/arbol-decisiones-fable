@@ -1,22 +1,16 @@
-[gd_scene load_steps=102 format=3]
+[gd_scene load_steps=84 format=3]
 
-[ext_resource type="Resource" path="res://recursos/enemigos/HormigaSoldado.tres" id="0_datos"]
-[ext_resource type="Script" path="res://escenas/enemigos/EnemigoHormigaSoldado.gd" id="1_bvf6m"]
-[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="2_ivj8v"]
-[ext_resource type="Resource" path="res://recursos/items/consumibles/jeringa_adrenalina.tres" id="3_l6bpy"]
-[ext_resource type="Resource" path="res://recursos/items/recursos/ticket_2.tres" id="4_d76rf"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_1.tres" id="5_s57h7"]
+[ext_resource type="Resource" path="res://recursos/enemigos/ReinaHormigas.tres" id="0_datos"]
+[ext_resource type="Script" path="res://escenas/enemigos/EnemigoReinaHormigas.gd" id="1_bvf6m"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EscupitajoAcidoReina.tres" id="2_v03w4"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/LlamadaAuxilioReina.tres" id="3_4lglx"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EmbestidaReina.tres" id="4_4l60a"]
 [ext_resource type="Script" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_2.tres" id="6_wrpy6"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_3.tres" id="7_hecjv"]
 [ext_resource type="Script" path="res://componentes/VisionComponente.gd" id="7_ng816"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_4.tres" id="8_u7a2k"]
 [ext_resource type="Script" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
 [ext_resource type="Texture2D" path="res://assets/lobo marron.png" id="10_2yvtj"]
-[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
-[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/ArañazoLoboFeroz.tres" id="11_l6bpy"]
 [ext_resource type="Script" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
@@ -25,69 +19,24 @@
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="15_od7qp"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/MordidaReina.tres" id="24_4s60b"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionIrAPunto.gd" id="25_xho1m"]
 [ext_resource type="PackedScene" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="31_l6bpy"]
-[ext_resource type="Script" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="31_vm1f8"]
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.gd" id="29_w4a8s"]
+[ext_resource type="Script" path="res://escenas/habilidades/area_efecto/HabilidadAreaEfecto.gd" id="30_ts6f8"]
+[ext_resource type="Script" path="res://escenas/habilidades/llamada_auxilio/HabilidadLlamadaAuxilio.gd" id="31_y41it"]
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_verdadero_guardian/HabilidadGolpeVerdaderoGuardian.gd" id="32_grd22"]
 [ext_resource type="Script" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
 [ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
 [ext_resource type="Script" path="res://escenas/habilidades/carga/HabilidadCarga.gd" id="36_v43m0"]
-[ext_resource type="Script" path="res://escenas/habilidades/arañazo/HabilidadArañazo.gd" id="39_oq16n"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/decoradores/Enfriamiento.gd" id="40_enfria"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/Arañazo.tscn" id="40_xueep"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="41_huir"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
-[ext_resource type="Script" path="res://escenas/habilidades/parpadeo/HabilidadParpadeo.gd" id="43_dxj7e"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/parpadeo/HabilidadParpadeo.tscn" id="45_parpadeo"]
 [ext_resource type="Script" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
-[ext_resource type="Resource" path="res://recursos/habilidades/arañazo_lobo_feroz.tres" id="datos_arañazo_lobo_feroz"]
 [ext_resource type="Script" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
-[ext_resource type="Resource" path="res://recursos/items/equipables/escudo_tormenta.tres" id="esc_escudo_tormenta"]
-
-[sub_resource type="Resource" id="Resource_iuxaj"]
-script = ExtResource("2_ivj8v")
-item = ExtResource("3_l6bpy")
-metadata/_custom_type_script = "uid://bvgbk1t37ev53"
-
-[sub_resource type="Resource" id="Resource_wrpy6"]
-script = ExtResource("2_ivj8v")
-item = ExtResource("4_d76rf")
-metadata/_custom_type_script = "uid://bvgbk1t37ev53"
-
-[sub_resource type="Resource" id="Resource_hu05i"]
-script = ExtResource("2_ivj8v")
-item = ExtResource("5_s57h7")
-probabilidad = 0.2
-metadata/_custom_type_script = "uid://bvgbk1t37ev53"
-
-[sub_resource type="Resource" id="Resource_385uh"]
-script = ExtResource("2_ivj8v")
-item = ExtResource("6_wrpy6")
-probabilidad = 0.2
-metadata/_custom_type_script = "uid://bvgbk1t37ev53"
-
-[sub_resource type="Resource" id="Resource_ua77i"]
-script = ExtResource("2_ivj8v")
-item = ExtResource("7_hecjv")
-probabilidad = 0.2
-metadata/_custom_type_script = "uid://bvgbk1t37ev53"
-
-[sub_resource type="Resource" id="Resource_wmgm4"]
-script = ExtResource("2_ivj8v")
-item = ExtResource("8_u7a2k")
-probabilidad = 0.2
-metadata/_custom_type_script = "uid://bvgbk1t37ev53"
-
-[sub_resource type="Resource" id="Loot_escudo_tormenta"]
-script = ExtResource("2_ivj8v")
-item = ExtResource("esc_escudo_tormenta")
-probabilidad = 0.15
-metadata/_custom_type_script = "uid://bvgbk1t37ev53"
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
-radius = 15.0
+radius = 34.0
 
 [sub_resource type="Animation" id="Animation_gg1r0"]
 length = 0.001
@@ -1153,27 +1102,28 @@ graph_offset = Vector2(0, -19.308817)
 radius = 200.30228
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
-radius = 24.0
+radius = 34.0
 
-[sub_resource type="Resource" id="Resource_g5dog"]
-resource_local_to_scene = true
+[sub_resource type="Resource" id="Resource_1bgwi"]
 script = ExtResource("34_iuxaj")
-regeneracion_vida = 1.0
-resistencia_fisica = 10.0
-resistencia_fuego = -10.0
-metadata/_custom_type_script = "uid://ddhq5qxvccml7"
+defensa = 20.0
+fortaleza = 22.0
 
-[node name="EnemigoHormigaSoldado" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
+[node name="EnemigoReinaHormigas" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria")]
 motion_mode = 1
 script = ExtResource("1_bvf6m")
+habilidad_escupitajo_bt = ExtResource("2_v03w4")
+habilidad_llamada_auxilio_bt = ExtResource("3_4lglx")
+habilidad_embestida_bt = ExtResource("4_4l60a")
 componente_vida = NodePath("VidaComponente")
 componente_movimiento = NodePath("MovimientoComponente")
 componente_vision = NodePath("VisionComponente")
 componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("0_datos")
-tabla_botin = Array[ExtResource("2_ivj8v")]([SubResource("Resource_iuxaj"), SubResource("Resource_wrpy6"), SubResource("Resource_hu05i"), SubResource("Resource_385uh"), SubResource("Resource_ua77i"), SubResource("Resource_wmgm4"), SubResource("Loot_escudo_tormenta")])
-xp_otorgada = 200
+mostrar_nombre = false
+altura_nombre = -120.0
+xp_otorgada = 1000
 
 [node name="EnergiaComponente" type="Node" parent="."]
 script = ExtResource("ec_enemigo")
@@ -1249,7 +1199,7 @@ debug_color = Color(0.9676711, 0.16954571, 0.1691272, 0.41960785)
 [node name="Sprite2D" type="Sprite2D" parent="."]
 modulate = Color(1, 0.45, 0.35, 1)
 position = Vector2(0, -7.9999995)
-scale = Vector2(1.4, 1.4)
+scale = Vector2(2.3, 2.3)
 texture = ExtResource("10_2yvtj")
 hframes = 5
 vframes = 4
@@ -1294,47 +1244,13 @@ nombre_nodo = "(Condición) Llamada de auxilio activa"
 script = ExtResource("25_xho1m")
 nombre_nodo = "(Acción) Ir hacia la Reina"
 
-[node name="SecuenciaHuida" type="Node" parent="ArbolComportamiento/Selector"]
-script = ExtResource("15_od7qp")
-nombre_nodo = "(Secuencia) Huir si vida baja"
-metadata/_custom_type_script = "uid://ct4bjrtr7d8rn"
-
-[node name="CondVidaBaja" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
-script = ExtResource("16_er6sw")
-nombre_variable = "vida_baja"
-nombre_nodo = "(Condición) Vida baja"
-metadata/_custom_type_script = "uid://dn738h7elp7t4"
-
-[node name="CondJugadorDetectado" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
-script = ExtResource("16_er6sw")
-nombre_variable = "jugador_detectado"
-nombre_nodo = "(Condición) Jugador detectado"
-metadata/_custom_type_script = "uid://dn738h7elp7t4"
-
-[node name="CondSinCargaEnCurso" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
-script = ExtResource("16_er6sw")
-nombre_variable = "ataque_en_curso"
-tipo_comparacion = 1
-nombre_nodo = "(Condición) Sin carga en curso"
-metadata/_custom_type_script = "uid://dn738h7elp7t4"
-
-[node name="EnfriamientoHuida" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
-script = ExtResource("40_enfria")
-tiempo_enfriamiento = 20.0
-solo_al_exitoso = true
-nombre_nodo = "(Enfriamiento) Cooldown de huida"
-
-[node name="Huir" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida/EnfriamientoHuida"]
-script = ExtResource("41_huir")
-nombre_nodo = "(Acción) Huir"
-
 [node name="Atacar" type="Node" parent="ArbolComportamiento/Selector"]
 script = ExtResource("42_atacar")
 nombre_nodo = "(Acción) Atacar"
 
 [node name="SelectorHabilidades" type="Node" parent="ArbolComportamiento/Selector/Atacar"]
 script = ExtResource("7_3n3x0")
-habilidades = Array[ExtResource("8_72jeo")]([ExtResource("10_mjm62"), ExtResource("11_l6bpy")])
+habilidades = Array[ExtResource("8_72jeo")]([ExtResource("24_4s60b")])
 nombre_nodo = "Habilidades"
 
 [node name="Perseguir" type="Node" parent="ArbolComportamiento/Selector"]
@@ -1348,35 +1264,69 @@ nombre_nodo = "(Acción) Deambular"
 
 [node name="Habilidades" type="Marker2D" parent="."]
 
-[node name="HabilidadCarga" type="Node" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
+[node name="HabilidadEmbestidaReina" type="Node" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
 script = ExtResource("36_v43m0")
-duracion_preparacion = 1.0
-dano_carga = 52.0
-multiplicador_velocidad_carga = 5.5
-distancia_maxima_dash = 200.0
+duracion_preparacion = 0.7
+dano_carga = 55.0
+multiplicador_velocidad_carga = 5.0
+distancia_maxima_dash = 320.0
 componente_movimiento = NodePath("../../MovimientoComponente")
-duracion_recarga = 20.0
-costo_energia = 40.0
-tipo_dano = 4
+duracion_recarga = 10.0
+tipo_dano = 0
+congela_movimiento_en_red = false
 
-[node name="HabilidadProyectil" type="Node" parent="Habilidades"]
-script = ExtResource("31_vm1f8")
-metadata/_custom_type_script = "uid://cmvtumtuaysdj"
+[node name="HabilidadMordida" type="Node" parent="Habilidades"]
+script = ExtResource("29_w4a8s")
+duracion_recarga = 1.2
+tipo_dano = 0
+congela_movimiento_en_red = false
 
-[node name="HabilidadArañazo" type="Node" parent="Habilidades" instance=ExtResource("31_l6bpy")]
-script = ExtResource("39_oq16n")
-radio_golpe = 15.0
-escena_golpe = ExtResource("40_xueep")
-datos = ExtResource("datos_arañazo_lobo_feroz")
+[node name="HabilidadEscupitajoAcido" type="Node" parent="Habilidades"]
+script = ExtResource("30_ts6f8")
+radio_area = 90.0
+duracion_recarga = 5.0
+tipo_dano = 0
+congela_movimiento_en_red = false
 
-[node name="HabilidadParpadeo" type="Node" parent="Habilidades" instance=ExtResource("45_parpadeo")]
-script = ExtResource("43_dxj7e")
-duracion_recarga = 4.0
-costo_energia = 15.0
-requiere_direccion = true
+[node name="HabilidadLlamadaAuxilio" type="Node" parent="Habilidades"]
+script = ExtResource("31_y41it")
+duracion_recarga = 25.0
+congela_movimiento_en_red = false
+
+[node name="HabilidadGolpeVerdaderoTransicion" type="Node" parent="Habilidades"]
+script = ExtResource("32_grd22")
+ignora_defensa = true
+duracion_recarga = 0.5
 congela_movimiento_en_red = false
 
 [node name="AtributosComponente" type="Node" parent="."]
 script = ExtResource("33_d76rf")
-base = SubResource("Resource_g5dog")
+base = SubResource("Resource_1bgwi")
 metadata/_custom_type_script = "uid://mgcsfgslagtk"
+
+[node name="NombreJefe" type="Label" parent="."]
+offset_left = -104.0
+offset_top = -134.0
+offset_right = 104.0
+offset_bottom = -115.0
+theme_override_font_sizes/font_size = 8
+theme_override_colors/font_color = Color(0.9, 0.55, 0.5, 0.95)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 2
+text = "Nv.15 Reina de las Hormigas"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EtiquetaHabilidad" type="Label" parent="."]
+visible = false
+offset_left = -104.0
+offset_top = -160.0
+offset_right = 104.0
+offset_bottom = -135.0
+theme_override_font_sizes/font_size = 16
+theme_override_colors/font_color = Color(1, 0.4, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 5
+text = "Habilidad"
+horizontal_alignment = 1
+vertical_alignment = 1

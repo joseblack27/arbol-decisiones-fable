@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=4]
+[gd_scene load_steps=17 format=4]
 
 [ext_resource type="Script" path="res://escenas/niveles/NivelBase.gd" id="1_wsxm3"]
 [ext_resource type="TileSet" path="res://escenas/niveles/tileset_juego.tres" id="2_lu525"]
@@ -9,7 +9,13 @@
 [ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoHormigaObrera.tscn" id="7_0t4c8"]
 [ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoHormigaSoldado.tscn" id="8_ehcqq"]
 [ext_resource type="PackedScene" path="res://escenas/objetos/ActivadorSalaSpawners.tscn" id="9_4fo8o"]
+[ext_resource type="PackedScene" path="res://escenas/enemigos/EnemigoReinaHormigas.tscn" id="9_65ik4"]
+[ext_resource type="Script" path="res://escenas/enemigos/EnemigoReinaHormigas.gd" id="10_am8of"]
 [ext_resource type="Script" path="res://escenas/objetos/ActivadorSalaSpawners.gd" id="10_wgsxx"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EscupitajoAcidoReina.tres" id="11_8us4u"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/LlamadaAuxilioReina.tres" id="12_dgf8m"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EmbestidaReina.tres" id="13_1o31w"]
+[ext_resource type="Resource" path="res://recursos/enemigos/ReinaHormigas.tres" id="14_8xm6l"]
 
 [node name="NivelHormiguero" type="Node2D"]
 y_sort_enabled = true
@@ -112,6 +118,23 @@ maximo_mobs = 7
 radio_spawn = 140.0
 cantidad_inicial = 7
 activo = false
+
+[node name="EnemigoReinaHormigas" type="CharacterBody2D" parent="Enemigos" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria") instance=ExtResource("9_65ik4")]
+position = Vector2(-3184, 816)
+motion_mode = 1
+script = ExtResource("10_am8of")
+habilidad_escupitajo_bt = ExtResource("11_8us4u")
+habilidad_llamada_auxilio_bt = ExtResource("12_dgf8m")
+habilidad_embestida_bt = ExtResource("13_1o31w")
+componente_vida = NodePath("VidaComponente")
+componente_movimiento = NodePath("MovimientoComponente")
+componente_vision = NodePath("VisionComponente")
+componente_animacion = NodePath("AnimacionComponente")
+memoria = NodePath("ArbolComportamiento/MemoriaBT")
+datos = ExtResource("14_8xm6l")
+mostrar_nombre = false
+altura_nombre = -120.0
+xp_otorgada = 1000
 
 [node name="Decoraciones" type="Node2D" parent="."]
 y_sort_enabled = true

@@ -1,43 +1,47 @@
-[gd_scene load_steps=93 format=3 uid="uid://ryqwerc33taa"]
+[gd_scene load_steps=98 format=3]
 
 [ext_resource type="Resource" path="res://recursos/enemigos/HormigaObrera.tres" id="0_datos"]
 [ext_resource type="Script" path="res://escenas/enemigos/EnemigoHormigaObrera.gd" id="1_bvf6m"]
-[ext_resource type="Script" uid="uid://bvgbk1t37ev53" path="res://recursos/items/LootDrop.gd" id="2_ivj8v"]
+[ext_resource type="Script" path="res://recursos/items/LootDrop.gd" id="2_ivj8v"]
 [ext_resource type="Resource" path="res://recursos/items/consumibles/jeringa_adrenalina.tres" id="3_l6bpy"]
 [ext_resource type="Resource" path="res://recursos/items/recursos/ticket_2.tres" id="4_d76rf"]
-[ext_resource type="Resource" uid="uid://h64hc611crho" path="res://recursos/items/equipables/accesorio_1.tres" id="5_s57h7"]
-[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
-[ext_resource type="Resource" uid="uid://dpcxd3rxudn7t" path="res://recursos/items/equipables/accesorio_2.tres" id="6_wrpy6"]
-[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
-[ext_resource type="Resource" uid="uid://c251a1ngx46ck" path="res://recursos/items/equipables/accesorio_3.tres" id="7_hecjv"]
-[ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="7_ng816"]
-[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
-[ext_resource type="Resource" uid="uid://cwsqm88ycevvv" path="res://recursos/items/equipables/accesorio_4.tres" id="8_u7a2k"]
-[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
-[ext_resource type="Texture2D" uid="uid://dhdbpiomf5alu" path="res://assets/lobo marron.png" id="10_2yvtj"]
-[ext_resource type="Resource" uid="uid://bcarga001tres" path="res://componentes/arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
-[ext_resource type="Resource" uid="uid://cricr6prjvmev" path="res://componentes/arbol_comportamiento/recursos/ArañazoLobo.tres" id="11_l6bpy"]
-[ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
-[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
-[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
-[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="14_4qigy"]
-[ext_resource type="Texture2D" uid="uid://bcwr2iejfd47i" path="res://assets/lobo_posicion_ataque.png" id="14_ywip5"]
-[ext_resource type="Script" uid="uid://ct4bjrtr7d8rn" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="15_od7qp"]
-[ext_resource type="Script" uid="uid://dn738h7elp7t4" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
-[ext_resource type="Script" uid="uid://ca1qx7dmkknyn" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
-[ext_resource type="PackedScene" uid="uid://cwna41dn0homy" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
-[ext_resource type="PackedScene" uid="uid://dtw6fvi03aau8" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="31_l6bpy"]
-[ext_resource type="Script" uid="uid://cmvtumtuaysdj" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="31_vm1f8"]
-[ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
-[ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
-[ext_resource type="Script" uid="uid://be8iggj3gj48x" path="res://componentes/arbol_comportamiento/decoradores/Enfriamiento.gd" id="40_enfria"]
-[ext_resource type="Script" uid="uid://7nknx7mjsa07" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="41_huir"]
-[ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
-[ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
-[ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
-[ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
-[ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_1.tres" id="5_s57h7"]
+[ext_resource type="Script" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_2.tres" id="6_wrpy6"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_3.tres" id="7_hecjv"]
+[ext_resource type="Script" path="res://componentes/VisionComponente.gd" id="7_ng816"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
+[ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_4.tres" id="8_u7a2k"]
+[ext_resource type="Script" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
+[ext_resource type="Texture2D" path="res://assets/lobo marron.png" id="10_2yvtj"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/ArañazoLobo.tres" id="11_l6bpy"]
+[ext_resource type="Script" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="14_4qigy"]
+[ext_resource type="Texture2D" path="res://assets/lobo_posicion_ataque.png" id="14_ywip5"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="15_od7qp"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionIrAPunto.gd" id="24_vwjng"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="31_l6bpy"]
+[ext_resource type="Script" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="31_vm1f8"]
+[ext_resource type="Script" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
+[ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
+[ext_resource type="Script" path="res://escenas/habilidades/carga/HabilidadCarga.gd" id="35_ki3dw"]
+[ext_resource type="Script" path="res://escenas/habilidades/arañazo/HabilidadArañazo.gd" id="38_05e3s"]
+[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/Arañazo.tscn" id="39_yonvf"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/decoradores/Enfriamiento.gd" id="40_enfria"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="41_huir"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
+[ext_resource type="Script" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
 [ext_resource type="Resource" path="res://recursos/habilidades/arañazo_lobo.tres" id="datos_arañazo_lobo"]
+[ext_resource type="Script" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
 
 [sub_resource type="Resource" id="Resource_iuxaj"]
 script = ExtResource("2_ivj8v")
@@ -115,7 +119,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -128,6 +131,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [0]
 }
+
 [sub_resource type="Animation" id="Animation_c06r7"]
 resource_name = "atacar_mordida_preparacion_este"
 length = 0.1
@@ -601,7 +605,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -614,6 +617,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [11, 12, 13, 14]
 }
+
 [sub_resource type="Animation" id="Animation_er6sw"]
 resource_name = "caminar_norte"
 length = 0.4
@@ -655,7 +659,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -668,6 +671,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [6, 7, 8, 9]
 }
+
 [sub_resource type="Animation" id="Animation_1mga7"]
 resource_name = "caminar_oeste"
 length = 0.4
@@ -709,7 +713,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -722,6 +725,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [16, 17, 18, 19]
 }
+
 [sub_resource type="Animation" id="Animation_od7qp"]
 resource_name = "caminar_sur"
 length = 0.4
@@ -763,7 +767,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -776,6 +779,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [1, 2, 3, 4]
 }
+
 [sub_resource type="Animation" id="Animation_psl2x"]
 resource_name = "idle_este"
 length = 0.5
@@ -816,7 +820,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -829,6 +832,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [10]
 }
+
 [sub_resource type="Animation" id="Animation_2yvtj"]
 resource_name = "idle_norte"
 length = 0.5
@@ -868,7 +872,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -881,6 +884,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [5]
 }
+
 [sub_resource type="Animation" id="Animation_4qigy"]
 resource_name = "idle_oeste"
 length = 0.5
@@ -921,7 +925,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -934,6 +937,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [15]
 }
+
 [sub_resource type="Animation" id="Animation_ysyd8"]
 resource_name = "idle_sur"
 length = 0.5
@@ -973,7 +977,6 @@ tracks/2/keys = {
 "update": 1,
 "values": [4]
 }
-
 tracks/3/type = "value"
 tracks/3/imported = false
 tracks/3/enabled = true
@@ -986,6 +989,7 @@ tracks/3/keys = {
 "update": 1,
 "values": [0]
 }
+
 [sub_resource type="AnimationLibrary" id="AnimationLibrary_psl2x"]
 _data = {
 &"RESET": SubResource("Animation_gg1r0"),
@@ -1142,7 +1146,7 @@ radius = 200.30228
 [sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
 radius = 16.0
 
-[sub_resource type="Resource" id="Resource_s57h7"]
+[sub_resource type="Resource" id="Resource_r2t6s"]
 resource_local_to_scene = true
 script = ExtResource("34_iuxaj")
 regeneracion_vida = 1.0
@@ -1282,6 +1286,19 @@ script = ExtResource("14_4qigy")
 nombre_nodo = "(Selector) Raiz"
 metadata/_custom_type_script = "uid://d4koe822cisq2"
 
+[node name="ResponderLlamada" type="Node" parent="ArbolComportamiento/Selector"]
+script = ExtResource("15_od7qp")
+nombre_nodo = "(Secuencia) Responder Llamada de Auxilio"
+
+[node name="CondLlamadaAuxilio" type="Node" parent="ArbolComportamiento/Selector/ResponderLlamada"]
+script = ExtResource("16_er6sw")
+nombre_variable = "en_llamada_auxilio"
+nombre_nodo = "(Condición) Llamada de auxilio activa"
+
+[node name="IrHaciaLaReina" type="Node" parent="ArbolComportamiento/Selector/ResponderLlamada"]
+script = ExtResource("24_vwjng")
+nombre_nodo = "(Acción) Ir hacia la Reina"
+
 [node name="SecuenciaHuida" type="Node" parent="ArbolComportamiento/Selector"]
 script = ExtResource("15_od7qp")
 nombre_nodo = "(Secuencia) Huir si vida baja"
@@ -1335,7 +1352,8 @@ nombre_nodo = "(Acción) Deambular"
 
 [node name="Habilidades" type="Marker2D" parent="."]
 
-[node name="HabilidadCarga" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
+[node name="HabilidadCarga" type="Node" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
+script = ExtResource("35_ki3dw")
 duracion_preparacion = 1.0
 dano_carga = 47.0
 multiplicador_velocidad_carga = 10.0
@@ -1348,10 +1366,13 @@ costo_energia = 40.0
 script = ExtResource("31_vm1f8")
 metadata/_custom_type_script = "uid://cmvtumtuaysdj"
 
-[node name="HabilidadArañazo" parent="Habilidades" instance=ExtResource("31_l6bpy")]
+[node name="HabilidadArañazo" type="Node" parent="Habilidades" instance=ExtResource("31_l6bpy")]
+script = ExtResource("38_05e3s")
+radio_golpe = 15.0
+escena_golpe = ExtResource("39_yonvf")
 datos = ExtResource("datos_arañazo_lobo")
 
 [node name="AtributosComponente" type="Node" parent="."]
 script = ExtResource("33_d76rf")
-base = SubResource("Resource_s57h7")
+base = SubResource("Resource_r2t6s")
 metadata/_custom_type_script = "uid://mgcsfgslagtk"

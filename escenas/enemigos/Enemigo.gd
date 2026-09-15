@@ -911,6 +911,22 @@ func _telegrafiar_pausa_de_fase(duracion: float, al_reanudar: Callable) -> void:
 		al_reanudar.call())
 
 
+## Reacciona a una "Llamada de Auxilio" (ver HabilidadLlamadaAuxilio.gd, la
+## habilidad de la Reina de las Hormigas): deja lo que esté haciendo y viaja
+## directo a "destino", ignorando cualquier jugador en el camino. Vive ACÁ
+## (no en un mob concreto) porque cualquier tipo de mob —obrera, soldado, o
+## el que venga— tiene que poder responder igual, sin código nuevo por
+## especie. Solo pone banderas en la memoria compartida: quien de verdad
+## mueve al mob es la rama "ResponderLlamada" (Secuencia + CondicionMemoria +
+## AccionIrAPunto) que cada .tscn de hormiga trae como PRIMER hijo de su
+## Selector — máxima prioridad, por encima de huir/atacar/perseguir/deambular.
+func responder_llamada_auxilio(destino: Vector2) -> void:
+	if _muerto or memoria == null:
+		return
+	memoria.establecer("en_llamada_auxilio", true)
+	memoria.establecer("destino_llamada", destino)
+
+
 # =============================================================================
 # DATOS / PLANTILLA  (sobreescribir en subclases para stats propios)
 # =============================================================================
