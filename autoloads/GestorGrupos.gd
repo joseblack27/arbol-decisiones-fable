@@ -73,7 +73,23 @@ func _difundir_roster() -> void:
 	for peer_id in _conectados:
 		var entrada: Dictionary = _conectados[peer_id]
 		lista.append({"peer_id": peer_id, "nombre": entrada.get("nombre", "")})
+	# quitar_conectado() llama acá SINCRÓNICAMENTE desde ServidorDedicado.
+	# _al_desconectar (la respuesta directa a peer_disconnected), que puede
+	# disparar a mitad de un fotograma físico — antes de que el próximo
+	# fotograma invalide el caché de InteresEspacial._peers_enviables().
+	# Ese caché (uno por fotograma, reusado por TODOS los mobs) puede
+	# devolver todavía al peer que se acaba de caer, y rpc_id() a un peer ya
+	# desconectado revienta con "Attempt to call RPC with unknown peer ID"
+	# (reportado en el log real del servidor). Se revalida acá el estado
+	# REAL de ENet (sin caché, sólo para este broadcast puntual) — mismo
+	# chequeo que ya hace InteresEspacial internamente, ver el comentario
+	# grande en _peers_enviables().
+	var enet := multiplayer.multiplayer_peer as ENetMultiplayerPeer
 	for destino in InteresEspacial.peers_conectados_listos():
+		if enet != null:
+			var par := enet.get_peer(destino)
+			if par == null or par.get_state() != ENetPacketPeer.STATE_CONNECTED:
+				continue
 		rpc_id(destino, "_recibir_roster_red", lista)
 
 
