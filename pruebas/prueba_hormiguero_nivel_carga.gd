@@ -87,6 +87,8 @@ func _informar() -> bool:
 			var activador = decoraciones.get_node_or_null("ActivadorSala%d" % i) if decoraciones else null
 			if activador == null or spawner.activo:
 				spawners_ok = false
+			if int(spawner.cantidad_inicial) != 0:
+				spawners_ok = false
 	var poblacion_ok: bool = spawners_ok and sala1_activa_ok and total_teorico >= 50
 	print("8 salas pobladas con activador correcto, >=50 mobs teóricos (esperado true, total=%d): %s" % [
 		total_teorico, poblacion_ok])

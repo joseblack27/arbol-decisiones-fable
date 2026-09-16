@@ -62,7 +62,6 @@ script = ExtResource("6_d4m37")
 lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
 maximo_mobs = 7
 radio_spawn = 140.0
-cantidad_inicial = 7
 activo = false
 
 [node name="SpawnerMobs3" type="Node2D" parent="Enemigos"]
@@ -71,7 +70,6 @@ script = ExtResource("6_d4m37")
 lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
 maximo_mobs = 7
 radio_spawn = 140.0
-cantidad_inicial = 7
 activo = false
 
 [node name="SpawnerMobs4" type="Node2D" parent="Enemigos"]
@@ -80,7 +78,6 @@ script = ExtResource("6_d4m37")
 lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
 maximo_mobs = 7
 radio_spawn = 140.0
-cantidad_inicial = 7
 activo = false
 
 [node name="SpawnerMobs5" type="Node2D" parent="Enemigos"]
@@ -89,7 +86,6 @@ script = ExtResource("6_d4m37")
 lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
 maximo_mobs = 7
 radio_spawn = 140.0
-cantidad_inicial = 7
 activo = false
 
 [node name="SpawnerMobs6" type="Node2D" parent="Enemigos"]
@@ -98,7 +94,6 @@ script = ExtResource("6_d4m37")
 lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
 maximo_mobs = 7
 radio_spawn = 140.0
-cantidad_inicial = 7
 activo = false
 
 [node name="SpawnerMobs7" type="Node2D" parent="Enemigos"]
@@ -107,7 +102,6 @@ script = ExtResource("6_d4m37")
 lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
 maximo_mobs = 7
 radio_spawn = 140.0
-cantidad_inicial = 7
 activo = false
 
 [node name="SpawnerMobs8" type="Node2D" parent="Enemigos"]
@@ -116,7 +110,6 @@ script = ExtResource("6_d4m37")
 lista_mobs = Array[PackedScene]([ExtResource("7_0t4c8"), ExtResource("8_ehcqq")])
 maximo_mobs = 7
 radio_spawn = 140.0
-cantidad_inicial = 7
 activo = false
 
 [node name="EnemigoReinaHormigas" type="CharacterBody2D" parent="Enemigos" node_paths=PackedStringArray("componente_vida", "componente_movimiento", "componente_vision", "componente_animacion", "memoria") instance=ExtResource("9_65ik4")]

@@ -43,7 +43,15 @@ func _process(_d: float) -> bool:
 		spawner.set("maximo_mobs", MOBS_POR_SALA)
 		spawner.set("radio_spawn", 140.0)
 		spawner.set("intervalo_spawn", 8.0)
-		spawner.set("cantidad_inicial", MOBS_POR_SALA)
+		# Solo la sala YA activa arranca con mobs de una -- cantidad_inicial
+		# ignora "activo" al generar (ver SpawnerMobs._ready), así que dejarlo
+		# en MOBS_POR_SALA para las 8 salas por igual hacía que las 56
+		# hormigas aparecieran TODAS apenas carga el nivel, sin importar el
+		# activador: un enjambre entero concentrado desde el arranque en vez
+		# del goteo progresivo pensado (bug real, encontrado reproduciendo en
+		# una prueba con el jugador muriendo en loop apenas entraba a una
+		# sala — desde el juego se veía como "las hormigas no reaccionan").
+		spawner.set("cantidad_inicial", MOBS_POR_SALA if i == 1 else 0)
 		spawner.set("activo", i == 1)  # sala 1 arranca activa, el resto no.
 		enemigos.add_child(spawner)
 		spawner.owner = nivel
