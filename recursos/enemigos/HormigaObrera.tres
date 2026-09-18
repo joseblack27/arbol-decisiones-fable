@@ -5,7 +5,7 @@
 [resource]
 script = ExtResource("1_ed")
 nombre_tipo = "Hormiga Obrera"
-color = Color(0.55, 0.25, 0.1, 1)
+color = Color(1, 1, 1, 1)
 nivel = 1
 vida_maxima = 70.0
 velocidad_base = 90.0

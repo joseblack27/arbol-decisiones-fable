@@ -59,9 +59,11 @@ func _informar() -> bool:
 	print("Vida real aplicada desde datos (esperado true, 70.0): %s (real=%.1f)" % [
 		vida_aplicada, _mob.componente_vida.obtener_vida()])
 
+	# Pedido del usuario (18 sep 2026): sin tinte, color natural del
+	# spritesheet -- extendido a TODAS las hormigas (antes solo la Soldado).
 	var sprite := _mob.get_node_or_null("Sprite2D") as Sprite2D
-	var tinte_ok := sprite != null and not sprite.modulate.is_equal_approx(Color.WHITE)
-	print("Sprite con tinte propio (esperado true): %s" % tinte_ok)
+	var sin_tinte_ok := sprite != null and sprite.modulate.is_equal_approx(Color.WHITE)
+	print("Sprite SIN tinte, color natural del spritesheet (esperado true): %s" % sin_tinte_ok)
 
 	var mordida: Node = _mob.get_node_or_null("Habilidades/HabilidadMordida")
 	var mordida_acida: Node = _mob.get_node_or_null("Habilidades/HabilidadMordidaAcida")
@@ -86,7 +88,7 @@ func _informar() -> bool:
 		and is_equal_approx(mordida_acida.get("factor_lentitud"), 0.8)
 	print("Mordida Ácida tiene daño+veneno+lentitud configurados (esperado true): %s" % mordida_acida_ok)
 
-	var exito := guion_ok and base_ok and datos_ok and vida_aplicada and tinte_ok \
+	var exito := guion_ok and base_ok and datos_ok and vida_aplicada and sin_tinte_ok \
 		and kit_nuevo_ok and sin_kit_viejo_ok and sin_huida_ok and mordida_datos_ok and mordida_acida_ok
 	print("PRUEBA HORMIGA OBRERA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
