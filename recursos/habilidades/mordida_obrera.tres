@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="DatosHabilidad" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://componentes/DatosHabilidad.gd" id="1_dh"]
+
+[resource]
+script = ExtResource("1_dh")
+nombre = "Mordida"
+dano_base_min = 6
+dano_base_max = 10
+tipo_dano = 2
+alcance_metros = 1
+radio_golpe = 40.0
+enfriamiento = 1.2

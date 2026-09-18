@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="ConjuntoDatos" load_steps=4 format=3]
+[gd_resource type="Resource" script_class="ConjuntoDatos" load_steps=8 format=3 uid="uid://bvxehkryjjaa6"]
 
 [ext_resource type="Script" path="res://recursos/items/ConjuntoDatos.gd" id="1_cd"]
 [ext_resource type="Script" path="res://recursos/items/TramoConjunto.gd" id="2_tc"]

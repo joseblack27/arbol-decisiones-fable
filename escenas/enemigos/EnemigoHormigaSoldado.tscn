@@ -1,4 +1,4 @@
-[gd_scene load_steps=102 format=3]
+[gd_scene load_steps=94 format=3]
 
 [ext_resource type="Resource" path="res://recursos/enemigos/HormigaSoldado.tres" id="0_datos"]
 [ext_resource type="Script" path="res://escenas/enemigos/EnemigoHormigaSoldado.gd" id="1_bvf6m"]
@@ -15,8 +15,6 @@
 [ext_resource type="Resource" path="res://recursos/items/equipables/accesorio_4.tres" id="8_u7a2k"]
 [ext_resource type="Script" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
 [ext_resource type="Texture2D" path="res://assets/lobo marron.png" id="10_2yvtj"]
-[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/Carga.tres" id="10_mjm62"]
-[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/ArañazoLoboFeroz.tres" id="11_l6bpy"]
 [ext_resource type="Script" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
@@ -26,23 +24,17 @@
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionIrAPunto.gd" id="25_xho1m"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/HabilidadArañazo.tscn" id="31_l6bpy"]
-[ext_resource type="Script" path="res://escenas/habilidades/proyectil/HabilidadProyectil.gd" id="31_vm1f8"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/MordidaHormiga.tres" id="29_rrvur"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/MordidaAcidaHormiga.tres" id="30_w6sm6"]
+[ext_resource type="Script" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.gd" id="33_c73yt"]
 [ext_resource type="Script" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
+[ext_resource type="Script" path="res://escenas/habilidades/mordida_acida/HabilidadMordidaAcida.gd" id="34_5ab3j"]
 [ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
-[ext_resource type="Script" path="res://escenas/habilidades/carga/HabilidadCarga.gd" id="36_v43m0"]
-[ext_resource type="Script" path="res://escenas/habilidades/arañazo/HabilidadArañazo.gd" id="39_oq16n"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/decoradores/Enfriamiento.gd" id="40_enfria"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/arañazo/Arañazo.tscn" id="40_xueep"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionHuir.gd" id="41_huir"]
+[ext_resource type="Resource" path="res://recursos/habilidades/mordida_soldado.tres" id="34_w6sm6"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
-[ext_resource type="Script" path="res://escenas/habilidades/parpadeo/HabilidadParpadeo.gd" id="43_dxj7e"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/parpadeo/HabilidadParpadeo.tscn" id="45_parpadeo"]
 [ext_resource type="Script" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
-[ext_resource type="Resource" path="res://recursos/habilidades/arañazo_lobo_feroz.tres" id="datos_arañazo_lobo_feroz"]
 [ext_resource type="Script" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
 [ext_resource type="Resource" path="res://recursos/items/equipables/escudo_tormenta.tres" id="esc_escudo_tormenta"]
 
@@ -1155,7 +1147,7 @@ radius = 200.30228
 [sub_resource type="CircleShape2D" id="CircleShape2D_ysyd8"]
 radius = 24.0
 
-[sub_resource type="Resource" id="Resource_g5dog"]
+[sub_resource type="Resource" id="Resource_c73yt"]
 resource_local_to_scene = true
 script = ExtResource("34_iuxaj")
 regeneracion_vida = 1.0
@@ -1294,47 +1286,13 @@ nombre_nodo = "(Condición) Llamada de auxilio activa"
 script = ExtResource("25_xho1m")
 nombre_nodo = "(Acción) Ir hacia la Reina"
 
-[node name="SecuenciaHuida" type="Node" parent="ArbolComportamiento/Selector"]
-script = ExtResource("15_od7qp")
-nombre_nodo = "(Secuencia) Huir si vida baja"
-metadata/_custom_type_script = "uid://ct4bjrtr7d8rn"
-
-[node name="CondVidaBaja" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
-script = ExtResource("16_er6sw")
-nombre_variable = "vida_baja"
-nombre_nodo = "(Condición) Vida baja"
-metadata/_custom_type_script = "uid://dn738h7elp7t4"
-
-[node name="CondJugadorDetectado" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
-script = ExtResource("16_er6sw")
-nombre_variable = "jugador_detectado"
-nombre_nodo = "(Condición) Jugador detectado"
-metadata/_custom_type_script = "uid://dn738h7elp7t4"
-
-[node name="CondSinCargaEnCurso" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
-script = ExtResource("16_er6sw")
-nombre_variable = "ataque_en_curso"
-tipo_comparacion = 1
-nombre_nodo = "(Condición) Sin carga en curso"
-metadata/_custom_type_script = "uid://dn738h7elp7t4"
-
-[node name="EnfriamientoHuida" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida"]
-script = ExtResource("40_enfria")
-tiempo_enfriamiento = 20.0
-solo_al_exitoso = true
-nombre_nodo = "(Enfriamiento) Cooldown de huida"
-
-[node name="Huir" type="Node" parent="ArbolComportamiento/Selector/SecuenciaHuida/EnfriamientoHuida"]
-script = ExtResource("41_huir")
-nombre_nodo = "(Acción) Huir"
-
 [node name="Atacar" type="Node" parent="ArbolComportamiento/Selector"]
 script = ExtResource("42_atacar")
 nombre_nodo = "(Acción) Atacar"
 
 [node name="SelectorHabilidades" type="Node" parent="ArbolComportamiento/Selector/Atacar"]
 script = ExtResource("7_3n3x0")
-habilidades = Array[ExtResource("8_72jeo")]([ExtResource("10_mjm62"), ExtResource("11_l6bpy")])
+habilidades = Array[ExtResource("8_72jeo")]([ExtResource("29_rrvur"), ExtResource("30_w6sm6")])
 nombre_nodo = "Habilidades"
 
 [node name="Perseguir" type="Node" parent="ArbolComportamiento/Selector"]
@@ -1348,35 +1306,20 @@ nombre_nodo = "(Acción) Deambular"
 
 [node name="Habilidades" type="Marker2D" parent="."]
 
-[node name="HabilidadCarga" type="Node" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
-script = ExtResource("36_v43m0")
-duracion_preparacion = 1.0
-dano_carga = 52.0
-multiplicador_velocidad_carga = 5.5
-distancia_maxima_dash = 200.0
-componente_movimiento = NodePath("../../MovimientoComponente")
-duracion_recarga = 20.0
-costo_energia = 40.0
-tipo_dano = 4
+[node name="HabilidadMordida" type="Node" parent="Habilidades"]
+script = ExtResource("33_c73yt")
+duracion_recarga = 1.2
+datos = ExtResource("34_w6sm6")
+congela_movimiento_en_red = false
 
-[node name="HabilidadProyectil" type="Node" parent="Habilidades"]
-script = ExtResource("31_vm1f8")
-metadata/_custom_type_script = "uid://cmvtumtuaysdj"
-
-[node name="HabilidadArañazo" type="Node" parent="Habilidades" instance=ExtResource("31_l6bpy")]
-script = ExtResource("39_oq16n")
-radio_golpe = 15.0
-escena_golpe = ExtResource("40_xueep")
-datos = ExtResource("datos_arañazo_lobo_feroz")
-
-[node name="HabilidadParpadeo" type="Node" parent="Habilidades" instance=ExtResource("45_parpadeo")]
-script = ExtResource("43_dxj7e")
-duracion_recarga = 4.0
-costo_energia = 15.0
-requiere_direccion = true
+[node name="HabilidadMordidaAcida" type="Node" parent="Habilidades"]
+script = ExtResource("34_5ab3j")
+"daño" = 10.0
+dano_por_tick = 4.0
+duracion_recarga = 5.0
 congela_movimiento_en_red = false
 
 [node name="AtributosComponente" type="Node" parent="."]
 script = ExtResource("33_d76rf")
-base = SubResource("Resource_g5dog")
+base = SubResource("Resource_c73yt")
 metadata/_custom_type_script = "uid://mgcsfgslagtk"

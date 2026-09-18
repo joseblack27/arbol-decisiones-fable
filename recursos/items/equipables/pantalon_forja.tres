@@ -1,18 +1,18 @@
-[gd_resource type="Resource" script_class="DatosItem" load_steps=6 format=3]
+[gd_resource type="Resource" script_class="DatosItem" load_steps=7 format=3 uid="uid://durw7rdq3ob0a"]
 
-[ext_resource type="Script" path="res://recursos/items/DatosItem.gd" id="1_scr"]
-[ext_resource type="Texture2D" path="res://assets/iconos/icons32x32.png" id="2_ico"]
+[ext_resource type="Script" uid="uid://j6y1rt5twmvl" path="res://recursos/items/DatosItem.gd" id="1_scr"]
+[ext_resource type="Texture2D" uid="uid://jy5qvrtxhjfg" path="res://assets/iconos/icons32x32.png" id="2_ico"]
 [ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="3_atr"]
-[ext_resource type="Resource" path="res://recursos/items/conjuntos/conjunto_forja.tres" id="4_conj"]
-
-[sub_resource type="AtlasTexture" id="AtlasTexture_icono"]
-atlas = ExtResource("2_ico")
-region = Rect2(192, 672, 32, 32)
+[ext_resource type="Resource" uid="uid://blsiwj6cmr35e" path="res://recursos/items/conjuntos/conjunto_forja.tres" id="4_conj"]
 
 [sub_resource type="Resource" id="AtributosBase_bonos"]
 script = ExtResource("3_atr")
 defensa = 3.0
 resistencia_fuego = 5.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_icono"]
+atlas = ExtResource("2_ico")
+region = Rect2(192, 672, 32, 32)
 
 [resource]
 script = ExtResource("1_scr")

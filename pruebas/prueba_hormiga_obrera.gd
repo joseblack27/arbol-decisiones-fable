@@ -1,8 +1,10 @@
 # =============================================================================
-# Prueba de EnemigoHormigaObrera: confirma que el reskin de EnemigoLobo quedó
-# bien armado -- stats propios (HormigaObrera.tres), sprite con tinte propio,
-# y el combo arañazo+carga intacto (mismo comportamiento que Lobo, ya
-# probado aparte -- acá solo se verifica que el reskin no rompió nada).
+# Prueba de EnemigoHormigaObrera tras el rediseño de habilidades (14 sep
+# 2026, pedido del usuario: "solo esas dos habilidades", sin escape):
+# stats propios (HormigaObrera.tres), extiende Enemigo DIRECTO (ya no
+# EnemigoLobo -- ese combo entero se reemplazó), kit de exactamente dos
+# habilidades (Mordida + Mordida Ácida, nada de Carga/Proyectil/Arañazo),
+# y sin rama de huida en el árbol.
 #
 # Sin tipo estático "EnemigoHormigaObrera" en ningún lado (ni siquiera para
 # la variable ni para un "is"): referenciar por tipo una clase recién creada
@@ -42,6 +44,13 @@ func _informar() -> bool:
 		and _mob.get_script().resource_path.ends_with("EnemigoHormigaObrera.gd")
 	print("Script propio EnemigoHormigaObrera.gd (esperado true): %s" % guion_ok)
 
+	# extends Enemigo directo, no EnemigoLobo -- get_base_script() sube un
+	# nivel en la cadena de herencia del propio script (no confundir con
+	# get_script(), que da el de la instancia).
+	var base_ok: bool = _mob.get_script().get_base_script() != null \
+		and _mob.get_script().get_base_script().resource_path.ends_with("Enemigo.gd")
+	print("Extiende Enemigo directo, no EnemigoLobo (esperado true): %s" % base_ok)
+
 	var datos_ok: bool = _mob.datos != null and _mob.datos.nombre_tipo == "Hormiga Obrera" \
 		and _mob.datos.vida_maxima == 70.0
 	print("EnemigoDatos propio (esperado true, 'Hormiga Obrera'/70 vida): %s" % datos_ok)
@@ -52,15 +61,33 @@ func _informar() -> bool:
 
 	var sprite := _mob.get_node_or_null("Sprite2D") as Sprite2D
 	var tinte_ok := sprite != null and not sprite.modulate.is_equal_approx(Color.WHITE)
-	print("Sprite con tinte propio, distinto del Lobo sin tintar (esperado true): %s" % tinte_ok)
+	print("Sprite con tinte propio (esperado true): %s" % tinte_ok)
 
-	var arañazo: Node = _mob.get_node_or_null("Habilidades/HabilidadArañazo")
-	var carga: Node = _mob.get_node_or_null("Habilidades/HabilidadCarga")
-	var kit_ok: bool = arañazo != null and arañazo.get_script() != null \
-		and carga != null and carga.get_script() != null
-	print("Conserva Arañazo + Carga del Lobo, con su script real (esperado true): %s" % kit_ok)
+	var mordida: Node = _mob.get_node_or_null("Habilidades/HabilidadMordida")
+	var mordida_acida: Node = _mob.get_node_or_null("Habilidades/HabilidadMordidaAcida")
+	var kit_nuevo_ok: bool = mordida != null and mordida.get_script() != null \
+		and mordida_acida != null and mordida_acida.get_script() != null
+	print("Tiene Mordida + Mordida Ácida, con su script real (esperado true): %s" % kit_nuevo_ok)
 
-	var exito := guion_ok and datos_ok and vida_aplicada and tinte_ok and kit_ok
+	var sin_kit_viejo_ok: bool = _mob.get_node_or_null("Habilidades/HabilidadArañazo") == null \
+		and _mob.get_node_or_null("Habilidades/HabilidadCarga") == null \
+		and _mob.get_node_or_null("Habilidades/HabilidadProyectil") == null
+	print("Sin Arañazo/Carga/Proyectil del Lobo (esperado true): %s" % sin_kit_viejo_ok)
+
+	var sin_huida_ok: bool = _mob.get_node_or_null("ArbolComportamiento/Selector/SecuenciaHuida") == null
+	print("Sin rama de huida en el árbol (esperado true): %s" % sin_huida_ok)
+
+	var mordida_datos_ok: bool = mordida.datos != null \
+		and mordida.datos.dano_base_min == 6 and mordida.datos.dano_base_max == 10
+	print("Mordida tiene daño real configurado (esperado true, 6-10): %s" % mordida_datos_ok)
+
+	var mordida_acida_ok: bool = is_equal_approx(mordida_acida.get("daño"), 6.0) \
+		and is_equal_approx(mordida_acida.get("dano_por_tick"), 2.0) \
+		and is_equal_approx(mordida_acida.get("factor_lentitud"), 0.8)
+	print("Mordida Ácida tiene daño+veneno+lentitud configurados (esperado true): %s" % mordida_acida_ok)
+
+	var exito := guion_ok and base_ok and datos_ok and vida_aplicada and tinte_ok \
+		and kit_nuevo_ok and sin_kit_viejo_ok and sin_huida_ok and mordida_datos_ok and mordida_acida_ok
 	print("PRUEBA HORMIGA OBRERA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

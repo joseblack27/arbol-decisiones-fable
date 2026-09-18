@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/habilidades/mordida_acida/MordidaAcida.gd" id="1_ma01"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ma01"]
+radius = 40.0
+
+[node name="MordidaAcida" type="Area2D"]
+monitoring = false
+script = ExtResource("1_ma01")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_ma01")

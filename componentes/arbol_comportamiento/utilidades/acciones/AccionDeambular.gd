@@ -39,6 +39,13 @@ extends Accion
 ## golpe, se ve más como "fue a fijarse para ese lado".
 @export var dispersion_ruido_grados: float = 35.0
 
+## Cuántos puntos al azar se prueban antes de rendirse y quedarse en el
+## origen (mismo criterio que SpawnerMobs._punto_de_generacion_valido).
+const _INTENTOS_MAXIMOS := 8
+## Distancia (px) máxima entre un candidato y el punto navegable más
+## cercano para considerarlo "sobre" la malla.
+const _TOLERANCIA_NAVEGACION := 6.0
+
 var _destino: Vector2 = Vector2.ZERO
 var _tiene_destino: bool = false
 var _fin_espera: float = 0.0
@@ -79,17 +86,24 @@ func _on_ejecutar() -> Estado:
 		return Estado.EXITOSO
 
 	if not _tiene_destino:
-		_elegir_destino()
+		_elegir_destino(agente)
 
-	# ¿Llegó al destino? → programar espera y soltar el destino.
-	if agente.global_position.distance_to(_destino) <= radio_llegada:
+	# Comandar ANTES de preguntar "llegó" -- llego_al_destino() lee el
+	# estado interno que deja el ÚLTIMO comandar_destino(), así que tiene
+	# que estar fresco para ESTE _destino en el mismo tick en que se eligió.
+	movimiento.comandar_destino(_destino, velocidad)
+
+	# llego_al_destino() (no una distancia cruda): además del margen normal,
+	# se rinde sola si el destino cayó fuera de lo navegable Y quedó
+	# atascada intentando llegar (ver MovimientoComponente._TIEMPO_MAXIMO_
+	# INTENTANDO_LLEGAR) — red de seguridad extra sobre la validación de
+	# _elegir_destino(), por si algo deja igual un punto inalcanzable.
+	if movimiento.llego_al_destino(radio_llegada):
 		_tiene_destino = false
 		_fin_espera = ahora + espera_en_destino
 		movimiento.detener()
 		return Estado.EXITOSO
 
-	# Con NavigationAgent2D asignado, rodea obstáculos; sin él, línea recta.
-	movimiento.comandar_destino(_destino, velocidad)
 	return Estado.EXITOSO
 
 
@@ -106,16 +120,57 @@ func _on_reiniciar() -> void:
 ## acotado al radio_deambulacion normal, nunca más lejos que cualquier otro
 ## paseo. Se consume una sola vez: el siguiente destino después de este
 ## vuelve a ser al azar, salvo que llegue otro golpe.
-func _elegir_destino() -> void:
+##
+## Cada candidato se valida contra la malla de Navegacion real (mismo
+## criterio que SpawnerMobs._punto_de_generacion_valido) antes de aceptarlo
+## -- en un campo abierto (Pradera, Camino) casi cualquier punto en el
+## radio es válido y esto no cambia nada, pero en topología de túneles
+## angostos (Hormiguero, Mina) un radio_deambulacion normal puede caer
+## fácil FUERA de la malla (dentro de una pared). Sin esta validación, el
+## mob quedaba comandado para siempre hacia un punto inalcanzable —
+## reportado como "las hormigas siempre tratan de volver a un mismo sitio
+## que está fuera del mapa" (el propio destino nunca cambiaba porque la
+## condición de "llegué" original nunca se cumplía contra un punto así).
+func _elegir_destino(agente: Node2D) -> void:
 	var origen: Vector2 = _memoria.obtener("posicion_origen", Vector2.ZERO)
-	var angulo: float
+	var punto_ruido: Variant = null
 	if _memoria.existe("ruido_posicion"):
-		var punto_ruido: Vector2 = _memoria.obtener("ruido_posicion")
+		punto_ruido = _memoria.obtener("ruido_posicion")
 		_memoria.eliminar("ruido_posicion")
-		var dispersion := deg_to_rad(dispersion_ruido_grados)
-		angulo = origen.direction_to(punto_ruido).angle() + randf_range(-dispersion, dispersion)
-	else:
-		angulo = randf_range(0.0, TAU)
-	var distancia := randf_range(radio_deambulacion * 0.3, radio_deambulacion)
-	_destino = origen + Vector2.from_angle(angulo) * distancia
+
+	var mapa := GestorNiveles.mapa_navegacion_de(agente)
+	# Mientras el mapa no "responde" de verdad (recién creado el nivel,
+	# antes de que termine su primera sincronización real -- ver Utils.
+	# esperar_malla_de_nivel_lista/_malla_de_nivel_responde, mismo criterio
+	# que ya usa SpawnerMobs antes de generar), map_get_closest_point()
+	# devuelve (0,0) SIN IMPORTAR el punto consultado. Confiar en eso sin
+	# este chequeo colaba (0,0) como "el punto navegable más cercano" y
+	# cualquier candidato normal se leía como a miles de píxeles de la
+	# malla, invalidando destinos que en realidad eran perfectamente
+	# válidos apenas el mapa terminara de sincronizar.
+	var hay_malla := mapa.is_valid() and not NavigationServer2D.map_get_regions(mapa).is_empty() \
+		and Utils._malla_de_nivel_responde(mapa)
+
+	for _intento in _INTENTOS_MAXIMOS:
+		var angulo: float
+		if punto_ruido != null:
+			var dispersion := deg_to_rad(dispersion_ruido_grados)
+			angulo = origen.direction_to(punto_ruido).angle() + randf_range(-dispersion, dispersion)
+		else:
+			angulo = randf_range(0.0, TAU)
+		var distancia := randf_range(radio_deambulacion * 0.3, radio_deambulacion)
+		var candidato := origen + Vector2.from_angle(angulo) * distancia
+		if not hay_malla:
+			_destino = candidato
+			_tiene_destino = true
+			return
+		var mas_cercano: Vector2 = NavigationServer2D.map_get_closest_point(mapa, candidato)
+		if candidato.distance_to(mas_cercano) <= _TOLERANCIA_NAVEGACION:
+			_destino = candidato
+			_tiene_destino = true
+			return
+
+	# Nada válido tras varios intentos: quedarse cerca del origen -- ya
+	# demostró ser navegable (el propio mob está parado ahí).
+	_destino = origen
 	_tiene_destino = true

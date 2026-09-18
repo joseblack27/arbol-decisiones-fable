@@ -67,7 +67,7 @@ func _montar() -> void:
 func _informar() -> bool:
 	# --- Caso 1: con ruido, bien lejos hacia el ESTE ---
 	_mob.memoria.establecer("ruido_posicion", Vector2(1000, 0))
-	_deambular.call("_elegir_destino")
+	_deambular.call("_elegir_destino", _mob)
 	var destino_1: Vector2 = _deambular.get("_destino")
 
 	var angulo_grados := rad_to_deg(absf(destino_1.angle()))
@@ -85,7 +85,7 @@ func _informar() -> bool:
 
 	# --- Caso 2: sin ruido (ya consumido), el ángulo es libre pero la
 	# distancia sigue acotada igual ---
-	_deambular.call("_elegir_destino")
+	_deambular.call("_elegir_destino", _mob)
 	var destino_2: Vector2 = _deambular.get("_destino")
 	var distancia_2 := destino_2.length()
 	var sigue_acotado_sin_ruido := distancia_2 >= RADIO * 0.3 - 0.01 and distancia_2 <= RADIO + 0.01
