@@ -63,12 +63,29 @@ const DEBOUNCE_EVENTO_SEGUNDOS := 2.0
 ## Entre volcadas, lo recibido vive en memoria — el papel del "Redis": la
 ## desconexión de un peer fuerza SU volcada inmediata (ver volcar_peer).
 const FLUSH_BD_SEGUNDOS := 60.0
+## Tope de espera por la respuesta de cargar_partida() antes de asumir que
+## la cuenta es nueva (sin partida guardada) y destrabar el guardado — ver
+## _esperando_carga_inicial. Bien por encima de DEBOUNCE_EVENTO_SEGUNDOS,
+## que es justo lo que esto protege.
+const ESPERA_CARGA_INICIAL_SEGUNDOS := 6.0
 
 signal partida_guardada
 signal partida_cargada
 
 var _acumulador_autoguardado := 0.0
 var _guardado_evento_pendiente := false
+## Cliente puro en red: true mientras se espera la respuesta del servidor a
+## cargar_partida() (o se cumple el timeout de arriba y se asume cuenta
+## nueva). Bloquea CUALQUIER guardar_partida() mientras tanto: al conectar,
+## Mundo._esperar_jugador_propio() equipa el golpe_basico por defecto ANTES
+## de pedir la partida real, y ese equipar() dispara el guardado por evento
+## (2s de antirrebote, ver _guardar_por_evento) sin saber todavía si hay una
+## partida real por aplicar. Si esa carrera la ganaba el antirrebote (red
+## lenta, servidor ocupado), pisaba el progreso real en el servidor con un
+## personaje recién creado — bug real reportado el 18 sep 2026 ("se me
+## borró el pj": la fila en SQLite seguía viva, con la cuenta de 4 días
+## antes, pero datos_json era el de un personaje sin estrenar).
+var _esperando_carga_inicial := false
 ## SERVIDOR: snapshot más reciente de cada jugador que aún no tocó SQLite.
 ## id_unico -> {"nombre": String, "texto": String (JSON)}.
 var _snapshots_pendientes: Dictionary = {}
@@ -187,8 +204,12 @@ func guardar_partida() -> void:
 	}
 
 	# En red (cliente puro) el archivo vive en el SERVIDOR — mandarle el
-	# JSON allá en vez de escribir localmente.
+	# JSON allá en vez de escribir localmente. Mientras se espera la carga
+	# inicial (ver _esperando_carga_inicial), este "datos" todavía no
+	# refleja la partida real recién pedida — descartar en vez de pisarla.
 	if Utils.en_red() and not multiplayer.is_server():
+		if _esperando_carga_inicial:
+			return
 		rpc_id(1, "_guardar_partida_red", JSON.stringify(datos))
 		partida_guardada.emit()
 		return
@@ -204,9 +225,16 @@ func guardar_partida() -> void:
 
 func cargar_partida() -> void:
 	# En red (cliente puro): la partida está en el servidor — pedirla y
-	# seguir en _recibir_partida_red cuando llegue.
+	# seguir en _recibir_partida_red cuando llegue. Bloquear cualquier
+	# guardado hasta entonces (ver _esperando_carga_inicial); si no hay
+	# respuesta en ESPERA_CARGA_INICIAL_SEGUNDOS, asumimos cuenta nueva sin
+	# partida guardada y se destraba solo.
 	if Utils.en_red() and not multiplayer.is_server():
+		_esperando_carga_inicial = true
 		rpc_id(1, "_pedir_partida_red")
+		get_tree().create_timer(ESPERA_CARGA_INICIAL_SEGUNDOS).timeout.connect(func():
+			_esperando_carga_inicial = false
+		)
 		return
 
 	if not existe_partida():
@@ -775,6 +803,7 @@ func _restaurar_estado_autoritativo(jugador: Node2D, texto: String) -> void:
 ## pidiéndole la mudanza al servidor (ver más abajo).
 @rpc("authority", "reliable")
 func _recibir_partida_red(texto: String) -> void:
+	_esperando_carga_inicial = false
 	var resultado: Variant = JSON.parse_string(texto)
 	if typeof(resultado) != TYPE_DICTIONARY:
 		push_error("GestorGuardado: la partida recibida del servidor está corrupta.")
