@@ -75,18 +75,16 @@ var mostrar_depuracion := false
 
 ## Volumen de los efectos de sonido (0.0-1.0), controlado desde el slider
 ## "Volumen SFX" de PanelConfiguracion — ver GestorSonido.aplicar_volumen(),
-## que es quien de verdad lo vuelca al AudioServer. 0.8 de arranque (no al
-## máximo): el primer sonido que tiene el juego (loot_pickup.wav) ya viene
-## grabado bajito a propósito, esto es la segunda vuelta de tuerca, no la
-## única.
-var volumen_sfx := 0.8
+## que es quien de verdad lo vuelca al AudioServer. 10% de arranque (pedido
+## del usuario, 18 sep 2026).
+var volumen_sfx := 0.1
 
 ## Volumen de la música de fondo (0.0-1.0), controlado desde el slider
 ## "Volumen Música" de PanelConfiguracion — separado de volumen_sfx a
 ## propósito (pedido del usuario), ver GestorMusica.aplicar_volumen(), que es
-## quien de verdad lo vuelca al AudioServer (bus "Music", no "SFX"). Más bajo
-## que volumen_sfx de arranque: es de fondo, no debe tapar los efectos.
-var volumen_musica := 0.6
+## quien de verdad lo vuelca al AudioServer (bus "Music", no "SFX"). 10% de
+## arranque (pedido del usuario, 18 sep 2026).
+var volumen_musica := 0.1
 
 ## SOLO para pruebas headless (prueba_niveles, prueba_muerte_jugador...): el
 ## juego real es multijugador puro — Mundo reintenta conectarse para siempre
