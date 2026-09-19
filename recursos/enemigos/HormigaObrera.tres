@@ -1,13 +1,10 @@
-[gd_resource type="Resource" script_class="EnemigoDatos" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="EnemigoDatos" load_steps=2 format=3 uid="uid://cftb0kyb213q7"]
 
-[ext_resource type="Script" path="res://recursos/enemigos/EnemigoDatos.gd" id="1_ed"]
+[ext_resource type="Script" uid="uid://cf0ay13lmqkho" path="res://recursos/enemigos/EnemigoDatos.gd" id="1_ed"]
 
 [resource]
 script = ExtResource("1_ed")
 nombre_tipo = "Hormiga Obrera"
-color = Color(1, 1, 1, 1)
-nivel = 1
 vida_maxima = 70.0
 velocidad_base = 90.0
 energia_maxima = 100.0
-regeneracion_energia = 10.0

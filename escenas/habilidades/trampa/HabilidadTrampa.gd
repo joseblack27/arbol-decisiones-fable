@@ -20,11 +20,14 @@ var alcance_maximo: float = 150.0
 @export var dano_trampa: float     = 45.0
 @export var duracion_maxima: float = 20.0
 
-## La trampa vigente de ESTE peer — la copia REAL (con detección) en el
-## servidor, o la copia solo-visual en cualquier cliente (ver
-## _mostrar_trampa_red). Se usa para aplicarle activar_visual() cuando
-## llega el aviso de activación (_activar_trampa_visual_red).
-var _trampa_actual: Trampa = null
+## TODAS las trampas vigentes de ESTE peer que todavía no explotaron — la
+## copia REAL (con detección) en el servidor, o la copia solo-visual en
+## cualquier cliente (ver _mostrar_trampa_red). Mismo bug real ya
+## encontrado y arreglado en HabilidadCepo.gd (ver ese comentario): con una
+## sola referencia, colocar una segunda trampa mientras la primera seguía
+## viva pisaba la referencia, y _activar_trampa_visual_red() (sin forma de
+## saber CUÁL activó el servidor) siempre actuaba sobre la última colocada.
+var _trampas_activas: Array[Trampa] = []
 
 
 func _ready() -> void:
@@ -72,7 +75,8 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 		tipo_dano,
 		self if Utils.en_red() else null,
 	)
-	_trampa_actual = trampa
+	_limpiar_trampas_vencidas()
+	_trampas_activas.append(trampa)
 
 	if Utils.en_red() and multiplayer.is_server():
 		for peer_id in InteresEspacial.peers_cercanos(posicion):
@@ -81,12 +85,14 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 
 ## Llamado por la copia REAL de la trampa (Trampa._activar) cuando explota
 ## de verdad — le avisa a los peers cercanos para que sus copias
-## solo-visuales reproduzcan el mismo cambio.
+## solo-visuales reproduzcan el mismo cambio. Manda la posición para que
+## _activar_trampa_visual_red() pueda identificar CUÁL trampa es (ver
+## _trampas_activas).
 func avisar_trampa_activada(posicion: Vector2) -> void:
 	if not (Utils.en_red() and multiplayer.is_server()):
 		return
 	for peer_id in InteresEspacial.peers_cercanos(posicion):
-		rpc_id(peer_id, "_activar_trampa_visual_red")
+		rpc_id(peer_id, "_activar_trampa_visual_red", posicion)
 
 
 ## El servidor decidió la posición real — acá se crea la copia SOLO visual
@@ -96,12 +102,27 @@ func _mostrar_trampa_red(posicion: Vector2) -> void:
 	var trampa := GestorPiscinas.obtener(escena_trampa) as Trampa
 	trampa.global_position = posicion
 	trampa.mostrar_solo_visual(duracion_maxima, entidad_dueña)
-	_trampa_actual = trampa
+	_limpiar_trampas_vencidas()
+	_trampas_activas.append(trampa)
 
 
-## El servidor avisa que la trampa real ya explotó — refleja el mismo
-## cambio en la copia visual de este cliente.
+## El servidor avisa que LA TRAMPA EN "posicion" ya explotó de verdad —
+## refleja el mismo cambio en la copia visual de este cliente que está en
+## esa posición (nunca "la última colocada": con 2+ trampas vivas a la vez
+## eso activaba la equivocada, ver el comentario de _trampas_activas).
 @rpc("authority", "reliable")
-func _activar_trampa_visual_red() -> void:
-	if is_instance_valid(_trampa_actual):
-		_trampa_actual.activar_visual()
+func _activar_trampa_visual_red(posicion: Vector2) -> void:
+	for trampa in _trampas_activas:
+		if is_instance_valid(trampa) and trampa.global_position.is_equal_approx(posicion):
+			trampa.activar_visual()
+			_trampas_activas.erase(trampa)
+			return
+
+
+## GestorPiscinas recicla instancias (ver ese archivo): una trampa que se
+## apagó sola (nadie la pisó) vuelve a la piscina y puede reaparecer más
+## tarde reasignada a una colocación NUEVA — sin sacarla de acá, esta lista
+## crecería para siempre con referencias obsoletas.
+func _limpiar_trampas_vencidas() -> void:
+	_trampas_activas = _trampas_activas.filter(
+		func(t): return is_instance_valid(t) and t._configurada)

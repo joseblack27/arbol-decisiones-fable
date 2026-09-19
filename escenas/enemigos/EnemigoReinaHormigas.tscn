@@ -1,44 +1,43 @@
-[gd_scene load_steps=81 format=3]
+[gd_scene load_steps=80 format=3 uid="uid://clcuccwg0ayap"]
 
 [ext_resource type="Resource" path="res://recursos/enemigos/ReinaHormigas.tres" id="0_datos"]
-[ext_resource type="Script" path="res://escenas/enemigos/EnemigoReinaHormigas.gd" id="1_bvf6m"]
+[ext_resource type="Script" uid="uid://b8umfh7futkwc" path="res://escenas/enemigos/EnemigoReinaHormigas.gd" id="1_bvf6m"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EscupitajoAcidoReina.tres" id="2_v03w4"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/LlamadaAuxilioReina.tres" id="3_4lglx"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/MarcaColoniaReina.tres" id="3_ts6f8"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EmbestidaReina.tres" id="4_4l60a"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/PuestaHuevosReina.tres" id="5_y41it"]
-[ext_resource type="Script" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
-[ext_resource type="Script" path="res://componentes/VisionComponente.gd" id="7_ng816"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
-[ext_resource type="Script" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
-[ext_resource type="Texture2D" path="res://assets/sprites/hormigas_spritesheet_unificado_64x64.png" id="11_ek85w"]
-[ext_resource type="Script" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="14_4qigy"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="15_od7qp"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
+[ext_resource type="Script" uid="uid://bjyr6iyvtuirj" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
+[ext_resource type="Script" uid="uid://c1ittyf7irbx4" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
+[ext_resource type="Script" uid="uid://csdcdhvb4bk66" path="res://componentes/VisionComponente.gd" id="7_ng816"]
+[ext_resource type="Script" uid="uid://fr6tavpigufc" path="res://componentes/arbol_comportamiento/recursos/HabilidadBT.gd" id="8_72jeo"]
+[ext_resource type="Script" uid="uid://bleljlysbo3tm" path="res://componentes/VidaComponente.gd" id="9_2yvtj"]
+[ext_resource type="Texture2D" uid="uid://bq3v45as002w0" path="res://assets/sprites/hormigas_spritesheet_unificado_64x64.png" id="11_ek85w"]
+[ext_resource type="Script" uid="uid://ctqky18aqgp5b" path="res://componentes/AnimacionComponente.gd" id="11_ysyd8"]
+[ext_resource type="Script" uid="uid://csnk67rvkjlua" path="res://componentes/arbol_comportamiento/ArbolComportamiento.gd" id="12_psl2x"]
+[ext_resource type="Script" uid="uid://c15th4ucm31ke" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="13_4qigy"]
+[ext_resource type="Script" uid="uid://d4koe822cisq2" path="res://componentes/arbol_comportamiento/composites/Selector.gd" id="14_4qigy"]
+[ext_resource type="Script" uid="uid://ct4bjrtr7d8rn" path="res://componentes/arbol_comportamiento/composites/Secuencia.gd" id="15_od7qp"]
+[ext_resource type="Script" uid="uid://dn738h7elp7t4" path="res://componentes/arbol_comportamiento/utilidades/condiciones/CondicionMemoria.gd" id="16_er6sw"]
+[ext_resource type="Script" uid="uid://ca1qx7dmkknyn" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/MordidaReina.tres" id="24_4s60b"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionIrAPunto.gd" id="25_xho1m"]
+[ext_resource type="Script" uid="uid://jbmmh0jqpvw5" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionIrAPunto.gd" id="25_xho1m"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/PisotonReina.tres" id="26_grd22"]
-[ext_resource type="PackedScene" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
-[ext_resource type="Script" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.gd" id="29_w4a8s"]
-[ext_resource type="Script" path="res://escenas/habilidades/area_efecto/HabilidadAreaEfecto.gd" id="30_ts6f8"]
-[ext_resource type="Script" path="res://escenas/habilidades/llamada_auxilio/HabilidadLlamadaAuxilio.gd" id="31_y41it"]
-[ext_resource type="Script" path="res://escenas/habilidades/golpe_verdadero_guardian/HabilidadGolpeVerdaderoGuardian.gd" id="32_grd22"]
-[ext_resource type="Script" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
-[ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
-[ext_resource type="Script" path="res://escenas/habilidades/pisoton_reina/HabilidadPisotonReina.gd" id="35_1bgwi"]
-[ext_resource type="Script" path="res://escenas/habilidades/carga/HabilidadCarga.gd" id="36_v43m0"]
-[ext_resource type="Script" path="res://escenas/habilidades/marca_colonia/HabilidadMarcaColonia.gd" id="36_w64gl"]
-[ext_resource type="Script" path="res://escenas/habilidades/puesta_huevos/HabilidadPuestaHuevos.gd" id="37_h3lw7"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
-[ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
-[ext_resource type="Script" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
-[ext_resource type="Script" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
+[ext_resource type="PackedScene" uid="uid://cwna41dn0homy" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
+[ext_resource type="Script" uid="uid://b2ovjothqitm6" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.gd" id="29_w4a8s"]
+[ext_resource type="Script" uid="uid://d3ssdljuiwncg" path="res://escenas/habilidades/area_efecto/HabilidadAreaEfecto.gd" id="30_ts6f8"]
+[ext_resource type="Script" uid="uid://bi1wmhqok5maj" path="res://escenas/habilidades/llamada_auxilio/HabilidadLlamadaAuxilio.gd" id="31_y41it"]
+[ext_resource type="Script" uid="uid://co1u3b8jcpcxj" path="res://escenas/habilidades/golpe_verdadero_guardian/HabilidadGolpeVerdaderoGuardian.gd" id="32_grd22"]
+[ext_resource type="Script" uid="uid://mgcsfgslagtk" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
+[ext_resource type="Script" uid="uid://ddhq5qxvccml7" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
+[ext_resource type="Script" uid="uid://cks3hoyjllv8e" path="res://escenas/habilidades/pisoton_reina/HabilidadPisotonReina.gd" id="35_1bgwi"]
+[ext_resource type="Script" uid="uid://brq3wwparuk1r" path="res://escenas/habilidades/marca_colonia/HabilidadMarcaColonia.gd" id="36_w64gl"]
+[ext_resource type="Script" uid="uid://cmr66x0k5elt5" path="res://escenas/habilidades/puesta_huevos/HabilidadPuestaHuevos.gd" id="37_h3lw7"]
+[ext_resource type="Script" uid="uid://ciue531f0cthr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
+[ext_resource type="Script" uid="uid://jfyi5sfinmmr" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
+[ext_resource type="Script" uid="uid://gsaj1e2m2vba" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
+[ext_resource type="Script" uid="uid://cxy5c3f0fybiq" path="res://componentes/BarraVidaEnergiaComponente.gd" id="barra_vida_energia"]
+[ext_resource type="Script" uid="uid://ce5tqrjrcv2bu" path="res://componentes/EnergiaComponente.gd" id="ec_enemigo"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_bvf6m"]
 radius = 34.0
@@ -505,6 +504,7 @@ libraries = {
 }
 
 [node name="AnimationTree" type="AnimationTree" parent="AnimacionComponente"]
+active = false
 root_node = NodePath("../..")
 tree_root = SubResource("AnimationNodeStateMachine_ysyd8")
 anim_player = NodePath("../AnimationPlayer")
@@ -552,7 +552,7 @@ texture = ExtResource("11_ek85w")
 hframes = 4
 vframes = 3
 region_enabled = true
-region_rect = Rect2(0, 0, 256, 192)
+region_rect = Rect2(0, 192, 256, 192)
 
 [node name="BarraVidaEnergia" type="Node2D" parent="."]
 position = Vector2(0, -50)
@@ -614,8 +614,7 @@ nombre_nodo = "(Acción) Deambular"
 
 [node name="Habilidades" type="Marker2D" parent="."]
 
-[node name="HabilidadEmbestidaReina" type="Node" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
-script = ExtResource("36_v43m0")
+[node name="HabilidadEmbestidaReina" parent="Habilidades" node_paths=PackedStringArray("componente_movimiento") instance=ExtResource("27_8xbao")]
 duracion_preparacion = 0.7
 dano_carga = 55.0
 multiplicador_velocidad_carga = 5.0
@@ -674,10 +673,10 @@ offset_left = -104.0
 offset_top = -134.0
 offset_right = 104.0
 offset_bottom = -115.0
-theme_override_font_sizes/font_size = 8
 theme_override_colors/font_color = Color(0.9, 0.55, 0.5, 0.95)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
 theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 8
 text = "Nv.15 Reina de las Hormigas"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -688,10 +687,10 @@ offset_left = -104.0
 offset_top = -160.0
 offset_right = 104.0
 offset_bottom = -135.0
-theme_override_font_sizes/font_size = 16
 theme_override_colors/font_color = Color(1, 0.4, 0.35, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
 theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 16
 text = "Habilidad"
 horizontal_alignment = 1
 vertical_alignment = 1

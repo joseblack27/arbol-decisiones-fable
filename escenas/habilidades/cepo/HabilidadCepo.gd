@@ -29,11 +29,17 @@ var alcance_maximo: float = 150.0
 ## que en el botón — mismo criterio que HabilidadSacudida._icono_debuff.
 var _icono_debuff: Texture2D = null
 
-## El cepo vigente de ESTE peer — la copia REAL (con detección) en el
-## servidor, o la copia solo-visual en cualquier cliente (ver
-## _mostrar_cepo_red). Se usa para aplicarle activar_visual() cuando llega
-## el aviso de activación (_activar_cepo_visual_red).
-var _cepo_actual: Cepo = null
+## TODOS los cepos vigentes de ESTE peer que todavía no se activaron — la
+## copia REAL (con detección) en el servidor, o la copia solo-visual en
+## cualquier cliente (ver _mostrar_cepo_red). Antes era una sola referencia
+## (_cepo_actual): con DOS cepos vivos a la vez, colocar el segundo la
+## pisaba, así que _activar_cepo_visual_red() (sin ninguna forma de saber
+## CUÁL de los dos activó el servidor) siempre terminaba actuando sobre el
+## último colocado — el otro se quedaba mostrando "puesto" para siempre en
+## los clientes hasta que se le acababa el tiempo solo, aunque su copia
+## real ya se hubiera activado. Reportado por el usuario: "coloco 2 cepos,
+## uno encima del otro, el enemigo los pisa y solo se cierra el primero".
+var _cepos_activos: Array[Cepo] = []
 
 
 func _ready() -> void:
@@ -98,7 +104,8 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 		_icono_debuff,
 		self if Utils.en_red() else null,
 	)
-	_cepo_actual = cepo
+	_limpiar_cepos_vencidos()
+	_cepos_activos.append(cepo)
 
 	if Utils.en_red() and multiplayer.is_server():
 		for peer_id in InteresEspacial.peers_cercanos(posicion):
@@ -108,12 +115,13 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 ## Llamado por la copia REAL del cepo (Cepo._on_body_entrada) cuando se
 ## activa de verdad — le avisa a los peers cercanos para que sus copias
 ## solo-visuales reproduzcan el mismo cambio, en vez de decidirlo cada una
-## por su cuenta.
+## por su cuenta. Manda la posición para que _activar_cepo_visual_red()
+## pueda identificar CUÁL de los cepos vigentes es (ver _cepos_activos).
 func avisar_cepo_activado(posicion: Vector2) -> void:
 	if not (Utils.en_red() and multiplayer.is_server()):
 		return
 	for peer_id in InteresEspacial.peers_cercanos(posicion):
-		rpc_id(peer_id, "_activar_cepo_visual_red")
+		rpc_id(peer_id, "_activar_cepo_visual_red", posicion)
 
 
 ## El servidor decidió la posición real — acá se crea la copia SOLO visual
@@ -123,12 +131,28 @@ func _mostrar_cepo_red(posicion: Vector2) -> void:
 	var cepo := GestorPiscinas.obtener(escena_cepo) as Cepo
 	cepo.global_position = posicion
 	cepo.mostrar_solo_visual(duracion_maxima, entidad_dueña)
-	_cepo_actual = cepo
+	_limpiar_cepos_vencidos()
+	_cepos_activos.append(cepo)
 
 
-## El servidor avisa que el cepo real ya se activó — refleja el mismo
-## cambio en la copia visual de este cliente.
+## El servidor avisa que EL CEPO EN "posicion" ya se activó de verdad —
+## refleja el mismo cambio en la copia visual de este cliente que está en
+## esa posición (nunca "la última colocada": con 2+ cepos vivos a la vez
+## eso activaba el equivocado, ver el comentario de _cepos_activos).
 @rpc("authority", "reliable")
-func _activar_cepo_visual_red() -> void:
-	if is_instance_valid(_cepo_actual):
-		_cepo_actual.activar_visual()
+func _activar_cepo_visual_red(posicion: Vector2) -> void:
+	for cepo in _cepos_activos:
+		if is_instance_valid(cepo) and cepo.global_position.is_equal_approx(posicion):
+			cepo.activar_visual()
+			_cepos_activos.erase(cepo)
+			return
+
+
+## GestorPiscinas recicla instancias (ver ese archivo): un cepo que se
+## apagó solo (nadie lo pisó, ver Cepo._process()) vuelve a la piscina y
+## puede reaparecer más tarde reasignado a una colocación NUEVA — sin
+## sacarlo de acá, esta lista crecería para siempre con referencias
+## obsoletas, y un cepo reciclado podría terminar dos veces en la lista.
+func _limpiar_cepos_vencidos() -> void:
+	_cepos_activos = _cepos_activos.filter(
+		func(c): return is_instance_valid(c) and c._configurada)
