@@ -443,7 +443,7 @@ states/MORDIDA_PREPARACION/node = SubResource("AnimationNodeBlendSpace2D_ywip5")
 states/MORDIDA_PREPARACION/position = Vector2(599, 577.765)
 states/Start/position = Vector2(214, 100)
 transitions = ["IDLE", "CAMINAR", SubResource("AnimationNodeStateMachineTransition_dhcpq"), "CAMINAR", "IDLE", SubResource("AnimationNodeStateMachineTransition_3n3x0"), "Start", "IDLE", SubResource("AnimationNodeStateMachineTransition_ysyd8"), "IDLE", "MORDIDA_PREPARACION", SubResource("AnimationNodeStateMachineTransition_42jf1"), "MORDIDA_PREPARACION", "MORDIDA_DASH", SubResource("AnimationNodeStateMachineTransition_c06r7"), "MORDIDA_DASH", "IDLE", SubResource("AnimationNodeStateMachineTransition_pgw5g")]
-graph_offset = Vector2(0, 56.94734)
+graph_offset = Vector2(0, 34.32638)
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_itdr7"]
 radius = 200.30228
@@ -504,7 +504,6 @@ libraries = {
 }
 
 [node name="AnimationTree" type="AnimationTree" parent="AnimacionComponente"]
-active = false
 root_node = NodePath("../..")
 tree_root = SubResource("AnimationNodeStateMachine_ysyd8")
 anim_player = NodePath("../AnimationPlayer")
@@ -547,7 +546,7 @@ shape = SubResource("CircleShape2D_ysyd8")
 debug_color = Color(0.9676711, 0.16954571, 0.1691272, 0.41960785)
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
-scale = Vector2(2.3, 2.3)
+scale = Vector2(2, 2)
 texture = ExtResource("11_ek85w")
 hframes = 4
 vframes = 3
