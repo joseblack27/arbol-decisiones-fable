@@ -1,10 +1,12 @@
-[gd_scene load_steps=75 format=3]
+[gd_scene load_steps=81 format=3]
 
 [ext_resource type="Resource" path="res://recursos/enemigos/ReinaHormigas.tres" id="0_datos"]
 [ext_resource type="Script" path="res://escenas/enemigos/EnemigoReinaHormigas.gd" id="1_bvf6m"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EscupitajoAcidoReina.tres" id="2_v03w4"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/LlamadaAuxilioReina.tres" id="3_4lglx"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/MarcaColoniaReina.tres" id="3_ts6f8"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/EmbestidaReina.tres" id="4_4l60a"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/PuestaHuevosReina.tres" id="5_y41it"]
 [ext_resource type="Script" path="res://componentes/MovimientoComponente.gd" id="6_itdr7"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/hojas/SelectorHabilidades.gd" id="7_3n3x0"]
 [ext_resource type="Script" path="res://componentes/VisionComponente.gd" id="7_ng816"]
@@ -20,6 +22,7 @@
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/DepuradorBT.gd" id="18_1mga7"]
 [ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/MordidaReina.tres" id="24_4s60b"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionIrAPunto.gd" id="25_xho1m"]
+[ext_resource type="Resource" path="res://componentes/arbol_comportamiento/recursos/PisotonReina.tres" id="26_grd22"]
 [ext_resource type="PackedScene" path="res://escenas/habilidades/carga/HabilidadCarga.tscn" id="27_8xbao"]
 [ext_resource type="Script" path="res://escenas/habilidades/golpe_basico/HabilidadGolpeBasico.gd" id="29_w4a8s"]
 [ext_resource type="Script" path="res://escenas/habilidades/area_efecto/HabilidadAreaEfecto.gd" id="30_ts6f8"]
@@ -27,7 +30,10 @@
 [ext_resource type="Script" path="res://escenas/habilidades/golpe_verdadero_guardian/HabilidadGolpeVerdaderoGuardian.gd" id="32_grd22"]
 [ext_resource type="Script" path="res://componentes/AtributosComponente.gd" id="33_d76rf"]
 [ext_resource type="Script" path="res://recursos/AtributosBase.gd" id="34_iuxaj"]
+[ext_resource type="Script" path="res://escenas/habilidades/pisoton_reina/HabilidadPisotonReina.gd" id="35_1bgwi"]
 [ext_resource type="Script" path="res://escenas/habilidades/carga/HabilidadCarga.gd" id="36_v43m0"]
+[ext_resource type="Script" path="res://escenas/habilidades/marca_colonia/HabilidadMarcaColonia.gd" id="36_w64gl"]
+[ext_resource type="Script" path="res://escenas/habilidades/puesta_huevos/HabilidadPuestaHuevos.gd" id="37_h3lw7"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionAtacar.gd" id="42_atacar"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionPerseguir.gd" id="43_perseg"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/utilidades/acciones/AccionDeambular.gd" id="44_deamb"]
@@ -455,7 +461,9 @@ fortaleza = 22.0
 motion_mode = 1
 script = ExtResource("1_bvf6m")
 habilidad_escupitajo_bt = ExtResource("2_v03w4")
+habilidad_marca_colonia_bt = ExtResource("3_ts6f8")
 habilidad_llamada_auxilio_bt = ExtResource("3_4lglx")
+habilidad_puesta_huevos_bt = ExtResource("5_y41it")
 habilidad_embestida_bt = ExtResource("4_4l60a")
 componente_vida = NodePath("VidaComponente")
 componente_movimiento = NodePath("MovimientoComponente")
@@ -592,7 +600,7 @@ nombre_nodo = "(Acción) Atacar"
 
 [node name="SelectorHabilidades" type="Node" parent="ArbolComportamiento/Selector/Atacar"]
 script = ExtResource("7_3n3x0")
-habilidades = Array[ExtResource("8_72jeo")]([ExtResource("24_4s60b")])
+habilidades = Array[ExtResource("8_72jeo")]([ExtResource("24_4s60b"), ExtResource("26_grd22")])
 nombre_nodo = "Habilidades"
 
 [node name="Perseguir" type="Node" parent="ArbolComportamiento/Selector"]
@@ -639,6 +647,21 @@ congela_movimiento_en_red = false
 script = ExtResource("32_grd22")
 ignora_defensa = true
 duracion_recarga = 0.5
+congela_movimiento_en_red = false
+
+[node name="HabilidadPisotonReina" type="Node" parent="Habilidades"]
+script = ExtResource("35_1bgwi")
+duracion_recarga = 8.0
+congela_movimiento_en_red = false
+
+[node name="HabilidadMarcaColonia" type="Node" parent="Habilidades"]
+script = ExtResource("36_w64gl")
+duracion_recarga = 12.0
+congela_movimiento_en_red = false
+
+[node name="HabilidadPuestaHuevos" type="Node" parent="Habilidades"]
+script = ExtResource("37_h3lw7")
+duracion_recarga = 25.0
 congela_movimiento_en_red = false
 
 [node name="AtributosComponente" type="Node" parent="."]

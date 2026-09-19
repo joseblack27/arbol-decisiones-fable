@@ -40,6 +40,13 @@ var _detonando := false
 ## haría nada. 0.0 (default) no cambia el comportamiento de siempre (Marca
 ## del jugador, donde siempre hay otra fuente de daño de por medio).
 var _dano_base_detonacion: float = 0.0
+## true: la detonación TAMBIÉN golpea al propio marcado, no solo a los de
+## al lado — pensado para "Marca de la Colonia" (ver HabilidadMarcaColonia
+## .gd), donde el marcado no necesariamente recibió más daño mientras
+## estuvo marcado (a diferencia de la Marca del jugador, donde concentrar
+## el daño en el marcado ya es la mecánica). false (default) no cambia el
+## comportamiento de siempre.
+var _incluye_al_marcado: bool = false
 
 ## Sello que se dibuja SOBRE el marcado mientras dura la marca. Sin esto la
 ## habilidad era invisible: el impacto se veía 0,4 s y después no había forma
@@ -83,7 +90,8 @@ func _animar_sello() -> void:
 ## Pone (o renueva) la marca. Renovar REINICIA lo acumulado a propósito: si
 ## no, se podrían encadenar marcas para acumular sin techo.
 func activar(duracion: float, porcentaje: float, radio: float,
-		fuente: Node, tipo_dano: int, dano_base_detonacion: float = 0.0) -> void:
+		fuente: Node, tipo_dano: int, dano_base_detonacion: float = 0.0,
+		incluye_al_marcado: bool = false) -> void:
 	if duracion <= 0.0:
 		return
 	_tiempo_restante = duracion
@@ -94,6 +102,7 @@ func activar(duracion: float, porcentaje: float, radio: float,
 	_tipo_dano = tipo_dano
 	_duracion_total = duracion
 	_dano_base_detonacion = maxf(0.0, dano_base_detonacion)
+	_incluye_al_marcado = incluye_al_marcado
 	_detonando = false
 	_crear_sello()
 	marca_puesta.emit(duracion)
@@ -150,7 +159,7 @@ func _al_morir_el_marcado(_vida: float) -> void:
 		_detonar()
 
 
-## La explosión NO se la aplica al propio marcado: ya se llevó todo ese daño
+## Por defecto la explosión NO se la aplica al propio marcado: ya se llevó todo ese daño
 ## en vida, cobrárselo de nuevo sería contarlo dos veces. Va a los de al lado,
 ## que es lo que le da sentido a juntarlos antes.
 func _detonar() -> void:
@@ -191,7 +200,9 @@ func _detonar() -> void:
 	var alcanzados := 0
 	for resultado in espacio.intersect_shape(consulta, 32):
 		var cuerpo = resultado.get("collider")
-		if not (cuerpo is Node) or cuerpo == portador:
+		if not (cuerpo is Node):
+			continue
+		if cuerpo == portador and not _incluye_al_marcado:
 			continue
 		if Combate.mismo_equipo(fuente_valida, cuerpo):
 			continue

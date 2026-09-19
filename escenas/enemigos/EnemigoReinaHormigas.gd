@@ -8,12 +8,18 @@ class_name EnemigoReinaHormigas
 ## en vez de reconstruirse, furia final) — solo cambian los nombres de
 ## campos/habilidades por el tema de la colonia. Kit propio, en vez de
 ## reusar el de un jefe existente (a diferencia de Corrupción, que sí reusa
-## tal cual el kit de EnemigoGuardianQuebrado): Mordida (golpe básico),
-## Escupitajo Ácido (área), Llamada de Auxilio (firma propia, ver
-## HabilidadLlamadaAuxilio.gd) y Embestida (carga, hereda la animación
-## MORDIDA_PREPARACION/MORDIDA_DASH ya armada en el esqueleto de Lobo Feroz
-## del que se reskineó esta escena — el nombre de esos estados es herencia
-## del lobo, no tiene relación con el nombre de la habilidad "Mordida").
+## tal cual el kit de EnemigoGuardianQuebrado): Mordida (golpe básico) +
+## Pisotón Sísmico (área telegrafiada centrada en ella, castiga quedarse en
+## melee) desde el arranque; Escupitajo Ácido (área) + Marca de la Colonia
+## (marca a un jugador al azar cercano, detona sobre él y quien esté al
+## lado, ver HabilidadMarcaColonia.gd) en fase 2; Llamada de Auxilio (firma
+## propia, ver HabilidadLlamadaAuxilio.gd) + Puesta de Huevos (huevos que,
+## si sobreviven, eclosionan en hormigas guardianas que le dan resistencia
+## mientras vivan, ver HabilidadPuestaHuevos.gd) en fase 3; Embestida
+## (carga, hereda la animación MORDIDA_PREPARACION/MORDIDA_DASH ya armada
+## en el esqueleto de Lobo Feroz del que se reskineó esta escena — el
+## nombre de esos estados es herencia del lobo, no tiene relación con la
+## habilidad "Mordida") + refuerzos + furia en fase 4.
 
 const _UMBRAL_FASE_2 := 0.75
 const _UMBRAL_FASE_3 := 0.50
@@ -25,9 +31,11 @@ const _UMBRAL_FASE_4 := 0.25
 
 @export_group("Fase 2 - Ácido de la Colonia")
 @export var habilidad_escupitajo_bt: HabilidadBT
+@export var habilidad_marca_colonia_bt: HabilidadBT
 
 @export_group("Fase 3 - Instinto de Enjambre")
 @export var habilidad_llamada_auxilio_bt: HabilidadBT
+@export var habilidad_puesta_huevos_bt: HabilidadBT
 
 @export_group("Fase 4 - Furia de la Reina")
 @export var habilidad_embestida_bt: HabilidadBT
@@ -169,8 +177,10 @@ func _reanudar_fase(fase: int) -> void:
 	match fase:
 		2:
 			_agregar_habilidad_bt("ArbolComportamiento/Selector/Atacar/SelectorHabilidades", habilidad_escupitajo_bt)
+			_agregar_habilidad_bt("ArbolComportamiento/Selector/Atacar/SelectorHabilidades", habilidad_marca_colonia_bt)
 		3:
 			_agregar_habilidad_bt("ArbolComportamiento/Selector/Atacar/SelectorHabilidades", habilidad_llamada_auxilio_bt)
+			_agregar_habilidad_bt("ArbolComportamiento/Selector/Atacar/SelectorHabilidades", habilidad_puesta_huevos_bt)
 		4:
 			_agregar_habilidad_bt("ArbolComportamiento/Selector/Atacar/SelectorHabilidades", habilidad_embestida_bt)
 			_invocar_refuerzos(_refuerzos_fase4)
@@ -192,6 +202,26 @@ func _activar_furia_final() -> void:
 	for hijo in habilidades.get_children():
 		if hijo is HabilidadBase:
 			hijo.multiplicador_recarga = multiplicador_furia_final
+
+
+## Escenas que ESTA jefa puede llegar a crear en tiempo de ejecución, para
+## que el nivel las registre en el spawner compartido (ver NivelBase.
+## _crear_spawner_red) — mismo mecanismo que SpawnerMobs.escenas_
+## replicables(). EnemigoHormigaSoldado.tscn ya suele quedar registrada
+## sola (la usan los SpawnerMobs normales del Hormiguero para poblar
+## salas), pero declararla acá también es gratis e inofensivo — sin esto,
+## si algún día el Hormiguero deja de tener un SpawnerMobs de Soldado en
+## alguna sala, tanto los refuerzos de fase 4 como las guardianas de
+## HabilidadPuestaHuevos dejarían de verse en los clientes sin ningún
+## error visible (el MultiplayerSpawner rechaza en silencio una escena no
+## registrada). HuevoHormiga.tscn en cambio SÍ es nueva y no la crea
+## ningún otro nodo del nivel.
+func escenas_replicables() -> Array[String]:
+	return [
+		"res://escenas/enemigos/EnemigoHormigaObrera.tscn",
+		"res://escenas/enemigos/EnemigoHormigaSoldado.tscn",
+		"res://escenas/objetos/huevo_hormiga/HuevoHormiga.tscn",
+	]
 
 
 func _invocar_refuerzos(escenas: Array[PackedScene]) -> void:

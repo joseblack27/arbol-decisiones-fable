@@ -233,6 +233,13 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 		if cantidad <= 0.0:
 			return salud_actual
 
+	# Vulnerabilidad temporal (ver VulnerabilidadComponente/HabilidadPuesta
+	# Huevos): espejo de EscudoComponente arriba, pero amplificando en vez
+	# de reducir — mismo punto central, mismo criterio de sibling.
+	var vulnerabilidad := padre.get_node_or_null("VulnerabilidadComponente") as VulnerabilidadComponente if padre else null
+	if vulnerabilidad:
+		cantidad = vulnerabilidad.aplicar(cantidad, fuente)
+
 	salud_actual -= cantidad
 
 

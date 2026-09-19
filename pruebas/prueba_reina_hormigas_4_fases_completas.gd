@@ -118,12 +118,14 @@ func _verificar_fase4() -> void:
 	print("Fase 3->4: golpe de transición pega y _fase pasa a 4 (esperado true, perdida=%.1f, fase=%s): %s" % [
 		perdida, _jefe.get("_fase"), _fase3_a_4_golpe_ok])
 
+	# Chequea presencia, no tamaño exacto (mismo criterio que fase 2/3, ver
+	# arriba) -- el kit base y las fases 2/3 crecieron desde que se escribió
+	# esta prueba (Pisotón Sísmico desde el arranque, Marca de la Colonia en
+	# fase 2, Puesta de Huevos en fase 3), así que el tamaño total ya no es 4.
 	var selector = _jefe.get_node_or_null("ArbolComportamiento/Selector/Atacar/SelectorHabilidades")
 	var tiene_embestida: bool = selector != null and selector.habilidades.has(_jefe.habilidad_embestida_bt)
-	var tamaño: int = selector.habilidades.size() if selector else -1
-	_fase3_a_4_habilidades_ok = tiene_embestida and tamaño == 4
-	print("Fase 4 suma Embestida al selector (esperado true, size=%d esperado 4): %s" % [
-		tamaño, _fase3_a_4_habilidades_ok])
+	_fase3_a_4_habilidades_ok = tiene_embestida
+	print("Fase 4 suma Embestida al selector (esperado true): %s" % _fase3_a_4_habilidades_ok)
 
 	var contenedor = _jefe.get_parent()
 	var obreras := 0

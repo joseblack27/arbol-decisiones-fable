@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Resource" path="res://recursos/enemigos/HuevoHormiga.tres" id="0_datos"]
+[ext_resource type="Script" path="res://escenas/objetos/huevo_hormiga/HuevoHormiga.gd" id="1_huevo"]
+[ext_resource type="Script" path="res://componentes/VidaComponente.gd" id="2_vida"]
+[ext_resource type="Script" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="3_memoria"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_cuerpo"]
+radius = 11.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_vida"]
+radius = 11.0
+
+[node name="HuevoHormiga" type="CharacterBody2D" node_paths=PackedStringArray("componente_vida", "memoria")]
+motion_mode = 1
+script = ExtResource("1_huevo")
+componente_vida = NodePath("VidaComponente")
+memoria = NodePath("MemoriaBT")
+datos = ExtResource("0_datos")
+mostrar_nombre = true
+altura_nombre = -24.0
+xp_otorgada = 0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_cuerpo")
+
+[node name="VidaComponente" type="Area2D" parent="."]
+collision_layer = 0
+collision_mask = 0
+monitoring = false
+monitorable = false
+script = ExtResource("2_vida")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="VidaComponente"]
+shape = SubResource("CircleShape2D_vida")
+
+[node name="MemoriaBT" type="Node" parent="."]
+script = ExtResource("3_memoria")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+
+[node name="Habilidades" type="Marker2D" parent="."]
