@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="OpcionMenuOS" load_steps=3 format=3 uid="uid://div837ykchbak"]
+
+[ext_resource type="Script" uid="uid://did823bbm15in" path="res://escenas/ui/menu_accesos_os/OpcionMenuOS.gd" id="1_op"]
+[ext_resource type="Texture2D" uid="uid://driigt0ti7qmc" path="res://assets/iconos/tabs/icono_ajustes_32x32.png" id="1_vhgvn"]
+
+[resource]
+script = ExtResource("1_op")
+icono = ExtResource("1_vhgvn")
+metodo_en_os = "_on_btn_configuracion"
+etiqueta = "Configuración"

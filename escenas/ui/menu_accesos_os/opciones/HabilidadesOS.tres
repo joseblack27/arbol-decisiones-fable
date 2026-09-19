@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="OpcionMenuOS" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://escenas/ui/menu_accesos_os/OpcionMenuOS.gd" id="1_op"]
+[ext_resource type="Texture2D" path="res://assets/iconos/tabs/tab_6.png" id="2_icono"]
+
+[resource]
+script = ExtResource("1_op")
+icono = ExtResource("2_icono")
+metodo_en_os = "_on_btn_skills"
+etiqueta = "Habilidades"

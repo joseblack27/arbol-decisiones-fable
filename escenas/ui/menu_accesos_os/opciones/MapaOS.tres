@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="OpcionMenuOS" load_steps=3 format=3 uid="uid://dxj8fbndiam2k"]
+
+[ext_resource type="Texture2D" uid="uid://5emgv4pwipp5" path="res://assets/iconos/tabs/icono_brujula_minimalista_32x32.png" id="1_gseuc"]
+[ext_resource type="Script" uid="uid://did823bbm15in" path="res://escenas/ui/menu_accesos_os/OpcionMenuOS.gd" id="1_op"]
+
+[resource]
+script = ExtResource("1_op")
+icono = ExtResource("1_gseuc")
+metodo_en_os = "_on_btn_mapa"
+etiqueta = "Mapa"

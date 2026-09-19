@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://i6fd1rmd2pj"]
+[gd_scene load_steps=14 format=3 uid="uid://i6fd1rmd2pj"]
 
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tema"]
 [ext_resource type="Script" uid="uid://c3mnx8pso7yom" path="res://escenas/menu_inicio/MenuInicio.gd" id="2_script"]
@@ -31,6 +31,10 @@ corner_detail = 1
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jugar_hover"]
 bg_color = Color(1, 1, 1, 1)
 corner_detail = 1
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fl5c1"]
+atlas = ExtResource("5_mt44a")
+region = Rect2(0, 0, 32, 32)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_nqqis"]
 atlas = ExtResource("5_mt44a")
@@ -256,6 +260,7 @@ offset_bottom = 40.0
 grow_horizontal = 0
 focus_mode = 0
 theme_type_variation = &"RanuraHud"
+icon = SubResource("AtlasTexture_fl5c1")
 icon_alignment = 1
 script = ExtResource("5_silencio")
 icono_sonido = SubResource("AtlasTexture_nqqis")

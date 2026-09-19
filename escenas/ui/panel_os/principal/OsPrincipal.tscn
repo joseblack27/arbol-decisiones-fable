@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://dfmy15nixg3h3"]
+[gd_scene load_steps=19 format=3 uid="uid://dfmy15nixg3h3"]
 
 [ext_resource type="Script" uid="uid://clnt85k6rmx50" path="res://escenas/ui/panel_os/principal/OsPrincipal.gd" id="1_8r8lf"]
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="2_n01vk"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://n66xoqg60m4" path="res://assets/iconos/tabs/tab_10.png" id="6_8rkdy"]
 [ext_resource type="PackedScene" uid="uid://6ysewcuhdy8u" path="res://escenas/ui/panel_os/paneles/inventario/PanelInventario.tscn" id="6_gesyk"]
 [ext_resource type="Texture2D" uid="uid://dd5r743sdao5r" path="res://assets/iconos/tabs/tab_6.png" id="7_8rkdy"]
+[ext_resource type="Texture2D" uid="uid://bb3u85fcnelvb" path="res://assets/iconos/buttons/close/cerrar_px_6.png" id="8_l0sny"]
 [ext_resource type="PackedScene" uid="uid://cl33iq5nafsfv" path="res://escenas/ui/panel_os/paneles/correos/PanelCorreos.tscn" id="10_hq1p8"]
 [ext_resource type="PackedScene" uid="uid://vx8rpfo3obau" path="res://escenas/ui/panel_os/paneles/habilidades/PanelHabilidades.tscn" id="11_rxrgu"]
 [ext_resource type="PackedScene" uid="uid://devgqv2nmuytk" path="res://escenas/ui/panel_os/paneles/eventos/PanelEventos.tscn" id="14_rwlrv"]
@@ -203,7 +204,8 @@ text = "Cargar"
 custom_minimum_size = Vector2(50, 50)
 layout_mode = 2
 theme_override_font_sizes/font_size = 15
-text = "x"
+icon = ExtResource("8_l0sny")
+icon_alignment = 1
 
 [node name="Panel" type="Panel" parent="ColorRect/Margin/VBox"]
 custom_minimum_size = Vector2(0, 40)
