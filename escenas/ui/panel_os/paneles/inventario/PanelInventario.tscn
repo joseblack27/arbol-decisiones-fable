@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://6ysewcuhdy8u"]
+[gd_scene load_steps=20 format=3 uid="uid://6ysewcuhdy8u"]
 
 [ext_resource type="PackedScene" uid="uid://b1vgkb46lgx3a" path="res://escenas/ui/hud/SlotConsumibleRapido.tscn" id="0_scr"]
 [ext_resource type="Theme" uid="uid://ddlr8menttf7k" path="res://recursos/temas/tema.tres" id="1_tikhs"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://cp7vpuqjt24rq" path="res://escenas/ui/panel_os/paneles/inventario/SlotItem.tscn" id="3_cdap4"]
 [ext_resource type="Texture2D" uid="uid://b8sw0dtvugedl" path="res://assets/Silueta de inventario.png" id="6_oaab3"]
 [ext_resource type="Script" uid="uid://c1e113v5ung2y" path="res://escenas/ui/panel_os/paneles/inventario/FlujoItems.gd" id="13_kk5td"]
+[ext_resource type="Texture2D" uid="uid://bb3u85fcnelvb" path="res://assets/iconos/buttons/close/cerrar_px_6.png" id="17_f7fko"]
 [ext_resource type="Script" uid="uid://bhpvolte3emd1" path="res://escenas/ui/panel_os/paneles/inventario/BotonFiltro.gd" id="19_tf88s"]
 [ext_resource type="PackedScene" uid="uid://c51diq6hqeah1" path="res://escenas/ui/panel_os/paneles/inventario/EquipoSlot.tscn" id="22_c47ir"]
 [ext_resource type="Texture2D" uid="uid://b3uvsh07edb7c" path="res://assets/iconos/slots/slot_8.png" id="23_8tsm6"]
@@ -447,7 +448,7 @@ autowrap_mode = 3
 custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
-text = "x"
+icon = ExtResource("17_f7fko")
 
 [node name="HSeparator" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle"]
 layout_mode = 2
@@ -513,9 +514,9 @@ text = "Conjunto:"
 visible = false
 layout_mode = 2
 size_flags_horizontal = 3
-autowrap_mode = 3
 theme_override_font_sizes/font_size = 10
 text = "Guardián Quebrado"
+autowrap_mode = 3
 
 [node name="HSeparator3" type="HSeparator" parent="Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody"]
 layout_mode = 2

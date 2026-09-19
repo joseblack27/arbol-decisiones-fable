@@ -21,6 +21,20 @@ extends Node
 #endregion
 
 var registros = {}
+## Pedidos de conectar() que llegaron ANTES de que su señal existiera
+## todavía — nombre -> Array[{suscriptor, metodo}]. Se resuelven solos en
+## cuanto llega el registrar() correspondiente (ver ese método). Sin esto,
+## el ORDEN en que corre _ready() de cada nodo importaba: un suscriptor
+## que intentaba conectarse antes de que alguien más registrara esa señal
+## fallaba EN SILENCIO para siempre (printerr nada más) — bug real
+## reportado (19 sep 2026, probado en celular): "la segunda página de
+## habilidades detectaba el toque pero no lanzaba la habilidad". Jugador/
+## IndicadorApunte se conectan a slot_5.._9_lanzar/apunte desde su propio
+## _ready() esperando que ALGÚN UIHabilidad ya los haya registrado (ver
+## PaginadorHabilidades.registrar_indices_adicionales) — si el Jugador
+## corría primero, esa conexión se perdía para siempre y ningún cambio de
+## página futuro la reparaba.
+var _pendientes: Dictionary = {}
 
 ## Sobrescribe en vez de rechazar una segunda registración del mismo
 ## nombre: cada nombre pertenece a un solo jugador/UI LOCAL a la vez, así
@@ -39,6 +53,14 @@ func registrar(nombre: String, id: String, args: Dictionary = {}):
 		"suscriptores": {},
 		"id": id
 	}
+	# Resolver acá cualquier conectar() que haya llegado antes que este
+	# registrar() (ver _pendientes) — el orden de _ready() entre el
+	# suscriptor y quien registra ya no importa.
+	if _pendientes.has(nombre):
+		for pedido in _pendientes[nombre]:
+			if is_instance_valid(pedido.suscriptor):
+				conectar(nombre, pedido.suscriptor, pedido.metodo)
+		_pendientes.erase(nombre)
 
 func eliminar(nombre: String):
 	if registros.has(nombre):
@@ -53,7 +75,13 @@ func conectar(nombre: String, suscriptor: Variant, metodo: String):
 		else:
 			printerr("Suscriptor '%s' ya esta conectado a la señal '%s'" % [suscriptor, nombre])
 	else:
-		printerr("Señal '%s' no esta registrada" % nombre)
+		# Todavía nadie llamó registrar() para este nombre -- guardar el
+		# pedido para cuando llegue (ver _pendientes/registrar()) en vez de
+		# perderlo para siempre. Normal al arrancar (el orden entre _ready()
+		# de distintas ramas del árbol no está garantizado), no un error.
+		var lista: Array = _pendientes.get(nombre, [])
+		lista.append({"suscriptor": suscriptor, "metodo": metodo})
+		_pendientes[nombre] = lista
 
 func desconectar(nombre: String, suscriptor: Object):
 	if registros.has(nombre):
