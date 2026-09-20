@@ -58,6 +58,7 @@ func _montar() -> void:
 	_entidad = CharacterBody2D.new()
 	escena.add_child(_entidad)
 	var forma := CollisionShape2D.new()
+	forma.name = "CollisionShape2D"  # Nombre real, ver HabilidadParpadeo._forma_colision_de().
 	var circ := CircleShape2D.new()
 	circ.radius = 8.0
 	forma.shape = circ
