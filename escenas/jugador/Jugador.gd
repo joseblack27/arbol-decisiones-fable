@@ -32,6 +32,7 @@ var direccion_mirada: Vector2 = Vector2.ZERO
 @onready var componente_animacion: AnimacionComponente = $AnimacionComponente
 @onready var componente_energia: EnergiaComponente = $EnergiaComponente
 @onready var _etiqueta_nombre: Label = $EtiquetaNombre
+@onready var _forma_colision: CollisionShape2D = $CollisionShape2D
 
 var _ultima_direccion: Vector2 = Vector2.RIGHT
 ## Posición del fotograma anterior — SOLO para inferir "caminando" en la
@@ -145,6 +146,56 @@ var id_unico: String = ""
 ## render) sin pelearse con el valor recién llegado. El servidor la
 ## mantiene igual a global_position en todo momento (ver _physics_process).
 var _posicion_replicada: Vector2 = Vector2.ZERO
+## Red de seguridad final contra quedar trabado en geometría del mapa
+## (esquinas del Hormiguero, ver bug-hormiguero-escalon-concavo-tunel y
+## bug-parpadeo-rayo-vs-forma-real) — reportado en juego real (20 sep
+## 2026): tras arreglar el escalón cóncavo de las salas, insistir mucho
+## con Parpadeo/Carga contra la MISMA esquina todavía podía dejar al
+## jugador incrustado (caso límite geométrico cada vez más raro, pero no
+## imposible de reproducir a propósito).
+##
+## OJO: la primera versión de esto disparaba con solo "no avanza aunque
+## quiera moverse" — eso también describe a un jugador parado a propósito
+## empujando contra una pared normal (nada raro, pasa todo el tiempo), así
+## que hubiera reubicado gente sin ningún bug de por medio. La condición
+## real tiene que ser que el CUERPO esté genuinamente INCRUSTADO en la
+## pared (solapado de verdad, no solo en contacto) — eso nunca pasa en
+## juego normal, solo en el caso límite del bug. Se chequea con una
+## versión ACHICADA de la propia forma (ver _esta_incrustado_en_pared):
+## tocar una pared de refilón no cuenta, solo un solape de verdad.
+##
+## Solo corre donde vive la posición AUTORITATIVA (servidor o un jugador
+## sin red, ver _physics_process) — el cliente dueño solo predice, así
+## que "destrabarlo" ahí se pisaría con la próxima reconciliación.
+var _tiempo_incrustado_atasco: float = 0.0
+const _ATASCO_TIEMPO_UMBRAL := 0.5
+## Cuánto se achica la forma real al chequear solape -- un contacto normal
+## contra una pared (tocando, sin penetrar) no debe contar como atascado.
+const _ATASCO_MARGEN_ACHIQUE := 3.0
+## Segunda red, más paciente, para el caso que NO llega a ser un solape
+## real (ver _esta_incrustado_en_pared) pero igual deja al jugador sin
+## poder avanzar -- p. ej. move_and_slide() resolviendo a ~0 de
+## desplazamiento neto contra una esquina rara, sin llegar a "incrustado"
+## de verdad. Pedido explícito del usuario (20 sep 2026): si hay
+## intención real de moverse Y NO está bajo un estado alterado que lo
+## inmovilice a propósito (Cepo, aturdido, etc. -- ver componente_
+## movimiento._contador_inmovilizacion) pero la posición casi no cambia
+## durante un rato, forzar el movimiento en la dirección que está pidiendo
+## antes de recurrir a reubicarlo en cualquier lado (ver
+## _intentar_forzar_movimiento/_intentar_destrabar). Umbral más largo que
+## el de arriba (2s en vez de 0.5s) a propósito: es una señal menos
+## certera que un solape real, así que conviene ser más paciente antes de
+## actuar -- total, alguien parado a propósito contra una pared normal
+## como mucho recibe un empujoncito chico hacia el costado, no un salto
+## grande (ver _intentar_destrabar, que busca el hueco libre MÁS CERCA).
+var _tiempo_sin_avanzar_atasco: float = 0.0
+var _posicion_referencia_sin_avanzar: Vector2 = Vector2.ZERO
+const _ATASCO_SIN_AVANZAR_TIEMPO_UMBRAL := 2.0
+const _ATASCO_SIN_AVANZAR_DISTANCIA_UMBRAL := 15.0
+## Distancia que se intenta "forzar" en la dirección pedida antes de
+## rendirse y buscar cualquier hueco libre cercano (ver
+## _intentar_forzar_movimiento).
+const _ATASCO_DISTANCIA_FORZAR := 48.0
 ## Qué tan rápido el cliente alcanza la posición replicada (más alto = más
 ## "pegado" a la red pero más notorio el salto; más bajo = más suave pero
 ## más "elástico"). 1/seg ≈ alcanza el 63% de la distancia cada segundo.
@@ -709,6 +760,7 @@ func _physics_process(delta: float) -> void:
 	# Delegamos la aplicación de física al componente de movimiento.
 	if componente_movimiento:
 		componente_movimiento.physics_process(delta, direccion)
+	_verificar_atasco_y_destrabar(delta)
 	# El servidor (o el único jugador, sin red) es quien manda la posición
 	# real — mantener esto sincronizado es lo que efectivamente se replica.
 	_posicion_replicada = global_position
@@ -717,6 +769,120 @@ func _physics_process(delta: float) -> void:
 
 	if Utils.en_red() and multiplayer.is_server():
 		_replicar_posicion_red()
+
+
+## Si el cuerpo está genuinamente incrustado en geometría del mapa (ver
+## _esta_incrustado_en_pared) durante _ATASCO_TIEMPO_UMBRAL segundos
+## SEGUIDOS, se reubica solo (ver comentario grande de arriba). El
+## chequeo por tiempo sostenido (no un solo fotograma) evita reaccionar a
+## un solape transitorio de un solo fotograma (p. ej. el instante justo
+## después de un teletransporte) que igual se resolvería solo.
+func _verificar_atasco_y_destrabar(delta: float) -> void:
+	if _esta_incrustado_en_pared():
+		_tiempo_incrustado_atasco += delta
+		if _tiempo_incrustado_atasco >= _ATASCO_TIEMPO_UMBRAL:
+			_tiempo_incrustado_atasco = 0.0
+			_intentar_destrabar()
+			_posicion_referencia_sin_avanzar = global_position
+			_tiempo_sin_avanzar_atasco = 0.0
+			return
+	else:
+		_tiempo_incrustado_atasco = 0.0
+
+	_verificar_sin_avanzar_y_forzar(delta)
+
+
+## Segunda red (ver comentario grande de _tiempo_sin_avanzar_atasco): sin
+## solape real, pero tampoco avanza aunque quiera moverse y no está bajo
+## un estado que lo inmovilice a propósito.
+func _verificar_sin_avanzar_y_forzar(delta: float) -> void:
+	var inmovilizado := componente_movimiento != null and componente_movimiento._contador_inmovilizacion > 0
+	if direccion.length() < 0.1 or inmovilizado:
+		_tiempo_sin_avanzar_atasco = 0.0
+		_posicion_referencia_sin_avanzar = global_position
+		return
+	if global_position.distance_to(_posicion_referencia_sin_avanzar) > _ATASCO_SIN_AVANZAR_DISTANCIA_UMBRAL:
+		_tiempo_sin_avanzar_atasco = 0.0
+		_posicion_referencia_sin_avanzar = global_position
+		return
+	_tiempo_sin_avanzar_atasco += delta
+	if _tiempo_sin_avanzar_atasco < _ATASCO_SIN_AVANZAR_TIEMPO_UMBRAL:
+		return
+	_tiempo_sin_avanzar_atasco = 0.0
+	if not _intentar_forzar_movimiento():
+		_intentar_destrabar()
+	_posicion_referencia_sin_avanzar = global_position
+
+
+## Barre la forma real (mismo criterio que HabilidadParpadeo._recortar_
+## por_obstaculos, ver ese comentario) hasta _ATASCO_DISTANCIA_FORZAR en
+## la dirección que el jugador está pidiendo -- si encuentra aunque sea
+## un poco de camino libre de verdad, lo empuja hasta ahí ("forzar el
+## movimiento" en la dirección pedida, en vez de mandarlo a cualquier
+## lado). Devuelve false si no encontró nada mejor que quedarse quieto,
+## para que el llamador caiga al último recurso (_intentar_destrabar).
+func _intentar_forzar_movimiento() -> bool:
+	if not _forma_colision or not _forma_colision.shape:
+		return false
+	var espacio := get_world_2d().direct_space_state
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = _forma_colision.shape
+	query.transform = Transform2D(0.0, global_position)
+	query.motion = direccion.normalized() * _ATASCO_DISTANCIA_FORZAR
+	query.collision_mask = 1  # Capa "mundo".
+	query.exclude = [self]
+	var fracciones := espacio.cast_motion(query)
+	var fraccion_segura: float = fracciones[0] if fracciones.size() > 0 else 0.0
+	var avance := query.motion * fraccion_segura
+	if avance.length() < 8.0:
+		return false
+	global_position += avance
+	velocity = Vector2.ZERO
+	return true
+
+
+## true solo si la forma real del jugador, ACHICADA en _ATASCO_MARGEN_
+## ACHIQUE, se solapa con la capa "mundo" -- tocar una pared de refilón
+## (contacto normal, sin penetrar) da false a propósito, ver comentario
+## grande de _tiempo_incrustado_atasco.
+func _esta_incrustado_en_pared() -> bool:
+	if not _forma_colision or not _forma_colision.shape:
+		return false
+	var forma_achicada: Shape2D = _forma_colision.shape.duplicate()
+	if forma_achicada is CircleShape2D:
+		(forma_achicada as CircleShape2D).radius = maxf(1.0, (forma_achicada as CircleShape2D).radius - _ATASCO_MARGEN_ACHIQUE)
+	var espacio := get_world_2d().direct_space_state
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = forma_achicada
+	query.transform = Transform2D(0.0, global_position)
+	query.collision_mask = 1  # Capa "mundo" -- mismo criterio que HabilidadParpadeo.capa_obstaculos.
+	query.exclude = [self]
+	return not espacio.intersect_shape(query, 1).is_empty()
+
+
+## Busca en anillos crecientes alrededor de la posición actual el primer
+## punto donde la forma real del jugador (ver _forma_colision) no se
+## solape con nada de la capa 1 (mundo/paredes), y teletransporta ahí.
+## Nunca busca hacia adentro (radio 0) porque si está atascado, "acá
+## mismo" ya está mal -- el primer anillo probado es el más chico posible.
+func _intentar_destrabar() -> void:
+	if not _forma_colision or not _forma_colision.shape:
+		return
+	var espacio := get_world_2d().direct_space_state
+	var query := PhysicsShapeQueryParameters2D.new()
+	query.shape = _forma_colision.shape
+	query.collision_mask = 1  # Capa "mundo" -- mismo criterio que HabilidadParpadeo.capa_obstaculos.
+	query.exclude = [self]
+	var origen := global_position
+	var radios: Array[float] = [16.0, 32.0, 48.0, 64.0, 96.0, 128.0]
+	for radio in radios:
+		for angulo_deg in range(0, 360, 30):
+			var candidato: Vector2 = origen + Vector2.RIGHT.rotated(deg_to_rad(angulo_deg)) * radio
+			query.transform = Transform2D(0.0, candidato)
+			if espacio.intersect_shape(query, 1).is_empty():
+				global_position = candidato
+				velocity = Vector2.ZERO
+				return
 
 
 ## Único punto que aplica la animación de caminar/idle según la dirección
