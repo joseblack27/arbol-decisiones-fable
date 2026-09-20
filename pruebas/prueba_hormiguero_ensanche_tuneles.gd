@@ -14,16 +14,19 @@
 # Arreglo (aplicado directo sobre NivelHormiguero.tscn, sin regenerar el
 # nivel entero -- eso hubiera borrado spawners/activadores/Reina ya
 # colocados): el radio del túnel ahora crece gradualmente cerca de cada
-# punta (hasta RADIO_ENSANCHE=6.0, sobre DISTANCIA_ENSANCHE=12 tiles) en
-# vez de cortar de golpe a RADIO_TUNEL=2.5.
+# punta, MEDIDO DESDE EL BORDE de la sala (no desde su centro -- un primer
+# intento medía desde el centro y desperdiciaba casi todo el margen DENTRO
+# de la propia elipse, terminando en un ensanche casi inexistente, ver
+# commit e24e684 -- corregido acá).  Ahora el radio decae de RADIO_ENSANCHE
+# =7.0 (casi igual al propio radio de la sala) a RADIO_TUNEL=2.5 a lo largo
+# de DISTANCIA_ENSANCHE=15 tiles, medidos desde el borde real de la elipse.
 #
-# Prueba: a mitad del ensanche del primer túnel (sala 0 -> sala 1, entre
-# tiles (-100,-20) y (-50,-20)), una celda a 4 tiles de la línea central
-# -- WALL bajo el radio viejo (2.5), FLOOR bajo el nuevo ensanche (~4.25
-# en ese punto) -- debe ser piso real ahora. Un punto lejos de cualquier
-# ensanche (mitad del túnel, sin ensanche aplicado) debe seguir siendo
-# pared, igual que antes -- confirma que el arreglo es LOCAL a las puntas,
-# no ensanchó el túnel entero.
+# Prueba: un punto claramente FUERA de la elipse de la sala 0 (dx=15,dy=5
+# desde su centro) que antes daba pared (fuera del radio viejo 2.5) y con
+# el ensanche nuevo da piso real (radio local ahí ~5.2). Un punto lejos de
+# cualquier ensanche (mitad del túnel) sigue siendo pared, igual que
+# antes -- confirma que el arreglo es LOCAL a las puntas, no ensanchó el
+# túnel entero.
 #   godot --headless --path . --script res://pruebas/prueba_hormiguero_ensanche_tuneles.gd
 # =============================================================================
 extends SceneTree
@@ -43,10 +46,11 @@ func _process(_delta: float) -> bool:
 
 	var terreno := nivel.get_node("Terreno") as TileMapLayer
 
-	# 6 tiles hacia sala 1 desde el centro de sala 0 (-100,-20), 4 tiles
-	# perpendicular -- fuera del radio de la sala sola (9x7) Y fuera del
-	# radio viejo de túnel (2.5), pero dentro del nuevo ensanche (~4.25 ahí).
-	var celda_ensanchada := Vector2i(-100 + 6, -20 + 4)
+	# 15 tiles hacia sala 1 desde el centro de sala 0 (-100,-20), 5 tiles
+	# perpendicular -- claramente fuera de la elipse de la sala (9x7) Y
+	# fuera del radio viejo de túnel (2.5), pero dentro del nuevo ensanche
+	# (~5.2 ahí, ver comentario grande de arriba).
+	var celda_ensanchada := Vector2i(-100 + 15, -20 + 5)
 	var atlas_ensanchada := terreno.get_cell_atlas_coords(celda_ensanchada)
 	_celda_ensanchada_es_piso_ok = atlas_ensanchada == PIEDRA or atlas_ensanchada == PIEDRA_GRIETA
 	print("Celda %s (en la zona de ensanche) es piso real (esperado true, atlas=%s): %s" % [
