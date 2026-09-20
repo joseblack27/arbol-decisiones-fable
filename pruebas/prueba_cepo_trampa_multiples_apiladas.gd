@@ -32,6 +32,7 @@ var _trampa2
 var _cepo1_no_afectado_por_segundo_ok := false
 var _cepo1_activa_correcto_ok := false
 var _cepo2_activa_correcto_ok := false
+var _icono_debuff_en_mob_ok := false
 
 var _trampa1_no_afectada_por_segunda_ok := false
 var _trampa1_activa_correcto_ok := false
@@ -54,6 +55,11 @@ func _montar() -> void:
 
 
 func _probar_cepo() -> void:
+	# Sin esto _icono_debuff queda null (nunca pasó por aplicar_datos(), ver
+	# HabilidadCepo.gd) y _anotar_icono_en_red() no haría nada -- mismo
+	# criterio que cualquier HabilidadXxx de prueba con campos sueltos.
+	_hab_cepo._icono_debuff = PlaceholderTexture2D.new()
+
 	# Dos copias solo-visuales, como las vería un cliente puro -- dos
 	# posiciones DISTINTAS (apiladas cerca, no exactamente iguales, para
 	# poder identificar cada una en los chequeos).
@@ -62,8 +68,16 @@ func _probar_cepo() -> void:
 	_cepo1 = _hab_cepo._cepos_activos[0]
 	_cepo2 = _hab_cepo._cepos_activos[1]
 
-	# El servidor avisa que el PRIMERO (100,0) activó de verdad.
-	_hab_cepo._activar_cepo_visual_red(Vector2(100, 0))
+	# Regresión (bug real reportado 19 sep 2026): "hay debuffos que no se
+	# muestran correctamente, como el cepo cuando un mob la pisa" -- el
+	# mob "atrapado" real que el servidor identifica por su NodePath (ver
+	# Cepo._on_body_entrada/avisar_cepo_activado).
+	var objetivo := Node2D.new()
+	objetivo.name = "MobAtrapado"
+	root.add_child(objetivo)
+
+	# El servidor avisa que el PRIMERO (100,0) activó de verdad, atrapando a "objetivo".
+	_hab_cepo._activar_cepo_visual_red(Vector2(100, 0), objetivo.get_path())
 
 	_cepo1_activa_correcto_ok = _cepo1._activada
 	print("Cepo en (100,0) se activa cuando el servidor avisa esa posición (esperado true): %s" % \
@@ -73,8 +87,13 @@ func _probar_cepo() -> void:
 	print("El OTRO cepo (100,5) sigue 'puesto', no se activó por error (esperado true): %s" % \
 		_cepo1_no_afectado_por_segundo_ok)
 
+	var buffs := objetivo.get_node_or_null("BuffsComponente") as BuffsComponente
+	_icono_debuff_en_mob_ok = buffs != null and buffs.esta_activo("cepo")
+	print("El mob atrapado muestra el ícono de debuff 'cepo' EN ESTE CLIENTE (esperado true): %s" % \
+		_icono_debuff_en_mob_ok)
+
 	# Ahora el servidor avisa que el SEGUNDO también activó.
-	_hab_cepo._activar_cepo_visual_red(Vector2(100, 5))
+	_hab_cepo._activar_cepo_visual_red(Vector2(100, 5), objetivo.get_path())
 	_cepo2_activa_correcto_ok = _cepo2._activada
 	print("El segundo cepo también se activa cuando le toca (esperado true): %s" % \
 		_cepo2_activa_correcto_ok)
@@ -104,6 +123,7 @@ func _probar_trampa() -> void:
 
 func _informar() -> bool:
 	var exito := _cepo1_activa_correcto_ok and _cepo1_no_afectado_por_segundo_ok and _cepo2_activa_correcto_ok \
+		and _icono_debuff_en_mob_ok \
 		and _trampa1_activa_correcto_ok and _trampa1_no_afectada_por_segunda_ok and _trampa2_activa_correcto_ok
 	print("PRUEBA CEPO TRAMPA MULTIPLES APILADAS %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)

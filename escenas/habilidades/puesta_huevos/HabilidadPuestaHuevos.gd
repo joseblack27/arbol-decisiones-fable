@@ -25,6 +25,11 @@ const _TEXTURA_ICONOS := "res://assets/iconos/iconos habilidades.png"
 ## se recalcula (o se apaga del todo) cada vez que cambia la cantidad, así
 ## que nunca hace falta que este número realista importe de verdad.
 const _DURACION_EFECTO_PERMANENTE := 999999.0
+## Tope de resistencia real (60%, ver comentario de clase) — reportado en
+## juego real (19 sep 2026): si por solapar dos puestas seguidas quedaban
+## más de 3 guardianas vivas a la vez, el clamp usaba 1.0 (100%) en vez de
+## este valor y la Reina llegaba a recibir 0 de daño.
+const _REDUCCION_MAXIMA := 0.6
 
 @export_group("Puesta de Huevos")
 @export var cantidad_huevos: int = 3
@@ -144,7 +149,7 @@ func _recalcular_resistencia() -> void:
 		escudo = EscudoComponente.new()
 		escudo.name = "EscudoComponente"
 		entidad_dueña.add_child(escudo)
-	var reduccion := clampf(reduccion_por_guardian * _guardianes_vivos.size(), 0.0, 1.0)
+	var reduccion := clampf(reduccion_por_guardian * _guardianes_vivos.size(), 0.0, _REDUCCION_MAXIMA)
 	escudo.activar(_DURACION_EFECTO_PERMANENTE, reduccion)
 	if buffs == null:
 		buffs = BuffsComponente.new()
@@ -199,6 +204,6 @@ func _actualizar_guardianes_red(rutas: Array[NodePath]) -> void:
 		buffs = BuffsComponente.new()
 		buffs.name = "BuffsComponente"
 		entidad_dueña.add_child(buffs)
-	var reduccion := clampf(reduccion_por_guardian * rutas.size(), 0.0, 1.0)
+	var reduccion := clampf(reduccion_por_guardian * rutas.size(), 0.0, _REDUCCION_MAXIMA)
 	buffs.agregar("resistencia_colonia", icono_escudo, _DURACION_EFECTO_PERMANENTE, false,
 		"Resistencia de la Colonia", "Reduce el daño recibido en %d%%" % int(reduccion * 100))

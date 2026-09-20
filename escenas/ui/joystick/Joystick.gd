@@ -59,3 +59,17 @@ func _on_touch_finalizado(indice, _posicion):
 		direccion = Vector2.ZERO
 		distancia = 0
 		SeñalManager.emitir(str("joystick_movimiento"), signal_id, [direccion])
+
+
+## Red de seguridad, mismo problema que _notification() de arriba (el
+## jugador se queda moviendose solo para siempre) pero otra causa: abrir
+## un diálogo/panel OS/chat desactiva TODO el subárbol del joystick vía
+## process_mode (ver ControlJuego.gd), lo que apaga _input() -- si el dedo
+## seguía arrastrando el joystick justo en ese instante (típico: caminar
+## hacia un NPC/cofre hasta que el auto-trigger abre su panel), el evento
+## real de "soltado" nunca llega, y como ControlJuego solo reactiva el
+## subárbol al volver a JUEGO (sin soltar nada), ningún toque futuro lo
+## corrige. ControlJuego llama esto ANTES de desactivar.
+func forzar_suelta() -> void:
+	if index != -1:
+		_on_touch_finalizado(index, palanca.global_position)

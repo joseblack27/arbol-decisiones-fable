@@ -131,7 +131,7 @@ func _on_body_entrada(cuerpo: Node2D) -> void:
 	# criterio que Proyectil._spawnear_efecto_impacto).
 	call_deferred("_aplicar_efecto", cuerpo)
 	if is_instance_valid(_habilidad_dueña):
-		_habilidad_dueña.avisar_cepo_activado(global_position)
+		_habilidad_dueña.avisar_cepo_activado(global_position, cuerpo.get_path())
 	queue_redraw()
 
 

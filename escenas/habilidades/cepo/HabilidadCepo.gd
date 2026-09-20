@@ -116,12 +116,14 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 ## activa de verdad — le avisa a los peers cercanos para que sus copias
 ## solo-visuales reproduzcan el mismo cambio, en vez de decidirlo cada una
 ## por su cuenta. Manda la posición para que _activar_cepo_visual_red()
-## pueda identificar CUÁL de los cepos vigentes es (ver _cepos_activos).
-func avisar_cepo_activado(posicion: Vector2) -> void:
+## pueda identificar CUÁL de los cepos vigentes es (ver _cepos_activos), y
+## la ruta del mob atrapado para poder ponerle el ícono de debuff también
+## en cada cliente (ver ese método).
+func avisar_cepo_activado(posicion: Vector2, ruta_objetivo: NodePath) -> void:
 	if not (Utils.en_red() and multiplayer.is_server()):
 		return
 	for peer_id in InteresEspacial.peers_cercanos(posicion):
-		rpc_id(peer_id, "_activar_cepo_visual_red", posicion)
+		rpc_id(peer_id, "_activar_cepo_visual_red", posicion, ruta_objetivo)
 
 
 ## El servidor decidió la posición real — acá se crea la copia SOLO visual
@@ -140,12 +142,34 @@ func _mostrar_cepo_red(posicion: Vector2) -> void:
 ## esa posición (nunca "la última colocada": con 2+ cepos vivos a la vez
 ## eso activaba el equivocado, ver el comentario de _cepos_activos).
 @rpc("authority", "reliable")
-func _activar_cepo_visual_red(posicion: Vector2) -> void:
+func _activar_cepo_visual_red(posicion: Vector2, ruta_objetivo: NodePath) -> void:
 	for cepo in _cepos_activos:
 		if is_instance_valid(cepo) and cepo.global_position.is_equal_approx(posicion):
 			cepo.activar_visual()
 			_cepos_activos.erase(cepo)
-			return
+			break
+	_anotar_icono_en_red(ruta_objetivo)
+
+
+## CLIENTE: le pone al mob atrapado el mismo ícono de "inmovilizado" que ya
+## le pone EfectoCepo._anotar_icono() en el servidor — reportado en juego
+## real (19 sep 2026): "hay debuffos que no se muestran correctamente,
+## como el cepo cuando un mob la pisa". Causa: EfectoCepo (quien de verdad
+## pone el ícono) solo existe en la copia REAL del cepo (monitoring=true
+## exclusivo del servidor, ver Cepo.mostrar_solo_visual) — ningún cliente
+## lo aplicaba nunca sobre el mob, solo veía cambiar el sprite del cepo en
+## sí. Mismo criterio que HabilidadPuestaHuevos._anotar_icono_guardian.
+func _anotar_icono_en_red(ruta_objetivo: NodePath) -> void:
+	var objetivo := get_node_or_null(ruta_objetivo)
+	if not is_instance_valid(objetivo) or _icono_debuff == null:
+		return
+	var buffs := objetivo.get_node_or_null("BuffsComponente") as BuffsComponente
+	if buffs == null:
+		buffs = BuffsComponente.new()
+		buffs.name = "BuffsComponente"
+		objetivo.add_child(buffs)
+	buffs.agregar("cepo", _icono_debuff, duracion_aturdimiento, true,
+		"Cepo", "Inmovilizado, pierde vida cada %s" % Utils.formatear_segundos(intervalo_tick))
 
 
 ## GestorPiscinas recicla instancias (ver ese archivo): un cepo que se

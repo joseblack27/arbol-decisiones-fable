@@ -48,10 +48,25 @@ func _on_ejecutar() -> Estado:
 		return Estado.FALLIDO
 	var destino: Vector2 = destino_raw
 
-	if agente.global_position.distance_to(destino) <= margen_llegada:
+	# Comandar ANTES de preguntar "llegó" -- llego_al_destino() lee el
+	# estado interno que deja el ÚLTIMO comandar_destino() (mismo criterio
+	# que AccionDeambular).
+	movimiento.comandar_destino(destino, movimiento.velocidad_base * multiplicador_velocidad)
+
+	# llego_al_destino() (no una distancia cruda): reportado en juego real
+	# (19 sep 2026) — si el punto exacto de la llamada (posición de la
+	# Reina al momento del llamado) cae en un tramo bloqueado por la
+	# topología de túneles del Hormiguero, la distancia cruda nunca se
+	# cumplía y la hormiga quedaba respondiendo a la llamada PARA SIEMPRE
+	# (ResponderLlamada es la rama de MÁS prioridad en el árbol de cada
+	# hormiga), bloqueada de Atacar/Perseguir/Deambular -- se veía como
+	# "dejó de detectar al jugador" y "un segundo llamado no hace nada"
+	# (la hormiga seguía atendiendo el primero). llego_al_destino() se
+	# rinde sola tras quedar atascada (ver MovimientoComponente.
+	# _TIEMPO_MAXIMO_INTENTANDO_LLEGAR).
+	if movimiento.llego_al_destino(margen_llegada):
 		movimiento.detener()
 		_memoria.establecer(nombre_variable_activa, false)
 		return Estado.EXITOSO
 
-	movimiento.comandar_destino(destino, movimiento.velocidad_base * multiplicador_velocidad)
 	return Estado.EXITOSO
