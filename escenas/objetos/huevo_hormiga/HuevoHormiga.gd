@@ -8,10 +8,13 @@ class_name HuevoHormiga
 ## sin IA, sin visión, sin movimiento: solo se queda ahí a esperar a que lo
 ## rompan o a eclosionar.
 ##
-## Textura placeholder generada por código (óvalo relleno, tintado con
-## datos.color) en vez de un sprite dedicado — reemplazar por arte real más
-## adelante no necesita tocar este script, solo asignar Sprite2D.texture a
-## mano en el .tscn (ver _ready(), que respeta cualquier textura ya puesta).
+## Usa el sprite real `assets/sprites/ant_larva_48x48_v4.png` (asignado a
+## mano en HuevoHormiga.tscn, ver Sprite2D.texture) — antes era una
+## textura placeholder generada por código (óvalo relleno), reemplazada
+## tras confirmarse en juego real que ni el contraste ni el tamaño del
+## placeholder alcanzaban para que se notara en medio de una pelea de
+## jefe. `_generar_textura_placeholder()` sigue acá como respaldo (ver
+## _ready(), que solo la usa si Sprite2D.texture llega sin asignar).
 
 const _ANCHO := 22
 const _ALTO := 28

@@ -1,9 +1,10 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=6 format=3]
 
 [ext_resource type="Resource" path="res://recursos/enemigos/HuevoHormiga.tres" id="0_datos"]
 [ext_resource type="Script" path="res://escenas/objetos/huevo_hormiga/HuevoHormiga.gd" id="1_huevo"]
 [ext_resource type="Script" path="res://componentes/VidaComponente.gd" id="2_vida"]
 [ext_resource type="Script" path="res://componentes/arbol_comportamiento/MemoriaBT.gd" id="3_memoria"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ant_larva_48x48_v4.png" id="4_larva"]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_cuerpo"]
 radius = 11.0
@@ -38,5 +39,6 @@ shape = SubResource("CircleShape2D_vida")
 script = ExtResource("3_memoria")
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("4_larva")
 
 [node name="Habilidades" type="Marker2D" parent="."]

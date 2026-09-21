@@ -669,9 +669,9 @@ metadata/_custom_type_script = "uid://mgcsfgslagtk"
 
 [node name="NombreJefe" type="Label" parent="."]
 offset_left = -104.0
-offset_top = -134.0
+offset_top = -72.0
 offset_right = 104.0
-offset_bottom = -115.0
+offset_bottom = -53.0
 theme_override_colors/font_color = Color(0.9, 0.55, 0.5, 0.95)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
 theme_override_constants/outline_size = 2
@@ -683,9 +683,9 @@ vertical_alignment = 1
 [node name="EtiquetaHabilidad" type="Label" parent="."]
 visible = false
 offset_left = -104.0
-offset_top = -160.0
+offset_top = -120.0
 offset_right = 104.0
-offset_bottom = -135.0
+offset_bottom = -95.0
 theme_override_colors/font_color = Color(1, 0.4, 0.35, 1)
 theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
 theme_override_constants/outline_size = 5
