@@ -41,6 +41,17 @@ const _UMBRAL_FASE_4 := 0.25
 @export var habilidad_embestida_bt: HabilidadBT
 @export var multiplicador_furia_final: float = 1.4
 
+## Pedido explícito del usuario (20 sep 2026): "quiero que cuando la
+## reina detecte un jugador, el area de detección se doble, para que sea
+## un poco mas dificil perder al jugador" -- probando el Hormiguero de
+## punta a punta, la Reina perdía el agro seguido (alejarse un poco del
+## radio de VisionComponente, ver ese script, ya alcanza para que
+## objetivo_perdido se dispare). Mientras tenga a alguien detectado, su
+## radio de visión se duplica; en cuanto se queda sin nadie detectado,
+## vuelve al radio original -- ver _ajustar_radio_deteccion().
+const MULTIPLICADOR_RADIO_DETECCION_CON_OBJETIVO := 2.0
+var _radio_deteccion_base: float = 0.0
+
 var _fase: int = 1
 var _refuerzos_fase4: Array[PackedScene] = [
 	preload("res://escenas/enemigos/EnemigoHormigaObrera.tscn"),
@@ -65,6 +76,58 @@ func _ready() -> void:
 	var golpe_transicion := get_node_or_null("Habilidades/HabilidadGolpeVerdaderoTransicion")
 	if golpe_transicion:
 		golpe_transicion.daño = dano_golpe_transicion
+	_preparar_radio_deteccion()
+
+
+## Duplica la forma ANTES de guardar el radio base -- es un sub_resource
+## compartido en la escena empaquetada (CircleShape2D_itdr7), así que
+## tocar .radius directo sin duplicar afectaría a CUALQUIER OTRA Reina
+## que llegue a existir a la vez (ej. dos niveles de Hormiguero cargados
+## juntos en una prueba) -- mismo criterio que otros duplicate() de forma
+## en este proyecto (ver HabilidadParpadeo._forma_colision_de).
+func _preparar_radio_deteccion() -> void:
+	var forma := _forma_deteccion()
+	if forma == null:
+		return
+	var col := componente_vision.get_node("CollisionShape2D") as CollisionShape2D
+	col.shape = forma.duplicate()
+	_radio_deteccion_base = (col.shape as CircleShape2D).radius
+
+
+func _forma_deteccion() -> CircleShape2D:
+	if componente_vision == null:
+		return null
+	var col := componente_vision.get_node_or_null("CollisionShape2D") as CollisionShape2D
+	if col == null or not (col.shape is CircleShape2D):
+		return null
+	return col.shape as CircleShape2D
+
+
+## Mientras siga habiendo AL MENOS un jugador detectado, radio doble; en
+## cuanto se queda sin ninguno, vuelve al radio original -- ver el
+## comentario grande de MULTIPLICADOR_RADIO_DETECCION_CON_OBJETIVO.
+func _ajustar_radio_deteccion(con_objetivo: bool) -> void:
+	if _radio_deteccion_base <= 0.0:
+		return
+	var forma := _forma_deteccion()
+	if forma == null:
+		return
+	forma.radius = _radio_deteccion_base * MULTIPLICADOR_RADIO_DETECCION_CON_OBJETIVO if con_objetivo \
+		else _radio_deteccion_base
+
+
+func _on_objetivo_detectado(area: Area2D) -> void:
+	var ya_tenia: bool = memoria.obtener("jugador_detectado", false) if memoria else false
+	super._on_objetivo_detectado(area)
+	if not ya_tenia:
+		_ajustar_radio_deteccion(true)
+
+
+func _on_objetivo_perdido(area: Area2D) -> void:
+	super._on_objetivo_perdido(area)
+	var sigue_detectando: bool = memoria.obtener("jugador_detectado", false) if memoria else false
+	if not sigue_detectando:
+		_ajustar_radio_deteccion(false)
 
 
 func _process(delta: float) -> void:
