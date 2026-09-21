@@ -473,7 +473,20 @@ func _dibujar_iconos_estado() -> void:
 
 
 func _joystick_movimiento(_direccion: Vector2):
-	if _muerto or _bloqueos_control > 0:
+	if _muerto:
+		return
+	# Soltar el joystick (dirección CERO) siempre se respeta, incluso con
+	# el control bloqueado (aturdido, canal de Ráfaga/Lanzallamas en
+	# curso, etc.) -- el corte de abajo existe para no dejar ARRANCAR un
+	# movimiento nuevo mientras está bloqueado, pero de paso también
+	# tragaba la señal de "ya solté", dejando "direccion" pegada en su
+	# último valor no-cero hasta que algo más la pisara. Relacionado con
+	# el bug real de "el joystick queda moviendo solo" (ver Joystick.
+	# forzar_suelta/ControlJuego._on_modo_cambiado): ese fix ya cubre el
+	# camino de "se desactiva el subárbol", pero si el "soltado" llega
+	# justo mientras el jugador está bloqueado por OTRA razón a la vez,
+	# sin esto se perdía igual.
+	if _bloqueos_control > 0 and _direccion != Vector2.ZERO:
 		return
 	if Utils.en_red():
 		# En red: el joystick es local a CADA cliente (SeñalManager es un bus
