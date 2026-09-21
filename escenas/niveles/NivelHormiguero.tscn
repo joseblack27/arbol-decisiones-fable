@@ -131,7 +131,7 @@ componente_animacion = NodePath("AnimacionComponente")
 memoria = NodePath("ArbolComportamiento/MemoriaBT")
 datos = ExtResource("14_8xm6l")
 mostrar_nombre = false
-altura_nombre = -120.0
+altura_nombre = -60.0
 xp_otorgada = 1000
 
 [node name="Decoraciones" type="Node2D" parent="."]
