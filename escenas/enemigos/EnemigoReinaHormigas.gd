@@ -77,6 +77,14 @@ func _ready() -> void:
 	if golpe_transicion:
 		golpe_transicion.daño = dano_golpe_transicion
 	_preparar_radio_deteccion()
+	# TEMPORAL (21 sep 2026) -- pedido explícito para poder probar Puesta de
+	# Huevos sin tener que bajarle la vida a la Reina hasta fase 3 primero.
+	# Normalmente esta habilidad recién se agrega en _reanudar_fase(3). NO
+	# hace falta tocar ese caso 3: _agregar_habilidad_bt() ya es un no-op si
+	# el BT ya la tiene (evita duplicados cuando la fase 3 llegue de verdad).
+	# RECORDAR SACAR ESTA LÍNEA cuando termine el diagnóstico -- el usuario
+	# pidió que se lo recuerde.
+	_agregar_habilidad_bt("ArbolComportamiento/Selector/Atacar/SelectorHabilidades", habilidad_puesta_huevos_bt)
 
 
 ## Duplica la forma ANTES de guardar el radio base -- es un sub_resource
@@ -151,12 +159,25 @@ func _conectar_etiqueta_habilidad() -> void:
 func _on_habilidad_activada_para_etiqueta(habilidad: HabilidadBase) -> void:
 	_mostrar_etiqueta_habilidad_red(habilidad.nombre_habilidad)
 	if Utils.en_red() and multiplayer.is_server():
-		for peer_id in InteresEspacial.peers_cercanos(global_position):
+		var peers := InteresEspacial.peers_cercanos(global_position)
+		# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- el usuario reporta que el
+		# cartel de nombre de habilidad no aparece SOLO para Puesta de
+		# Huevos (ver [DIAG huevos] en HabilidadPuestaHuevos.gd, mismo
+		# día). Confirmar que el despacho del RPC ocurre igual para esta
+		# habilidad que para las demás -- sacar cuando se resuelva.
+		print("[DIAG etiqueta servidor] habilidad=%s peers=%s" % [habilidad.tipo_habilidad, peers])
+		for peer_id in peers:
 			rpc_id(peer_id, "_mostrar_etiqueta_habilidad_red", habilidad.nombre_habilidad)
 
 
 @rpc("authority", "reliable")
 func _mostrar_etiqueta_habilidad_red(nombre: String) -> void:
+	# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- confirmar si este RPC LLEGA al
+	# cliente y si _etiqueta_habilidad está resuelta cuando llega -- ver
+	# comentario en _on_habilidad_activada_para_etiqueta. Sacar cuando se
+	# resuelva.
+	if Utils.en_red() and not multiplayer.is_server():
+		print("[DIAG etiqueta cliente] RPC recibido nombre=%s etiqueta_nula=%s" % [nombre, _etiqueta_habilidad == null])
 	if _etiqueta_habilidad == null:
 		return
 	_etiqueta_habilidad.text = nombre

@@ -38,6 +38,14 @@ func _ready() -> void:
 		sprite.scale = Vector2.ONE * _ESCALA_PLACEHOLDER
 	super._ready()
 	_iniciar_pulso()
+	# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- confirmar si el huevo llega a
+	# crearse en el CLIENTE (réplica del MultiplayerSpawner) y en qué
+	# estado -- ver [DIAG huevos] en HabilidadPuestaHuevos.gd para el
+	# equivalente del lado servidor. Sacar cuando se resuelva.
+	if Utils.en_red() and not multiplayer.is_server():
+		print("[DIAG huevo cliente] creado en %s visible=%s sprite_visible=%s textura=%s escala=%s" % [
+			global_position, visible, sprite.visible if sprite else "sin sprite",
+			(sprite.texture != null) if sprite else "sin sprite", sprite.scale if sprite else "sin sprite"])
 
 
 func _generar_textura_placeholder() -> ImageTexture:
