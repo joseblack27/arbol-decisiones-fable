@@ -15,11 +15,24 @@ class_name HuevoHormiga
 
 const _ANCHO := 22
 const _ALTO := 28
+## Reportado en juego real (20 sep 2026, tras ya haberle subido el
+## contraste): seguía sin verse NADA. Causa real -- no era contraste, era
+## tamaño: 22x28px es más chico que UN SOLO tile (32x32) y bastante menos
+## que una hormiga real en pantalla (guardián ~96x96px, sprite 64x64
+## escalado x1.5, ver EnemigoHormigaSoldado.tscn) -- en medio de una
+## pelea de jefe, con efectos y otras hormigas alrededor, un punto tan
+## chico (aunque pulse) es prácticamente imperceptible en un celular real.
+## Escala SOLO del placeholder generado acá -- si algún día se reemplaza
+## por arte real asignado a mano en el .tscn (ver comentario de clase),
+## ese sprite ya vendría con el tamaño que corresponda, sin necesidad de
+## este ajuste.
+const _ESCALA_PLACEHOLDER := 2.2
 
 
 func _ready() -> void:
 	if sprite and sprite.texture == null:
 		sprite.texture = _generar_textura_placeholder()
+		sprite.scale = Vector2.ONE * _ESCALA_PLACEHOLDER
 	super._ready()
 	_iniciar_pulso()
 
@@ -55,6 +68,10 @@ func _generar_textura_placeholder() -> ImageTexture:
 func _iniciar_pulso() -> void:
 	if not sprite:
 		return
+	# Relativo a la escala YA puesta (2.2 del placeholder, o 1.0 si algún
+	# día hay arte real sin este ajuste) -- no un valor absoluto fijo, para
+	# no pisar el tamaño real de arriba.
+	var base := sprite.scale
 	var tween := create_tween().set_loops()
-	tween.tween_property(sprite, "scale", Vector2(1.2, 1.2), 0.5).set_trans(Tween.TRANS_SINE)
-	tween.tween_property(sprite, "scale", Vector2(1.0, 1.0), 0.5).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(sprite, "scale", base * 1.2, 0.5).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(sprite, "scale", base, 0.5).set_trans(Tween.TRANS_SINE)

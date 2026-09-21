@@ -967,23 +967,35 @@ func _aplicar_datos() -> void:
 		spr.modulate = datos.color
 
 
-## Sin "datos" (p. ej. un aliado invocado por el jugador) no se dibuja nada
-## — mismo criterio que tenía antes BarraVidaEnergiaComponente.
+## Sin "datos" (p. ej. un aliado invocado por el jugador) no se dibuja
+## NADA, ni nombre ni íconos de estado — mismo criterio que tenía antes
+## BarraVidaEnergiaComponente.
+##
+## CON datos, en cambio, _nodo_nombre (la superficie de dibujo compartida)
+## se crea SIEMPRE, aunque mostrar_nombre sea false — jefes con su propio
+## cartel dedicado (NombreJefe, ver EnemigoReinaHormigas y los otros 4
+## jefes con este mismo `mostrar_nombre = false`). Antes, mostrar_nombre
+## en false cortaba esta función ACÁ MISMO, así que _nodo_nombre nunca se
+## creaba — y sin él, ni _intentar_conectar_buffs_estado() ni _dibujar_
+## iconos_estado_mob() se llamaban jamás: NINGÚN jefe del juego podía
+## mostrar NUNCA ningún debuff (reportado en juego real, 20 sep 2026:
+## "en la reina no se le ve ninguno, ni veneno, ni cepo, nada" — no es un
+## bug puntual del Cepo, afecta a los 5 jefes que usan este patrón).
 func _crear_nombre_mob() -> void:
-	if not mostrar_nombre or datos == null:
+	if datos == null:
 		return
-	var nombre: String = datos.nombre_tipo.strip_edges()
-	if nombre == "":
-		nombre = String(name)
-	_texto_nombre = ("Nv.%d %s" % [datos.nivel, nombre]) if datos.nivel > 0 else nombre
-	if _texto_nombre == "":
-		return
+	if mostrar_nombre:
+		var nombre: String = datos.nombre_tipo.strip_edges()
+		if nombre == "":
+			nombre = String(name)
+		_texto_nombre = ("Nv.%d %s" % [datos.nivel, nombre]) if datos.nivel > 0 else nombre
 
 	_nodo_nombre = Node2D.new()
 	_nodo_nombre.name = "NombreMob"
 	_nodo_nombre.position = Vector2(0.0, altura_nombre)
 	add_child(_nodo_nombre)
-	_nodo_nombre.draw.connect(_dibujar_nombre_mob)
+	if _texto_nombre != "":
+		_nodo_nombre.draw.connect(_dibujar_nombre_mob)
 	# Los íconos de estado usan el MISMO nodo/draw que el nombre (no uno
 	# aparte): así quedan garantizados en el mismo orden de dibujo, encima
 	# del sprite, sin duplicar la lógica de "quedar último en el árbol" de
