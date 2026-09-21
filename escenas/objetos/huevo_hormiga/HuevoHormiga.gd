@@ -31,6 +31,10 @@ const _ALTO := 28
 ## este ajuste.
 const _ESCALA_PLACEHOLDER := 2.2
 
+## Duración del vuelo desde la Reina hasta el punto de aterrizaje -- ver
+## lanzar_hacia().
+const _DURACION_LANZAMIENTO := 0.45
+
 
 func _ready() -> void:
 	if sprite and sprite.texture == null:
@@ -46,6 +50,24 @@ func _ready() -> void:
 		print("[DIAG huevo cliente] creado en %s visible=%s sprite_visible=%s textura=%s escala=%s" % [
 			global_position, visible, sprite.visible if sprite else "sin sprite",
 			(sprite.texture != null) if sprite else "sin sprite", sprite.scale if sprite else "sin sprite"])
+
+
+## Vuela desde donde nació (la Reina, ver HabilidadPuestaHuevos._ejecutar)
+## hasta "destino" y se queda ahí quieto -- pedido explícito del usuario
+## (21 sep 2026): "que la hormiga los lance como proyectiles hasta la
+## ubicación donde desea invocarlos, para tener por lo menos una visual
+## como habilidad" (antes aparecía de golpe en su posición final, sin
+## ningún indicio visual de que la habilidad hizo algo). NO desaparece al
+## llegar -- sigue siendo el mismo huevo de siempre, con su pulso y su
+## eclosión normales (ver _iniciar_pulso/_al_terminar_descanso). Solo se
+## llama del lado con autoridad real -- _ejecutar() ya está gateada a
+## servidor/sin red -- así que el vuelo se replica solo con el mismo
+## mecanismo genérico de posición de cualquier mob en movimiento (ver
+## Enemigo._physics_process), sin necesidad de un RPC propio.
+func lanzar_hacia(destino: Vector2, duracion: float = _DURACION_LANZAMIENTO) -> void:
+	var tween := create_tween()
+	tween.tween_property(self, "global_position", destino, duracion) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 
 func _generar_textura_placeholder() -> ImageTexture:

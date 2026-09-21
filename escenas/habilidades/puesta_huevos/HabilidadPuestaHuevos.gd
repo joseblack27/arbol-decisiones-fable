@@ -75,10 +75,25 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 	_huevos_activos.clear()
 	for i in cantidad_huevos:
 		var huevo := escena_huevo.instantiate()
+		# Nace EN la posición de la Reina (antes de add_child, para que la
+		# réplica del MultiplayerSpawner ya capture esa posición de arranque)
+		# y de ahí vuela hasta su lugar -- pedido explícito del usuario: "que
+		# la hormiga los lance como proyectiles hasta la ubicación donde
+		# desea invocarlos, para tener por lo menos una visual como
+		# habilidad" (antes aparecían de golpe, invisibles, sin ningún
+		# indicio de que la habilidad hizo algo). No desaparecen al llegar:
+		# es el mismo HuevoHormiga de siempre, que se queda quieto y sigue
+		# su ciclo normal (pulso, eclosión) una vez aterriza -- ver
+		# HuevoHormiga.lanzar_hacia().
+		huevo.global_position = origen.global_position
 		contenedor.add_child(huevo, true)
-		huevo.global_position = origen.global_position \
+		var destino := origen.global_position \
 			+ Vector2(randf_range(-radio_dispersion, radio_dispersion),
 				randf_range(-radio_dispersion, radio_dispersion))
+		if huevo.has_method("lanzar_hacia"):
+			huevo.call("lanzar_hacia", destino)
+		else:
+			huevo.global_position = destino
 		_huevos_activos.append(huevo)
 
 	# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- reportado en juego real: las
