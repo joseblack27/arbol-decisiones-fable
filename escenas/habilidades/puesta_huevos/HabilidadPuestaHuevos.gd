@@ -81,6 +81,17 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 				randf_range(-radio_dispersion, radio_dispersion))
 		_huevos_activos.append(huevo)
 
+	# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- reportado en juego real: las
+	# larvas no se ven pese a que todo el resto de la cadena (spawner
+	# registrado, entidad creada server-side con posición/visible
+	# correctos, sprite real asignado) da bien en pruebas headless. Una
+	# sola línea por cast (cooldown 25s, no llena el log) para conseguir
+	# datos reales de la próxima partida -- sacar una vez resuelto.
+	if Utils.en_red() and multiplayer.is_server():
+		print("[DIAG huevos] %d creados en %s, peers cercanos=%s, contenedor=%s" % [
+			_huevos_activos.size(), origen.global_position,
+			InteresEspacial.peers_cercanos(origen.global_position), contenedor.get_path()])
+
 	# Mismo "respiro" telegrafiado que las transiciones de fase (ver
 	# Enemigo._telegrafiar_pausa_de_fase): congela BT+movimiento+animación,
 	# espera duracion_descanso, y si sigue viva reactiva todo antes de

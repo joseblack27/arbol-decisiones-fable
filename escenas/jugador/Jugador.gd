@@ -472,6 +472,38 @@ func _dibujar_iconos_estado() -> void:
 		tamano_icono_estado, separacion_iconos_estado, _COLOR_CONTORNO_ICONOS_ESTADO)
 
 
+## Red de seguridad adicional (pedido explícito del usuario, 21 sep 2026:
+## "cuando hay subida de ping es cuando se queda el joystick como pegado
+## ... parece que la variable de dirección ... no se actualiza a 0"):
+## chequea el estado REAL del joystick (Joystick.esta_presionado(), no una
+## inferencia por falta de movimiento -- eso confundiría "parado a
+## propósito contra una pared" con este bug, ver _esta_incrustado_en_pared
+## para el mismo criterio aplicado al otro mecanismo de destrabe) contra
+## "direccion". Un pico de ping puede introducir un hiccup de fotograma
+## justo cuando el dedo se levanta; si ese evento de soltado se pierde en
+## el medio, esto lo corrige en el próximo fotograma físico sin esperar a
+## que el jugador vuelva a tocar la pantalla.
+##
+## Solo tiene sentido donde el joystick EXISTE de verdad: el dueño local
+## (single player, o el cliente dueño en red) -- nunca en el servidor
+## dedicado (sin UI) ni en la réplica de OTRO jugador en mi pantalla.
+var _joystick_local: Node = null
+
+func _verificar_joystick_soltado() -> void:
+	if direccion == Vector2.ZERO:
+		return
+	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
+		return
+	if not is_instance_valid(_joystick_local):
+		_joystick_local = null
+		for hijo in get_tree().get_root().find_children("*", "", true, false):
+			if hijo.has_method("esta_presionado"):
+				_joystick_local = hijo
+				break
+	if _joystick_local and not _joystick_local.esta_presionado():
+		_joystick_movimiento(Vector2.ZERO)
+
+
 func _joystick_movimiento(_direccion: Vector2):
 	if _muerto:
 		return
@@ -695,6 +727,8 @@ func _physics_process(delta: float) -> void:
 		_bloqueo_transicion = maxf(0.0, _bloqueo_transicion - delta)
 		direccion = Vector2.ZERO
 		velocity = Vector2.ZERO
+
+	_verificar_joystick_soltado()
 
 	# En red, el cliente que NO es dueño de este cuerpo (la réplica de OTRO
 	# jugador en mi pantalla) no lo mueve directo — solo interpola hacia la

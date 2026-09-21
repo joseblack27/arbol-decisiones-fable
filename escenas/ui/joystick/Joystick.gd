@@ -73,3 +73,10 @@ func _on_touch_finalizado(indice, _posicion):
 func forzar_suelta() -> void:
 	if index != -1:
 		_on_touch_finalizado(index, palanca.global_position)
+
+
+## Estado REAL (no inferido) de si hay un dedo sosteniendo el joystick
+## ahora mismo -- lo consulta Jugador._verificar_joystick_soltado() como
+## red de seguridad adicional contra quedar "pegado" en una dirección.
+func esta_presionado() -> bool:
+	return index != -1
