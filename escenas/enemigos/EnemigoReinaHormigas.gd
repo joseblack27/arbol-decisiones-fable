@@ -298,13 +298,24 @@ func _activar_furia_final() -> void:
 ## alguna sala, tanto los refuerzos de fase 4 como las guardianas de
 ## HabilidadPuestaHuevos dejarían de verse en los clientes sin ningún
 ## error visible (el MultiplayerSpawner rechaza en silencio una escena no
-## registrada). HuevoHormiga.tscn en cambio SÍ es nueva y no la crea
-## ningún otro nodo del nivel.
+## registrada).
+## HuevoHormiga.tscn NO va acá a propósito (investigación 21 sep 2026, ver
+## bug-huevos-multiplayerspawner-desincronizado.md): confirmado en juego
+## real que el MultiplayerSpawner de un cliente que se conecta a un nivel
+## YA poblado (típico en el Hormiguero) queda con su caché de réplica
+## desincronizada del servidor (errores reales del motor: "get_cached_
+## object: ID N not found", "on_spawn_receive: spawner is null") — y no
+## solo para los huevos, TAMBIÉN para hormigas ambiente normales
+## (EnemigoHormigaObrera) creadas después de ese momento. HabilidadPuesta
+## Huevos ahora crea el huevo en el cliente a mano vía RPC explícito
+## (_crear_huevos_red), el mismo criterio que SpawnerMobs._recibir_mobs_
+## existentes ya usa para resincronizar peers tardíos -- ver ese comentario
+## ("el lote automático del MultiplayerSpawner... a veces sí dispara pero
+## no es confiable").
 func escenas_replicables() -> Array[String]:
 	return [
 		"res://escenas/enemigos/EnemigoHormigaObrera.tscn",
 		"res://escenas/enemigos/EnemigoHormigaSoldado.tscn",
-		"res://escenas/objetos/huevo_hormiga/HuevoHormiga.tscn",
 	]
 
 
