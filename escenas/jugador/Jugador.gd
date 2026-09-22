@@ -502,6 +502,21 @@ func _verificar_joystick_soltado() -> void:
 				break
 	if _joystick_local and not _joystick_local.esta_presionado():
 		_joystick_movimiento(Vector2.ZERO)
+		# _joystick_movimiento() ya corrige la copia LOCAL (para que se vea
+		# bien acá mismo) y le avisa al servidor por _pedir_mover_red -- pero
+		# ese canal es "unreliable_ordered" a propósito (estado continuo,
+		# normalmente un paquete de más/menos no importa). Reportado en juego
+		# real (21 sep 2026): con picos de lag, justo ESE paquete de "ya
+		# solté" se puede perder, y como acá solo se manda una vez (el
+		# próximo fotograma ya ve direccion==ZERO y no vuelve a entrar), el
+		# servidor nunca se entera y sigue moviendo el cuerpo real de
+		# verdad -- se ve corregido en la propia pantalla pero el cuerpo
+		# autoritativo (el que ven TODOS, incluido este cliente al
+		# reconciliar) sigue avanzando solo. _pedir_detener_red() ya existe
+		# para esto mismo (canal reliable, ver su comentario grande) --
+		# reusarlo acá en vez de inventar un tercer camino.
+		if Utils.en_red() and not multiplayer.is_server():
+			rpc_id(1, "_pedir_detener_red")
 
 
 func _joystick_movimiento(_direccion: Vector2):

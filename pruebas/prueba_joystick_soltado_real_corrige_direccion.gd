@@ -23,6 +23,7 @@ var _joystick
 
 var _corrige_si_no_esta_presionado_ok := false
 var _no_toca_si_si_esta_presionado_ok := false
+var _en_red_corrige_sin_reventar_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -34,6 +35,8 @@ func _process(_delta: float) -> bool:
 			_probar_no_presionado_corrige()
 		5:
 			_probar_presionado_no_toca()
+		7:
+			_probar_en_red_avisa_confiable()
 			return _informar()
 	return false
 
@@ -71,8 +74,38 @@ func _probar_presionado_no_toca() -> void:
 		_no_toca_si_si_esta_presionado_ok)
 
 
+## Regresión (pedido explícito del usuario, 21 sep 2026): "volvió a
+## aparecer, pero me di cuenta que aparece cuando hay lag" -- la corrección
+## de arriba ya arregla la copia LOCAL, pero el aviso al servidor real
+## (_pedir_mover_red) viaja por un canal unreliable_ordered a propósito
+## (estado continuo); con lag/pérdida de paquetes justo ESE aviso de "ya
+## solté" se puede perder, sin reintento -- el servidor nunca se entera y
+## sigue moviendo el cuerpo autoritativo solo. Ahora también se manda
+## _pedir_detener_red() (RELIABLE, ya existía para un bug relacionado, ver
+## su comentario grande) -- este chequeo solo confirma que, en modo red
+## (create_client sin conectar, mismo criterio que otras pruebas de este
+## proyecto), la corrección sigue funcionando sin reventar al intentar
+## mandar ese RPC extra.
+func _probar_en_red_avisa_confiable() -> void:
+	_joystick.forzar_suelta()  # el toque de _probar_presionado_no_toca() seguía activo.
+
+	var peer := ENetMultiplayerPeer.new()
+	peer.create_client("127.0.0.1", 34602)  # puerto sin nadie escuchando: no hace falta conectar.
+	root.multiplayer.multiplayer_peer = peer
+	_jugador.peer_id_dueño = root.multiplayer.get_unique_id()
+
+	_jugador.direccion = Vector2.RIGHT
+	_jugador._verificar_joystick_soltado()
+	_en_red_corrige_sin_reventar_ok = _jugador.direccion == Vector2.ZERO
+	print("En red, con el joystick sin presionar, direccion se corrige igual (esperado true): %s" % \
+		_en_red_corrige_sin_reventar_ok)
+
+	root.multiplayer.multiplayer_peer = OfflineMultiplayerPeer.new()
+
+
 func _informar() -> bool:
-	var exito := _corrige_si_no_esta_presionado_ok and _no_toca_si_si_esta_presionado_ok
+	var exito := _corrige_si_no_esta_presionado_ok and _no_toca_si_si_esta_presionado_ok \
+		and _en_red_corrige_sin_reventar_ok
 	print("PRUEBA JOYSTICK SOLTADO REAL CORRIGE DIRECCION %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true
