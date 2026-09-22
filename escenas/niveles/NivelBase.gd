@@ -107,6 +107,19 @@ func _configurar_spawner_red() -> void:
 	# absoluto y necesita que el spawner ya esté dentro del árbol.
 	enemigos.add_child(spawner)
 	spawner.spawn_path = enemigos.get_path()
+	# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- investigación abierta de las
+	# larvas de la Reina invisibles: confirmar, en cada peer (server Y
+	# cliente), si el propio MultiplayerSpawner llega siquiera a spawnear/
+	# despawnear un HuevoHormiga -- esto es la señal directa del motor, más
+	# confiable que inferir por RPCs fallidos. Sacar cuando se resuelva.
+	spawner.spawned.connect(func(nodo: Node) -> void:
+		if nodo.name.begins_with("HuevoHormiga"):
+			print("[DIAG spawner] SPAWNED %s en %s (servidor=%s)" % [
+				nodo.name, nombre_nivel, Utils.en_red() and multiplayer.is_server()]))
+	spawner.despawned.connect(func(nodo: Node) -> void:
+		if nodo.name.begins_with("HuevoHormiga"):
+			print("[DIAG spawner] DESPAWNED %s en %s (servidor=%s)" % [
+				nodo.name, nombre_nivel, Utils.en_red() and multiplayer.is_server()]))
 	spawner.add_spawnable_scene("res://escenas/enemigos/AliadoInvocado.tscn")
 	for hijo in enemigos.get_children():
 		if hijo.has_method("escenas_replicables"):
