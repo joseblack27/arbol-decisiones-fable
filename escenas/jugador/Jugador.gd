@@ -216,6 +216,24 @@ var _sincronizacion_dura := 0.0
 const TIEMPO_BLOQUEO_TRANSICION := 3.0
 var _bloqueo_transicion := 0.0
 
+## SERVIDOR: ventana breve tras un _pedir_detener_red() real durante la que
+## _pedir_mover_red() rechaza cualquier pedido de ARRANCAR movimiento nuevo
+## (pero nunca uno de PARAR, mismo criterio que _bloqueos_control en
+## _joystick_movimiento). _pedir_mover_red es unreliable_ordered A PROPÓSITO
+## (estado continuo) -- pero eso solo garantiza orden DENTRO de ese mismo
+## canal, nunca contra el canal reliable de _pedir_detener_red (mismo
+## problema ya documentado en el comentario grande de _pedir_detener_red,
+## para el caso de una ráfaga/disparo). Reportado en juego real (23 sep
+## 2026, sigue el bug del joystick con lag): _verificar_joystick_soltado()
+## corrige la copia local Y manda el aviso confiable, pero si un paquete
+## VIEJO de "seguí moviéndome" (mandado ANTES de soltar, pero que tardó más
+## en llegar) llega DESPUÉS de ese aviso, pisa el "parate" -- y como el
+## cliente ya se dio por corregido (no reintenta más), el cuerpo
+## autoritativo queda moviéndose solo para siempre. Esta ventana absorbe
+## ese rezago.
+const _VENTANA_BLOQUEO_MOVIMIENTO_TRAS_DETENER := 0.3
+var _bloqueo_movimiento_tras_detener := 0.0
+
 
 ## Defensa en profundidad: aunque ahora solo el dueño local se suscribe a
 ## SeñalManager (ver _ready), desconectar acá evita el mismo tipo de
@@ -704,6 +722,14 @@ func _pedir_mover_red(direccion_pedida: Vector2) -> void:
 	# llegue a disparar.
 	if _congelamientos_disparo > 0:
 		return
+	# Ver _bloqueo_movimiento_tras_detener: un paquete VIEJO de "seguí
+	# moviéndome" (mandado antes de soltar, pero rezagado por lag) puede
+	# llegar en esta breve ventana posterior a un _pedir_detener_red() real
+	# — nunca rechaza PARAR (direccion_pedida == ZERO siempre pasa), solo
+	# un intento de retomar/cambiar movimiento mientras podría ser ese
+	# rezago.
+	if _bloqueo_movimiento_tras_detener > 0.0 and direccion_pedida != Vector2.ZERO:
+		return
 	direccion = direccion_pedida
 
 
@@ -729,6 +755,7 @@ func _pedir_detener_red() -> void:
 	if multiplayer.get_remote_sender_id() != peer_id_dueño:
 		return
 	direccion = Vector2.ZERO
+	_bloqueo_movimiento_tras_detener = _VENTANA_BLOQUEO_MOVIMIENTO_TRAS_DETENER
 
 
 func _physics_process(delta: float) -> void:
@@ -742,6 +769,9 @@ func _physics_process(delta: float) -> void:
 		_bloqueo_transicion = maxf(0.0, _bloqueo_transicion - delta)
 		direccion = Vector2.ZERO
 		velocity = Vector2.ZERO
+
+	if _bloqueo_movimiento_tras_detener > 0.0:
+		_bloqueo_movimiento_tras_detener = maxf(0.0, _bloqueo_movimiento_tras_detener - delta)
 
 	_verificar_joystick_soltado()
 
