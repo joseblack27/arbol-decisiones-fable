@@ -8,7 +8,7 @@ class_name HuevoHormiga
 ## sin IA, sin visión, sin movimiento: solo se queda ahí a esperar a que lo
 ## rompan o a eclosionar.
 ##
-## Usa el sprite real `assets/sprites/ant_larva_48x48_v4.png` (asignado a
+## Usa el sprite real `ant_larva_48x48_v4.png` (asignado a
 ## mano en HuevoHormiga.tscn, ver Sprite2D.texture) — antes era una
 ## textura placeholder generada por código (óvalo relleno), reemplazada
 ## tras confirmarse en juego real que ni el contraste ni el tamaño del

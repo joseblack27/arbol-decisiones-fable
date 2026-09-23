@@ -3,8 +3,8 @@
 # -- las larvas/huevos de la Reina seguían invisibles en la práctica
 # incluso después de subirle el contraste Y el tamaño al placeholder
 # generado por código. Reemplazado por un sprite real
-# (assets/sprites/ant_larva_48x48_v4.png, asignado a mano en
-# HuevoHormiga.tscn) -- confirma que la escena usa ESE archivo real (no
+# (ant_larva_48x48_v4.png, asignado a mano en HuevoHormiga.tscn) --
+# confirma que la escena usa ESE archivo real (no
 # volvió a caer en el placeholder por algún desliz al asignarlo) y que el
 # tamaño resultante sigue siendo más grande que un tile (32x32).
 #   godot --headless --path . --script res://pruebas/prueba_huevo_hormiga_tamano_visible.gd
@@ -17,8 +17,13 @@ func _process(_delta: float) -> bool:
 
 	var sprite: Sprite2D = huevo.get_node("Sprite2D")
 
+	# Por NOMBRE de archivo, no ruta completa -- el usuario reorganizó
+	# assets/sprites/ en subcarpetas (ant_larva_48x48_v4.png terminó en
+	# assets/sprites/enemigos/) y una ruta hardcodeada quedaba obsoleta con
+	# el primer reordenamiento del editor, aunque la escena siguiera
+	# apuntando bien al archivo real.
 	var usa_sprite_real := sprite.texture != null \
-		and sprite.texture.resource_path == "res://assets/sprites/ant_larva_48x48_v4.png"
+		and sprite.texture.resource_path.get_file() == "ant_larva_48x48_v4.png"
 	print("Usa el sprite real de la larva, no el placeholder (esperado true, ruta=%s): %s" % [
 		sprite.texture.resource_path if sprite.texture else "null", usa_sprite_real])
 
