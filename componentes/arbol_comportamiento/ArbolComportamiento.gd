@@ -32,6 +32,21 @@ extends Node
 ## Se almacena automáticamente en la MemoriaBT bajo la clave "agente".
 @export var agente: NodePath
 @export var intervalo_tick: float = 0.1  # 10 veces/seg en vez de 60
+## Radio (px) dentro del cual tiene que haber AL MENOS un jugador para que
+## este árbol siga tickeando -- más allá, se "duerme" solo (deja de correr
+## actualizar()) hasta que alguien vuelva a acercarse. Costo real medido en
+## producción (ver "[CARGA]"/ServidorDedicado._reportar_capacidad): con
+## varias decenas de mobs activos, "arboles=" (el tiempo evaluando árboles
+## de TODOS los mobs) es la línea que más escala con la cantidad de mobs --
+## y en un nivel grande (Camino, Hormiguero) la mayoría puede estar lejos de
+## cualquier jugador en un momento dado, pensando en vano. Mismo radio que
+## InteresEspacial.RADIO_INTERES a propósito: si nadie está lo bastante
+## cerca como para que este mob se replique en red, tampoco hay razón para
+## que piense -- nadie lo está mirando de ningún modo. 0 = nunca duerme
+## (dejarlo así en una escena puntual que necesite pensar siempre, p. ej. un
+## NPC errante cuya rutina dependa del reloj del mundo más que de si hay
+## alguien cerca).
+@export var radio_actividad: float = 1400.0
 
 @export_group("Memoria")
 ## Ruta al nodo MemoriaBT. Si se deja vacío, se busca automáticamente
@@ -51,6 +66,21 @@ var _agente: Node = null
 var _tiempo_acumulado: float = 0.0
 ## Número de ticks ejecutados. DepuradorBT lo usa para detectar nodos no evaluados.
 var tick_actual: int = 0
+
+## Revisar "¿hay algún jugador cerca?" no necesita la frecuencia del propio
+## tick del árbol (0.1s) -- un mob tarda un rato en volverse relevante o
+## dejar de serlo, así que revisarlo cada _INTERVALO_REVISION_SUEÑO alcanza
+## y evita sumar un chequeo de distancia por mob en CADA fotograma físico.
+const _INTERVALO_REVISION_SUEÑO := 1.5
+var _tiempo_para_revisar_sueño: float = 0.0
+## Bandera PROPIA, separada de "activo" a propósito: "activo" ya lo usan
+## los jefes para pausar el árbol durante transiciones de fase (ver
+## Enemigo._telegrafiar_pausa_de_fase) -- mezclar ambas haría que este mob
+## se "despertara" solo a mitad de una pausa de fase que todavía debía
+## seguir, o que una pausa de fase real quedara pisada por un despertar por
+## distancia. Se combinan en _process() (ver abajo), nunca se escriben una
+## a la otra.
+var _dormido_por_distancia: bool = false
 
 ## INSTRUMENTACIÓN TEMPORAL — microsegundos acumulados evaluando árboles de
 ## comportamiento (actualizar(), de TODOS los mobs) desde el último reporte
@@ -89,12 +119,35 @@ func _process(delta: float) -> void:
 	# jugador, de siempre) esto no cambia nada.
 	if Utils.en_red() and not multiplayer.is_server():
 		return
+	if radio_actividad > 0.0:
+		_tiempo_para_revisar_sueño -= delta
+		if _tiempo_para_revisar_sueño <= 0.0:
+			_tiempo_para_revisar_sueño = _INTERVALO_REVISION_SUEÑO
+			_revisar_sueño_por_distancia()
+		if _dormido_por_distancia:
+			return
 	_tiempo_acumulado += delta
 	if _tiempo_acumulado >= intervalo_tick:
 		_tiempo_acumulado = 0.0
 		var _inicio_us := Time.get_ticks_usec()
 		actualizar()
 		us_acumulados_todos_los_arboles += Time.get_ticks_usec() - _inicio_us
+
+
+## SERVIDOR (ver el gate de arriba, nunca corre en cliente): "duerme" el
+## árbol si ningún jugador está a radio_actividad o menos del agente.
+## Utils.en_red()==false (un solo jugador, sin red) nunca duerme --
+## InteresEspacial.peers_cercanos() vive de la lista de peers conectados,
+## que en ese modo siempre da vacía, y dormir SIEMPRE ahí apagaría la IA
+## por completo en partidas de un jugador.
+func _revisar_sueño_por_distancia() -> void:
+	if not Utils.en_red():
+		_dormido_por_distancia = false
+		return
+	if not is_instance_valid(_agente) or not (_agente is Node2D):
+		return
+	var posicion := (_agente as Node2D).global_position
+	_dormido_por_distancia = not InteresEspacial.hay_jugador_cerca(posicion, radio_actividad)
 
 
 # =============================================================================

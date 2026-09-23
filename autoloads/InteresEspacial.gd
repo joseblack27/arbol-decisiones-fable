@@ -92,6 +92,22 @@ func es_relevante_para_peer(posicion: Vector2, peer_id: int) -> bool:
 ## un PC), y no se perdía nada real: en cuanto el peer avisa que está listo
 ## vuelve a entrar acá, y SpawnerMobs le hace un resync completo (ver
 ## [RESYNC] en el log del servidor).
+## true si hay AL MENOS un jugador a "radio" o menos de "posicion" -- mismo
+## criterio de distancia (y el mismo "si no se sabe todavía, asumir cerca")
+## que es_relevante_para_peer, pero sin armar la lista completa de peer_ids
+## cuando solo hace falta saber si hay alguno. Usado por ArbolComportamiento
+## para dormir mobs lejos de cualquier jugador (ver radio_actividad ahí) --
+## "radio" propio en vez de RADIO_INTERES fijo porque ahí puede convenir un
+## umbral distinto del de interés de red.
+func hay_jugador_cerca(posicion: Vector2, radio: float = RADIO_INTERES) -> bool:
+	var radio_cuadrado := radio * radio
+	for peer_id in _peers_enviables():
+		var jugador := jugador_de_peer(peer_id)
+		if jugador == null or posicion.distance_squared_to(jugador.global_position) <= radio_cuadrado:
+			return true
+	return false
+
+
 func peers_cercanos(posicion: Vector2) -> Array[int]:
 	var resultado: Array[int] = []
 	for peer_id in _peers_enviables():
