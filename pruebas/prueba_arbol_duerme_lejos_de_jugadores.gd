@@ -46,6 +46,7 @@ var _fase := 0
 var _momento_fase_ms := 0
 
 var _duerme_sin_peers_ok := false
+var _nunca_duerme_si_detecto_jugador_ok := false
 var _no_tiquea_dormido_ok := false
 var _despierta_si_hay_alguien_cerca_ok := false
 var _nunca_duerme_sin_red_ok := false
@@ -58,6 +59,7 @@ func _process(_delta: float) -> bool:
 		0:
 			_montar()
 			_probar_duerme_sin_peers()
+			_probar_nunca_duerme_si_detecto_jugador()
 			_fase = 1
 			_momento_fase_ms = Time.get_ticks_msec()
 		1:
@@ -100,6 +102,23 @@ func _probar_duerme_sin_peers() -> void:
 	print("Sin peers conectados, el árbol se duerme solo (esperado true): %s" % _duerme_sin_peers_ok)
 
 
+## Regresión (reportado en juego real, 23 sep 2026): "habían 3 [hormigas] y
+## después de un tiempo solo 1 se me quedó pegando" -- un mob que YA
+## detectó a un jugador (jugador_detectado, ver VisionComponente/Enemigo.
+## _on_objetivo_detectado -- independiente del tick del árbol) nunca debe
+## dormirse por distancia, sin importar qué diga el chequeo de distancia en
+## sí. Sin peers conectados (0 jugadores "cerca" según InteresEspacial),
+## pero CON jugador_detectado=true, tiene que seguir despierto igual.
+func _probar_nunca_duerme_si_detecto_jugador() -> void:
+	_mob.memoria.establecer("jugador_detectado", true)
+	_arbol._dormido_por_distancia = true  # forzado, para confirmar que esto lo pisa a false.
+	_arbol._revisar_sueño_por_distancia()
+	_nunca_duerme_si_detecto_jugador_ok = not _arbol._dormido_por_distancia
+	print("Con jugador_detectado=true, nunca se duerme aunque no haya peers cerca (esperado true): %s" % \
+		_nunca_duerme_si_detecto_jugador_ok)
+	_mob.memoria.establecer("jugador_detectado", false)  # no interferir con las fases siguientes.
+
+
 func _probar_no_tiquea_dormido() -> void:
 	var ticks_antes = _arbol.tick_actual
 	_no_tiquea_dormido_ok = _arbol.tick_actual == ticks_antes and _arbol._dormido_por_distancia
@@ -140,8 +159,8 @@ func _probar_activo_false_sigue_cortando() -> void:
 
 
 func _informar() -> bool:
-	var exito := _duerme_sin_peers_ok and _no_tiquea_dormido_ok and _despierta_si_hay_alguien_cerca_ok \
-		and _nunca_duerme_sin_red_ok and _activo_false_sigue_cortando_ok
+	var exito := _duerme_sin_peers_ok and _nunca_duerme_si_detecto_jugador_ok and _no_tiquea_dormido_ok \
+		and _despierta_si_hay_alguien_cerca_ok and _nunca_duerme_sin_red_ok and _activo_false_sigue_cortando_ok
 	print("PRUEBA ARBOL DUERME LEJOS DE JUGADORES %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

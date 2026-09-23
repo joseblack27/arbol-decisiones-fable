@@ -120,6 +120,17 @@ func _process(delta: float) -> void:
 	if Utils.en_red() and not multiplayer.is_server():
 		return
 	if radio_actividad > 0.0:
+		# Reportado en juego real (23 sep 2026): mobs que estaban atacando
+		# activamente se quedaban "pegados" a mitad de combate -- nunca
+		# debería dormirse uno que YA detectó a un jugador (jugador_
+		# detectado, ver VisionComponente/Enemigo._on_objetivo_detectado:
+		# independiente del propio tick del árbol, así que sigue
+		# actualizado aunque el árbol esté dormido). Chequeo INMEDIATO acá,
+		# no solo en _revisar_sueño_por_distancia() (cada
+		# _INTERVALO_REVISION_SUEÑO, hasta 1.5s de rezago): apenas detecta,
+		# despierta YA, sin esperar el próximo ciclo.
+		if _dormido_por_distancia and _memoria and _memoria.obtener("jugador_detectado", false):
+			_dormido_por_distancia = false
 		_tiempo_para_revisar_sueño -= delta
 		if _tiempo_para_revisar_sueño <= 0.0:
 			_tiempo_para_revisar_sueño = _INTERVALO_REVISION_SUEÑO
@@ -142,6 +153,11 @@ func _process(delta: float) -> void:
 ## por completo en partidas de un jugador.
 func _revisar_sueño_por_distancia() -> void:
 	if not Utils.en_red():
+		_dormido_por_distancia = false
+		return
+	# Nunca duerme a uno activamente enganchado -- ver el mismo criterio y
+	# comentario grande en _process().
+	if _memoria and _memoria.obtener("jugador_detectado", false):
 		_dormido_por_distancia = false
 		return
 	if not is_instance_valid(_agente) or not (_agente is Node2D):

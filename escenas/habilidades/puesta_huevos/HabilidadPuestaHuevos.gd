@@ -140,6 +140,18 @@ func _al_terminar_descanso() -> void:
 
 func _eclosionar(huevo: Node2D, contenedor: Node) -> void:
 	var pos := huevo.global_position
+	# Reporte real en juego (23 sep 2026): "las larvas al eclosionar no
+	# desaparecen y dejan de recibir daño" -- el huevo replicado a mano en
+	# el cliente (ver _crear_huevos_red, HuevoHormiga sacado de
+	# escenas_replicables()) nunca se enteraba de este queue_free() acá
+	# abajo: al morir en COMBATE sí llega el aviso genérico (Enemigo.
+	# _desvanecer_y_eliminar -> rpc("_despawn_red"), heredado tal cual),
+	# pero eclosionar NUNCA pasa por VidaComponente.quitar_vida()/_on_muerte
+	# -- ese aviso nunca se disparaba solo. Reusa el mismo RPC genérico en
+	# vez de inventar uno nuevo: mismo desvanecido visual que cualquier
+	# muerte de mob, ya probado.
+	if Utils.en_red() and multiplayer.is_server() and huevo.has_method("_despawn_red"):
+		huevo.rpc("_despawn_red")
 	huevo.queue_free()
 	if contenedor == null:
 		return
