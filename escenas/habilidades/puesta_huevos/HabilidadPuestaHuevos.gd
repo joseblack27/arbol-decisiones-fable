@@ -151,6 +151,12 @@ func _eclosionar(huevo: Node2D, contenedor: Node) -> void:
 	# vez de inventar uno nuevo: mismo desvanecido visual que cualquier
 	# muerte de mob, ya probado.
 	if Utils.en_red() and multiplayer.is_server() and huevo.has_method("_despawn_red"):
+		# DIAGNÓSTICO TEMPORAL (23 sep 2026) -- el usuario reporta que el
+		# fantasma SIGUE apareciendo pese a este aviso. Confirmar en el log
+		# del servidor si esta línea corre de verdad y con qué peers
+		# conectados -- sacar una vez resuelto.
+		print("[DIAG eclosion] avisando despawn de %s a peers=%s" % [
+			huevo.name, multiplayer.get_peers()])
 		huevo.rpc("_despawn_red")
 	huevo.queue_free()
 	if contenedor == null:

@@ -850,6 +850,13 @@ func _desvanecer_y_eliminar() -> void:
 ## en el servidor).
 @rpc("authority", "reliable")
 func _despawn_red() -> void:
+	# DIAGNÓSTICO TEMPORAL (23 sep 2026) -- reportado en juego real que un
+	# huevo eclosionado sigue como fantasma pese al aviso agregado en
+	# HabilidadPuestaHuevos._eclosionar(). Filtrado a HuevoHormiga para no
+	# ensuciar el log con cada muerte normal -- sacar una vez resuelto.
+	if self is HuevoHormiga:
+		print("[DIAG despawn cliente] _despawn_red recibido para %s (servidor=%s)" % [
+			name, Utils.en_red() and multiplayer.is_server()])
 	_muerto = true
 	_apagar_colision_de_muerto()
 	if componente_animacion:

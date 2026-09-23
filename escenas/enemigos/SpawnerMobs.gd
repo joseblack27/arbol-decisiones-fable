@@ -204,10 +204,26 @@ func _generar_uno() -> void:
 	# (_recibir_mobs_existentes se salta si el nodo ya llegó por la vía
 	# normal), así que no duplica nada para quien sí lo recibió bien.
 	if Utils.en_red() and multiplayer.is_server():
-		# rpc_id + InteresEspacial en vez de rpc() (broadcast a TODOS) —
-		# mismo criterio que Enemigo._physics_process: nadie del otro lado
-		# del mapa necesita enterarse de este spawn.
-		for peer_id in InteresEspacial.peers_cercanos(punto):
+		# A TODOS los peers de ESTE NIVEL, sin filtro de distancia --
+		# reportado en juego real (23 sep 2026): "las hormigas no se
+		# generaban bien... aparecían de a 1, tiempo después, en pasillos
+		# ya pasados". Antes esto usaba InteresEspacial.peers_cercanos(punto)
+		# (mismo criterio que Enemigo._physics_process), que solo avisaba a
+		# quien YA estuviera cerca del punto de generación EN ESE INSTANTE
+		# -- un mob generado en un pasillo lejos del jugador (lo más común,
+		# la mayoría de los pasillos de un nivel grande en un momento dado)
+		# se quedaba sin esta red de seguridad, dependiendo solo del
+		# MultiplayerSpawner ya conocido como no confiable para ciertas
+		# conexiones (ver bug-huevos-multiplayerspawner-desincronizado.md).
+		# A diferencia de la réplica de posición (de verdad de alta
+		# frecuencia, ahí sí importa filtrar por distancia), esto es un
+		# evento raro -- una vez por mob generado -- así que mandarlo a
+		# todo el nivel (no a todo el servidor: sigue filtrado por nivel,
+		# mismo criterio que _al_peer_listo) es barato.
+		var mio := _nivel_propio()
+		for peer_id in InteresEspacial.peers_conectados_listos():
+			if mio != null and GestorNiveles.nivel_de_peer(peer_id) != mio:
+				continue
 			rpc_id(peer_id, "_recibir_mobs_existentes", [[escena.resource_path, String(mob.name), punto]])
 
 
