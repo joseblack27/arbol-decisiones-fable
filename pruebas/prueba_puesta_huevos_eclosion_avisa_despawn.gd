@@ -25,6 +25,7 @@ var _contenedor: Node2D
 
 var _huevo_tiene_despawn_red_ok := false
 var _huevo_liberado_ok := false
+var _guardian_nace_en_posicion_del_huevo_ok := false
 
 
 func _process(_delta: float) -> bool:
@@ -62,14 +63,23 @@ func _probar_eclosiona_y_avisa() -> void:
 	print("HuevoHormiga real tiene _despawn_red heredado de Enemigo (esperado true): %s" % \
 		_huevo_tiene_despawn_red_ok)
 
+	var pos_huevo = _huevo.global_position
 	_habilidad._eclosionar(_huevo, _contenedor)
 	_huevo_liberado_ok = _huevo.is_queued_for_deletion()
 	print("Tras eclosionar en red, el huevo se libera igual que antes (esperado true): %s" % \
 		_huevo_liberado_ok)
 
+	# Pedido explícito del usuario: "quiero que las hormigas que eclosionan
+	# de las larvas aparezcan en las mismas posiciones de las larvas".
+	var guardian = _habilidad._guardianes_vivos[0] if not _habilidad._guardianes_vivos.is_empty() else null
+	_guardian_nace_en_posicion_del_huevo_ok = guardian != null \
+		and (guardian as Node2D).global_position == pos_huevo
+	print("El guardián nace en la posición exacta del huevo (esperado true, huevo=%s guardian=%s): %s" % [
+		pos_huevo, guardian.global_position if guardian else "null", _guardian_nace_en_posicion_del_huevo_ok])
+
 
 func _informar() -> bool:
-	var exito := _huevo_tiene_despawn_red_ok and _huevo_liberado_ok
+	var exito := _huevo_tiene_despawn_red_ok and _huevo_liberado_ok and _guardian_nace_en_posicion_del_huevo_ok
 	print("PRUEBA PUESTA DE HUEVOS ECLOSION AVISA DESPAWN %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

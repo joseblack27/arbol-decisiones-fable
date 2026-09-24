@@ -154,6 +154,18 @@ func _process(delta: float) -> void:
 
 func activar() -> void:
 	activo = true
+	# Reportado en juego real (23 sep 2026): "las hormigas siguen
+	# generándose después de pasar por la sala, no antes". Causa real:
+	# _tiempo_restante empieza a correr desde _ready() SIN importar
+	# "activo" (ver _process, que resta delta primero y recién DESPUÉS
+	# corta por "not activo") -- para cuando ActivadorSalaSpawners activa
+	# esta sala (spawner arrancado con activo=false a propósito, ver
+	# generar_nivel_hormiguero.gd), ese temporizador puede estar recién
+	# reiniciado, sin ninguna relación con el momento real de activación.
+	# Sin esto, la primera hormiga de una sala podía tardar un
+	# intervalo_spawn ENTERO (varios segundos) en aparecer -- de sobra para
+	# que el jugador ya hubiera cruzado la sala antes de ver la primera.
+	_tiempo_restante = 0.0
 
 
 func desactivar() -> void:

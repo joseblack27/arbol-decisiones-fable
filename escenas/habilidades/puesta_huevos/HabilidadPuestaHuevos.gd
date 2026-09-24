@@ -162,8 +162,16 @@ func _eclosionar(huevo: Node2D, contenedor: Node) -> void:
 	if contenedor == null:
 		return
 	var guardian := escena_guardian.instantiate()
-	contenedor.add_child(guardian, true)
+	# Posición ANTES de add_child -- pedido explícito del usuario: "quiero
+	# que las hormigas que eclosionan de las larvas aparezcan en las mismas
+	# posiciones de las larvas". La réplica del MultiplayerSpawner captura
+	# el estado del nodo en el instante de add_child (vía child_entered_
+	# tree) -- asignar la posición DESPUÉS (como estaba) dejaba esa foto
+	# tomada en el origen del contenedor, no en "pos", en cualquier cliente
+	# cuya réplica dependiera de ese instante. Mismo criterio ya aplicado a
+	# HuevoHormiga en HabilidadPuestaHuevos._ejecutar().
 	guardian.global_position = pos
+	contenedor.add_child(guardian, true)
 	_guardianes_vivos.append(guardian)
 	var vida := guardian.get_node_or_null("VidaComponente") as VidaComponente
 	if vida:
