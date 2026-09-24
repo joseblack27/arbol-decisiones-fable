@@ -33,6 +33,13 @@ func _process(_delta: float) -> bool:
 			# nada (misma cautela que el resto de pruebas de navegación).
 			_montar_spawner_y_mobs()
 		25:
+			# Llamada DOS veces seguidas a propósito (24 sep 2026):
+			# _revisar_mobs_fuera_de_limites() ahora exige dos revisiones
+			# consecutivas antes de borrar (ver ese comentario grande en
+			# SpawnerMobs.gd) para no confundir un mob de verdad atascado con
+			# uno transitoriamente un poco fuera de tolerancia.
+			_spawner._revisar_mobs_fuera_de_limites()
+		26:
 			_spawner._revisar_mobs_fuera_de_limites()
 		30:
 			# queue_free() es diferido — dar un par de fotogramas de margen
@@ -59,6 +66,10 @@ func _montar_spawner_y_mobs() -> void:
 	_spawner.cantidad_inicial = 0
 	_nivel.get_node("Enemigos").add_child(_spawner)
 	_spawner.global_position = punto_valido
+	# limpieza_fuera_de_limites_activa default TEMPORALMENTE en false (ver
+	# el comentario grande en SpawnerMobs.gd) -- esta prueba sigue probando
+	# el MECANISMO en sí, así que lo prende a mano acá.
+	_spawner.limpieza_fuera_de_limites_activa = true
 
 	# "Adentro": sobre la malla real — la revisión no debe tocarlo.
 	_mob_adentro = (load("res://escenas/enemigos/EnemigoRaton.tscn") as PackedScene).instantiate()

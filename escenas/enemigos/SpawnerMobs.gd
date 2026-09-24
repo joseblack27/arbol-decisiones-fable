@@ -51,7 +51,21 @@ const _DISTANCIA_MINIMA_JUGADOR := 350.0
 ## intervalo_spawn a propósito (no necesita reaccionar al instante).
 const _INTERVALO_REVISION_LIMITES := 5.0
 
+## APAGADO TEMPORALMENTE (24 sep 2026) -- pedido explícito del usuario para
+## un A/B limpio: "puedes desactivar esa limpieza de mobs un momento para
+## descartar que sea eso?", en la investigación de hormigas que
+## desaparecían solas sin pelear (ver investigacion-abierta-hormigas-
+## fantasma-en-combate.md). El arreglo de "dos revisiones seguidas" ya
+## está escrito y probado (ver _revisar_mobs_fuera_de_limites) -- esta
+## bandera es SOLO para descartar del todo esta limpieza como causa antes
+## de confiar en ese arreglo. Volver a true una vez decidido.
+var limpieza_fuera_de_limites_activa := false
+
 var _vivos: Array[Node] = []
+## Mobs que dieron "fuera de la malla" en la revisión ANTERIOR -- ver
+## _revisar_mobs_fuera_de_limites: solo se borran si TAMBIÉN dan fuera de
+## la malla en la revisión SIGUIENTE (dos veces seguidas).
+var _sospechosos_fuera_de_limites: Array[Node] = []
 var _tiempo_restante: float = 0.0
 var _tiempo_restante_revision: float = 0.0
 var _contenedor: Node
@@ -275,28 +289,51 @@ func _punto_de_generacion_valido() -> Variant:
 
 
 ## Elimina (no reposiciona) a cualquier mob de _vivos que haya quedado más
-## lejos de _TOLERANCIA_NAVEGACION de la malla — más simple y sin riesgo
-## de "moverlo" a otro punto igual de inválido. Saca a "mob" de _vivos acá
-## mismo, SIN esperar a que tree_exiting dispare _al_salir_mob (queue_free()
-## es diferido al final del fotograma) — así el próximo _generar_uno() (o
-## una segunda pasada de esta misma revisión) ya ve el hueco libre de
-## inmediato, no recién en el fotograma siguiente. Sin botín ni XP ni
-## animación de muerte a propósito: esto no es una muerte de combate, es
-## descartar un estado anómalo.
+## lejos de _TOLERANCIA_NAVEGACION de la malla DOS revisiones seguidas —
+## más simple y sin riesgo de "moverlo" a otro punto igual de inválido.
+## Saca a "mob" de _vivos acá mismo, SIN esperar a que tree_exiting dispare
+## _al_salir_mob (queue_free() es diferido al final del fotograma) — así
+## el próximo _generar_uno() (o una segunda pasada de esta misma revisión)
+## ya ve el hueco libre de inmediato, no recién en el fotograma siguiente.
+## Sin botín ni XP ni animación de muerte a propósito: esto no es una
+## muerte de combate, es descartar un estado anómalo.
+##
+## Reportado en juego real (24 sep 2026, justo al desactivar el sueño por
+## distancia como diagnóstico -- ver ArbolComportamiento.radio_actividad):
+## "no he atacado ni nada y desaparecieron 4 [de 6 hormigas]" -- hormigas
+## completamente sanas, sin pelear, desaparecían solas. Causa probable:
+## _TOLERANCIA_NAVEGACION (6px) es ajustada para un NavigationAgent2D
+## activamente en movimiento (corta esquinas, se desvía por evasión) --
+## un mob de verdad sobre la malla puede estar TRANSITORIAMENTE unos
+## pocos px más allá justo en el instante de esta revisión puntual, sin
+## estar realmente atascado. Con el sueño por distancia desactivado,
+## TODOS los mobs están siempre en movimiento (deambulando) en vez de
+## quietos la mayor parte del tiempo lejos del jugador -- mucha más
+## exposición a este falso positivo que antes. Exigir DOS revisiones
+## seguidas (separadas por _INTERVALO_REVISION_LIMITES) antes de borrar:
+## un mob de verdad atascado sigue fuera de la malla 5s después también;
+## uno de paso ya se corrigió solo para la próxima revisión.
 func _revisar_mobs_fuera_de_limites() -> void:
+	if not limpieza_fuera_de_limites_activa:
+		return
 	if _vivos.is_empty():
+		_sospechosos_fuera_de_limites.clear()
 		return
 	var mapa := GestorNiveles.mapa_navegacion_de(self)
 	if NavigationServer2D.map_get_regions(mapa).is_empty():
 		return
+	var fuera_esta_vez: Array[Node] = []
 	for mob in _vivos.duplicate():
 		if not is_instance_valid(mob) or not (mob is Node2D):
 			continue
 		var posicion: Vector2 = (mob as Node2D).global_position
 		var mas_cercano: Vector2 = NavigationServer2D.map_get_closest_point(mapa, posicion)
 		if posicion.distance_to(mas_cercano) > _TOLERANCIA_NAVEGACION:
-			_vivos.erase(mob)
-			mob.queue_free()
+			fuera_esta_vez.append(mob)
+			if _sospechosos_fuera_de_limites.has(mob):
+				_vivos.erase(mob)
+				mob.queue_free()
+	_sospechosos_fuera_de_limites = fuera_esta_vez
 
 
 func _demasiado_cerca_de_jugador(punto: Vector2) -> bool:
