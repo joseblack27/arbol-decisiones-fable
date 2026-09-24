@@ -51,15 +51,13 @@ const _DISTANCIA_MINIMA_JUGADOR := 350.0
 ## intervalo_spawn a propósito (no necesita reaccionar al instante).
 const _INTERVALO_REVISION_LIMITES := 5.0
 
-## APAGADO TEMPORALMENTE (24 sep 2026) -- pedido explícito del usuario para
-## un A/B limpio: "puedes desactivar esa limpieza de mobs un momento para
-## descartar que sea eso?", en la investigación de hormigas que
-## desaparecían solas sin pelear (ver investigacion-abierta-hormigas-
-## fantasma-en-combate.md). El arreglo de "dos revisiones seguidas" ya
-## está escrito y probado (ver _revisar_mobs_fuera_de_limites) -- esta
-## bandera es SOLO para descartar del todo esta limpieza como causa antes
-## de confiar en ese arreglo. Volver a true una vez decidido.
-var limpieza_fuera_de_limites_activa := false
+## Reactivada (24 sep 2026) tras el diagnóstico A/B -- ver investigacion-
+## abierta-hormigas-fantasma-en-combate.md: el usuario ajustó la malla de
+## navegación del Hormiguero y pidió reencender esto para volver a probar
+## con esa corrección de por medio. Sigue con el arreglo de "dos
+## revisiones seguidas" (ver _revisar_mobs_fuera_de_limites) como red de
+## seguridad adicional contra falsos positivos transitorios.
+var limpieza_fuera_de_limites_activa := true
 
 var _vivos: Array[Node] = []
 ## Mobs que dieron "fuera de la malla" en la revisión ANTERIOR -- ver
