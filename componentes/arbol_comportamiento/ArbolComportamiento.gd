@@ -46,7 +46,17 @@ extends Node
 ## (dejarlo así en una escena puntual que necesite pensar siempre, p. ej. un
 ## NPC errante cuya rutina dependa del reloj del mundo más que de si hay
 ## alguien cerca).
-@export var radio_actividad: float = 1400.0
+## TEMPORALMENTE EN 0 (24 sep 2026) -- desactivado a propósito para
+## diagnosticar el reporte real "si me quedo quieto en un grupo de
+## hormigas, algunas se quedan estáticas... y ya no reciben daño",
+## reportado empezando justo después de esta optimización. La protección
+## "nunca duerme si jugador_detectado" (ver _process/_revisar_sueño_por_
+## distancia) debería alcanzar sin necesitar esto, pero hasta confirmar
+## la causa real con un A/B directo, mejor volver EXACTO al comportamiento
+## de antes (todos los árboles siempre despiertos) que arriesgar mobs
+## fantasma en combate. Volver a 1400.0 una vez descartado o resuelto --
+## ver investigacion-abierta-hormigas-fantasma-en-combate.md.
+@export var radio_actividad: float = 0.0
 
 @export_group("Memoria")
 ## Ruta al nodo MemoriaBT. Si se deja vacío, se busca automáticamente
