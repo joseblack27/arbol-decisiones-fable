@@ -308,6 +308,45 @@ func _demasiado_cerca_de_jugador(punto: Vector2) -> bool:
 
 func _al_salir_mob(mob: Node) -> void:
 	_vivos.erase(mob)
+	# Insurance de MUERTE, mismo criterio que la de generación de arriba --
+	# reportado en juego real (24 sep 2026): "si me quedo quieto en un
+	# grupo de hormigas, algunas se quedan estáticas y... ya no reciben
+	# daño... pero no se destruyen completamente". Confirmado que son
+	# fantasmas de red (se ven NORMALES, no a mitad de fundido de muerte):
+	# el mob real muere y dispara Enemigo._desvanecer_y_eliminar() ->
+	# rpc("_despawn_red") dirigido al propio nodo del mob -- pero esa
+	# réplica puede no llegarle a un peer ya conectado (mismo bug ya
+	# diagnosticado con las larvas y con la generación de mobs, ver
+	# bug-huevos-multiplayerspawner-desincronizado.md), dejando un mob que
+	# YA murió del lado servidor pero sigue "vivo" (congelado en su última
+	# posición real) en la pantalla de ese cliente. Nombre del nodo en vez
+	# de referencia (mob puede estar a medio liberar acá) -- si el cliente
+	# ya lo liberó por la vía normal, _confirmar_muerte_mob_red no encuentra
+	# nada y no hace nada (idempotente).
+	if Utils.en_red() and multiplayer.is_server():
+		var nombre := String(mob.name)
+		var mio := _nivel_propio()
+		for peer_id in InteresEspacial.peers_conectados_listos():
+			if mio != null and GestorNiveles.nivel_de_peer(peer_id) != mio:
+				continue
+			rpc_id(peer_id, "_confirmar_muerte_mob_red", nombre)
+
+
+## CLIENTE: si el mob nombrado TODAVÍA existe en este contenedor, el aviso
+## normal de muerte (Enemigo._despawn_red, dirigido al propio nodo) nunca le
+## llegó -- lo fuerza acá, mismo desvanecido visual. Si ya no existe (llegó
+## bien por la vía normal), no hace nada.
+@rpc("authority", "reliable")
+func _confirmar_muerte_mob_red(nombre: String) -> void:
+	if _contenedor == null:
+		return
+	var mob := _contenedor.get_node_or_null(nombre)
+	if mob == null:
+		return
+	if mob.has_method("_despawn_red"):
+		mob.call("_despawn_red")
+	else:
+		mob.queue_free()
 
 
 # =============================================================================
