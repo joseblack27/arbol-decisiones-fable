@@ -507,9 +507,27 @@ func _dibujar_iconos_estado() -> void:
 ## dedicado (sin UI) ni en la réplica de OTRO jugador en mi pantalla.
 var _joystick_local: Node = null
 
+## Cuántos fotogramas seguidos, tras detectar el soltado, se sigue
+## insistiendo con el aviso de "parate" -- pedido explícito del usuario (24
+## sep 2026: "volvió el tema del joystick... el personaje se sigue moviendo
+## con la animación de idle sin fin en la última dirección"). La versión
+## anterior de este método mandaba el aviso reliable UNA sola vez al
+## detectar el soltado (ver el comentario grande que tenía _pedir_detener_
+## red acá abajo); si justo ESA muestra se perdía, o un _pedir_mover_red
+## viejo la pisaba después de vencida la ventana de bloqueo del servidor
+## (_bloqueo_movimiento_tras_detener, pensada para un solo rezago, no para
+## varios seguidos), nada lo volvía a corregir y el cuerpo autoritativo del
+## servidor quedaba caminando solo para siempre -- lo que explica el
+## síntoma reportado: la predicción LOCAL ya está en idle (por eso "la
+## animación es de idle"), pero lo que sigue avanzando es la posición
+## replicada del servidor con la que este mismo cliente reconcilia. No se
+## reinsiste para siempre (eso spamearía el canal reliable todo el rato que
+## el joystick esté simplemente quieto) -- solo unos fotogramas después de
+## la última vez que hizo falta corregir algo.
+const _FOTOGRAMAS_INSISTIR_JOYSTICK_SOLTADO := 15
+var _fotogramas_insistiendo_joystick_soltado := 0
+
 func _verificar_joystick_soltado() -> void:
-	if direccion == Vector2.ZERO:
-		return
 	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
 		return
 	if not is_instance_valid(_joystick_local):
@@ -518,23 +536,29 @@ func _verificar_joystick_soltado() -> void:
 			if hijo.has_method("esta_presionado"):
 				_joystick_local = hijo
 				break
-	if _joystick_local and not _joystick_local.esta_presionado():
-		_joystick_movimiento(Vector2.ZERO)
-		# _joystick_movimiento() ya corrige la copia LOCAL (para que se vea
-		# bien acá mismo) y le avisa al servidor por _pedir_mover_red -- pero
-		# ese canal es "unreliable_ordered" a propósito (estado continuo,
-		# normalmente un paquete de más/menos no importa). Reportado en juego
-		# real (21 sep 2026): con picos de lag, justo ESE paquete de "ya
-		# solté" se puede perder, y como acá solo se manda una vez (el
-		# próximo fotograma ya ve direccion==ZERO y no vuelve a entrar), el
-		# servidor nunca se entera y sigue moviendo el cuerpo real de
-		# verdad -- se ve corregido en la propia pantalla pero el cuerpo
-		# autoritativo (el que ven TODOS, incluido este cliente al
-		# reconciliar) sigue avanzando solo. _pedir_detener_red() ya existe
-		# para esto mismo (canal reliable, ver su comentario grande) --
-		# reusarlo acá en vez de inventar un tercer camino.
-		if Utils.en_red() and not multiplayer.is_server():
-			rpc_id(1, "_pedir_detener_red")
+	if _joystick_local == null or _joystick_local.esta_presionado():
+		_fotogramas_insistiendo_joystick_soltado = 0
+		return
+	if direccion != Vector2.ZERO:
+		_fotogramas_insistiendo_joystick_soltado = _FOTOGRAMAS_INSISTIR_JOYSTICK_SOLTADO
+	elif _fotogramas_insistiendo_joystick_soltado <= 0:
+		return
+	# Rectificador de VELOCIDAD: fuerza velocity acá mismo, sin depender de
+	# que componente_movimiento vuelva a correr este mismo fotograma con la
+	# dirección ya corregida (p. ej. si algo más toma control del cuerpo
+	# antes de llegar a esa línea de _physics_process).
+	velocity = Vector2.ZERO
+	_joystick_movimiento(Vector2.ZERO)
+	_fotogramas_insistiendo_joystick_soltado -= 1
+	# _joystick_movimiento() ya corrige la copia LOCAL (para que se vea
+	# bien acá mismo) y le avisa al servidor por _pedir_mover_red -- pero
+	# ese canal es "unreliable_ordered" a propósito (estado continuo,
+	# normalmente un paquete de más/menos no importa), así que además se
+	# reinsiste con _pedir_detener_red() (reliable) unos fotogramas seguidos
+	# en vez de una sola vez -- ver el comentario grande de
+	# _FOTOGRAMAS_INSISTIR_JOYSTICK_SOLTADO arriba.
+	if Utils.en_red() and not multiplayer.is_server():
+		rpc_id(1, "_pedir_detener_red")
 
 
 func _joystick_movimiento(_direccion: Vector2):
