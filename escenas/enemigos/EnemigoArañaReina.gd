@@ -145,11 +145,9 @@ func _physics_process(delta: float) -> void:
 
 
 ## SERVIDOR: instancia mobs reales como refuerzos — mismo patrón que
-## SpawnerMobs._generar_uno() (force_readable_name=true, si no el
-## MultiplayerSpawner rechaza el nombre autogenerado y el add nunca replica
-## al cliente). El contenedor es el mismo "Enemigos" del nivel del que esta
-## reina ya es hija (get_parent()), así el MultiplayerSpawner de NivelBase ya
-## configurado ahí los replica igual que a cualquier otro mob.
+## SpawnerMobs._generar_uno(). El contenedor es el mismo "Enemigos" del nivel
+## del que esta reina ya es hija (get_parent()), así ReplicadorEnemigos los
+## replica igual que a cualquier otro mob.
 func _invocar_refuerzos(escenas: Array[PackedScene]) -> void:
 	# _on_vida_cambiada (quien dispara esto, vía _entrar_fase/_reanudar_fase)
 	# corre A PROPÓSITO en TODOS los peers para que el respiro visual de

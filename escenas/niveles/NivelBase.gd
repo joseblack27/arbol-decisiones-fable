@@ -19,7 +19,7 @@ extends Node2D
 func _ready() -> void:
 	_crear_mapa_navegacion()
 	if Utils.en_red():
-		_configurar_spawner_red()
+		_configurar_replicador_red()
 	var generador := _buscar_generador()
 	if generador == null:
 		return
@@ -79,52 +79,18 @@ func _descendientes(desde: Node = null) -> Array[Node]:
 	return resultado
 
 
-## UN solo MultiplayerSpawner para todo el contenedor "Enemigos": replica
-## tanto los mobs de los generadores como las entidades que invoca un jugador
-## (HabilidadInvocacion).
-##
-## Godot no admite dos spawners siguiendo al MISMO nodo: el segundo y
-## siguientes fallan con "ERR_ALREADY_IN_USE" en cada alta. Antes cada
-## SpawnerMobs creaba el suyo apuntando al mismo contenedor, y con los 18
-## generadores del Camino eran ~1.500 líneas de error por sesión en la consola
-## del servidor — que corre con un solo núcleo y ya sufrió antes por
-## chaparrones de consola.
-##
-## Se crea ACÁ y no en SpawnerMobs a propósito: _ready() corre de hijos a
-## padres, así que cuando le toca a un SpawnerMobs su contenedor todavía está
-## "ocupado armando hijos" y add_child() sobre él falla. El nivel es el primer
-## punto donde el árbol ya está quieto.
-##
-## Corre en TODOS los peers (no sólo el servidor): el spawner tiene que existir
-## igual en los dos lados para que la réplica funcione.
-func _configurar_spawner_red() -> void:
+## Corre en TODOS los peers: el replicador tiene que existir en la misma ruta
+## en los dos lados para que sus RPCs lleguen. Hijo del nivel y no de
+## "Enemigos" porque GestorNiveles apaga ese contenedor cuando el nivel queda
+## sin jugadores.
+func _configurar_replicador_red() -> void:
 	var enemigos := get_node_or_null("Enemigos")
 	if enemigos == null:
 		return
-	var spawner := MultiplayerSpawner.new()
-	spawner.name = "SpawnerRed"
-	# add_child() ANTES de spawn_path: la ruta se resuelve como NodePath
-	# absoluto y necesita que el spawner ya esté dentro del árbol.
-	enemigos.add_child(spawner)
-	spawner.spawn_path = enemigos.get_path()
-	# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- investigación abierta de las
-	# larvas de la Reina invisibles: confirmar, en cada peer (server Y
-	# cliente), si el propio MultiplayerSpawner llega siquiera a spawnear/
-	# despawnear un HuevoHormiga -- esto es la señal directa del motor, más
-	# confiable que inferir por RPCs fallidos. Sacar cuando se resuelva.
-	spawner.spawned.connect(func(nodo: Node) -> void:
-		if nodo.name.begins_with("HuevoHormiga"):
-			print("[DIAG spawner] SPAWNED %s en %s (servidor=%s)" % [
-				nodo.name, nombre_nivel, Utils.en_red() and multiplayer.is_server()]))
-	spawner.despawned.connect(func(nodo: Node) -> void:
-		if nodo.name.begins_with("HuevoHormiga"):
-			print("[DIAG spawner] DESPAWNED %s en %s (servidor=%s)" % [
-				nodo.name, nombre_nivel, Utils.en_red() and multiplayer.is_server()]))
-	spawner.add_spawnable_scene("res://escenas/enemigos/AliadoInvocado.tscn")
-	for hijo in enemigos.get_children():
-		if hijo.has_method("escenas_replicables"):
-			for ruta in hijo.call("escenas_replicables"):
-				spawner.add_spawnable_scene(ruta)
+	var replicador := ReplicadorEnemigos.new()
+	replicador.name = "ReplicadorEnemigos"
+	replicador.configurar(enemigos, self)
+	add_child(replicador)
 
 
 func punto_aparicion() -> Node2D:

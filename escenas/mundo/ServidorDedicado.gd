@@ -79,8 +79,7 @@ func _ready() -> void:
 	# El nivel se carga DESPUÉS de asignar multiplayer_peer, nunca antes:
 	# preparar_servidor() instancia la escena en el acto (no diferido), y todo
 	# el cableado de red que hacen los nodos del nivel en su _ready() —
-	# SpawnerMobs._configurar_spawner_red(), NivelBase._configurar_spawner_
-	# invocaciones(), la suscripción a peer_listo — está condicionado a
+	# NivelBase._configurar_replicador_red(), la suscripción a peer_listo — está condicionado a
 	# Utils.en_red(). Cargándolo antes, en_red() todavía daba false y el nivel
 	# nacía SIN red: los mobs no se replicaban, no había resync, y cada cliente
 	# recibía RPCs de mobs que nunca había creado (miles de "Requested node was

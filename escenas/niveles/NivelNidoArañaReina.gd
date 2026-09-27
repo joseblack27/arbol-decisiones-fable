@@ -10,20 +10,13 @@ extends NivelBase
 ## cargado el nivel (ver GestorNiveles.peer_listo) llega y la encuentra
 ## muerta, el SERVIDOR le repone una reina fresca.
 ##
-## Por qué en la MISMA RUTA (Enemigos/EnemigoArañaReina) y no vía
-## SpawnerMobs/MultiplayerSpawner: el CLIENTE libera y reinstancia la escena
-## ENTERA cada vez que (re)carga un nivel (ver GestorNiveles._cargar) — como
-## la reina está horneada en el .tscn, cada entrada ya crea sola una copia
-## LOCAL en esa ruta exacta, con o sin reina real del lado del servidor. Si
-## el servidor repone la suya EN ESA MISMA RUTA, la sincronización genérica
-## por RPC de Enemigo.gd (la MISMA que ya hace funcionar el primer encuentro,
-## antes de que muera la primera vez — ver Enemigo._despawn_red/_recibir_
-## estado_red, dirigidas por ruta de nodo, no por MultiplayerSpawner) vuelve
-## a encontrar un nodo del otro lado y sigue andando sola. Meterla en el
-## MultiplayerSpawner de "Enemigos" (pensado para mobs de generadores y
-## invocaciones, ver NivelBase._configurar_spawner_red) traería DOS copias
-## en el cliente: la horneada del .tscn (que ya existe sola) más la
-## replicada por el spawner.
+## Por qué en la MISMA RUTA (Enemigos/EnemigoArañaReina): el CLIENTE libera y
+## reinstancia la escena ENTERA cada vez que (re)carga un nivel (ver
+## GestorNiveles._cargar) — como la reina está horneada en el .tscn, cada
+## entrada ya crea sola una copia LOCAL en esa ruta exacta. Si el servidor
+## repone la suya con el mismo nombre, ReplicadorEnemigos la reconoce como la
+## misma (no crea una segunda), y si está muerta del lado del servidor, su
+## reconciliación despacha la copia local.
 ##
 ## Reportes anteriores que este mecanismo también evita: "aparece bugueada,
 ## no se mueve, no ataca y no recibe daño" (la copia fantasma sin servidor

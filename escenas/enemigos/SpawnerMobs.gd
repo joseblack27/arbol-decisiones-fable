@@ -75,23 +75,8 @@ var _listo := false
 
 func _ready() -> void:
 	_contenedor = get_parent()
-	# Fase 5 del plan de multijugador: el MultiplayerSpawner tiene que
-	# existir IGUAL en todos los peers para poder replicar el spawn — se
-	# arma acá por código en vez de a mano en cada nivel. Quien de verdad
-	# decide CUÁNDO generar (más abajo) sigue siendo solo el servidor.
-	if Utils.en_red():
-		# El MultiplayerSpawner NO se crea acá: lo arma el nivel una sola vez
-		# para todo el contenedor (ver NivelBase._configurar_spawner_red).
-		# El MultiplayerSpawner replica el lote de mobs YA EXISTENTES a un
-		# peer nuevo apenas conecta — cuando ese cliente todavía está
-		# cargando el nivel y su SpawnerRed no existe: el lote se pierde y
-		# esos mobs quedan INVISIBLES para él para siempre (atacan desde el
-		# servidor sin verse — el "mob invisible" reportado en juego real).
-		# Solución: cuando el peer confirma que terminó de cargar
-		# (peer_listo, el mismo handshake del spawn inicial), el servidor le
-		# reenvía a mano los vivos de este spawner (_al_peer_listo).
-		if multiplayer.is_server():
-			GestorNiveles.peer_listo.connect(_al_peer_listo)
+	# Solo decide CUÁNDO generar (servidor/sin red); que los clientes vean los
+	# mobs lo resuelve ReplicadorEnemigos, que observa el contenedor.
 	if cantidad_inicial > 0 and (not Utils.en_red() or multiplayer.is_server()):
 		await Utils.esperar_malla_de_nivel_lista(self)
 		for _i in cantidad_inicial:
@@ -101,37 +86,8 @@ func _ready() -> void:
 	_listo = true
 
 
-## Escenas que ESTE generador puede llegar a crear, para que el nivel las
-## registre en el spawner compartido (ver NivelBase._configurar_spawner_red).
-func escenas_replicables() -> Array[String]:
-	var rutas: Array[String] = []
-	for escena in lista_mobs:
-		if escena:
-			rutas.append(escena.resource_path)
-	return rutas
-
-
-## true si acá corresponde generar/decidir mobs de verdad: sin multiplayer
-## activo (un solo jugador, de siempre) siempre true; en red, solo el
-## servidor. El cliente nunca llama _generar_uno() — ve los mobs aparecer
-## solos, replicados por el MultiplayerSpawner de arriba.
-##
-## ANTES esto también esperaba (con tope de 5s) a que TODOS los clientes
-## conectados confirmaran haber cargado el nivel actual, para que el EVENTO
-## DE SPAWN no se perdiera contra uno que todavía no tuviera su propio nodo
-## "SpawnerRed" — a diferencia de la posición de un mob (que se autocorrige
-## sola al ser unreliable_ordered), ese evento no se reintenta.
-## Ese freno terminó siendo la causa de un bug peor: si el ack de "listo"
-## de un cliente (celular, red real con más latencia que las pruebas
-## locales) tardaba más de esos 5s — algo bastante común al volver a un
-## nivel por portal, no solo en la conexión inicial — la tanda ENTERA de
-## cantidad_inicial se saltaba en silencio, y el nivel quedaba vacío
-## hasta que el goteo lento de _process() (1 cada intervalo_spawn) lo
-## rellenara de a poco (hasta minuto y medio para 10 mobs) — "los mobs
-## están bugueados, no los veo" reportado en juego real. Ya no hace falta
-## ese freno: _al_peer_listo() (ver _ready) reenvía a mano los mobs vivos a
-## cualquier peer que confirme estar listo DESPUÉS de que ya se generaron,
-## cubriendo el mismo caso sin arriesgar perder la tanda entera.
+## true si acá corresponde generar/decidir mobs de verdad: sin red siempre;
+## en red, solo el servidor.
 func _debe_generar_localmente() -> bool:
 	if not Utils.en_red():
 		return true
@@ -207,10 +163,8 @@ func _generar_uno() -> void:
 		return
 	var escena: PackedScene = lista_mobs[randi() % lista_mobs.size()]
 	var mob := escena.instantiate()
-	# force_readable_name=true: sin esto, add_child() le pone un nombre
-	# interno tipo "@CharacterBody2D@37" — MultiplayerSpawner lo rechaza
-	# ("Unable to auto-spawn node with reserved name") y el mob nunca
-	# replica al cliente.
+	# force_readable_name=true: el nombre viaja a los clientes (ver
+	# ReplicadorEnemigos) y tiene que ser el mismo en los dos lados.
 	_contenedor.add_child(mob, true)
 	if mob is Node2D:
 		(mob as Node2D).global_position = punto
@@ -219,36 +173,6 @@ func _generar_uno() -> void:
 	# de verdad (muerte, o el nivel entero desapareciendo), sin necesitar
 	# ninguna señal propia de Enemigo.
 	mob.tree_exiting.connect(_al_salir_mob.bind(mob), CONNECT_ONE_SHOT)
-
-	# Insurance contra el "mob invisible" (SpawnerRed en teoría lo replica
-	# solo con add_child, pero en juego real a veces no le llega a un peer
-	# YA conectado — no solo a los que llegan tarde, ver _al_peer_listo).
-	# Reusa la MISMA función de resincronización, pero en broadcast a TODOS
-	# los conectados apenas se genera, no solo al reconectar: idempotente
-	# (_recibir_mobs_existentes se salta si el nodo ya llegó por la vía
-	# normal), así que no duplica nada para quien sí lo recibió bien.
-	if Utils.en_red() and multiplayer.is_server():
-		# A TODOS los peers de ESTE NIVEL, sin filtro de distancia --
-		# reportado en juego real (23 sep 2026): "las hormigas no se
-		# generaban bien... aparecían de a 1, tiempo después, en pasillos
-		# ya pasados". Antes esto usaba InteresEspacial.peers_cercanos(punto)
-		# (mismo criterio que Enemigo._physics_process), que solo avisaba a
-		# quien YA estuviera cerca del punto de generación EN ESE INSTANTE
-		# -- un mob generado en un pasillo lejos del jugador (lo más común,
-		# la mayoría de los pasillos de un nivel grande en un momento dado)
-		# se quedaba sin esta red de seguridad, dependiendo solo del
-		# MultiplayerSpawner ya conocido como no confiable para ciertas
-		# conexiones (ver bug-huevos-multiplayerspawner-desincronizado.md).
-		# A diferencia de la réplica de posición (de verdad de alta
-		# frecuencia, ahí sí importa filtrar por distancia), esto es un
-		# evento raro -- una vez por mob generado -- así que mandarlo a
-		# todo el nivel (no a todo el servidor: sigue filtrado por nivel,
-		# mismo criterio que _al_peer_listo) es barato.
-		var mio := _nivel_propio()
-		for peer_id in InteresEspacial.peers_conectados_listos():
-			if mio != null and GestorNiveles.nivel_de_peer(peer_id) != mio:
-				continue
-			rpc_id(peer_id, "_recibir_mobs_existentes", [[escena.resource_path, String(mob.name), punto]])
 
 
 ## Busca un punto dentro de radio_spawn que esté sobre la malla de
@@ -343,127 +267,3 @@ func _demasiado_cerca_de_jugador(punto: Vector2) -> bool:
 
 func _al_salir_mob(mob: Node) -> void:
 	_vivos.erase(mob)
-	# Insurance de MUERTE, mismo criterio que la de generación de arriba --
-	# reportado en juego real (24 sep 2026): "si me quedo quieto en un
-	# grupo de hormigas, algunas se quedan estáticas y... ya no reciben
-	# daño... pero no se destruyen completamente". Confirmado que son
-	# fantasmas de red (se ven NORMALES, no a mitad de fundido de muerte):
-	# el mob real muere y dispara Enemigo._desvanecer_y_eliminar() ->
-	# rpc("_despawn_red") dirigido al propio nodo del mob -- pero esa
-	# réplica puede no llegarle a un peer ya conectado (mismo bug ya
-	# diagnosticado con las larvas y con la generación de mobs, ver
-	# bug-huevos-multiplayerspawner-desincronizado.md), dejando un mob que
-	# YA murió del lado servidor pero sigue "vivo" (congelado en su última
-	# posición real) en la pantalla de ese cliente. Nombre del nodo en vez
-	# de referencia (mob puede estar a medio liberar acá) -- si el cliente
-	# ya lo liberó por la vía normal, _confirmar_muerte_mob_red no encuentra
-	# nada y no hace nada (idempotente).
-	if Utils.en_red() and multiplayer.is_server():
-		var nombre := String(mob.name)
-		var mio := _nivel_propio()
-		for peer_id in InteresEspacial.peers_conectados_listos():
-			if mio != null and GestorNiveles.nivel_de_peer(peer_id) != mio:
-				continue
-			rpc_id(peer_id, "_confirmar_muerte_mob_red", nombre)
-
-
-## CLIENTE: si el mob nombrado TODAVÍA existe en este contenedor, el aviso
-## normal de muerte (Enemigo._despawn_red, dirigido al propio nodo) nunca le
-## llegó -- lo fuerza acá, mismo desvanecido visual. Si ya no existe (llegó
-## bien por la vía normal), no hace nada.
-@rpc("authority", "reliable")
-func _confirmar_muerte_mob_red(nombre: String) -> void:
-	if _contenedor == null:
-		return
-	var mob := _contenedor.get_node_or_null(nombre)
-	if mob == null:
-		return
-	if mob.has_method("_despawn_red"):
-		mob.call("_despawn_red")
-	else:
-		mob.queue_free()
-
-
-# =============================================================================
-# RESINCRONIZACIÓN DE MOBS EXISTENTES (peers que llegan tarde)
-# =============================================================================
-
-## SERVIDOR: un peer terminó de cargar el nivel — mandarle los mobs de este
-## spawner que ya estaban vivos ANTES de que se conectara (el lote automático
-## del MultiplayerSpawner se le perdió mientras cargaba, ver _ready).
-func _al_peer_listo(peer_id: int) -> void:
-	# Sólo a los peers de ESTE nivel: con varios niveles cargados a la vez en
-	# el servidor, mandarle a alguien los mobs de un mapa que no tiene sería
-	# un montón de paquetes que su motor rechaza uno por uno.
-	# Ante la duda (nivel desconocido) se reenvía igual: perderse el resync
-	# deja al cliente sin ningún mob y con el motor rechazándole cada RPC.
-	var mio := _nivel_propio()
-	var suyo := GestorNiveles.nivel_de_peer(peer_id)
-	if mio != null and suyo != null and mio != suyo:
-		return
-	var datos: Array = []
-	var nombres_omitidos: Array = []
-	for mob in _vivos:
-		if not is_instance_valid(mob) or not (mob is Node2D):
-			# Diagnóstico permanente (mob invisible reportado en juego real,
-			# sin poder reproducirlo en pruebas locales): si esto aparece en
-			# el log de Docker justo cuando alguien se conecta, confirma que
-			# un mob murió/se liberó ENTRE que se generó y que el peer
-			# terminó de cargar — nunca llega a resincronizarse porque ya
-			# no está en _vivos con datos válidos en ese instante.
-			nombres_omitidos.append(str(mob.name) if is_instance_valid(mob) else "<liberado>")
-			continue
-		datos.append([mob.scene_file_path, String(mob.name), (mob as Node2D).global_position])
-	print("[RESYNC] peer=%d spawner=%s mobs_reenviados=%d omitidos=%s" % [
-		peer_id, name, datos.size(), str(nombres_omitidos)])
-	if datos.is_empty():
-		return
-	rpc_id(peer_id, "_recibir_mobs_existentes", datos)
-
-
-## CLIENTE: instancia las réplicas que le falten, con el MISMO nombre bajo el
-## MISMO contenedor que en el servidor — así los RPCs por ruta (posición,
-## animación, despawn) le llegan igual que a una réplica del spawner normal.
-## Idempotente en la CREACIÓN (si el nodo ya existe no se instancia de
-## nuevo), pero NO en la posición: si el nodo ya llegó por el lote
-## automático del MultiplayerSpawner (su catch-up a peers que se conectan
-## tarde, que a veces sí dispara aunque no sea confiable — ver comentario en
-## _ready), ese lote NUNCA trae posición — Enemigo no usa Synchronizer para
-## eso a propósito (replica por RPC explícito, ver Enemigo._physics_process).
-## Antes esto se saltaba de largo si el nodo "ya estaba", dejándolo pegado
-## en el origen del contenedor para siempre — el "todos los mobs spawnean
-## en el centro" reportado en juego real. Ahora SIEMPRE se le pisa la
-## posición real, exista ya o se acabe de crear acá.
-@rpc("authority", "reliable")
-func _recibir_mobs_existentes(datos: Array) -> void:
-	if _contenedor == null:
-		_contenedor = get_parent()
-	for entrada in datos:
-		var ruta: String = entrada[0]
-		var nombre: String = entrada[1]
-		var pos: Vector2 = entrada[2]
-		if nombre == "":
-			continue
-		var mob := _contenedor.get_node_or_null(nombre)
-		if mob == null:
-			var escena := load(ruta) as PackedScene
-			if escena == null:
-				continue
-			mob = escena.instantiate()
-			mob.name = nombre
-			_contenedor.add_child(mob)
-		if mob is Node2D:
-			(mob as Node2D).global_position = pos
-			# También la posición REPLICADA, no sólo la real: el cliente
-			# interpola hacia _posicion_replicada cada fotograma (ver
-			# Enemigo._physics_process), y ese campo se fija en _enter_tree()
-			# — o sea, con el mob todavía en el origen del nivel, antes de que
-			# este resync le diera su lugar. Sin esto el mob se deslizaba de
-			# vuelta al centro del mapa y se quedaba ahí hasta que el jugador
-			# se le acercaba lo suficiente como para que empezara a recibir
-			# posiciones reales (fuera del radio de interés no se le manda
-			# ninguna). En la Pradera casi no se notaba porque el radio de
-			# interés cubre medio mapa; en un nivel largo como el Camino
-			# quedaban decenas de mobs amontonados en el centro.
-			if "_posicion_replicada" in mob:
-				mob.set("_posicion_replicada", pos)

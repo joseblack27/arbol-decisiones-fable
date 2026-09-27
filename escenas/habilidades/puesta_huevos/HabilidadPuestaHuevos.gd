@@ -73,23 +73,17 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 	_activar_vulnerabilidad()
 
 	_huevos_activos.clear()
-	# [nombre_del_nodo, destino] de cada huevo -- ver _crear_huevos_red() más
-	# abajo: se manda a los clientes por RPC explícito, NO se confía en la
-	# réplica automática del MultiplayerSpawner para esto (ver comentario
-	# grande en EnemigoReinaHormigas.escenas_replicables()).
-	var datos_replicacion: Array = []
 	for i in cantidad_huevos:
 		var huevo := escena_huevo.instantiate()
 		# Nace EN la posición de la Reina y de ahí vuela hasta su lugar --
 		# pedido explícito del usuario: "que la hormiga los lance como
-		# proyectiles hasta la ubicación donde desea invocarlos, para tener
-		# por lo menos una visual como habilidad" (antes aparecían de golpe,
-		# invisibles, sin ningún indicio de que la habilidad hizo algo). No
-		# desaparecen al llegar: es el mismo HuevoHormiga de siempre, que se
-		# queda quieto y sigue su ciclo normal (pulso, eclosión) una vez
-		# aterriza -- ver HuevoHormiga.lanzar_hacia().
-		huevo.global_position = origen.global_position
+		# proyectiles hasta la ubicación donde desea invocarlos" (ver
+		# HuevoHormiga.lanzar_hacia). En los clientes el vuelo se ve solo, con
+		# la réplica de posición de cualquier mob en movimiento.
 		contenedor.add_child(huevo, true)
+		# Después de add_child: antes, global_position se toma como local y en
+		# un nivel desplazado (el Hormiguero) quedaría al doble de distancia.
+		huevo.global_position = origen.global_position
 		var destino := origen.global_position \
 			+ Vector2(randf_range(-radio_dispersion, radio_dispersion),
 				randf_range(-radio_dispersion, radio_dispersion))
@@ -98,20 +92,6 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 		else:
 			huevo.global_position = destino
 		_huevos_activos.append(huevo)
-		datos_replicacion.append([String(huevo.name), destino])
-
-	# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- confirmado en juego real (ver
-	# bug-huevos-multiplayerspawner-desincronizado.md): el MultiplayerSpawner
-	# de un cliente conectado a un nivel ya poblado queda con la caché de
-	# réplica desincronizada. Queda esta línea para seguir confirmando en
-	# servidor que el origen/contenedor siguen siendo correctos -- sacar
-	# junto con el resto de la instrumentación una vez confirmado el arreglo.
-	if Utils.en_red() and multiplayer.is_server():
-		print("[DIAG huevos] %d creados en %s, peers cercanos=%s, contenedor=%s" % [
-			_huevos_activos.size(), origen.global_position,
-			InteresEspacial.peers_cercanos(origen.global_position), contenedor.get_path()])
-		for peer_id in InteresEspacial.peers_cercanos(origen.global_position):
-			rpc_id(peer_id, "_crear_huevos_red", origen.global_position, datos_replicacion)
 
 	# Mismo "respiro" telegrafiado que las transiciones de fase (ver
 	# Enemigo._telegrafiar_pausa_de_fase): congela BT+movimiento+animación,
@@ -140,38 +120,17 @@ func _al_terminar_descanso() -> void:
 
 func _eclosionar(huevo: Node2D, contenedor: Node) -> void:
 	var pos := huevo.global_position
-	# Reporte real en juego (23 sep 2026): "las larvas al eclosionar no
-	# desaparecen y dejan de recibir daño" -- el huevo replicado a mano en
-	# el cliente (ver _crear_huevos_red, HuevoHormiga sacado de
-	# escenas_replicables()) nunca se enteraba de este queue_free() acá
-	# abajo: al morir en COMBATE sí llega el aviso genérico (Enemigo.
-	# _desvanecer_y_eliminar -> rpc("_despawn_red"), heredado tal cual),
-	# pero eclosionar NUNCA pasa por VidaComponente.quitar_vida()/_on_muerte
-	# -- ese aviso nunca se disparaba solo. Reusa el mismo RPC genérico en
-	# vez de inventar uno nuevo: mismo desvanecido visual que cualquier
-	# muerte de mob, ya probado.
-	if Utils.en_red() and multiplayer.is_server() and huevo.has_method("_despawn_red"):
-		# DIAGNÓSTICO TEMPORAL (23 sep 2026) -- el usuario reporta que el
-		# fantasma SIGUE apareciendo pese a este aviso. Confirmar en el log
-		# del servidor si esta línea corre de verdad y con qué peers
-		# conectados -- sacar una vez resuelto.
-		print("[DIAG eclosion] avisando despawn de %s a peers=%s" % [
-			huevo.name, multiplayer.get_peers()])
-		huevo.rpc("_despawn_red")
+	# Los clientes se enteran solos (ReplicadorEnemigos ve salir al huevo).
 	huevo.queue_free()
 	if contenedor == null:
 		return
 	var guardian := escena_guardian.instantiate()
-	# Posición ANTES de add_child -- pedido explícito del usuario: "quiero
-	# que las hormigas que eclosionan de las larvas aparezcan en las mismas
-	# posiciones de las larvas". La réplica del MultiplayerSpawner captura
-	# el estado del nodo en el instante de add_child (vía child_entered_
-	# tree) -- asignar la posición DESPUÉS (como estaba) dejaba esa foto
-	# tomada en el origen del contenedor, no en "pos", en cualquier cliente
-	# cuya réplica dependiera de ese instante. Mismo criterio ya aplicado a
-	# HuevoHormiga en HabilidadPuestaHuevos._ejecutar().
-	guardian.global_position = pos
 	contenedor.add_child(guardian, true)
+	# Pedido explícito del usuario: "quiero que las hormigas que eclosionan de
+	# las larvas aparezcan en las mismas posiciones de las larvas". Después de
+	# add_child: antes, en el Hormiguero (desplazado 700.000 px) la guardiana
+	# aparecía al doble de distancia, fuera del mapa.
+	guardian.global_position = pos
 	_guardianes_vivos.append(guardian)
 	var vida := guardian.get_node_or_null("VidaComponente") as VidaComponente
 	if vida:
@@ -241,6 +200,9 @@ func _difundir_guardianes() -> void:
 	for g in _guardianes_vivos:
 		if is_instance_valid(g):
 			rutas.append(g.get_path())
+	var replicador := ReplicadorEnemigos.de(origen)
+	if replicador:
+		replicador.enviar_pendientes()
 	for peer_id in InteresEspacial.peers_cercanos(origen.global_position):
 		rpc_id(peer_id, "_actualizar_guardianes_red", rutas)
 
@@ -265,38 +227,3 @@ func _actualizar_guardianes_red(rutas: Array[NodePath]) -> void:
 	var reduccion := clampf(reduccion_por_guardian * rutas.size(), 0.0, _REDUCCION_MAXIMA)
 	buffs.agregar("resistencia_colonia", icono_escudo, _DURACION_EFECTO_PERMANENTE, false,
 		"Resistencia de la Colonia", "Reduce el daño recibido en %d%%" % int(reduccion * 100))
-
-
-## CLIENTE: crea los huevos A MANO, con el MISMO nombre que usó el servidor,
-## bajo el mismo contenedor -- mismo criterio que SpawnerMobs._recibir_
-## mobs_existentes (ver ese comentario). NO se confía en la réplica
-## automática del MultiplayerSpawner para HuevoHormiga (ver comentario
-## grande en EnemigoReinaHormigas.escenas_replicables()): confirmado en
-## juego real (21 sep 2026) que un cliente conectado a un nivel ya poblado
-## queda con esa réplica desincronizada -- errores reales del motor
-## ("get_cached_object: ID N not found", "on_spawn_receive: spawner is
-## null"), no solo para los huevos sino para cualquier mob nuevo en esa
-## sesión. Idempotente en el nombre (si por algún motivo el nodo ya existe,
-## no lo duplica) -- con los RPCs por ruta que ya usa el resto del sistema
-## (posición, buffs, muerte) funcionando igual una vez que el nombre
-## coincide con el del servidor.
-@rpc("authority", "reliable")
-func _crear_huevos_red(origen_pos: Vector2, datos: Array) -> void:
-	if not is_instance_valid(entidad_dueña):
-		return
-	var contenedor := entidad_dueña.get_parent()
-	if contenedor == null:
-		return
-	for entrada in datos:
-		var nombre: String = entrada[0]
-		var destino: Vector2 = entrada[1]
-		if nombre == "" or contenedor.get_node_or_null(nombre) != null:
-			continue
-		var huevo := escena_huevo.instantiate()
-		huevo.name = nombre
-		huevo.global_position = origen_pos
-		contenedor.add_child(huevo)
-		if huevo.has_method("lanzar_hacia"):
-			huevo.call("lanzar_hacia", destino)
-		else:
-			huevo.global_position = destino

@@ -285,7 +285,7 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 ## el segundo mostraba UN solo número con la suma ("cuando es daño múltiple
 ## solo sale 1", reportado en el celular por Wi-Fi). Son pocos paquetes (uno
 ## por golpe real), el costo de fiabilidad es trivial.
-## No emite "muerte" acá a propósito: eso ya lo maneja Enemigo._despawn_red
+## No emite "muerte" acá a propósito: eso ya lo maneja Enemigo.desvanecer_replica
 ## / el flujo de muerte del jugador — emitirlo también acá duplicaría la
 ## reacción (animación de muerte, etc.) del lado del cliente.
 ##

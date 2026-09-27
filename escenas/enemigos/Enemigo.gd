@@ -225,8 +225,8 @@ static var us_acumulados_replicacion_estado: int = 0
 ## MultiplayerSpawner) un Synchronizer armado por código nunca llegó a
 ## sincronizar nada de forma confiable en pruebas reales — el mob se movía
 ## del lado del servidor pero el cliente quedaba congelado en su posición
-## de spawn para siempre. RPC directo, con el mismo patrón ya probado en
-## _despawn_red, es más simple y sí funciona.
+## de spawn para siempre. RPC directo es más simple y sí funciona. Qué mobs
+## existen (altas/bajas) lo replica ReplicadorEnemigos.
 func _enter_tree() -> void:
 	if not Utils.en_red():
 		return
@@ -828,15 +828,10 @@ func _desvanecer_y_eliminar() -> void:
 		componente_animacion.actualizar_blend(hacia_donde_mirar)
 		componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", false)
 		componente_animacion.establecer_condicion("parameters/conditions/debeIdle",    true)
-	# Fase 5 del plan de multijugador: la réplica automática de "este nodo
-	# desapareció" (que en teoría hace MultiplayerSpawner solo con el
-	# queue_free() de más abajo) no le está llegando al cliente — se queda
-	# viendo al mob quieto para siempre aunque el servidor ya lo haya
-	# eliminado. En vez de perseguir esa causa, se avisa explícito por RPC
-	# (mismo criterio ya probado con el loot/XP): confiable y fácil de
-	# razonar, sin depender de un mecanismo interno que no está andando.
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_despawn_red")
+		var replicador := ReplicadorEnemigos.de(self)
+		if replicador:
+			replicador.avisar_muerte(self)
 
 	var tween := create_tween()
 	tween.tween_property(self, "modulate", Color.BLACK, 0.4)
@@ -844,19 +839,10 @@ func _desvanecer_y_eliminar() -> void:
 	tween.tween_callback(queue_free)
 
 
-## El cliente recibe acá el aviso de que este mob murió del lado del
-## servidor — reproduce el mismo desvanecido visual y se libera, sin volver
-## a pasar por toda la lógica de muerte (botín, XP, etc., que ya se resolvió
-## en el servidor).
-@rpc("authority", "reliable")
-func _despawn_red() -> void:
-	# DIAGNÓSTICO TEMPORAL (23 sep 2026) -- reportado en juego real que un
-	# huevo eclosionado sigue como fantasma pese al aviso agregado en
-	# HabilidadPuestaHuevos._eclosionar(). Filtrado a HuevoHormiga para no
-	# ensuciar el log con cada muerte normal -- sacar una vez resuelto.
-	if self is HuevoHormiga:
-		print("[DIAG despawn cliente] _despawn_red recibido para %s (servidor=%s)" % [
-			name, Utils.en_red() and multiplayer.is_server()])
+## CLIENTE: ReplicadorEnemigos avisa que este mob ya no existe en el servidor
+## — mismo desvanecido visual, sin volver a pasar por la lógica de muerte
+## (botín, XP, etc., ya resuelta allá).
+func desvanecer_replica() -> void:
 	_muerto = true
 	_apagar_colision_de_muerto()
 	if componente_animacion:

@@ -2,17 +2,10 @@ extends NivelBase
 ## Santuario del Guardián Quebrado — mismo patrón exacto que
 ## NivelNidoArañaReina.gd (ver ese archivo para el porqué completo): el jefe
 ## vive COLOCADO A MANO en la escena (Enemigos/EnemigoGuardianQuebrado), no
-## generado por SpawnerMobs/MultiplayerSpawner, porque el servidor nunca
-## libera un nivel ya cargado — sin reponerlo a mano, el nivel se quedaría
-## sin jefe para siempre tras la primera muerte.
-##
-## Reposición en la MISMA ruta de nodo (no vía MultiplayerSpawner) por el
-## mismo motivo documentado en NivelNidoArañaReina.gd: el cliente reinstancia
-## la escena ENTERA al (re)cargar el nivel, así que el jefe horneado en el
-## .tscn ya existe solo del lado del cliente — reponerlo del lado del
-## servidor en esa misma ruta deja que la sincronización genérica por RPC de
-## Enemigo.gd (dirigida por ruta de nodo) lo encuentre y siga funcionando,
-## sin la copia fantasma que daría meterlo en el MultiplayerSpawner.
+## generado por SpawnerMobs, porque el servidor nunca libera un nivel ya
+## cargado — sin reponerlo a mano, el nivel se quedaría sin jefe para siempre
+## tras la primera muerte. Se repone en la MISMA ruta de nodo por el motivo
+## documentado en NivelNidoArañaReina.gd.
 
 const _RUTA_JEFE := "Enemigos/EnemigoGuardianQuebrado"
 const _ESCENA_JEFE := preload("res://escenas/enemigos/EnemigoGuardianQuebrado.tscn")

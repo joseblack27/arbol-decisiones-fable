@@ -22,7 +22,7 @@ class_name ObjetoRecolectable
 ## sprite al mismo tiempo. Por eso, a diferencia de Cofre.gd, este SÍ
 ## necesita validación server-autoritativa (RPC de 4 pasos, mismo patrón
 ## que MejorasComponente._pedir_gastar_pasiva_red) y un broadcast reliable
-## cuando cambia (mismo patrón que Enemigo._despawn_red) — más el resync a
+## cuando cambia — más el resync a
 ## un peer que se conecta DESPUÉS de que ya quedó agotado (GestorNiveles.
 ## peer_listo, mismo patrón que NivelNidoArañaReina._al_peer_listo).
 ## Pedido del usuario: "que cambie de sprite, no permita recoger más y
@@ -199,9 +199,9 @@ func _pedir_recolectar_red() -> void:
 
 
 ## SERVIDOR (o local sin red): aplica el agotamiento de verdad, avisa a
-## TODOS los clientes conectados (broadcast reliable, mismo criterio que
-## Enemigo._despawn_red: "algo cambió de forma visible para todos, evento
-## raro, no hace falta throttle de InteresEspacial") y le da el recurso al
+## TODOS los clientes conectados (broadcast reliable: "algo cambió de forma
+## visible para todos, evento raro, no hace falta throttle de
+## InteresEspacial") y le da el recurso al
 ## jugador que recolectó.
 func _recolectar_local(jugador: Node) -> void:
 	_agotado = true

@@ -96,10 +96,8 @@ func _process(delta: float) -> bool:
 			var otros_mobs: Array[String] = []
 			for hijo in contenedor.get_children():
 				nombres.append(String(hijo.name))
-				# SpawnerMobs/SpawnerRed son infraestructura (el generador
-				# inactivo para registro de red y el MultiplayerSpawner que
-				# arma NivelBase), no mobs — lo que importa es que no haya
-				# NINGÚN otro Enemigo real aparte de la reina.
+				# SpawnerMobs es infraestructura, no un mob — lo que importa es
+				# que no haya NINGÚN otro Enemigo real aparte de la reina.
 				if hijo is Enemigo and not (hijo.name as String).begins_with("EnemigoArañaReina"):
 					otros_mobs.append(String(hijo.name))
 			print("[BOT] Enemigos en el nido: %s" % str(nombres))
