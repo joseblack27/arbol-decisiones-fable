@@ -59,9 +59,13 @@ func _probar_no_presionado_corrige() -> void:
 	# "direccion" quedó pegada en un valor no-cero, pero el dedo ya no está
 	# (index=-1, default) -- exactamente el escenario reportado.
 	_jugador.direccion = Vector2.RIGHT
+	# Rectificador de velocidad (pedido del usuario, 24 sep 2026): velocity
+	# también, no solo direccion.
+	_jugador.velocity = Vector2(500, 0)
 	_jugador._verificar_joystick_soltado()
-	_corrige_si_no_esta_presionado_ok = _jugador.direccion == Vector2.ZERO
-	print("Con el joystick sin presionar de verdad, direccion se corrige a cero (esperado true): %s" % \
+	_corrige_si_no_esta_presionado_ok = _jugador.direccion == Vector2.ZERO \
+		and _jugador.velocity == Vector2.ZERO
+	print("Con el joystick sin presionar de verdad, direccion y velocity se corrigen a cero (esperado true): %s" % \
 		_corrige_si_no_esta_presionado_ok)
 
 
@@ -74,18 +78,9 @@ func _probar_presionado_no_toca() -> void:
 		_no_toca_si_si_esta_presionado_ok)
 
 
-## Regresión (pedido explícito del usuario, 21 sep 2026): "volvió a
-## aparecer, pero me di cuenta que aparece cuando hay lag" -- la corrección
-## de arriba ya arregla la copia LOCAL, pero el aviso al servidor real
-## (_pedir_mover_red) viaja por un canal unreliable_ordered a propósito
-## (estado continuo); con lag/pérdida de paquetes justo ESE aviso de "ya
-## solté" se puede perder, sin reintento -- el servidor nunca se entera y
-## sigue moviendo el cuerpo autoritativo solo. Ahora también se manda
-## _pedir_detener_red() (RELIABLE, ya existía para un bug relacionado, ver
-## su comentario grande) -- este chequeo solo confirma que, en modo red
-## (create_client sin conectar, mismo criterio que otras pruebas de este
-## proyecto), la corrección sigue funcionando sin reventar al intentar
-## mandar ese RPC extra.
+## En modo red (create_client sin conectar, mismo criterio que otras pruebas
+## de este proyecto) la corrección local sigue funcionando. Que el servidor
+## se entere lo cubre el flujo de input (ver prueba_jugador_input_red.gd).
 func _probar_en_red_avisa_confiable() -> void:
 	_joystick.forzar_suelta()  # el toque de _probar_presionado_no_toca() seguía activo.
 

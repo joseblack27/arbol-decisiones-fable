@@ -342,7 +342,7 @@ func _debe_pedirle_al_servidor() -> bool:
 ## El servidor recibe acá la intención de activar del cliente dueño de esta
 ## habilidad. "any_peer" = cualquiera puede llamarlo, pero se verifica que
 ## el remitente sea el dueño real antes de aceptarlo (autoridad real, mismo
-## criterio que Jugador._pedir_mover_red()).
+## criterio que Jugador._recibir_input_red()).
 @rpc("any_peer", "reliable")
 func _activar_red(direccion: Vector2, poder: float) -> void:
 	if not multiplayer.is_server():
@@ -371,7 +371,7 @@ func _activar_red(direccion: Vector2, poder: float) -> void:
 
 ## SERVIDOR: el cliente dueño avisa "ya voy a disparar, congelame de
 ## verdad" — congelar_disparo_pendiente() bloquea el movimiento real
-## (_pedir_mover_red la respeta) sin tocar _bloqueos_control/esta_
+## (Jugador._aplicar_input_servidor la respeta) sin tocar _bloqueos_control/esta_
 ## bloqueado(), para que el propio _activar_red que llega después no se
 ## auto-rechace. Mismo criterio de autoridad que _activar_red.
 @rpc("any_peer", "reliable")

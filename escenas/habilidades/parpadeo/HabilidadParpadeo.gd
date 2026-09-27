@@ -54,7 +54,7 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 
 	# Mismo criterio que HabilidadCargaJugador: mover la posición directo,
 	# sin RPC dedicado — el jugador ya es autoridad de su propio movimiento
-	# (ver Jugador._pedir_mover_red), así que esto se reconcilia solo con
+	# (ver Jugador._recibir_input_red), así que esto se reconcilia solo con
 	# el resto del flujo normal de posición.
 	entidad.global_position = destino
 

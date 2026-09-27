@@ -55,6 +55,9 @@ func _process(delta: float) -> bool:
 		utils.puerto_conexion = _puerto
 		utils.modo_local_pruebas = false
 		utils.nombre_conexion = "BotReplicador%d" % (Time.get_unix_time_from_system() as int % 100000)
+		# Identidad nueva en memoria: sin esto usa la guardada en esta PC (la
+		# misma que el cliente real) y reaparece donde quedó la vez anterior.
+		utils._id_jugador_local_cache = utils._generar_uuid()
 		_mundo = (load("res://escenas/mundo/Mundo.tscn") as PackedScene).instantiate()
 		root.add_child(_mundo)
 		current_scene = _mundo

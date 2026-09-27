@@ -216,23 +216,33 @@ var _sincronizacion_dura := 0.0
 const TIEMPO_BLOQUEO_TRANSICION := 3.0
 var _bloqueo_transicion := 0.0
 
-## SERVIDOR: ventana breve tras un _pedir_detener_red() real durante la que
-## _pedir_mover_red() rechaza cualquier pedido de ARRANCAR movimiento nuevo
-## (pero nunca uno de PARAR, mismo criterio que _bloqueos_control en
-## _joystick_movimiento). _pedir_mover_red es unreliable_ordered A PROPÓSITO
-## (estado continuo) -- pero eso solo garantiza orden DENTRO de ese mismo
-## canal, nunca contra el canal reliable de _pedir_detener_red (mismo
-## problema ya documentado en el comentario grande de _pedir_detener_red,
-## para el caso de una ráfaga/disparo). Reportado en juego real (23 sep
-## 2026, sigue el bug del joystick con lag): _verificar_joystick_soltado()
-## corrige la copia local Y manda el aviso confiable, pero si un paquete
-## VIEJO de "seguí moviéndome" (mandado ANTES de soltar, pero que tardó más
-## en llegar) llega DESPUÉS de ese aviso, pisa el "parate" -- y como el
-## cliente ya se dio por corregido (no reintenta más), el cuerpo
-## autoritativo queda moviéndose solo para siempre. Esta ventana absorbe
-## ese rezago.
-const _VENTANA_BLOQUEO_MOVIMIENTO_TRAS_DETENER := 0.3
-var _bloqueo_movimiento_tras_detener := 0.0
+## Movimiento en red como ESTADO de input, no como eventos (27 sep 2026,
+## punto 2 del refactor de red pedido por el usuario). Antes el cliente
+## mandaba "moverme" (unreliable) y "parate" (reliable) por canales
+## distintos, sin orden entre sí: un "moverme" viejo podía llegar después del
+## "parate" y dejar al cuerpo del servidor caminando solo para siempre, y cada
+## parche (ventana de bloqueo, reintentos) solo tapaba un caso más.
+## Ahora el cliente dueño manda su dirección actual con un número de
+## secuencia, al instante si arranca o frena y si no cada
+## _FOTOGRAMAS_REENVIO_INPUT: el servidor se queda con la más nueva y
+## descarta las viejas. Soltar el joystick es mandar dirección cero; si ese
+## paquete se pierde, el siguiente lo corrige.
+const _FOTOGRAMAS_REENVIO_INPUT := 4
+var _secuencia_input := 0
+var _ultima_direccion_input_enviada := Vector2.INF
+var _fotogramas_desde_envio_input := 0
+
+## SERVIDOR: la intención más nueva del cliente dueño. "direccion" (la que
+## mueve el cuerpo) se recalcula cada fotograma a partir de esta, forzada a
+## cero mientras haya un bloqueo — así, al terminar el bloqueo, el cuerpo
+## retoma lo que el cliente está pidiendo AHORA, no un pedido viejo.
+var _direccion_pedida := Vector2.ZERO
+var _ultima_secuencia_input_recibida := 0
+const _SALTO_SECUENCIA_REINICIO := 1000
+## Sin input del dueño por este tiempo (app en segundo plano, conexión
+## cortándose) el servidor lo frena en vez de dejarlo caminando.
+const _SEGUNDOS_SIN_INPUT_PARA_FRENAR := 0.5
+var _segundos_sin_input := 0.0
 
 
 ## Defensa en profundidad: aunque ahora solo el dueño local se suscribe a
@@ -397,16 +407,11 @@ func bloquear_control() -> void:
 	# Frenar en seco YA: si el joystick venía empujado, direccion conservaba
 	# el último valor y el personaje seguía caminando "bloqueado".
 	direccion = Vector2.ZERO
-	# En red: dejar de MANDAR movimiento (lo que ya hacía _joystick_movimiento
-	# al cortar por _bloqueos_control) no alcanza — el SERVIDOR sigue
-	# aplicando la ÚLTIMA dirección que le llegó, cada frame, hasta que se le
-	# diga lo contrario (no hace falta reenviar "seguí" a cada frame para que
-	# siga moviéndose). Sin este aviso explícito de "parate", el cuerpo
-	# autoritativo del servidor seguía caminando durante toda la ida y vuelta
-	# de red mientras el cliente ya se veía quieto — exactamente el desfase
-	# de origen que hace fallar los proyectiles lanzados en movimiento.
-	if Utils.en_red() and peer_id_dueño == multiplayer.get_unique_id():
-		rpc_id(1, "_pedir_detener_red")
+	# Cliente dueño: avisarle ya al servidor (sin esperar al próximo reenvío)
+	# para que el cuerpo autoritativo no siga caminando mientras acá ya se ve
+	# quieto — el desfase que hacía salir proyectiles desde posiciones corridas.
+	if _soy_dueño_cliente_red():
+		_enviar_input_red()
 
 
 func desbloquear_control() -> void:
@@ -414,7 +419,7 @@ func desbloquear_control() -> void:
 
 
 ## Contador APARTE de _bloqueos_control: bloquea SOLO el movimiento
-## (_pedir_mover_red lo respeta, ver ahí), nunca la activación de
+## (_aplicar_input_servidor lo respeta, ver ahí), nunca la activación de
 ## habilidades (esta_bloqueado()/_activar_red NO lo consultan). Necesario
 ## porque HabilidadBase.activar() lo pone ANTES de que la propia habilidad
 ## dispare de verdad (ver _congelar_real_red) — si usara _bloqueos_control,
@@ -507,27 +512,15 @@ func _dibujar_iconos_estado() -> void:
 ## dedicado (sin UI) ni en la réplica de OTRO jugador en mi pantalla.
 var _joystick_local: Node = null
 
-## Cuántos fotogramas seguidos, tras detectar el soltado, se sigue
-## insistiendo con el aviso de "parate" -- pedido explícito del usuario (24
-## sep 2026: "volvió el tema del joystick... el personaje se sigue moviendo
-## con la animación de idle sin fin en la última dirección"). La versión
-## anterior de este método mandaba el aviso reliable UNA sola vez al
-## detectar el soltado (ver el comentario grande que tenía _pedir_detener_
-## red acá abajo); si justo ESA muestra se perdía, o un _pedir_mover_red
-## viejo la pisaba después de vencida la ventana de bloqueo del servidor
-## (_bloqueo_movimiento_tras_detener, pensada para un solo rezago, no para
-## varios seguidos), nada lo volvía a corregir y el cuerpo autoritativo del
-## servidor quedaba caminando solo para siempre -- lo que explica el
-## síntoma reportado: la predicción LOCAL ya está en idle (por eso "la
-## animación es de idle"), pero lo que sigue avanzando es la posición
-## replicada del servidor con la que este mismo cliente reconcilia. No se
-## reinsiste para siempre (eso spamearía el canal reliable todo el rato que
-## el joystick esté simplemente quieto) -- solo unos fotogramas después de
-## la última vez que hizo falta corregir algo.
-const _FOTOGRAMAS_INSISTIR_JOYSTICK_SOLTADO := 15
-var _fotogramas_insistiendo_joystick_soltado := 0
-
+## Al servidor no hace falta avisarle nada acá: el flujo de input (ver
+## _enviar_input_red) ya le lleva la dirección cero en el próximo envío.
 func _verificar_joystick_soltado() -> void:
+	if direccion == Vector2.ZERO:
+		return
+	# BotIA mueve por _joystick_movimiento() sin tocar el joystick real: sin
+	# este corte el rectificador lo frenaba en cada fotograma.
+	if Utils.modo_bot:
+		return
 	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
 		return
 	if not is_instance_valid(_joystick_local):
@@ -537,28 +530,12 @@ func _verificar_joystick_soltado() -> void:
 				_joystick_local = hijo
 				break
 	if _joystick_local == null or _joystick_local.esta_presionado():
-		_fotogramas_insistiendo_joystick_soltado = 0
 		return
-	if direccion != Vector2.ZERO:
-		_fotogramas_insistiendo_joystick_soltado = _FOTOGRAMAS_INSISTIR_JOYSTICK_SOLTADO
-	elif _fotogramas_insistiendo_joystick_soltado <= 0:
-		return
-	# Rectificador de VELOCIDAD: fuerza velocity acá mismo, sin depender de
-	# que componente_movimiento vuelva a correr este mismo fotograma con la
-	# dirección ya corregida (p. ej. si algo más toma control del cuerpo
-	# antes de llegar a esa línea de _physics_process).
+	# Rectificador de velocidad (pedido del usuario, 24 sep 2026): también
+	# velocity, no solo direccion, por si algo mueve el cuerpo antes de que
+	# componente_movimiento corra este fotograma.
 	velocity = Vector2.ZERO
 	_joystick_movimiento(Vector2.ZERO)
-	_fotogramas_insistiendo_joystick_soltado -= 1
-	# _joystick_movimiento() ya corrige la copia LOCAL (para que se vea
-	# bien acá mismo) y le avisa al servidor por _pedir_mover_red -- pero
-	# ese canal es "unreliable_ordered" a propósito (estado continuo,
-	# normalmente un paquete de más/menos no importa), así que además se
-	# reinsiste con _pedir_detener_red() (reliable) unos fotogramas seguidos
-	# en vez de una sola vez -- ver el comentario grande de
-	# _FOTOGRAMAS_INSISTIR_JOYSTICK_SOLTADO arriba.
-	if Utils.en_red() and not multiplayer.is_server():
-		rpc_id(1, "_pedir_detener_red")
 
 
 func _joystick_movimiento(_direccion: Vector2):
@@ -577,23 +554,11 @@ func _joystick_movimiento(_direccion: Vector2):
 	# sin esto se perdía igual.
 	if _bloqueos_control > 0 and _direccion != Vector2.ZERO:
 		return
-	if Utils.en_red():
-		# En red: el joystick es local a CADA cliente (SeñalManager es un bus
-		# global, sin esto los joysticks de otros jugadores también moverían
-		# este cuerpo). Solo el dueño manda su intención, y se la manda al
-		# SERVIDOR por RPC — el servidor es quien decide el movimiento real
-		# (ver _physics_process y _pedir_mover_red).
-		if peer_id_dueño != multiplayer.get_unique_id():
-			return
-		rpc_id(1, "_pedir_mover_red", _direccion)
-		# TAMBIÉN local, para predicción — ver _physics_process: sin esto el
-		# dueño no movía su propio cuerpo hasta que la posición volviera
-		# replicada desde el servidor (1 ida y vuelta de red completa),
-		# quedando su render siempre ATRASADO respecto a su posición real.
-		# Eso desalineaba el ORIGEN del proyectil que ve el dueño (su
-		# posición vieja) contra el que arma el servidor (su posición ya
-		# actualizada) — "el golpe no acierta, sobre todo moviéndose".
-		direccion = _direccion
+	# En red: el joystick es local a CADA cliente (SeñalManager es un bus
+	# global, sin esto los joysticks de otros jugadores también moverían este
+	# cuerpo). Solo el dueño cambia su dirección — que sirve para predecir
+	# localmente y viaja al servidor por _enviar_input_red.
+	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
 		return
 	direccion = _direccion
 
@@ -726,60 +691,58 @@ func _rechazar_cuenta_red(motivo: String) -> void:
 	Utils.error_conexion = motivo
 
 
+func _soy_dueño_cliente_red() -> bool:
+	return Utils.en_red() and not multiplayer.is_server() \
+		and peer_id_dueño == multiplayer.get_unique_id()
+
+
+## CLIENTE dueño: manda la dirección actual al servidor — al instante si
+## arranca o frena, cada 2 fotogramas como mucho si solo cambia de rumbo, y
+## si no cada _FOTOGRAMAS_REENVIO_INPUT aunque nada cambie (así un paquete
+## perdido se corrige solo en ~65 ms).
+func _enviar_input_red() -> void:
+	_fotogramas_desde_envio_input += 1
+	var arranca_o_frena := (direccion == Vector2.ZERO) != (_ultima_direccion_input_enviada == Vector2.ZERO)
+	var cambio_de_rumbo := direccion != _ultima_direccion_input_enviada and _fotogramas_desde_envio_input >= 2
+	if not (arranca_o_frena or cambio_de_rumbo or _fotogramas_desde_envio_input >= _FOTOGRAMAS_REENVIO_INPUT):
+		return
+	_secuencia_input += 1
+	_ultima_direccion_input_enviada = direccion
+	_fotogramas_desde_envio_input = 0
+	rpc_id(1, "_recibir_input_red", _secuencia_input, direccion)
+
+
+## SERVIDOR: "any_peer" pero solo se acepta del dueño real. unreliable_ordered
+## a propósito: es estado continuo, el próximo envío corrige cualquier pérdida,
+## y la secuencia descarta cualquier paquete viejo que llegue tarde.
 @rpc("any_peer", "unreliable_ordered")
-func _pedir_mover_red(direccion_pedida: Vector2) -> void:
+func _recibir_input_red(secuencia: int, direccion_pedida: Vector2) -> void:
 	if not multiplayer.is_server():
 		return
 	if multiplayer.get_remote_sender_id() != peer_id_dueño:
 		return
-	if _muerto:
+	# Un salto grande hacia atrás no es un paquete viejo (esos llegan a lo sumo
+	# unos pocos detrás): es el cliente que reinició su contador.
+	var retraso := _ultima_secuencia_input_recibida - secuencia
+	if retraso >= 0 and retraso < _SALTO_SECUENCIA_REINICIO:
 		return
-	# La copia AUTORITATIVA también respeta el bloqueo de control (ráfaga en
-	# curso): el cliente dueño ya no manda intención mientras está bloqueado,
-	# pero un paquete rezagado (o manipulado) no debe mover el cuerpo real.
-	if _bloqueos_control > 0:
-		return
-	# Congelamiento pendiente de disparo (ver congelar_disparo_pendiente() /
-	# HabilidadBase._congelar_real_red) — aparte de _bloqueos_control a
-	# propósito: esto SÍ tiene que rechazar movimiento, pero NO debe hacer
-	# que esta_bloqueado() rechace la propia habilidad que lo puso cuando
-	# llegue a disparar.
-	if _congelamientos_disparo > 0:
-		return
-	# Ver _bloqueo_movimiento_tras_detener: un paquete VIEJO de "seguí
-	# moviéndome" (mandado antes de soltar, pero rezagado por lag) puede
-	# llegar en esta breve ventana posterior a un _pedir_detener_red() real
-	# — nunca rechaza PARAR (direccion_pedida == ZERO siempre pasa), solo
-	# un intento de retomar/cambiar movimiento mientras podría ser ese
-	# rezago.
-	if _bloqueo_movimiento_tras_detener > 0.0 and direccion_pedida != Vector2.ZERO:
-		return
-	direccion = direccion_pedida
+	_ultima_secuencia_input_recibida = secuencia
+	# Nunca más rápido que el joystick a fondo, aunque el cliente mande otra cosa.
+	_direccion_pedida = direccion_pedida.limit_length(1.0)
+	_segundos_sin_input = 0.0
 
 
-## Aviso de "parate ya" — reliable (a diferencia de _pedir_mover_red, que es
-## unreliable_ordered: estado continuo donde un paquete de más no importa).
-## Zonzeo de una sola vez, redundante con el bloqueo de verdad: la
-## protección real contra "el proyectil nace desde una posición ya corrida"
-## la da _bloqueos_control (ver HabilidadBase.activar()) — el SERVIDOR se
-## bloquea a sí mismo al recibir _activar_red, y _pedir_mover_red() ya
-## descarta cualquier pedido de movimiento mientras ese bloqueo esté
-## activo. Confiar en que ESTE aviso llegara ANTES que _activar_red (mismo
-## canal reliable, orden de envío) no alcanzaba: si el jugador retomaba el
-## joystick apenas se descongelaba localmente (mismo instante en que se
-## mandaba el disparo), ese "seguí moviéndome" viajaba por el canal
-## UNRELIABLE de _pedir_mover_red, sin ninguna garantía de orden contra
-## esto — el bug seguía pasando con el margen ya funcionando (reportado
-## con Cepo/Trampa). Se deja igual porque no molesta: zonzeo temprano de
-## "quedate quieto" nunca está de más mientras se resuelve el bloqueo real.
-@rpc("any_peer", "reliable")
-func _pedir_detener_red() -> void:
-	if not multiplayer.is_server():
-		return
-	if multiplayer.get_remote_sender_id() != peer_id_dueño:
-		return
-	direccion = Vector2.ZERO
-	_bloqueo_movimiento_tras_detener = _VENTANA_BLOQUEO_MOVIMIENTO_TRAS_DETENER
+## SERVIDOR: la dirección que mueve el cuerpo este fotograma. Cero mientras
+## haya un bloqueo — _congelamientos_disparo va aparte de _bloqueos_control a
+## propósito (ver congelar_disparo_pendiente): frena el movimiento sin que
+## esta_bloqueado() rechace la propia habilidad que lo puso.
+func _aplicar_input_servidor(delta: float) -> void:
+	_segundos_sin_input += delta
+	if _segundos_sin_input > _SEGUNDOS_SIN_INPUT_PARA_FRENAR:
+		_direccion_pedida = Vector2.ZERO
+	var bloqueado := _muerto or _bloqueos_control > 0 or _congelamientos_disparo > 0 \
+		or _bloqueo_transicion > 0.0
+	direccion = Vector2.ZERO if bloqueado else _direccion_pedida
 
 
 func _physics_process(delta: float) -> void:
@@ -794,10 +757,11 @@ func _physics_process(delta: float) -> void:
 		direccion = Vector2.ZERO
 		velocity = Vector2.ZERO
 
-	if _bloqueo_movimiento_tras_detener > 0.0:
-		_bloqueo_movimiento_tras_detener = maxf(0.0, _bloqueo_movimiento_tras_detener - delta)
-
 	_verificar_joystick_soltado()
+	if _soy_dueño_cliente_red():
+		_enviar_input_red()
+	elif Utils.en_red() and multiplayer.is_server():
+		_aplicar_input_servidor(delta)
 
 	# En red, el cliente que NO es dueño de este cuerpo (la réplica de OTRO
 	# jugador en mi pantalla) no lo mueve directo — solo interpola hacia la
@@ -807,7 +771,7 @@ func _physics_process(delta: float) -> void:
 		if peer_id_dueño == multiplayer.get_unique_id():
 			# Predicción local del PROPIO dueño: mover YA con la misma
 			# dirección que ya le mandamos al servidor (ver
-			# _joystick_movimiento), sin esperar la ida y vuelta de red —
+			# _enviar_input_red), sin esperar la ida y vuelta de red —
 			# el servidor corre exactamente el mismo componente_movimiento
 			# con la misma dirección, así que ambos deberían coincidir.
 			if componente_movimiento:
