@@ -97,11 +97,15 @@ correr_bot() {
 correr_bot bot_movimiento_red
 correr_bot bot_replicacion_enemigos --duracion=50
 
-ERRORES_SERVIDOR=$(grep -c "SCRIPT ERROR" "$CARPETA_LOGS/servidor.log")
+# SCRIPT ERROR = error de ejecución de GDScript. "jugador LOCAL y en el
+# servidor" = una fachada (GestorInventario/GestorEquipo/GestorExperiencia)
+# usada en el servidor, donde no hay jugador local (ver GestorInventario.gd).
+PATRON_ERRORES_SERVIDOR="SCRIPT ERROR|jugador LOCAL y en el servidor"
+ERRORES_SERVIDOR=$(grep -cE "$PATRON_ERRORES_SERVIDOR" "$CARPETA_LOGS/servidor.log")
 echo ""
 echo "== Errores de script en el servidor: $ERRORES_SERVIDOR =="
 if [ "$ERRORES_SERVIDOR" -gt 0 ]; then
-	grep "SCRIPT ERROR" "$CARPETA_LOGS/servidor.log" | sort | uniq -c | sort -rn | head -10
+	grep -E "$PATRON_ERRORES_SERVIDOR" "$CARPETA_LOGS/servidor.log" | sort | uniq -c | sort -rn | head -10
 	FALLARON+=("servidor (errores de script)")
 fi
 

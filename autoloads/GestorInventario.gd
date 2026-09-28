@@ -1,8 +1,12 @@
 extends Node
-## GestorInventario (autoload): fachada de compatibilidad. El dato real vive en
-## InventarioComponente, colgado de cada Jugador (ver Jugador.tscn); este
-## autoload delega al del jugador local, para el código que ya lo usaba directo
-## (PanelInventario, Enemigo, GestorGuardado...).
+## GestorInventario (autoload): el inventario del jugador LOCAL. El dato real
+## vive en InventarioComponente, colgado de cada Jugador (ver Jugador.tscn);
+## esto delega al del jugador de este cliente, para la UI (PanelInventario,
+## barra rápida...) y el guardado del lado del cliente.
+##
+## En el SERVIDOR no hay jugador local: el código del servidor tiene que usar
+## el InventarioComponente del jugador que corresponde. Usar esto ahí es un
+## error y se avisa (ver _obtener_componente).
 ##
 ## Si no hay ningún jugador con InventarioComponente (pruebas que arman un
 ## "jugador" a mano, herramientas sueltas), cae a una instancia propia de
@@ -23,6 +27,8 @@ func _obtener_componente():
 		var c = jugador.get_node_or_null("InventarioComponente")
 		if c:
 			return c
+	if Utils.en_red() and multiplayer.is_server():
+		push_error("GestorInventario es el inventario del jugador LOCAL y en el servidor no hay ninguno: usar el InventarioComponente del jugador que corresponde.")
 	if _respaldo == null:
 		_respaldo = (load("res://componentes/InventarioComponente.gd") as GDScript).new()
 	return _respaldo

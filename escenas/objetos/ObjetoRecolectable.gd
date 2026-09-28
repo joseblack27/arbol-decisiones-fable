@@ -198,7 +198,9 @@ func _dar_recurso(jugador: Node) -> void:
 		inventario = jugador.get_node_or_null("InventarioComponente")
 	if inventario:
 		inventario.agregar_item(item_recurso)
-	else:
+	elif not Utils.en_red():
+		# Sin red, el jugador local (GestorInventario). En el servidor no hay
+		# jugador local: sin componente, no hay a quién dárselo.
 		GestorInventario.agregar_item(item_recurso)
 	if not Utils.en_red() or not multiplayer.is_server():
 		return

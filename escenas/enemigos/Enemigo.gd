@@ -582,15 +582,15 @@ func _otorgar_botin() -> void:
 			_otorgar_item_al_atacante(entrada.item)
 
 
-## Le da el ítem al InventarioComponente de _ultimo_atacante si es un
-## jugador identificable; si no (sin atacante registrado, un solo jugador
-## sin componentes propios, etc.) cae al comportamiento de siempre —
-## GestorInventario, que en esos casos apunta al único jugador que hay.
+## Le da el ítem al InventarioComponente de _ultimo_atacante. Sin atacante
+## identificable (daño ambiental, un jugador de prueba sin componentes) cae a
+## GestorInventario, que es el jugador LOCAL: eso solo tiene sentido sin red.
+## En el servidor no hay jugador local, así que ese botín no es de nadie.
 func _otorgar_item_al_atacante(item: DatosItem) -> void:
 	var componente := _componente_del_atacante("InventarioComponente")
 	if componente:
 		componente.agregar_item(item)
-	else:
+	elif not Utils.en_red():
 		GestorInventario.agregar_item(item)
 	var dueño := _peer_dueño_del_atacante()
 	if dueño >= 0:
@@ -619,7 +619,9 @@ func _otorgar_xp_a(entidad: Node, cantidad: int) -> void:
 	var componente := _componente_de(entidad, "ExperienciaComponente")
 	if componente:
 		componente.agregar_xp(cantidad)
-	else:
+	elif not Utils.en_red():
+		# Mismo criterio que _otorgar_item_al_atacante: la fachada es el
+		# jugador local, que solo existe sin red.
 		GestorExperiencia.agregar_xp(cantidad)
 	var dueño := _peer_dueño_de(entidad)
 	if dueño >= 0:
