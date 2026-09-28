@@ -14,12 +14,15 @@
 # =============================================================================
 extends SceneTree
 
+## Se cuentan pasos de FÍSICA, no fotogramas de dibujo: el aldeano cambia de
+## estado en _physics_process, y en headless puede haber varios fotogramas de
+## dibujo sin ningún paso de física en el medio.
 var _f := 0
 var _aldeano
 var _exito := true
 
 
-func _process(_d: float) -> bool:
+func _physics_process(_d: float) -> bool:
 	_f += 1
 	if _f == 1:
 		_probar_pedido_del_dueno_sin_red()
@@ -30,17 +33,17 @@ func _process(_d: float) -> bool:
 		_aldeano = (load("res://escenas/npc/aldeano/Aldeano.tscn") as PackedScene).instantiate()
 		root.add_child(_aldeano)
 		return false
-	if _f == 2:
+	if _f == 3:
 		_aldeano._marcar_hablante(5, true)
 		_aldeano._marcar_hablante(6, true)
 		_aldeano._marcar_hablante(5, false)
 		return false
-	if _f == 4:
+	if _f == 6:
 		_verificar("Con uno cerrando y otro todavía hablando, sigue en HABLANDO",
 			_aldeano._estado == _aldeano.Estado.HABLANDO)
 		root.multiplayer.peer_disconnected.emit(6)
 		return false
-	if _f == 6:
+	if _f == 9:
 		_verificar("Si el que quedaba se desconecta, deja de hablar",
 			_aldeano._hablantes.is_empty() and _aldeano._estado != _aldeano.Estado.HABLANDO)
 		print("PRUEBA VALIDACION REMITENTE RPC %s" % ("OK" if _exito else "FALLIDA"))

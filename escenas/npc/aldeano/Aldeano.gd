@@ -1,13 +1,10 @@
-extends CharacterBody2D
+extends "res://escenas/npc/NpcAutonomo.gd"
 class_name Aldeano
 ## NPC de fondo, puramente ambiental: deambula en un radio chico alrededor de
 ## donde apareció en la Ciudad (nunca cruza de nivel: vive en el contenedor
 ## "NPCs" de NivelCiudad.tscn, a diferencia de Lenador.gd y Cazador.gd) y, si
 ## el jugador le habla, se detiene a conversar y retoma al cerrarse el diálogo.
-##
-## INMUNIDAD A COMBATE, mismo criterio que Lenador.gd y Cazador.gd: NO extiende
-## Enemigo.gd, no tiene VidaComponente y no está en los grupos
-## "jugadores"/"enemigos".
+## Réplica, presentación e inmunidad a combate: ver NpcAutonomo.gd.
 ##
 ## DEAMBULAR reimplementado a mano (mismo cálculo que AccionDeambular.gd; este
 ## NPC no tiene ArbolComportamiento): un punto al azar dentro de
@@ -21,9 +18,6 @@ class_name Aldeano
 ## termina de hablar (_avisar_hablando), y el servidor anota quiénes hablan a la
 ## vez (_hablantes): mientras haya alguno, se queda en HABLANDO.
 
-const CAPA_NPC_ERRANTE := 16  # misma capa que ya usa Lenador.gd/Cazador.gd.
-const _FOTOGRAMAS_KEEPALIVE_RED := 30
-const _UMBRAL_REPLICAR := 4.0
 const _RADIO_LLEGADA := 10.0
 const _CAPA_CUERPO_JUGADOR := 8
 
@@ -40,13 +34,7 @@ const _CAPA_CUERPO_JUGADOR := 8
 
 enum Estado { DEAMBULANDO, ESPERANDO, HABLANDO }
 
-@onready var movimiento: MovimientoComponente = $MovimientoComponente
-@onready var componente_animacion: AnimacionComponente = $AnimacionComponente
 @onready var _area_interaccion: Area2D = $AreaInteraccion
-
-var direccion: Vector2 = Vector2.ZERO
-var direccion_mirada: Vector2 = Vector2.DOWN
-var _posicion_replicada: Vector2 = Vector2.ZERO
 
 var _estado: int = Estado.DEAMBULANDO
 var _posicion_origen: Vector2 = Vector2.ZERO
@@ -65,13 +53,8 @@ var _hablando_localmente := false
 
 var _cuerpos_dentro: int = 0
 
-var _ultima_posicion_enviada: Vector2 = Vector2.ZERO
-var _fotogramas_desde_envio := 0
-
 
 func _ready() -> void:
-	collision_layer = CAPA_NPC_ERRANTE
-	collision_mask = 1  # CAPA_MUNDO — solo terreno.
 	_posicion_origen = global_position
 	_posicion_replicada = global_position
 	if _area_interaccion:
@@ -81,21 +64,13 @@ func _ready() -> void:
 	# Corre en TODOS los peers (no solo servidor) — cada cliente necesita
 	# saber cuándo SU PROPIO diálogo con este aldeano se cerró.
 	GestorUI.modo_cambiado.connect(_al_cambiar_modo)
-	if not (Utils.en_red() and multiplayer.is_server()):
-		return  # Cliente: réplica visual pura, ver _physics_process/_recibir_estado_red.
+	super._ready()
+
+
+func _preparar_servidor() -> void:
 	multiplayer.peer_disconnected.connect(_al_desconectar_peer)
 	_destino = _elegir_destino()
 	_estado = Estado.DEAMBULANDO
-
-
-func _physics_process(delta: float) -> void:
-	if Utils.en_red() and not multiplayer.is_server():
-		_aplicar_presentacion(global_position.distance_to(_posicion_replicada) > 1.0)
-		global_position = global_position.lerp(_posicion_replicada, 0.2)
-		return
-	_procesar_estado(delta)
-	_aplicar_presentacion(velocity != Vector2.ZERO)
-	_replicar_si_corresponde()
 
 
 # =============================================================================
@@ -209,39 +184,3 @@ func _marcar_hablante(peer_id: int, hablando: bool) -> void:
 
 func _al_desconectar_peer(peer_id: int) -> void:
 	_hablantes.erase(peer_id)
-
-
-# =============================================================================
-# PRESENTACIÓN / RED — mismo patrón que Lenador.gd/Cazador.gd, sin cruce de
-# nivel ni RPC de visibilidad (este NPC vive siempre dentro de la Ciudad,
-# nunca "desaparece" de un nivel a otro).
-# =============================================================================
-
-func _aplicar_presentacion(caminando: bool) -> void:
-	if direccion != Vector2.ZERO:
-		direccion_mirada = direccion
-	if not componente_animacion:
-		return
-	componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", caminando)
-	componente_animacion.establecer_condicion("parameters/conditions/debeIdle", not caminando)
-	componente_animacion.actualizar_blend(direccion_mirada)
-
-
-func _replicar_si_corresponde() -> void:
-	if not Utils.en_red():
-		return
-	_fotogramas_desde_envio += 1
-	var cambio_relevante := global_position.distance_to(_ultima_posicion_enviada) > _UMBRAL_REPLICAR
-	if not cambio_relevante and _fotogramas_desde_envio < _FOTOGRAMAS_KEEPALIVE_RED:
-		return
-	_fotogramas_desde_envio = 0
-	_ultima_posicion_enviada = global_position
-	for peer_id in InteresEspacial.peers_cercanos(global_position):
-		rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
-
-
-@rpc("authority", "unreliable_ordered")
-func _recibir_estado_red(pos: Vector2, dir: Vector2, mirada: Vector2) -> void:
-	_posicion_replicada = pos
-	direccion = dir
-	direccion_mirada = mirada

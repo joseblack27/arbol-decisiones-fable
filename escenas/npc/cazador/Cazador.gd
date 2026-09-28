@@ -1,20 +1,14 @@
-extends CharacterBody2D
+extends "res://escenas/npc/NpcErrante.gd"
 class_name Cazador
-## NPC autónomo (sin control de jugador): sale de la Ciudad, camina hasta la
-## Pradera, caza a distancia la presa viva más cercana (combate REAL, no una
-## muerte instantánea como el leñador con los árboles) y vuelve a la Ciudad a
-## descansar. Dispara flechas cada 1 s. Caza del pool normal de mobs de la
-## Pradera (SpawnerMobs), sin spawner propio. Presas válidas: Ratón, Lobo y
-## Araña (ver _presa_mas_cercana).
+## NPC autónomo: sale de la Ciudad, camina hasta la Pradera, caza a distancia
+## la presa viva más cercana (combate REAL, no una muerte instantánea como el
+## leñador con los árboles) y vuelve a la Ciudad a descansar. Dispara flechas
+## cada 1 s. Caza del pool normal de mobs de la Pradera (SpawnerMobs), sin
+## spawner propio. Presas válidas: Ratón, Lobo y Araña (ver _presa_mas_cercana).
 ##
-## Mismo patrón de NPC errante que Lenador.gd (ver ese archivo): una sola
-## instancia en GestorNiveles.contenedor_errantes(), nunca se reparenta, cruza
-## entre niveles como un jugador.
-##
-## INMUNIDAD A COMBATE, mismo criterio que Lenador.gd: NO extiende Enemigo.gd,
-## NO tiene VidaComponente y NO está en los grupos "jugadores"/"enemigos".
-## Ningún mob lo ataca, pero sus flechas SÍ dañan: Combate.mismo_equipo()
-## nunca da true si los dos no comparten grupo (ver
+## Cruza entre la Ciudad y la Pradera como el leñador (ver NpcErrante.gd).
+## Ningún mob lo ataca (ver NpcAutonomo.gd), pero sus flechas SÍ dañan:
+## Combate.mismo_equipo() nunca da true si los dos no comparten grupo (ver
 ## Proyectil._resolver_colision()).
 ##
 ## BOTÍN sin viaje al almacén: a diferencia de la madera, el botín de una presa
@@ -25,13 +19,8 @@ class_name Cazador
 ## Enemigo.gd. El ir y volver a la Ciudad es solo por coherencia visual con el
 ## leñador.
 
-const CAPA_NPC_ERRANTE := 16  # misma capa que ya usa Lenador.gd.
-const MARGEN_LLEGADA := 16.0
 const _ESPERA_EN_CASA := 4.0
 const _ESPERA_SIN_PRESA := 3.0
-const _FOTOGRAMAS_KEEPALIVE_RED := 30
-const _UMBRAL_REPLICAR := 4.0
-const _UMBRAL_SNAP_CLIENTE := 300.0
 
 const _RUTA_CIUDAD := "res://escenas/niveles/NivelCiudad.tscn"
 const _RUTA_PRADERA := "res://escenas/niveles/NivelPradera.tscn"
@@ -58,38 +47,22 @@ enum Estado {
 	YENDO_AL_PORTAL_PRADERA, # en Pradera: caminando al portal para volver a Ciudad
 }
 
-@onready var movimiento: MovimientoComponente = $MovimientoComponente
-@onready var componente_animacion: AnimacionComponente = $AnimacionComponente
 @onready var _sprite: Sprite2D = $Sprite2D
-
-var direccion: Vector2 = Vector2.ZERO
-var direccion_mirada: Vector2 = Vector2.DOWN
-var _posicion_replicada: Vector2 = Vector2.ZERO
 
 var _estado: int = Estado.ESPERANDO_CASA
 var _espera_restante: float = 0.0
 var _presa_objetivo: Enemigo = null
 var _tiempo_desde_disparo: float = 0.0
 
-## Resueltos una sola vez en _ready(), server-side — mismo motivo que
-## Lenador._nivel_ciudad/_portal_ciudad: esta instancia vive fuera de
-## ambos niveles, ninguno de los dos puede referenciarla con una ruta fija
-## en el editor.
+## Resueltos una sola vez en el servidor (ver _preparar_servidor), como en
+## Lenador: esta instancia vive fuera de los dos niveles.
 var _nivel_ciudad: NivelBase
 var _nivel_pradera: NivelBase
 var _portal_ciudad: Node2D   # PortalAPradera, adentro de NivelCiudad
 var _portal_pradera: Node2D  # PortalACiudad, adentro de NivelPradera
 
-var _ultima_posicion_enviada: Vector2 = Vector2.ZERO
-var _fotogramas_desde_envio := 0
 
-
-func _ready() -> void:
-	collision_layer = CAPA_NPC_ERRANTE
-	collision_mask = 1  # CAPA_MUNDO — solo terreno, nada más.
-	if not (Utils.en_red() and multiplayer.is_server()):
-		return  # Cliente: réplica visual pura, ver _physics_process/_recibir_estado_red.
-
+func _preparar_servidor() -> void:
 	_nivel_ciudad = GestorNiveles.asegurar_nivel_cargado_servidor(_RUTA_CIUDAD)
 	_nivel_pradera = GestorNiveles.asegurar_nivel_cargado_servidor(_RUTA_PRADERA)
 	if _nivel_ciudad:
@@ -100,25 +73,7 @@ func _ready() -> void:
 	GestorNiveles.fijar_nivel_de_entidad(self, _RUTA_CIUDAD)
 	_estado = Estado.ESPERANDO_CASA
 	_espera_restante = _ESPERA_EN_CASA
-	GestorNiveles.peer_listo.connect(_al_peer_listo)
 
-
-func _physics_process(delta: float) -> void:
-	if Utils.en_red() and not multiplayer.is_server():
-		_aplicar_presentacion(global_position.distance_to(_posicion_replicada) > 1.0)
-		if global_position.distance_to(_posicion_replicada) > _UMBRAL_SNAP_CLIENTE:
-			global_position = _posicion_replicada
-		else:
-			global_position = global_position.lerp(_posicion_replicada, 0.2)
-		return
-	_procesar_estado(delta)
-	_aplicar_presentacion(velocity != Vector2.ZERO)
-	_replicar_si_corresponde()
-
-
-# =============================================================================
-# MÁQUINA DE ESTADOS (solo servidor)
-# =============================================================================
 
 func _procesar_estado(delta: float) -> void:
 	match _estado:
@@ -246,7 +201,7 @@ func _reproducir_flecha_visual_red(dir: Vector2) -> void:
 
 
 ## Recorre el grupo "enemigos" y se queda con la presa viva más cercana (como
-## Lenador._arbol_mas_cercano()). Presas válidas: Ratón, Lobo y Araña; los
+## NpcAutonomo._recolectable_mas_cercano()). Presas válidas: Ratón, Lobo y Araña; los
 ## esqueletos no. No filtra por nivel: hoy solo la Pradera tiene SpawnerMobs
 ## con presas.
 func _presa_mas_cercana() -> Enemigo:
@@ -264,66 +219,9 @@ func _presa_mas_cercana() -> Enemigo:
 	return mejor
 
 
-## "Cruzar" = teletransportarse al punto de llegada del otro nivel, mismo
-## patrón que Lenador._cruzar_a_pradera()/_cruzar_a_ciudad() (ver ahí el porqué
-## del aviso de visibilidad).
 func _cruzar_a_pradera() -> void:
-	movimiento.detener()
-	visible = false
-	rpc("_recibir_visibilidad_red", false)
-	if _portal_pradera:
-		global_position = _portal_pradera.global_position
-	GestorNiveles.fijar_nivel_de_entidad(self, _RUTA_PRADERA)
+	_cruzar_a(_portal_pradera, _RUTA_PRADERA)
 
 
 func _cruzar_a_ciudad() -> void:
-	movimiento.detener()
-	visible = false
-	rpc("_recibir_visibilidad_red", false)
-	if _portal_ciudad:
-		global_position = _portal_ciudad.global_position
-	GestorNiveles.fijar_nivel_de_entidad(self, _RUTA_CIUDAD)
-
-
-# =============================================================================
-# PRESENTACIÓN / RED — mismo patrón que Lenador.gd/Enemigo.gd
-# =============================================================================
-
-func _aplicar_presentacion(caminando: bool) -> void:
-	if direccion != Vector2.ZERO:
-		direccion_mirada = direccion
-	if not componente_animacion:
-		return
-	componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", caminando)
-	componente_animacion.establecer_condicion("parameters/conditions/debeIdle", not caminando)
-	componente_animacion.actualizar_blend(direccion_mirada)
-
-
-func _replicar_si_corresponde() -> void:
-	if not Utils.en_red():
-		return
-	_fotogramas_desde_envio += 1
-	var cambio_relevante := global_position.distance_to(_ultima_posicion_enviada) > _UMBRAL_REPLICAR
-	if not cambio_relevante and _fotogramas_desde_envio < _FOTOGRAMAS_KEEPALIVE_RED:
-		return
-	_fotogramas_desde_envio = 0
-	_ultima_posicion_enviada = global_position
-	for peer_id in InteresEspacial.peers_cercanos(global_position):
-		rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
-
-
-@rpc("authority", "unreliable_ordered")
-func _recibir_estado_red(pos: Vector2, dir: Vector2, mirada: Vector2) -> void:
-	visible = true
-	_posicion_replicada = pos
-	direccion = dir
-	direccion_mirada = mirada
-
-
-@rpc("authority", "reliable")
-func _recibir_visibilidad_red(visible_ahora: bool) -> void:
-	visible = visible_ahora
-
-
-func _al_peer_listo(peer_id: int) -> void:
-	rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
+	_cruzar_a(_portal_ciudad, _RUTA_CIUDAD)

@@ -1,45 +1,16 @@
-extends CharacterBody2D
+extends "res://escenas/npc/NpcErrante.gd"
 class_name Lenador
-## NPC autónomo (sin control de jugador): sale de la Ciudad, camina hasta la
-## Pradera, corta el árbol disponible más cercano, vuelve a la Ciudad y
-## deposita la madera en el almacén compartido (ver GestorLenador.gd). Los
-## mobs no lo atacan y las habilidades no chocan con él.
+## NPC autónomo: sale de la Ciudad, camina hasta la Pradera, corta el árbol
+## disponible más cercano, vuelve a la Ciudad y deposita la madera en el
+## almacén compartido (ver GestorLenador.gd). Los mobs no lo atacan y las
+## habilidades no chocan con él (ver NpcAutonomo.gd).
 ##
-## INMUNIDAD A COMBATE: a propósito NO extiende Enemigo.gd (que lo metería en
-## el grupo "enemigos"), NO tiene VidaComponente ni quitar_vida() en ningún
-## hijo, y NO está en los grupos "jugadores"/"enemigos". Con eso ya es
-## invisible para VisionComponente (el aggro exige "jugadores"),
-## Combate.golpear_area() y Proyectil._resolver_colision() (solo dañan
-## VidaComponente o algo con quitar_vida()). Igual que escenas/npc/Npc.gd (el
-## comerciante). La capa física propia (CAPA_NPC_ERRANTE) es cinturón y
-## tirantes.
-##
-## VIAJE ENTRE NIVELES: UNA sola instancia, colgada SIEMPRE de
-## GestorNiveles.contenedor_errantes() (un contenedor fijo, hermano de
-## "Jugadores" y fuera de cualquier nivel), igual que un jugador real, que
-## nunca se reparenta al cruzar un portal. "Cruzar" es cambiar global_position
-## al punto de llegada del otro lado (como
-## GestorNiveles._colocar_peer_en_aparicion) y avisarle a GestorNiveles en qué
-## nivel está (fijar_nivel_de_entidad) para que la navegación use la malla
-## correcta. Como su ruta en el árbol no cambia, las RPC de réplica resuelven
-## en cualquier cliente. (Dos instancias, una por nivel, no funcionaban: el
-## nivel sin jugadores se desactiva y la instancia de ahí quedaba congelada;
-## reparentar rompía las RPC en los clientes sin ese nivel cargado.)
+## Cruza entre la Ciudad y la Pradera como un jugador (ver NpcErrante.gd).
 ## Ciudad y Pradera además se mantienen siempre activas (ver
 ## GestorNiveles.mantener_siempre_activo, llamado desde GestorLenador).
 
-const CAPA_NPC_ERRANTE := 16  # primer bit libre (1 mundo, 2 mob, 4 obstáculos, 8 jugador)
-const MARGEN_LLEGADA := 16.0
 const _ESPERA_EN_CASA := 4.0
 const _ESPERA_SIN_ARBOL := 3.0
-const _FOTOGRAMAS_KEEPALIVE_RED := 30
-const _UMBRAL_REPLICAR := 4.0
-## Salto de posición (px) a partir del cual el cliente directamente
-## teletransporta su réplica en vez de deslizarla — cruzar de Ciudad a
-## Pradera mueve al leñador decenas de miles de px de golpe (mismo
-## desplazamiento entre niveles que usa GestorNiveles), un lerp() ahí se
-## vería como un tirón cruzando toda la pantalla.
-const _UMBRAL_SNAP_CLIENTE := 300.0
 
 const _RUTA_CIUDAD := "res://escenas/niveles/NivelCiudad.tscn"
 const _RUTA_PRADERA := "res://escenas/niveles/NivelPradera.tscn"
@@ -56,22 +27,14 @@ enum Estado {
 	DEPOSITANDO,             # en Ciudad: acción instantánea de depósito
 }
 
-@onready var movimiento: MovimientoComponente = $MovimientoComponente
-@onready var componente_animacion: AnimacionComponente = $AnimacionComponente
-
-var direccion: Vector2 = Vector2.ZERO
-var direccion_mirada: Vector2 = Vector2.DOWN
-var _posicion_replicada: Vector2 = Vector2.ZERO
-
 var _estado: int = Estado.ESPERANDO_CASA
 var _espera_restante: float = 0.0
 var _arbol_objetivo: ObjetoRecolectable = null
 var _carga_actual: DatosItem = null
 
-## Resueltos una sola vez en _ready(), server-side — ver el comentario de
-## arriba sobre por qué no son @export NodePath: esta instancia vive fuera
-## de ambos niveles, así que ninguno de los dos puede referenciarla (ni
-## viceversa) con una ruta relativa fijada en el editor.
+## Resueltos una sola vez en el servidor (ver _preparar_servidor): esta
+## instancia vive fuera de los dos niveles, así que ninguno puede
+## referenciarla con una ruta fijada en el editor.
 var _nivel_ciudad: NivelBase
 var _nivel_pradera: NivelBase
 var _portal_ciudad: Node2D    # PortalAPradera, adentro de NivelCiudad
@@ -79,16 +42,8 @@ var _portal_pradera: Node2D   # PortalACiudad, adentro de NivelPradera
 var _almacen_punto: AlmacenLenador
 var _contenedor_arboles: Node
 
-var _ultima_posicion_enviada: Vector2 = Vector2.ZERO
-var _fotogramas_desde_envio := 0
 
-
-func _ready() -> void:
-	collision_layer = CAPA_NPC_ERRANTE
-	collision_mask = 1  # CAPA_MUNDO — solo terreno, nada más.
-	if not (Utils.en_red() and multiplayer.is_server()):
-		return  # Cliente: réplica visual pura, ver _physics_process/_recibir_estado_red.
-
+func _preparar_servidor() -> void:
 	_nivel_ciudad = GestorNiveles.asegurar_nivel_cargado_servidor(_RUTA_CIUDAD)
 	_nivel_pradera = GestorNiveles.asegurar_nivel_cargado_servidor(_RUTA_PRADERA)
 	if _nivel_ciudad:
@@ -101,25 +56,7 @@ func _ready() -> void:
 	GestorNiveles.fijar_nivel_de_entidad(self, _RUTA_CIUDAD)
 	_estado = Estado.ESPERANDO_CASA
 	_espera_restante = _ESPERA_EN_CASA
-	GestorNiveles.peer_listo.connect(_al_peer_listo)
 
-
-func _physics_process(delta: float) -> void:
-	if Utils.en_red() and not multiplayer.is_server():
-		_aplicar_presentacion(global_position.distance_to(_posicion_replicada) > 1.0)
-		if global_position.distance_to(_posicion_replicada) > _UMBRAL_SNAP_CLIENTE:
-			global_position = _posicion_replicada
-		else:
-			global_position = global_position.lerp(_posicion_replicada, 0.2)
-		return
-	_procesar_estado(delta)
-	_aplicar_presentacion(velocity != Vector2.ZERO)
-	_replicar_si_corresponde()
-
-
-# =============================================================================
-# MÁQUINA DE ESTADOS (solo servidor)
-# =============================================================================
 
 func _procesar_estado(delta: float) -> void:
 	match _estado:
@@ -138,7 +75,7 @@ func _procesar_estado(delta: float) -> void:
 				_estado = Estado.BUSCANDO_ARBOL
 
 		Estado.BUSCANDO_ARBOL:
-			_arbol_objetivo = _arbol_mas_cercano()
+			_arbol_objetivo = _recolectable_mas_cercano(_contenedor_arboles)
 			if _arbol_objetivo == null:
 				_espera_restante = _ESPERA_SIN_ARBOL
 				_estado = Estado.ESPERANDO_ARBOL
@@ -156,9 +93,7 @@ func _procesar_estado(delta: float) -> void:
 					or _arbol_objetivo.esta_agotado():
 				_estado = Estado.BUSCANDO_ARBOL
 				return
-			var destino := _arbol_objetivo.area_interaccion.global_position \
-					if _arbol_objetivo.area_interaccion else _arbol_objetivo.global_position
-			movimiento.comandar_destino(destino)
+			movimiento.comandar_destino(_punto_de_interaccion(_arbol_objetivo))
 			# El margen de llegada es el radio de interacción REAL del árbol (el
 			# mismo con que el servidor acepta la recolección de un jugador, ver
 			# ObjetoRecolectable._pedir_recolectar_red), y se usa
@@ -187,9 +122,7 @@ func _procesar_estado(delta: float) -> void:
 		Estado.YENDO_AL_ALMACEN:
 			if _almacen_punto == null:
 				return
-			var destino_almacen := _almacen_punto.area_interaccion.global_position \
-					if _almacen_punto.area_interaccion else _almacen_punto.global_position
-			movimiento.comandar_destino(destino_almacen)
+			movimiento.comandar_destino(_punto_de_interaccion(_almacen_punto))
 			# Mismo motivo que YENDO_AL_ARBOL: el origen exacto del mueble
 			# puede quedar pegado a su colisión sólida.
 			if movimiento.llego_al_destino(_almacen_punto.radio_interaccion):
@@ -204,111 +137,9 @@ func _procesar_estado(delta: float) -> void:
 			_estado = Estado.ESPERANDO_CASA
 
 
-## "Cruzar" = teletransportarse al punto de llegada del otro nivel (como
-## GestorNiveles._colocar_peer_en_aparicion con un jugador) y avisarle a
-## GestorNiveles en qué nivel está, para que
-## MovimientoComponente._usar_mapa_del_nivel() use la malla correcta. Nunca se
-## reparenta.
-##
-## rpc("_recibir_visibilidad_red", false) ANTES de saltar: la posición solo
-## les llega a los peers CERCA de la posición actual, así que un cliente en la
-## Ciudad dejaría de recibir actualizaciones en cuanto el leñador cruza, y su
-## sprite quedaría dibujado en el último punto visto. El aviso de ocultarse va
-## a todos; _recibir_estado_red() lo vuelve a mostrar cuando alguien está lo
-## bastante cerca como para recibir posición.
 func _cruzar_a_pradera() -> void:
-	movimiento.detener()
-	# rpc() NO se llama a sí mismo del lado de quien lo emite — hay que
-	# aplicar el cambio acá TAMBIÉN, no solo mandarlo (mismo criterio que
-	# ObjetoRecolectable._recolectar_local, que fija _agotado=true directo
-	# antes de avisarle a los demás por RPC).
-	visible = false
-	rpc("_recibir_visibilidad_red", false)
-	if _portal_pradera:
-		global_position = _portal_pradera.global_position
-	GestorNiveles.fijar_nivel_de_entidad(self, _RUTA_PRADERA)
+	_cruzar_a(_portal_pradera, _RUTA_PRADERA)
 
 
 func _cruzar_a_ciudad() -> void:
-	movimiento.detener()
-	visible = false
-	rpc("_recibir_visibilidad_red", false)
-	if _portal_ciudad:
-		global_position = _portal_ciudad.global_position
-	GestorNiveles.fijar_nivel_de_entidad(self, _RUTA_CIUDAD)
-
-
-## Recorre _contenedor_arboles y elige el ObjetoRecolectable disponible más
-## cercano — genérico a propósito (mismo criterio que ObjetoRecolectable en
-## sí): sirve igual si más adelante hay varios árboles, o rocas/hierbas.
-func _arbol_mas_cercano() -> ObjetoRecolectable:
-	if _contenedor_arboles == null:
-		return null
-	var mejor: ObjetoRecolectable = null
-	var mejor_distancia := INF
-	for hijo in _contenedor_arboles.get_children():
-		if hijo is ObjetoRecolectable and not (hijo as ObjetoRecolectable).esta_agotado():
-			var distancia := global_position.distance_to((hijo as Node2D).global_position)
-			if distancia < mejor_distancia:
-				mejor_distancia = distancia
-				mejor = hijo
-	return mejor
-
-
-# =============================================================================
-# PRESENTACIÓN / RED — mismo patrón que Enemigo.gd
-# =============================================================================
-
-## Única lógica de presentación, compartida entre servidor/single-player y
-## cliente replicado (ver Jugador.gd:660-669 para la misma API).
-func _aplicar_presentacion(caminando: bool) -> void:
-	if direccion != Vector2.ZERO:
-		direccion_mirada = direccion
-	if not componente_animacion:
-		return
-	componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", caminando)
-	componente_animacion.establecer_condicion("parameters/conditions/debeIdle", not caminando)
-	componente_animacion.actualizar_blend(direccion_mirada)
-
-
-func _replicar_si_corresponde() -> void:
-	if not Utils.en_red():
-		return
-	_fotogramas_desde_envio += 1
-	var cambio_relevante := global_position.distance_to(_ultima_posicion_enviada) > _UMBRAL_REPLICAR
-	if not cambio_relevante and _fotogramas_desde_envio < _FOTOGRAMAS_KEEPALIVE_RED:
-		return
-	_fotogramas_desde_envio = 0
-	_ultima_posicion_enviada = global_position
-	for peer_id in InteresEspacial.peers_cercanos(global_position):
-		rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
-
-
-@rpc("authority", "unreliable_ordered")
-func _recibir_estado_red(pos: Vector2, dir: Vector2, mirada: Vector2) -> void:
-	# Recibir posición real de nuevo significa que estamos lo bastante cerca
-	# como para que InteresEspacial nos la mande — es la señal de "ya estoy
-	# donde me pueden ver" tras cruzar (ver _cruzar_a_pradera/_cruzar_a_
-	# ciudad), sin depender de que la RPC de visibilidad (unreliable no, esa
-	# es reliable, pero por las dudas) llegue en el orden esperado.
-	visible = true
-	_posicion_replicada = pos
-	direccion = dir
-	direccion_mirada = mirada
-
-
-## Broadcast reliable a TODOS, sin filtrar por distancia — ver el porqué en
-## _cruzar_a_pradera/_cruzar_a_ciudad: evita el fantasma dibujado en la
-## última posición vista por un cliente que ya no está lo bastante cerca
-## como para recibir más actualizaciones de posición.
-@rpc("authority", "reliable")
-func _recibir_visibilidad_red(visible_ahora: bool) -> void:
-	visible = visible_ahora
-
-
-## Recién conectado: avisarle dónde está el leñador AHORA — sin filtrar por
-## nivel (a diferencia de NivelNidoArañaReina/ObjetoRecolectable): esta
-## instancia no pertenece a ningún nivel en particular, así que cualquier
-## peer nuevo puede necesitarlo apenas se acerque.
-func _al_peer_listo(peer_id: int) -> void:
-	rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
+	_cruzar_a(_portal_ciudad, _RUTA_CIUDAD)
