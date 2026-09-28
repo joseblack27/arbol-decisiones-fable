@@ -40,6 +40,8 @@ var _invocacion_equipada := false
 var _proxima_invocacion := 4.0
 var _aliados_vistos := 0
 var _aliados_despachados := 0
+## Invocar a los 4s + 15s de vida del aliado + margen para que llegue la baja.
+const _SEGUNDOS_CICLO_ALIADO := 24.0
 
 
 func _init() -> void:
@@ -107,6 +109,10 @@ func _seguir_nivel_actual() -> void:
 	_contenedor.child_exiting_tree.connect(_al_salir)
 	_tiempo_en_nivel = 0.0
 	_proxima_invocacion = 4.0
+	# El aliado del nivel anterior se liberó vivo con el nivel (no cuenta como
+	# baja): dar tiempo a que el nuevo aparezca y se desvanezca acá.
+	if not _niveles_visitados.is_empty():
+		_duracion = maxf(_duracion, _SEGUNDOS_CICLO_ALIADO)
 	_niveles_visitados.append(String(nivel.name))
 	print("[BOT-REPLICADOR] en '%s' con %d hijos en Enemigos." % [nivel.name, _contenedor.get_child_count()])
 

@@ -78,8 +78,48 @@ func _process(delta: float) -> bool:
 	_segundos_nivel_estable += delta
 	if _tanda == 0 and _segundos_nivel_estable < 4.0:
 		return false
+	if _atender_muerte(delta):
+		return false
 
 	return _correr_tandas(delta)
+
+
+## Un mob de la Pradera puede matar al bot a mitad de una tanda: muerto no se
+## mueve, y al reaparecer salta al punto de aparición. Medido como movimiento,
+## eso son dos fallas falsas ("casi no lo movió" y "siguió moviéndose"). Se
+## anuncia y la tanda en curso se repite entera al reaparecer.
+const _MAX_MUERTES := 3
+const _SEGUNDOS_TRAS_REAPARECER := 0.5
+var _muertes := 0
+var _esperando_reaparecer := false
+var _t_tras_reaparecer := 0.0
+
+func _atender_muerte(delta: float) -> bool:
+	if _jugador.get("_muerto"):
+		if not _esperando_reaparecer:
+			_esperando_reaparecer = true
+			_muertes += 1
+			JoystickBot.mover(root, Vector2.ZERO)
+			_jugador.set_physics_process(true)
+			print("[BOT-MOVIMIENTO] el jugador murió en la tanda %d; se repite al reaparecer." % _tanda)
+			if _muertes > _MAX_MUERTES:
+				print("[BOT-MOVIMIENTO] ABANDONA: murió %d veces." % _muertes)
+				quit(1)
+		return true
+	if not _esperando_reaparecer:
+		return false
+	_t_tras_reaparecer += delta
+	if _t_tras_reaparecer < _SEGUNDOS_TRAS_REAPARECER:
+		return true
+	_esperando_reaparecer = false
+	_t_tras_reaparecer = 0.0
+	_t = 0.0
+	_pos_al_soltar = Vector2.ZERO
+	_pos_frenado = Vector2.ZERO
+	_t_corte = 0.0
+	_pos_al_cortar = Vector2.ZERO
+	_pos_tras_corte = Vector2.ZERO
+	return false
 
 
 func _correr_tandas(delta: float) -> bool:
