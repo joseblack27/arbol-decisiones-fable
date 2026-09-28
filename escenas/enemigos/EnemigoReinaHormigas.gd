@@ -151,25 +151,12 @@ func _conectar_etiqueta_habilidad() -> void:
 func _on_habilidad_activada_para_etiqueta(habilidad: HabilidadBase) -> void:
 	_mostrar_etiqueta_habilidad_red(habilidad.nombre_habilidad)
 	if Utils.en_red() and multiplayer.is_server():
-		var peers := InteresEspacial.peers_cercanos(global_position)
-		# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- el usuario reporta que el
-		# cartel de nombre de habilidad no aparece SOLO para Puesta de
-		# Huevos (ver [DIAG huevos] en HabilidadPuestaHuevos.gd, mismo
-		# día). Confirmar que el despacho del RPC ocurre igual para esta
-		# habilidad que para las demás -- sacar cuando se resuelva.
-		print("[DIAG etiqueta servidor] habilidad=%s peers=%s" % [habilidad.tipo_habilidad, peers])
-		for peer_id in peers:
+		for peer_id in InteresEspacial.peers_cercanos(global_position):
 			rpc_id(peer_id, "_mostrar_etiqueta_habilidad_red", habilidad.nombre_habilidad)
 
 
 @rpc("authority", "reliable")
 func _mostrar_etiqueta_habilidad_red(nombre: String) -> void:
-	# DIAGNÓSTICO TEMPORAL (21 sep 2026) -- confirmar si este RPC LLEGA al
-	# cliente y si _etiqueta_habilidad está resuelta cuando llega -- ver
-	# comentario en _on_habilidad_activada_para_etiqueta. Sacar cuando se
-	# resuelva.
-	if Utils.en_red() and not multiplayer.is_server():
-		print("[DIAG etiqueta cliente] RPC recibido nombre=%s etiqueta_nula=%s" % [nombre, _etiqueta_habilidad == null])
 	if _etiqueta_habilidad == null:
 		return
 	_etiqueta_habilidad.text = nombre
