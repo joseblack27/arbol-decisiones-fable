@@ -4,8 +4,9 @@
 # cheeky-mixing-melody.md) — mirror de prueba_forja_4_fases_completas.gd.
 #   1. Fase 1 -> 2 (<=0.75): golpe de transición pega, se suma Escupitajo
 #      Ácido al selector.
-#   2. Fase 2 -> 3 (<=0.50): golpe de transición pega, se suma Llamada de
-#      Auxilio.
+#      Puesta de Huevos NO está en fase 1.
+#   2. Fase 2 -> 3 (<=0.50): golpe de transición pega, se suman Llamada de
+#      Auxilio y Puesta de Huevos.
 #   3. Fase 3 -> 4 (<=0.25): golpe de transición pega, se suma Embestida, se
 #      invocan los 3 refuerzos (2 Obreras + 1 Soldado), se activa la furia
 #      final.
@@ -22,6 +23,7 @@ var _vida_jefe
 
 var _vida_jugador_antes_transicion := 0.0
 
+var _fase1_sin_puesta_huevos_ok := false
 var _fase1_a_2_golpe_ok := false
 var _fase1_a_2_habilidades_ok := false
 var _fase2_a_3_golpe_ok := false
@@ -38,6 +40,7 @@ func _process(_delta: float) -> bool:
 		1:
 			_montar()
 		2:
+			_verificar_fase1()
 			_cruzar_a_fase(750.0)  # 2800 -> 2050 (0.732) <= UMBRAL_FASE_2 (0.75).
 		250:
 			_verificar_fase2()
@@ -88,6 +91,14 @@ func _cruzar_a_fase(dano: float) -> void:
 	_vida_jefe.quitar_vida(dano)
 
 
+## Puesta de Huevos es de fase 3: no debe estar disponible desde el arranque.
+func _verificar_fase1() -> void:
+	var selector = _jefe.get_node_or_null("ArbolComportamiento/Selector/Atacar/SelectorHabilidades")
+	_fase1_sin_puesta_huevos_ok = selector != null and _jefe.habilidad_puesta_huevos_bt != null \
+		and not selector.habilidades.has(_jefe.habilidad_puesta_huevos_bt)
+	print("Fase 1 NO tiene Puesta de Huevos en el selector (esperado true): %s" % _fase1_sin_puesta_huevos_ok)
+
+
 func _verificar_fase2() -> void:
 	var perdida: float = _vida_jugador_antes_transicion - _vida_jugador.salud_actual
 	_fase1_a_2_golpe_ok = perdida >= 25.0 and _jefe.get("_fase") == 2
@@ -108,8 +119,10 @@ func _verificar_fase3() -> void:
 
 	var selector = _jefe.get_node_or_null("ArbolComportamiento/Selector/Atacar/SelectorHabilidades")
 	var tiene_llamada: bool = selector != null and selector.habilidades.has(_jefe.habilidad_llamada_auxilio_bt)
-	_fase2_a_3_habilidades_ok = tiene_llamada
-	print("Fase 3 suma Llamada de Auxilio al selector correcto (esperado true): %s" % _fase2_a_3_habilidades_ok)
+	var tiene_puesta: bool = selector != null and selector.habilidades.has(_jefe.habilidad_puesta_huevos_bt)
+	_fase2_a_3_habilidades_ok = tiene_llamada and tiene_puesta
+	print("Fase 3 suma Llamada de Auxilio y Puesta de Huevos al selector correcto (esperado true, llamada=%s puesta=%s): %s" % [
+		tiene_llamada, tiene_puesta, _fase2_a_3_habilidades_ok])
 
 
 func _verificar_fase4() -> void:
@@ -153,7 +166,8 @@ func _probar_jefe_sigue_matable() -> void:
 
 
 func _informar() -> bool:
-	var exito := _fase1_a_2_golpe_ok and _fase1_a_2_habilidades_ok \
+	var exito := _fase1_sin_puesta_huevos_ok \
+		and _fase1_a_2_golpe_ok and _fase1_a_2_habilidades_ok \
 		and _fase2_a_3_golpe_ok and _fase2_a_3_habilidades_ok \
 		and _fase3_a_4_golpe_ok and _fase3_a_4_habilidades_ok \
 		and _fase4_refuerzos_ok and _jefe_sigue_matable_ok

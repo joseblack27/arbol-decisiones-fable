@@ -77,14 +77,6 @@ func _ready() -> void:
 	if golpe_transicion:
 		golpe_transicion.daño = dano_golpe_transicion
 	_preparar_radio_deteccion()
-	# TEMPORAL (21 sep 2026) -- pedido explícito para poder probar Puesta de
-	# Huevos sin tener que bajarle la vida a la Reina hasta fase 3 primero.
-	# Normalmente esta habilidad recién se agrega en _reanudar_fase(3). NO
-	# hace falta tocar ese caso 3: _agregar_habilidad_bt() ya es un no-op si
-	# el BT ya la tiene (evita duplicados cuando la fase 3 llegue de verdad).
-	# RECORDAR SACAR ESTA LÍNEA cuando termine el diagnóstico -- el usuario
-	# pidió que se lo recuerde.
-	_agregar_habilidad_bt("ArbolComportamiento/Selector/Atacar/SelectorHabilidades", habilidad_puesta_huevos_bt)
 
 
 ## Duplica la forma ANTES de guardar el radio base -- es un sub_resource
