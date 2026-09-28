@@ -139,7 +139,7 @@ func _process(delta: float) -> void:
 		# no solo en _revisar_sueño_por_distancia() (cada
 		# _INTERVALO_REVISION_SUEÑO, hasta 1.5s de rezago): apenas detecta,
 		# despierta YA, sin esperar el próximo ciclo.
-		if _dormido_por_distancia and _memoria and _memoria.obtener("jugador_detectado", false):
+		if _dormido_por_distancia and _debe_mantenerse_despierto():
 			_dormido_por_distancia = false
 		_tiempo_para_revisar_sueño -= delta
 		if _tiempo_para_revisar_sueño <= 0.0:
@@ -167,13 +167,23 @@ func _revisar_sueño_por_distancia() -> void:
 		return
 	# Nunca duerme a uno activamente enganchado -- ver el mismo criterio y
 	# comentario grande en _process().
-	if _memoria and _memoria.obtener("jugador_detectado", false):
+	if _debe_mantenerse_despierto():
 		_dormido_por_distancia = false
 		return
 	if not is_instance_valid(_agente) or not (_agente is Node2D):
 		return
 	var posicion := (_agente as Node2D).global_position
 	_dormido_por_distancia = not InteresEspacial.hay_jugador_cerca(posicion, radio_actividad)
+
+
+## Enganchado con un jugador, o respondiendo la llamada de auxilio de la Reina
+## (HabilidadLlamadaAuxilio): esa hormiga casi siempre está LEJOS de los
+## jugadores, justo donde el sueño por distancia la dejaría quieta a mitad de
+## camino.
+func _debe_mantenerse_despierto() -> bool:
+	if _memoria == null:
+		return false
+	return _memoria.obtener("jugador_detectado", false) or _memoria.obtener("en_llamada_auxilio", false)
 
 
 # =============================================================================

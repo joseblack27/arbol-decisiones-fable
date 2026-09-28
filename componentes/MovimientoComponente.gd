@@ -62,6 +62,80 @@ func _ready() -> void:
 	# _crear_agente_navegacion() nunca se llega a ejecutar.
 	if agente_navegacion:
 		agente_navegacion.velocity_computed.connect(_on_velocity_computed)
+		_ajustar_distancia_punto_ruta()
+
+
+## Margen (px) por encima del radio del cuerpo con el que un punto intermedio
+## de la ruta se da por pasado — ver _ajustar_distancia_punto_ruta().
+const _MARGEN_PUNTO_RUTA := 6.0
+
+## La malla de navegación de los niveles llega hasta el borde de las paredes,
+## así que en cada esquina de túnel la ruta pasa por el vértice MISMO de la
+## pared. El cuerpo nunca puede acercarse a ese punto más que su propio radio:
+## con path_desired_distance <= radio el agente jamás lo daba por pasado y el
+## mob se quedaba empujando contra la esquina para siempre (encontrado con la
+## llamada de auxilio de la Reina Hormiga, 27 sep 2026: obrera de radio 8 y
+## soldado de radio 15 contra 8 px, trabadas a 8 px del punto en 3 esquinas
+## distintas del Hormiguero). Afectaba a cualquier mob que siga una ruta.
+func _ajustar_distancia_punto_ruta() -> void:
+	if agente_navegacion == null or jugador == null:
+		return
+	agente_navegacion.path_desired_distance = maxf(
+		agente_navegacion.path_desired_distance, _radio_cuerpo() + _MARGEN_PUNTO_RUTA)
+
+
+## La malla llega hasta el filo de las paredes, así que la ruta corre PEGADA a
+## ellas: en un tramo a lo largo de una pared (p. ej. bajando por el borde de
+## un bloque sólido) el centro del cuerpo tendría que ir por la pared misma, y
+## el mob se quedaba empujando contra ella (dos hormigas trabadas en (3104, 0)
+## del Hormiguero respondiendo la llamada de la Reina, 27 sep 2026). Se apunta
+## a un punto separado de las paredes por el radio del cuerpo: la dirección
+## "hacia adentro" sale de la propia malla, probando en 8 direcciones qué
+## puntos alrededor siguen siendo transitables. El punto final de la ruta no
+## se toca (es el destino pedido). Se calcula una vez por punto, no por
+## fotograma: con decenas de mobs, 8 consultas por fotograma serían caras.
+var _punto_ruta_original := Vector2.INF
+var _punto_ruta_desplazado := Vector2.INF
+
+func _punto_ruta_con_holgura(punto: Vector2) -> Vector2:
+	if punto == _punto_ruta_original:
+		return _punto_ruta_desplazado
+	_punto_ruta_original = punto
+	_punto_ruta_desplazado = punto
+	var ruta := agente_navegacion.get_current_navigation_path()
+	if ruta.is_empty() or punto == ruta[ruta.size() - 1]:
+		return punto
+	var mapa := agente_navegacion.get_navigation_map()
+	var holgura := _radio_cuerpo() + 2.0
+	var hacia_adentro := Vector2.ZERO
+	for i in 8:
+		var sentido := Vector2.RIGHT.rotated(i * TAU / 8.0)
+		var sonda := punto + sentido * holgura
+		if NavigationServer2D.map_get_closest_point(mapa, sonda).distance_squared_to(sonda) < 1.0:
+			hacia_adentro += sentido
+	if hacia_adentro.length() > 0.01:
+		_punto_ruta_desplazado = punto + hacia_adentro.normalized() * holgura
+	return _punto_ruta_desplazado
+
+
+## Radio de la colisión del CUERPO (el CollisionShape2D hijo directo, no los de
+## visión/vida, que cuelgan de sus propios componentes).
+func _radio_cuerpo() -> float:
+	for hijo in jugador.get_children():
+		if not (hijo is CollisionShape2D) or (hijo as CollisionShape2D).shape == null:
+			continue
+		var forma := (hijo as CollisionShape2D).shape
+		var escala: Vector2 = (jugador.scale * (hijo as Node2D).scale).abs()
+		var radio: float
+		if forma is CircleShape2D:
+			radio = (forma as CircleShape2D).radius
+		elif forma is CapsuleShape2D:
+			radio = (forma as CapsuleShape2D).radius
+		else:
+			var medio := forma.get_rect().size / 2.0
+			radio = maxf(medio.x, medio.y)
+		return radio * maxf(escala.x, escala.y)
+	return 0.0
 
 
 func _physics_process(delta: float) -> void:
@@ -175,6 +249,7 @@ func _crear_agente_navegacion() -> void:
 	# por esta señal — sin conectarla, avoidance_enabled no tiene ningún
 	# efecto real (antes solo estaba el flag puesto, nunca usado).
 	agente_navegacion.velocity_computed.connect(_on_velocity_computed)
+	_ajustar_distancia_punto_ruta()
 
 
 ## El agente tiene que rutear SOBRE LA MALLA DE SU NIVEL, no sobre la del
@@ -197,7 +272,7 @@ func _avanzar_hacia_destino(delta: float) -> void:
 		var direccion := Vector2.ZERO
 		if agente_navegacion != null and not agente_navegacion.is_navigation_finished():
 			# Siguiente punto de la ruta calculada por la malla de navegación.
-			direccion = posicion.direction_to(agente_navegacion.get_next_path_position())
+			direccion = posicion.direction_to(_punto_ruta_con_holgura(agente_navegacion.get_next_path_position()))
 		if direccion == Vector2.ZERO:
 			# Sin agente, sin malla en el nivel o ruta vacía (el agente devuelve
 			# nuestra propia posición): línea recta, el comportamiento clásico.

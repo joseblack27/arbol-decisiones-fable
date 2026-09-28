@@ -57,6 +57,7 @@ var _momento_fase_ms := 0
 
 var _duerme_sin_peers_ok := false
 var _nunca_duerme_si_detecto_jugador_ok := false
+var _nunca_duerme_en_llamada_ok := false
 var _no_tiquea_dormido_ok := false
 var _despierta_si_hay_alguien_cerca_ok := false
 var _nunca_duerme_sin_red_ok := false
@@ -138,6 +139,18 @@ func _probar_nunca_duerme_si_detecto_jugador() -> void:
 		_nunca_duerme_si_detecto_jugador_ok)
 	_mob.memoria.establecer("jugador_detectado", false)  # no interferir con las fases siguientes.
 
+	# Respondiendo la llamada de auxilio de la Reina (27 sep 2026): esa hormiga
+	# casi siempre está LEJOS de los jugadores, justo donde el sueño por
+	# distancia la dejaría quieta a mitad de camino.
+	_mob.memoria.establecer("en_llamada_auxilio", true)
+	_arbol._dormido_por_distancia = true
+	_arbol._revisar_sueño_por_distancia()
+	_nunca_duerme_en_llamada_ok = not _arbol._dormido_por_distancia
+	print("Respondiendo la llamada de la Reina, nunca se duerme (esperado true): %s" % \
+		_nunca_duerme_en_llamada_ok)
+	_mob.memoria.establecer("en_llamada_auxilio", false)
+	_arbol._revisar_sueño_por_distancia()
+
 
 func _probar_no_tiquea_dormido() -> void:
 	var ticks_antes = _arbol.tick_actual
@@ -179,7 +192,8 @@ func _probar_activo_false_sigue_cortando() -> void:
 
 
 func _informar() -> bool:
-	var exito := _duerme_sin_peers_ok and _nunca_duerme_si_detecto_jugador_ok and _no_tiquea_dormido_ok \
+	var exito := _duerme_sin_peers_ok and _nunca_duerme_si_detecto_jugador_ok and _nunca_duerme_en_llamada_ok \
+		and _no_tiquea_dormido_ok \
 		and _despierta_si_hay_alguien_cerca_ok and _nunca_duerme_sin_red_ok and _activo_false_sigue_cortando_ok \
 		and _default_desactivado_ok
 	print("PRUEBA ARBOL DUERME LEJOS DE JUGADORES %s" % ("OK" if exito else "FALLIDA"))

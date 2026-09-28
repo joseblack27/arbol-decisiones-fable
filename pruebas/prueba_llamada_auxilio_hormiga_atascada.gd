@@ -2,89 +2,81 @@
 # Regresión (bug reportado 19 sep 2026, probado en celular real): "las
 # hormigas despues del llamado, no responde a un segundo llamado y tambien
 # las que quedaron vivas y vuelven a su puesto, dejan de detectar al
-# jugador". Causa real: AccionIrAPunto.gd (usada por "Llamada de Auxilio"
-# de la Reina, ver ese script) comparaba una DISTANCIA CRUDA contra
-# margen_llegada en vez de usar MovimientoComponente.llego_al_destino()
-# (que sí usan AccionDeambular y compañía). Si el punto exacto de la
-# llamada quedaba en un tramo bloqueado por la topología de túneles del
-# Hormiguero, esa distancia cruda nunca se cumplía y "en_llamada_auxilio"
-# quedaba en true PARA SIEMPRE -- como ResponderLlamada es la rama de MÁS
-# prioridad del árbol de cada hormiga, la hormiga quedaba bloqueada de
-# Atacar/Perseguir/Deambular indefinidamente: se veía como "dejó de
-# detectar al jugador" y "un segundo llamado no hace nada" (seguía
-# atendiendo el primero, nunca se soltaba).
+# jugador". Una hormiga que no puede llegar al punto de la llamada quedaba con
+# "en_llamada_auxilio" en true PARA SIEMPRE — como ResponderLlamada es la rama
+# de MÁS prioridad del árbol, quedaba bloqueada de Atacar/Perseguir/Deambular.
 #
-# Prueba: fuerza a una hormiga a quedar "atascada" respondiendo a la
-# llamada (más de _TIEMPO_MAXIMO_INTENTANDO_LLEGAR sin llegar ni terminar
-# la navegación -- ver MovimientoComponente.gd) y confirma que
-# llego_al_destino() la libera igual, sin depender de llegar de verdad.
+# Desde el 27 sep 2026 AccionIrAPunto ya no se rinde por tiempo TOTAL (eso
+# hacía abandonar a todas las hormigas lejanas a los 6s, ver
+# prueba_llamada_reina_llega_por_tuneles.gd) sino tras
+# segundos_sin_progreso_para_rendirse sin avanzar por la ruta. Esta prueba la
+# traba de verdad (inmovilizada, sin tocar campos internos) hacia un destino
+# lejano y alcanzable, y confirma:
+#   1. Al segundo sigue respondiendo (todavía no se rindió).
+#   2. Tras unos segundos sin poder avanzar, suelta la llamada sola.
 #   godot --headless --path . --script res://pruebas/prueba_llamada_auxilio_hormiga_atascada.gd
 # =============================================================================
 extends SceneTree
 
+const _MS_PRIMER_CHEQUEO := 1000
+const _MS_SEGUNDO_CHEQUEO := 5000
+
 var _f := 0
+var _inicio_ms := 0
 var _hormiga
 var _memoria
-var _movimiento
+var _primer_chequeo_hecho := false
 
-var _sigue_atendiendo_antes_del_atasco_ok := false
+var _sigue_atendiendo_al_principio_ok := false
 var _se_libera_tras_atascarse_ok := false
 
 
 func _process(_delta: float) -> bool:
 	_f += 1
-	match _f:
-		1:
-			_montar()
-		30:  # Margen de sobra para que el árbol (10Hz, ver intervalo_tick) ya haya tickeado al menos una vez.
-			_verificar_sigue_atendiendo()
-			_forzar_atasco()
-		60:  # Otro margen de sobra para un tick más, ya con el atasco forzado.
-			return _informar()
+	if _f == 1:
+		_montar()
+		return false
+	if _f < 30:
+		return false  # la malla del nivel tarda unos fotogramas en sincronizar.
+	if _f == 30:
+		_memoria.establecer("en_llamada_auxilio", true)
+		_memoria.establecer("destino_llamada", _destino)
+		_inicio_ms = Time.get_ticks_msec()
+		return false
+	var transcurrido := Time.get_ticks_msec() - _inicio_ms
+	if not _primer_chequeo_hecho and transcurrido >= _MS_PRIMER_CHEQUEO:
+		_primer_chequeo_hecho = true
+		_sigue_atendiendo_al_principio_ok = _memoria.obtener("en_llamada_auxilio", false)
+		print("Al segundo sigue respondiendo la llamada (esperado true): %s" % _sigue_atendiendo_al_principio_ok)
+	if transcurrido >= _MS_SEGUNDO_CHEQUEO:
+		return _informar()
 	return false
 
+
+var _destino := Vector2.ZERO
 
 func _montar() -> void:
 	var nivel := (load("res://escenas/niveles/NivelHormiguero.tscn") as PackedScene).instantiate()
 	root.add_child(nivel)
 	current_scene = nivel
 	var enemigos := nivel.get_node("Enemigos")
+	var reina: Node2D = enemigos.get_node("EnemigoReinaHormigas")
+	reina.get_node("ArbolComportamiento").process_mode = Node.PROCESS_MODE_DISABLED
+	_destino = reina.global_position
 
 	_hormiga = (load("res://escenas/enemigos/EnemigoHormigaObrera.tscn") as PackedScene).instantiate()
 	enemigos.add_child(_hormiga)
 	_hormiga.global_position = nivel.get_node("PuntoAparicion").global_position
-
 	_memoria = _hormiga.get_node("ArbolComportamiento/MemoriaBT")
-	_movimiento = _hormiga.get_node("MovimientoComponente")
-
-	# Mismo mecanismo que activa HabilidadLlamadaAuxilio -- un destino bien
-	# lejos (varias salas), imposible de alcanzar en unos pocos fotogramas.
-	_memoria.establecer("en_llamada_auxilio", true)
-	_memoria.establecer("destino_llamada", _hormiga.global_position + Vector2(5000, 5000))
-
-
-func _verificar_sigue_atendiendo() -> void:
-	# A los pocos fotogramas, ni llegó ni pasaron los 6s del timeout --
-	# tiene que seguir respondiendo la llamada (comportamiento normal, no
-	# el bug).
-	_sigue_atendiendo_antes_del_atasco_ok = _memoria.obtener("en_llamada_auxilio", false)
-	print("A los pocos fotogramas sigue respondiendo la llamada, normal (esperado true): %s" % \
-		_sigue_atendiendo_antes_del_atasco_ok)
-
-
-## Salta directo a "llevamos más de 6s atascados" sin tener que simular
-## esos 6 segundos reales de fotogramas -- mismo campo que consulta
-## MovimientoComponente.llego_al_destino() (ver ese script).
-func _forzar_atasco() -> void:
-	_movimiento._tiempo_en_destino_actual = 999.0
+	# Trabada de verdad: no puede moverse, así que nunca avanza por la ruta.
+	_hormiga.get_node("MovimientoComponente").agregar_inmovilizacion()
 
 
 func _informar() -> bool:
 	_se_libera_tras_atascarse_ok = not _memoria.obtener("en_llamada_auxilio", true)
-	print("Tras atascarse más de 6s, en_llamada_auxilio se apaga sola (esperado true): %s" % \
+	print("Tras unos segundos sin poder avanzar, suelta la llamada sola (esperado true): %s" % \
 		_se_libera_tras_atascarse_ok)
-
-	var exito := _sigue_atendiendo_antes_del_atasco_ok and _se_libera_tras_atascarse_ok
+	var exito := _sigue_atendiendo_al_principio_ok and _se_libera_tras_atascarse_ok
 	print("PRUEBA LLAMADA AUXILIO HORMIGA ATASCADA %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true
