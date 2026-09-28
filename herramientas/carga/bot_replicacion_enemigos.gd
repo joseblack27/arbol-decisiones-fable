@@ -2,7 +2,7 @@
 # bot_replicacion_enemigos.gd — verificación en vivo de ReplicadorEnemigos
 # contra un servidor dedicado REAL (dos procesos, conexión ENet de verdad).
 #
-# Se conecta, se mueve y ataca como bot_carga.gd, y cuenta cuántas altas y
+# Se conecta, persigue y ataca al mob más cercano, y cuenta cuántas altas y
 # bajas ve llegar al contenedor "Enemigos". Si las altas/bajas incrementales
 # andan bien, la reconciliación periódica (cada 2s) no tiene nada que
 # corregir después de la primera — cualquier corrección es un mob que se
@@ -38,6 +38,7 @@ var _invocacion_equipada := false
 var _proxima_invocacion := 4.0
 var _aliados_vistos := 0
 var _aliados_despachados := 0
+var _joystick
 
 
 func _init() -> void:
@@ -152,19 +153,34 @@ func _simular_accion(delta: float) -> void:
 	var objetivo: Node2D = null
 	var mejor := INF
 	for hijo in _contenedor.get_children():
-		if hijo.has_method("esta_muerto") and not hijo.esta_muerto():
+		if hijo.has_method("esta_muerto") and not hijo.esta_muerto() \
+				and not String(hijo.name).begins_with("AliadoInvocado"):
 			var d: float = _jugador.global_position.distance_to(hijo.global_position)
 			if d < mejor:
 				mejor = d
 				objetivo = hijo
-	var señales = root.get_node("/root/SeñalManager")
-	if objetivo == null:
-		señales.emitir("joystick_movimiento", "", [Vector2.ZERO])
+	# Toques reales sobre el joystick del HUD: moviendo por el bus de señales
+	# directo, el rectificador (Jugador._verificar_joystick_soltado) anula la
+	# dirección porque el joystick no está presionado.
+	if _joystick == null:
+		for nodo in root.find_children("*", "", true, false):
+			if nodo.has_method("esta_presionado"):
+				_joystick = nodo
+				break
+	if _joystick == null:
 		return
-	var hacia := _jugador.global_position.direction_to(objetivo.global_position)
-	señales.emitir("joystick_movimiento", "", [hacia if mejor > 45.0 else Vector2.ZERO])
-	if mejor < 120.0:
-		señales.emitir("slot_0_activar", "", [])
+	var centro: Vector2 = _joystick.global_position
+	if objetivo == null or mejor <= 45.0:
+		if _joystick.esta_presionado():
+			_joystick._on_touch_finalizado(0, centro)
+	else:
+		var punto := centro + _jugador.global_position.direction_to(objetivo.global_position) * 40.0
+		if _joystick.esta_presionado():
+			_joystick._on_touch_movido(0, punto)
+		else:
+			_joystick._on_touch_iniciado(0, punto)
+	if objetivo != null and mejor < 120.0:
+		root.get_node("/root/SeñalManager").emitir("slot_0_activar", "", [])
 
 
 func _informar() -> bool:
