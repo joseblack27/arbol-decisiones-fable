@@ -69,6 +69,9 @@ func _process(_d: float) -> bool:
 
 	var navegacion := _crear_capa("Navegacion", TILESET_NAV, raiz)
 	navegacion.modulate.a = 0.0
+	# Solo navegación: la ficha completa (8, (4, 2)) trae colisión, que acá no
+	# debe sumar paredes (ver generar_capa_navegacion.FICHA_LIBRE).
+	navegacion.collision_enabled = false
 
 	_cavar_salas_y_tuneles()
 	_pintar(terreno, navegacion)
@@ -193,6 +196,8 @@ func _pintar(terreno: TileMapLayer, navegacion: TileMapLayer) -> void:
 			var celda := Vector2i(x, y)
 			if _celdas_piso.has(celda):
 				terreno.set_cell(celda, 0, PIEDRA if _rng.randf() < 0.85 else PIEDRA_GRIETA)
-				navegacion.set_cell(celda, 0, Vector2i.ZERO)
+				# (8, (4, 2)), no (0, (0, 0)): la fuente 0 no existe y (0, 0) es
+				# un triángulo de medio tile (ver reparar_navegacion.gd).
+				navegacion.set_cell(celda, 8, Vector2i(4, 2))
 			else:
 				terreno.set_cell(celda, 0, MURO_OSCURO if (x + y) % 2 == 0 else MURO_OSCURO_B)

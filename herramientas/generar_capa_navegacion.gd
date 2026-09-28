@@ -36,6 +36,13 @@ const NIVELES: Array[String] = [
 	"res://escenas/niveles/NivelNidoArañaReina.tscn",
 ]
 const RUTA_TILESET_NAV := "res://escenas/niveles/tileset_colisiones.tres"
+## Ficha "Libre": navegación completa. En tileset_colisiones.tres solo existe
+## la fuente 8, y ahí (0, 0) es un triángulo de medio tile — esta herramienta
+## pintaba (0, (0, 0)) y dejó niveles enteros sin malla (ver
+## reparar_navegacion.gd). La colisión que trae (4, 2) no cuenta porque la capa
+## tiene collision_enabled = false.
+const FUENTE_LIBRE := 8
+const FICHA_LIBRE := Vector2i(4, 2)
 
 
 func _initialize() -> void:
@@ -61,6 +68,8 @@ func _procesar(ruta: String) -> void:
 		# Invisible en juego: es una capa lógica de colisión/navegación, no
 		# arte. Cambia a 1.0 mientras ajustas la posición de los obstáculos.
 		navegacion.modulate.a = 0.0
+		# Solo navegación: la ficha Libre trae colisión, que acá no debe sumar paredes.
+		navegacion.collision_enabled = false
 		nivel.add_child(navegacion)
 		navegacion.owner = nivel
 		nivel.move_child(navegacion, terreno.get_index() + 1)
@@ -79,7 +88,7 @@ func _procesar(ruta: String) -> void:
 				var celda_nav := origen_nav + Vector2i(dx, dy)
 				if navegacion.get_cell_source_id(celda_nav) != -1:
 					continue  # Ya pintada a mano (obstáculo u otra cosa): no tocar.
-				navegacion.set_cell(celda_nav, 0, Vector2i.ZERO)
+				navegacion.set_cell(celda_nav, FUENTE_LIBRE, FICHA_LIBRE)
 				pintadas += 1
 
 	var recortadas := _recortar_huerfanas(terreno, navegacion, celdas_por_lado)
