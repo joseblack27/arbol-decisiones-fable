@@ -125,6 +125,32 @@ func peers_conectados_listos() -> Array[int]:
 	return _peers_enviables()
 
 
+## Peers listos que están en "nivel".
+func peers_del_nivel(nivel: NivelBase) -> Array[int]:
+	var resultado: Array[int] = []
+	for peer_id in _peers_enviables():
+		if GestorNiveles.nivel_de_peer(peer_id) == nivel:
+			resultado.append(peer_id)
+	return resultado
+
+
+## SERVIDOR: manda el RPC "metodo" de "nodo" solo a quien tiene ese nodo
+## cargado. Si vive dentro de un nivel (mobs, vetas, árboles, compuertas), a
+## los jugadores de ESE nivel: con rpc() le llegaba a todo el servidor, y cada
+## cliente en otro nivel respondía "Node not found" por cada aviso (visto con
+## los bots: vetas de la Mina y vida de mobs de la Cueva estando en la
+## Pradera) — ese tipo de chaparrón de errores ya hizo perder conexiones. Si no
+## vive en un nivel (jugadores, NPCs errantes, autoloads, que existen en todos
+## los clientes), igual que rpc().
+func rpc_a_quien_lo_tiene(nodo: Node, metodo: StringName, argumentos: Array = []) -> void:
+	var nivel := GestorNiveles.nivel_de_nodo(nodo)
+	if nivel == null:
+		nodo.callv("rpc", [metodo] + argumentos)
+		return
+	for peer_id in peers_del_nivel(nivel):
+		nodo.callv("rpc_id", [peer_id, metodo] + argumentos)
+
+
 ## Peers a los que TIENE SENTIDO mandarles algo ahora mismo, calculado UNA vez
 ## por fotograma físico y reusado por todos los mobs (antes cada mob rehacía
 ## esta lista entera en cada fotograma).

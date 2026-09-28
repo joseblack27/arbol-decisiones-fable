@@ -76,6 +76,22 @@ correr_bot() {
 		[ "$codigo" -eq 124 ] && echo "(se cortó al superar ${TOPE_POR_BOT}s)"
 		FALLARON+=("$nombre")
 	fi
+	# Un aviso de un nodo de un nivel donde este bot NUNCA estuvo es un rpc() a
+	# todo el servidor en algo que vive dentro de un nivel: tiene que ir por
+	# InteresEspacial.rpc_a_quien_lo_tiene. (Los de su propio nivel al entrar
+	# o salir son carreras de carga, esperables.)
+	local visitados ajenos
+	visitados=$(grep -oE "en '(Nivel[^']+)'" "$CARPETA_LOGS/$nombre.log" | sed -E "s/en '(.*)'/\1/" | sort -u)
+	ajenos=$(grep -oE 'Node not found: "Mundo/ContenedorNivel/[^/"]+' "$CARPETA_LOGS/$nombre.log" \
+		| sed -E 's#.*ContenedorNivel/##' | sort | uniq -c \
+		| while read -r cantidad nivel; do
+			echo "$visitados" | grep -qx "$nivel" || echo "  $cantidad avisos de nodos de $nivel"
+		done)
+	if [ -n "$ajenos" ]; then
+		echo "Recibió avisos de niveles donde nunca estuvo (niveles visitados: $(echo $visitados)):"
+		echo "$ajenos"
+		FALLARON+=("$nombre (avisos de otros niveles)")
+	fi
 }
 
 correr_bot bot_movimiento_red

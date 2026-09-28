@@ -126,7 +126,7 @@ func restaurar_vida(valor: float) -> void:
 	# Mismo criterio que quitar/agregar: si esto corre en el servidor (p. ej.
 	# al cargar una partida guardada), el cliente tiene que enterarse.
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_recibir_vida_red", salud_actual, "", salud_maxima)
+		InteresEspacial.rpc_a_quien_lo_tiene(self, &"_recibir_vida_red", [salud_actual, "", salud_maxima])
 
 
 ## Agrega vida al agente. Retorna el exceso de vida (si se sobrepasa el máximo).
@@ -155,7 +155,7 @@ func agregar_vida(cantidad: float) -> float:
 	if salud_actual > vida_anterior:
 		BusEventos.curacion_aplicada.emit(get_parent(), salud_actual - vida_anterior)
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_recibir_vida_red", salud_actual, "", salud_maxima)
+		InteresEspacial.rpc_a_quien_lo_tiene(self, &"_recibir_vida_red", [salud_actual, "", salud_maxima])
 
 	# Retorna la vida que se perdió al alcanzar el máximo
 	return max(0.0, (vida_anterior + cantidad) - salud_maxima)

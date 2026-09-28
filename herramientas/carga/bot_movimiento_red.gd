@@ -73,6 +73,8 @@ func _process(delta: float) -> bool:
 	if nivel != _nivel_estable:
 		_nivel_estable = nivel
 		_segundos_nivel_estable = 0.0
+		if nivel != null:
+			print("[BOT-MOVIMIENTO] en '%s'" % nivel.name)
 	_segundos_nivel_estable += delta
 	if _tanda == 0 and _segundos_nivel_estable < 4.0:
 		return false

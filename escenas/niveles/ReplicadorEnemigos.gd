@@ -139,11 +139,7 @@ func _datos_de(nodo: Node) -> Array:
 
 
 func _peers_del_nivel() -> Array[int]:
-	var resultado: Array[int] = []
-	for peer_id in InteresEspacial.peers_conectados_listos():
-		if GestorNiveles.nivel_de_peer(peer_id) == _nivel:
-			resultado.append(peer_id)
-	return resultado
+	return InteresEspacial.peers_del_nivel(_nivel)
 
 
 ## Diferido: otros oyentes de peer_listo pueden reponer un jefe en este mismo

@@ -23,7 +23,7 @@ func abrir_servidor() -> void:
 	abierta = true
 	_aplicar_estado()
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_abrir_red")
+		InteresEspacial.rpc_a_quien_lo_tiene(self, &"_abrir_red")
 
 
 ## SERVIDOR: la cierra de nuevo tras reponer al jefe (mismo evento que su
@@ -34,7 +34,7 @@ func cerrar_servidor() -> void:
 	abierta = false
 	_aplicar_estado()
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_cerrar_red")
+		InteresEspacial.rpc_a_quien_lo_tiene(self, &"_cerrar_red")
 
 
 @rpc("authority", "reliable")

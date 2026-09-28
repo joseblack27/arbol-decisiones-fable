@@ -384,6 +384,17 @@ func asegurar_nivel_cargado_servidor(ruta: String) -> NivelBase:
 	return _asegurar_nivel_cargado(ruta)
 
 
+## El nivel que CONTIENE a "nodo" en el árbol, o null si no cuelga de ninguno
+## (jugadores, NPCs errantes, autoloads, UI).
+func nivel_de_nodo(nodo: Node) -> NivelBase:
+	var arriba := nodo
+	while arriba != null:
+		if arriba is NivelBase:
+			return arriba as NivelBase
+		arriba = arriba.get_parent()
+	return null
+
+
 ## El nivel donde está ese jugador. Si no se sabe (todavía no se le asignó
 ## ninguno), cae al nivel inicial.
 func nivel_de_peer(peer_id: int) -> NivelBase:
@@ -560,19 +571,17 @@ func fijar_nivel_de_entidad(nodo: Node, ruta: String) -> void:
 ## del mundo hacía que un mob de un nivel sin malla propia rutease hacia la
 ## malla del otro nivel y se fuera caminando para allá.
 ##
-## Los mobs viven DENTRO del nivel, así que se resuelve subiendo por el árbol.
-## Los jugadores no (cuelgan de "Jugadores", fuera de los niveles), así que
+## Los mobs viven DENTRO del nivel, así que se resuelve subiendo por el árbol
+## (ver nivel_de_nodo). Los jugadores no (cuelgan de "Jugadores", fuera de los niveles), así que
 ## para ellos se pregunta en qué nivel están; las entidades errantes
 ## registradas en _nivel_por_entidad, lo mismo. Si no se puede determinar, se
 ## cae al mapa del mundo: es lo que había antes y nunca es peor.
 func mapa_navegacion_de(nodo: Node) -> RID:
 	if nodo == null or not nodo.is_inside_tree():
 		return RID()
-	var arriba: Node = nodo
-	while arriba != null:
-		if arriba is NivelBase:
-			return (arriba as NivelBase).mapa_navegacion()
-		arriba = arriba.get_parent()
+	var propio := nivel_de_nodo(nodo)
+	if propio != null:
+		return propio.mapa_navegacion()
 	if nodo.is_in_group(&"jugadores"):
 		var nivel := nivel_de_jugador(nodo)
 		if nivel != null:

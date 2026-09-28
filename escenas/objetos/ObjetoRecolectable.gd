@@ -198,17 +198,15 @@ func _pedir_recolectar_red() -> void:
 	_recolectar_local(jugador)
 
 
-## SERVIDOR (o local sin red): aplica el agotamiento de verdad, avisa a
-## TODOS los clientes conectados (broadcast reliable: "algo cambió de forma
-## visible para todos, evento raro, no hace falta throttle de
-## InteresEspacial") y le da el recurso al
-## jugador que recolectó.
+## SERVIDOR (o local sin red): aplica el agotamiento de verdad, avisa a los
+## clientes de este nivel (evento raro, no hace falta el filtro de distancia
+## de InteresEspacial) y le da el recurso al jugador que recolectó.
 func _recolectar_local(jugador: Node) -> void:
 	_agotado = true
 	_aplicar_estado_visual(true)
 	_timer_respawn.start()
 	if Utils.en_red():
-		rpc("_recibir_estado_red", true)
+		InteresEspacial.rpc_a_quien_lo_tiene(self, &"_recibir_estado_red", [true])
 	_dar_recurso(jugador)
 
 
@@ -249,7 +247,7 @@ func recolectar_para_npc() -> DatosItem:
 	_aplicar_estado_visual(true)
 	_timer_respawn.start()
 	if Utils.en_red():
-		rpc("_recibir_estado_red", true)
+		InteresEspacial.rpc_a_quien_lo_tiene(self, &"_recibir_estado_red", [true])
 	return item_recurso
 
 
@@ -257,7 +255,7 @@ func _al_timeout_respawn() -> void:
 	_agotado = false
 	_aplicar_estado_visual(false)
 	if Utils.en_red() and multiplayer.is_server():
-		rpc("_recibir_estado_red", false)
+		InteresEspacial.rpc_a_quien_lo_tiene(self, &"_recibir_estado_red", [false])
 
 
 @rpc("authority", "reliable")
