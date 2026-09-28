@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_scr")
 nombre = "Arañazo (Caballero Esqueleto)"
+costo_energia = 10
 descripcion = "Golpe basico"
 dano_base_min = 50
 dano_base_max = 50

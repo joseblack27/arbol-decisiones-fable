@@ -87,7 +87,7 @@ func _montar() -> void:
 	# arma la escucha de la muerte con Utils.en_red() y multiplayer.
 	# is_server() los dos en true.
 	var peer := ENetMultiplayerPeer.new()
-	peer.create_server(34599)
+	peer.create_server(0)
 	root.multiplayer.multiplayer_peer = peer
 
 	_nivel = _crear_nivel_falso()

@@ -5,6 +5,7 @@
 [resource]
 script = ExtResource("1_dh")
 nombre = "Mordida"
+costo_energia = 10
 dano_base_min = 6
 dano_base_max = 10
 tipo_dano = 2

@@ -62,7 +62,7 @@ func _crear_nivel_falso() -> Node2D:
 
 func _montar() -> void:
 	var peer := ENetMultiplayerPeer.new()
-	peer.create_server(34601)
+	peer.create_server(0)
 	root.multiplayer.multiplayer_peer = peer
 
 	_nivel = _crear_nivel_falso()
