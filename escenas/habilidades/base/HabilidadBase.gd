@@ -277,11 +277,7 @@ func _debe_pedirle_al_servidor() -> bool:
 ## criterio que Jugador._recibir_input_red()).
 @rpc("any_peer", "reliable")
 func _activar_red(direccion: Vector2, poder: float) -> void:
-	if not multiplayer.is_server():
-		return
-	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
-		return
-	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+	if not Utils.pedido_del_dueño(entidad_dueña):
 		return
 	# Un muerto —o alguien recién llegado a un nivel nuevo, ver
 	# Jugador.bloquear_por_transicion— no lanza habilidades. El cliente ya lo
@@ -308,11 +304,7 @@ func _activar_red(direccion: Vector2, poder: float) -> void:
 ## auto-rechace. Mismo criterio de autoridad que _activar_red.
 @rpc("any_peer", "reliable")
 func _congelar_real_red() -> void:
-	if not multiplayer.is_server():
-		return
-	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
-		return
-	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+	if not Utils.pedido_del_dueño(entidad_dueña):
 		return
 	if entidad_dueña.has_method("congelar_disparo_pendiente"):
 		entidad_dueña.congelar_disparo_pendiente()
@@ -320,11 +312,7 @@ func _congelar_real_red() -> void:
 
 @rpc("any_peer", "reliable")
 func _descongelar_real_red() -> void:
-	if not multiplayer.is_server():
-		return
-	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
-		return
-	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+	if not Utils.pedido_del_dueño(entidad_dueña):
 		return
 	if entidad_dueña.has_method("descongelar_disparo_pendiente"):
 		entidad_dueña.descongelar_disparo_pendiente()
@@ -392,11 +380,7 @@ func _movimiento_del_dueño() -> MovimientoComponente:
 ## tiene que ser el dueño real de esta habilidad.
 @rpc("any_peer", "reliable")
 func _empezar_apunte_lento_red() -> void:
-	if not multiplayer.is_server():
-		return
-	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
-		return
-	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+	if not Utils.pedido_del_dueño(entidad_dueña):
 		return
 	if factor_velocidad_apuntando >= 1.0:
 		return
@@ -405,11 +389,7 @@ func _empezar_apunte_lento_red() -> void:
 
 @rpc("any_peer", "reliable")
 func _terminar_apunte_lento_red() -> void:
-	if not multiplayer.is_server():
-		return
-	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
-		return
-	if multiplayer.get_remote_sender_id() != entidad_dueña.peer_id_dueño:
+	if not Utils.pedido_del_dueño(entidad_dueña):
 		return
 	if factor_velocidad_apuntando >= 1.0:
 		return

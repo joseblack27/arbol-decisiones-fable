@@ -241,6 +241,20 @@ func jugador_local() -> Node:
 	return null
 
 
+## SERVIDOR, dentro de un RPC "any_peer": true solo si lo mandó el dueño real de
+## "dueño" (un Jugador, con peer_id_dueño). Toda RPC que actúe en nombre de un
+## jugador tiene que cortar con esto: "any_peer" deja que cualquiera la llame,
+## y sin el chequeo un cliente modificado podría actuar por otro jugador.
+## Sin red o fuera del servidor da false (sin red, el peer "offline" de Godot
+## también se considera servidor, y no hay RPC que validar).
+func pedido_del_dueño(dueño: Node) -> bool:
+	if not en_red() or not multiplayer.is_server():
+		return false
+	if not is_instance_valid(dueño) or not ("peer_id_dueño" in dueño):
+		return false
+	return multiplayer.get_remote_sender_id() == dueño.peer_id_dueño
+
+
 ## Atajo: el SlotHabilidades del jugador propio (ver jugador_local()). Con 2+
 ## jugadores en el árbol, get_first_node_in_group("slot_habilidades") podía
 ## devolver el del OTRO jugador.

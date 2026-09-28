@@ -162,12 +162,8 @@ func _curar_local(cantidad: float) -> void:
 ## HabilidadBase._activar_red) antes de aplicar la curación real.
 @rpc("any_peer", "reliable")
 func _pedir_curacion_red(cantidad: float) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	_curar_local(cantidad)
 
@@ -191,12 +187,8 @@ func _energia_local(cantidad: float) -> void:
 ## SERVIDOR: mismas verificaciones de dueño que _pedir_curacion_red.
 @rpc("any_peer", "reliable")
 func _pedir_energia_red(cantidad: float) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	_energia_local(cantidad)
 
@@ -230,12 +222,8 @@ func _experiencia_local(cantidad: int) -> void:
 ## lado del cliente, solo llamar al que ya existe.
 @rpc("any_peer", "reliable")
 func _pedir_experiencia_red(cantidad: int) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	_experiencia_local(cantidad)
 	var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
@@ -264,12 +252,8 @@ func _desbloquear_pasiva_local(ruta_escena: String) -> void:
 ## SERVIDOR: mismas verificaciones de dueño que _pedir_curacion_red.
 @rpc("any_peer", "reliable")
 func _pedir_desbloqueo_pasiva_red(ruta_escena: String) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	_desbloquear_pasiva_local(ruta_escena)
 	var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
@@ -312,12 +296,8 @@ func sincronizar_con_servidor() -> void:
 ## servidor como siempre).
 @rpc("any_peer", "reliable")
 func _pedir_sincronizar_red(rutas: PackedStringArray, cantidades: PackedInt32Array) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	items.clear()
 	for i in rutas.size():

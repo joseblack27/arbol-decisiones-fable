@@ -467,9 +467,7 @@ func _joystick_movimiento(_direccion: Vector2):
 ## replica por el Sync (ver _enter_tree).
 @rpc("any_peer", "reliable")
 func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> void:
-	if not multiplayer.is_server():
-		return
-	if multiplayer.get_remote_sender_id() != peer_id_dueño:
+	if not Utils.pedido_del_dueño(self):
 		return
 	var id_limpio := id.strip_edges()
 	var nombre_limpio := nombre.strip_edges().substr(0, 24)
@@ -582,9 +580,7 @@ func _enviar_input_red() -> void:
 ## y la secuencia descarta cualquier paquete viejo que llegue tarde.
 @rpc("any_peer", "unreliable_ordered")
 func _recibir_input_red(secuencia: int, direccion_pedida: Vector2) -> void:
-	if not multiplayer.is_server():
-		return
-	if multiplayer.get_remote_sender_id() != peer_id_dueño:
+	if not Utils.pedido_del_dueño(self):
 		return
 	# Un salto grande hacia atrás no es un paquete viejo (esos llegan a lo sumo
 	# unos pocos detrás): es el cliente que reinició su contador.

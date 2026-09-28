@@ -51,12 +51,8 @@ func _precio_real_en_tienda(ruta_tienda: String, ruta_item: String) -> int:
 ## _fijar_creditos_local).
 @rpc("any_peer", "reliable")
 func _pedir_comprar_red(ruta_tienda: String, ruta_item: String) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	var precio := _precio_real_en_tienda(ruta_tienda, ruta_item)
 	var item: DatosItem = load(ruta_item) as DatosItem if ruta_item != "" else null
@@ -119,12 +115,8 @@ func vender_item(item: DatosItem, cantidad: int = 1) -> void:
 ## valor exacto que ya calculó el servidor.
 @rpc("any_peer", "reliable")
 func _pedir_vender_red(ruta_item: String, cantidad: int) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	var pago := _vender_local(ruta_item, cantidad)
 	if pago > 0:

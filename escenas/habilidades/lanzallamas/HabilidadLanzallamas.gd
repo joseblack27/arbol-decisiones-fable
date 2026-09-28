@@ -305,7 +305,7 @@ func _aplicar_fin_canal_local() -> void:
 
 @rpc("any_peer", "reliable")
 func _iniciar_canal_red(direccion: Vector2) -> void:
-	if not multiplayer.is_server() or not _validar_remitente():
+	if not Utils.pedido_del_dueño(entidad_dueña):
 		return
 	if not puede_usarse():
 		return
@@ -323,7 +323,7 @@ func _iniciar_canal_red(direccion: Vector2) -> void:
 
 @rpc("any_peer", "unreliable_ordered")
 func _actualizar_direccion_canal_red(direccion: Vector2) -> void:
-	if not multiplayer.is_server() or not _canalizando or not _validar_remitente():
+	if not _canalizando or not Utils.pedido_del_dueño(entidad_dueña):
 		return
 	if direccion.length() > 0.1:
 		_direccion_canal = direccion.normalized()
@@ -333,15 +333,9 @@ func _actualizar_direccion_canal_red(direccion: Vector2) -> void:
 
 @rpc("any_peer", "reliable")
 func _terminar_canal_red() -> void:
-	if not multiplayer.is_server() or not _validar_remitente():
+	if not Utils.pedido_del_dueño(entidad_dueña):
 		return
 	_detener_canal()
-
-
-func _validar_remitente() -> bool:
-	if not is_instance_valid(entidad_dueña) or not ("peer_id_dueño" in entidad_dueña):
-		return false
-	return multiplayer.get_remote_sender_id() == entidad_dueña.peer_id_dueño
 
 
 # ── Réplica visual a espectadores ────────────────────────────────────────────

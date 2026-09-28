@@ -58,12 +58,8 @@ func _sincronizar_equipo_red(items: Array[DatosItem]) -> void:
 
 @rpc("any_peer", "reliable")
 func _equipar_red(rutas: PackedStringArray) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not is_instance_valid(jugador) or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	var items: Array[DatosItem] = []
 	for ruta in rutas:

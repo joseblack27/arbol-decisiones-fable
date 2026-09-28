@@ -168,11 +168,7 @@ func _sincronizar_equipo_red(slot_index: int, datos: DatosHabilidad) -> void:
 
 @rpc("any_peer", "reliable")
 func _equipar_red(slot_index: int, ruta_datos: String) -> void:
-	if not multiplayer.is_server():
-		return
-	if not is_instance_valid(jugador) or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	# Compatibilidad: un cliente con APK anterior al renombre de la carpeta
 	# (habilidades_ui -> habilidades) manda la ruta vieja — remapear acá para

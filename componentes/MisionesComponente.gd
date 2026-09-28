@@ -61,12 +61,8 @@ func _aceptar_mision_por_id(id_mision: String) -> bool:
 
 @rpc("any_peer", "reliable")
 func _pedir_aceptar_mision_red(id_mision: String) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	if _aceptar_mision_por_id(id_mision):
 		var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
@@ -130,12 +126,8 @@ func _completar_mision_por_id(id_mision: String) -> bool:
 
 @rpc("any_peer", "reliable")
 func _pedir_completar_mision_red(id_mision: String) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	if _completar_mision_por_id(id_mision):
 		var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
@@ -239,12 +231,8 @@ func _abandonar_mision_local(id_mision: String) -> void:
 
 @rpc("any_peer", "reliable")
 func _pedir_abandonar_mision_red(id_mision: String) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	_abandonar_mision_local(id_mision)
 	var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")

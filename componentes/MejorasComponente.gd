@@ -82,12 +82,8 @@ func _gastar_en_habilidad_por_ruta(ruta_habilidad: String) -> bool:
 ## motivo que _recibir_pasiva_red/_recibir_xp_red en Jugador.gd.
 @rpc("any_peer", "reliable")
 func _pedir_gastar_pasiva_red(ruta_pasiva: String) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	if _gastar_en_pasiva_por_ruta(ruta_pasiva):
 		var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
@@ -97,12 +93,8 @@ func _pedir_gastar_pasiva_red(ruta_pasiva: String) -> void:
 
 @rpc("any_peer", "reliable")
 func _pedir_gastar_habilidad_red(ruta_habilidad: String) -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	if _gastar_en_habilidad_por_ruta(ruta_habilidad):
 		var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")
@@ -189,12 +181,8 @@ func reiniciar_puntos() -> void:
 
 @rpc("any_peer", "reliable")
 func _pedir_reiniciar_puntos_red() -> void:
-	if not multiplayer.is_server():
-		return
 	var jugador := get_parent()
-	if not jugador or not ("peer_id_dueño" in jugador):
-		return
-	if multiplayer.get_remote_sender_id() != jugador.peer_id_dueño:
+	if not Utils.pedido_del_dueño(jugador):
 		return
 	if _reiniciar_puntos_local():
 		var confirmaciones := jugador.get_node_or_null("ComponenteConfirmacionesRed")

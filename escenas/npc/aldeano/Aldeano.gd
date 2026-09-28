@@ -18,9 +18,8 @@ class_name Aldeano
 ## "SE DETIENE PARA HABLARTE": la máquina de estados la decide el SERVIDOR,
 ## pero quién está hablando con este aldeano lo sabe cada CLIENTE
 ## (GestorUI.modo_actual es local). El cliente avisa por RPC cuándo empieza y
-## termina de hablar (_avisar_hablando), y el servidor cuenta cuántos jugadores
-## hablan a la vez (_hablantes, un contador como Npc.gd._cuerpos_dentro):
-## mientras sea > 0, se queda en HABLANDO.
+## termina de hablar (_avisar_hablando), y el servidor anota quiénes hablan a la
+## vez (_hablantes): mientras haya alguno, se queda en HABLANDO.
 
 const CAPA_NPC_ERRANTE := 16  # misma capa que ya usa Lenador.gd/Cazador.gd.
 const _FOTOGRAMAS_KEEPALIVE_RED := 30
@@ -53,9 +52,12 @@ var _estado: int = Estado.DEAMBULANDO
 var _posicion_origen: Vector2 = Vector2.ZERO
 var _destino: Vector2 = Vector2.ZERO
 var _espera_restante: float = 0.0
-## SERVIDOR: cuántos jugadores tienen el diálogo de ESTE aldeano abierto
-## ahora mismo — ver el comentario de arriba.
-var _hablantes: int = 0
+## SERVIDOR: quiénes tienen el diálogo de ESTE aldeano abierto ahora (peer id
+## -> true; 0 = el jugador sin red). Un conjunto y no un contador: cada
+## jugador solo se agrega o se saca a sí mismo, y si se desconecta con el
+## diálogo abierto se lo saca (ver _al_desconectar_peer). Con un contador,
+## esa desconexión dejaba al aldeano congelado "hablando" para siempre.
+var _hablantes: Dictionary = {}
 ## CLIENTE: ¿el diálogo que tengo abierto YO ahora mismo es el de este
 ## aldeano? Distingue "se cerró MI diálogo con este aldeano" de "se cerró
 ## cualquier otro panel" en _al_cambiar_modo().
@@ -81,6 +83,7 @@ func _ready() -> void:
 	GestorUI.modo_cambiado.connect(_al_cambiar_modo)
 	if not (Utils.en_red() and multiplayer.is_server()):
 		return  # Cliente: réplica visual pura, ver _physics_process/_recibir_estado_red.
+	multiplayer.peer_disconnected.connect(_al_desconectar_peer)
 	_destino = _elegir_destino()
 	_estado = Estado.DEAMBULANDO
 
@@ -100,7 +103,7 @@ func _physics_process(delta: float) -> void:
 # =============================================================================
 
 func _procesar_estado(delta: float) -> void:
-	if _hablantes > 0:
+	if not _hablantes.is_empty():
 		if _estado != Estado.HABLANDO:
 			movimiento.detener()
 			_estado = Estado.HABLANDO
@@ -180,23 +183,32 @@ func _al_cambiar_modo(modo: int) -> void:
 
 func _avisar_hablando(hablando: bool) -> void:
 	if not Utils.en_red():
-		_hablantes = 1 if hablando else 0
+		_marcar_hablante(0, hablando)
 		return
 	if multiplayer.is_server():
-		_cambiar_hablantes(1 if hablando else -1)
+		_marcar_hablante(multiplayer.get_unique_id(), hablando)
 	else:
 		rpc_id(1, "_avisar_hablando_red", hablando)
 
 
+## SERVIDOR: cualquier jugador puede avisar que habla con este aldeano, pero
+## solo por sí mismo (su peer id es la clave).
 @rpc("any_peer", "reliable")
 func _avisar_hablando_red(hablando: bool) -> void:
 	if not multiplayer.is_server():
 		return
-	_cambiar_hablantes(1 if hablando else -1)
+	_marcar_hablante(multiplayer.get_remote_sender_id(), hablando)
 
 
-func _cambiar_hablantes(delta: int) -> void:
-	_hablantes = maxi(0, _hablantes + delta)
+func _marcar_hablante(peer_id: int, hablando: bool) -> void:
+	if hablando:
+		_hablantes[peer_id] = true
+	else:
+		_hablantes.erase(peer_id)
+
+
+func _al_desconectar_peer(peer_id: int) -> void:
+	_hablantes.erase(peer_id)
 
 
 # =============================================================================
