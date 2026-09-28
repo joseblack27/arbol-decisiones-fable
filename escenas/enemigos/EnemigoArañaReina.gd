@@ -1,44 +1,34 @@
-extends Enemigo
+extends "res://escenas/enemigos/EnemigoJefe.gd"
 class_name EnemigoArañaReina
 ## Segundo jefe del juego, más difícil que el Jefe Esqueleto: mantiene
 ## distancia y dispara (reusa el kiting de EnemigoAraña), tiene 3 fases con
 ## invocación de refuerzos y escudo de daño mientras vivan (ver
 ## EscudoComponente), y una rama de "Castigo" que penaliza quedarse pegado sin
 ## ninguna habilidad disponible (ver CondicionObjetivoSinHabilidades, cableada
-## en la escena).
+## en la escena). Mecánica de fases común en EnemigoJefe.gd, con sus propios
+## umbrales (70% y 35%), sin golpe de transición ni invulnerabilidad al cruzar.
 ##
 ## Fase 1 (100%-70% de vida): Arañazo + Bola de Telaraña, como una Araña normal.
+## Fase 2: suma Veneno Paralizante e invoca dos lobos.
+## Fase 3: suma Marca, Charco y Disparo en Línea e invoca tres refuerzos. Al
+## morir los últimos, se enfurece (_activar_furia_final).
 
 ## Mismo ícono que ya usa la Habilidad Escudo del jugador — reduce trabajo
 ## de arte y es reconocible para quien ya la vio ahí.
 const _TEXTURA_ICONOS := preload("res://assets/iconos/iconos habilidades.png")
 const _REDUCCION_ESCUDO_ADDS := 0.7
-
-## Umbral de vida (fracción de la máxima) que dispara cada transición.
-const _UMBRAL_FASE_2 := 0.70
-const _UMBRAL_FASE_3 := 0.35
+const _RUTA_SELECTOR_MELEE := "ArbolComportamiento/Selector/AtacarMelee/SelectorArañazo"
+const _RUTA_SELECTOR_DISTANCIA := "ArbolComportamiento/Selector/AtaqueADistancia/AtacarLejos/SelectorTelaraña"
 
 @export_group("Fases")
-## Segundos que la reina queda quieta/indefensa al cruzar de fase — el
-## "respiro" telegrafiado, mismo criterio que EnemigoJefeEsqueleto.
-@export var pausa_cambio_fase: float = 1.3
-## Habilidad que se suma al repertorio de melee al entrar en fase 2 — el
-## NODO (Habilidades/HabilidadVenenoParalizante) ya está en la escena; esto
-## es el recurso HabilidadBT que hay que agregar al SelectorHabilidades.
+## El NODO (Habilidades/HabilidadVenenoParalizante) ya está en la escena; esto
+## es el recurso HabilidadBT que se suma al selector de melee en fase 2.
 @export var habilidad_veneno_paralizante_bt: HabilidadBT
-## Las tres habilidades que se suman al repertorio a distancia al entrar en
-## fase 3 — mismo criterio que arriba, los NODOS ya están en la escena.
+## Las tres que se suman al repertorio a distancia en fase 3.
 @export var habilidad_marca_bt: HabilidadBT
 @export var habilidad_charco_bt: HabilidadBT
 @export var habilidad_disparo_linea_bt: HabilidadBT
-## "Furia final": cuánto más rápido recarga TODAS sus habilidades tras limpiar
-## los refuerzos de fase 3 (el resto del combate). Mismo mecanismo que
-## HabilidadFervor (multiplicador_recarga de HabilidadBase), aplicado por
-## código.
-@export var multiplicador_furia_final: float = 1.4
 
-var _fase: int = 1
-var _furia_activada := false
 var _refuerzos_fase2: Array[PackedScene] = [
 	preload("res://escenas/enemigos/EnemigoLobo.tscn"),
 	preload("res://escenas/enemigos/EnemigoLobo.tscn"),
@@ -58,10 +48,13 @@ var _escudo: EscudoComponente = null
 var _buffs_propio: BuffsComponente = null
 
 
+func _init() -> void:
+	umbrales_fase = [0.70, 0.35]
+	invulnerable_en_cambio_de_fase = false
+
+
 func _ready() -> void:
 	super._ready()
-	if componente_vida and not componente_vida.cambio_valor_vida.is_connected(_on_vida_cambiada):
-		componente_vida.cambio_valor_vida.connect(_on_vida_cambiada)
 	await _esperar_malla_antes_de_actuar()
 
 
@@ -81,50 +74,16 @@ func _esperar_malla_antes_de_actuar() -> void:
 		arbol.activo = true
 
 
-## Corre en TODOS los peers (cambio_valor_vida se emite igual en el servidor
-## real y en la réplica del cliente) — a propósito, mismo criterio que
-## EnemigoJefeEsqueleto._on_vida_cambiada_jefe: así todos ven el mismo
-## respiro/cambio de fase al mismo tiempo. SelectorHabilidades nunca corre
-## en un cliente puro (Enemigo._physics_process solo ejecuta IA del lado del
-## servidor), así que el único efecto real ahí es la pausa visual.
-func _on_vida_cambiada(valor: float) -> void:
-	if _muerto or not componente_vida:
-		return
-	var maxima := componente_vida.obtener_vida_maxima()
-	if maxima <= 0.0:
-		return
-	var fraccion := valor / maxima
-	if _fase == 1 and fraccion <= _UMBRAL_FASE_2:
-		_entrar_fase(2)
-	elif _fase == 2 and fraccion <= _UMBRAL_FASE_3:
-		_entrar_fase(3)
-
-
-func _entrar_fase(nueva: int) -> void:
-	_fase = nueva
-	_telegrafiar_pausa_de_fase(pausa_cambio_fase, _reanudar_fase.bind(nueva))
-
-
 func _reanudar_fase(fase: int) -> void:
 	match fase:
 		2:
-			_agregar_habilidad_bt(
-				"ArbolComportamiento/Selector/AtacarMelee/SelectorArañazo", habilidad_veneno_paralizante_bt)
+			_agregar_habilidad_bt(_RUTA_SELECTOR_MELEE, habilidad_veneno_paralizante_bt)
 			_invocar_refuerzos(_refuerzos_fase2)
 		3:
-			var ruta_telaraña := "ArbolComportamiento/Selector/AtaqueADistancia/AtacarLejos/SelectorTelaraña"
-			_agregar_habilidad_bt(ruta_telaraña, habilidad_marca_bt)
-			_agregar_habilidad_bt(ruta_telaraña, habilidad_charco_bt)
-			_agregar_habilidad_bt(ruta_telaraña, habilidad_disparo_linea_bt)
+			_agregar_habilidad_bt(_RUTA_SELECTOR_DISTANCIA, habilidad_marca_bt)
+			_agregar_habilidad_bt(_RUTA_SELECTOR_DISTANCIA, habilidad_charco_bt)
+			_agregar_habilidad_bt(_RUTA_SELECTOR_DISTANCIA, habilidad_disparo_linea_bt)
 			_invocar_refuerzos(_refuerzos_fase3)
-
-
-func _agregar_habilidad_bt(ruta_selector: String, bt: HabilidadBT) -> void:
-	if bt == null:
-		return
-	var selector := get_node_or_null(ruta_selector)
-	if selector and not selector.habilidades.has(bt):
-		selector.habilidades.append(bt)
 
 
 func _physics_process(delta: float) -> void:
@@ -137,62 +96,29 @@ func _physics_process(delta: float) -> void:
 			"Protegida", "Reduce el daño recibido en 70%% — mata a los refuerzos")
 
 
-## SERVIDOR: instancia mobs reales como refuerzos — mismo patrón que
-## SpawnerMobs._generar_uno(). El contenedor es el mismo "Enemigos" del nivel
-## del que esta reina ya es hija (get_parent()), así ReplicadorEnemigos los
-## replica igual que a cualquier otro mob.
-func _invocar_refuerzos(escenas: Array[PackedScene]) -> void:
-	# _on_vida_cambiada (quien dispara esto, vía _entrar_fase/_reanudar_fase)
-	# corre en TODOS los peers para que el respiro de cambio de fase se vea en
-	# todos lados. Sin este corte, la réplica de la reina en cada cliente
-	# invocaba su propia copia local de los refuerzos (sin IA, que solo corre
-	# en el servidor), además de los reales que manda el servidor.
-	if Utils.en_red() and not multiplayer.is_server():
-		return
-	var contenedor := get_parent()
-	if contenedor == null:
-		return
-	for escena in escenas:
-		if escena == null:
-			continue
-		var mob := escena.instantiate()
-		contenedor.add_child(mob, true)
-		if mob is Node2D:
-			(mob as Node2D).global_position = global_position \
-				+ Vector2(randf_range(-40.0, 40.0), randf_range(-40.0, 40.0))
-		_adds.append(mob)
+## Además de invocarlos (ver EnemigoJefe), los anota como "adds": mientras
+## viva alguno, la reina tiene escudo.
+func _invocar_refuerzos(escenas: Array[PackedScene]) -> Array[Node]:
+	var mobs := super._invocar_refuerzos(escenas)
+	for mob in mobs:
 		var vida := mob.get_node_or_null("VidaComponente") as VidaComponente
-		if vida:
-			# Señal "muerte" (no tree_exiting): dispara al instante en que la
-			# vida llega a 0, sin esperar el fundido visual de
-			# _desvanecer_y_eliminar() (~0.4s) — el escudo cae apenas mueren
-			# de verdad, sin darle al jugador un colchón extra gratis.
-			vida.muerte.connect(_al_morir_add.bind(mob), CONNECT_ONE_SHOT)
-		else:
-			# Sin VidaComponente no hay forma de saber cuándo "murió" — mejor
-			# no contarlo como add real que nunca se va a quitar solo.
-			_adds.erase(mob)
+		if vida == null:
+			# Sin VidaComponente no hay forma de saber cuándo "murió": mejor no
+			# contarlo como add real que nunca se va a quitar solo.
+			continue
+		_adds.append(mob)
+		# Señal "muerte" (no tree_exiting): dispara al instante en que la vida
+		# llega a 0, sin esperar el fundido visual de _desvanecer_y_eliminar()
+		# (~0.4 s): el escudo cae apenas mueren de verdad.
+		vida.muerte.connect(_al_morir_add.bind(mob), CONNECT_ONE_SHOT)
+	return mobs
 
 
+## "Se enoja" al perder a sus últimos refuerzos de la fase 3.
 func _al_morir_add(_valor: float, mob: Node) -> void:
 	_adds.erase(mob)
 	if _fase == 3 and _adds.is_empty() and not _furia_activada:
 		_activar_furia_final()
-
-
-## "Se enoja" al perder a sus últimos refuerzos: recarga sus habilidades
-## multiplicador_furia_final veces más rápido, permanente por el resto del
-## combate — mismo mecanismo que HabilidadFervor (multiplicador_recarga en
-## HabilidadBase), pero acá las habilidades cuelgan del Marker2D
-## "Habilidades" del enemigo, no directo de la raíz como en un jugador.
-func _activar_furia_final() -> void:
-	_furia_activada = true
-	var habilidades := get_node_or_null("Habilidades")
-	if habilidades == null:
-		return
-	for hijo in habilidades.get_children():
-		if hijo is HabilidadBase:
-			hijo.multiplicador_recarga = multiplicador_furia_final
 
 
 func _asegurar_escudo() -> EscudoComponente:
