@@ -271,17 +271,15 @@ func _recibir_vida_red(valor: float, ruta_fuente: String = "", maxima: float = -
 		BusEventos.daño_aplicado.emit(get_parent(), delta, fuente, tipo, critico)
 		# Nombre del atacante SIEMPRE como texto, para el log de Actividad
 		# Reciente. Si el nodo no existe en este peer (un mob que existe en el
-		# servidor pero no acá), se saca el nombre de la ruta y se marca como
-		# invisible. "???" queda solo para ruta vacía (fuente ya liberada o daño
-		# ambiental).
+		# servidor pero todavía no acá), se saca el nombre de la ruta y se marca
+		# como invisible; crearlo es trabajo de ReplicadorEnemigos, que lo
+		# repone en su próxima reconciliación. "???" queda solo para ruta vacía
+		# (fuente ya liberada o daño ambiental).
 		var nombre_fuente := "???"
 		if fuente != null:
 			nombre_fuente = Utils.nombre_visible(fuente)
 		elif ruta_fuente != "":
 			nombre_fuente = "%s [invisible]" % ruta_fuente.get_file()
-			# Autocuración: pedirle al servidor los datos de ese nodo para
-			# instanciar la réplica que faltó (ver _pedir_resync_nodo_red).
-			rpc_id(1, "_pedir_resync_nodo_red", ruta_fuente)
 		BusEventos.daño_replicado.emit(get_parent(), delta, nombre_fuente)
 	elif valor_clamp > salud_actual:
 		# Mismo criterio para la curación: el "+N" del cliente sale de ACÁ.
@@ -289,44 +287,3 @@ func _recibir_vida_red(valor: float, ruta_fuente: String = "", maxima: float = -
 		BusEventos.curacion_aplicada.emit(get_parent(), valor_clamp - salud_actual)
 	salud_actual = valor_clamp
 	cambio_valor_vida.emit(salud_actual)
-
-
-## CLIENTE → SERVIDOR: "no tengo el nodo en ruta_fuente" (un mob que pegó
-## desde el servidor pero nunca se replicó acá). El servidor resuelve la ruta
-## en SU árbol y, si el nodo sigue vivo, le manda lo necesario para
-## reconstruirlo solo a quien preguntó.
-@rpc("any_peer", "reliable")
-func _pedir_resync_nodo_red(ruta_nodo: String) -> void:
-	if not multiplayer.is_server():
-		return
-	var nodo := get_tree().root.get_node_or_null(ruta_nodo)
-	if nodo == null or not (nodo is Node2D):
-		return
-	var padre := nodo.get_parent()
-	if padre == null:
-		return
-	var escena_base: String = (nodo.scene_file_path if nodo.scene_file_path != "" \
-		else (nodo.get_owner().scene_file_path if nodo.get_owner() else ""))
-	if escena_base == "":
-		return
-	rpc_id(multiplayer.get_remote_sender_id(), "_recibir_resync_nodo_red",
-		str(padre.get_path()), escena_base, String(nodo.name), (nodo as Node2D).global_position)
-
-
-## SERVIDOR → CLIENTE (solo a quien preguntó): instancia la réplica que le
-## faltaba, con el mismo nombre bajo el mismo padre que en el servidor, así los
-## RPC por ruta le empiezan a llegar. Idempotente, por si dos golpes seguidos
-## dispararon el mismo pedido.
-@rpc("authority", "reliable")
-func _recibir_resync_nodo_red(ruta_padre: String, escena_ruta: String, nombre: String, posicion: Vector2) -> void:
-	var padre := get_tree().root.get_node_or_null(ruta_padre)
-	if padre == null or padre.has_node(nombre):
-		return
-	var escena := load(escena_ruta) as PackedScene
-	if escena == null:
-		return
-	var nodo := escena.instantiate()
-	nodo.name = nombre
-	padre.add_child(nodo)
-	if nodo is Node2D:
-		(nodo as Node2D).global_position = posicion
