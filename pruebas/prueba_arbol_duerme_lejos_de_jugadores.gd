@@ -33,16 +33,11 @@
 #   4. "activo = false" (el mecanismo YA existente, usado por las pausas de
 #      fase de los jefes) sigue cortando el tick sin importar el estado de
 #      sueño -- las dos banderas no se pisan entre sí.
-#   5. El default de radio_actividad es 0 (DESACTIVADO) -- ver el comentario
-#      grande en ArbolComportamiento.gd: apagado a propósito (24 sep 2026)
-#      para diagnosticar un reporte real de mobs fantasma en combate
-#      ("si me quedo quieto en un grupo de hormigas, algunas se quedan
-#      estáticas... y ya no reciben daño"), reportado empezando justo
-#      después de activar esta optimización. El resto de esta prueba
-#      prende radio_actividad a mano para seguir probando el MECANISMO en
-#      sí, pero el comportamiento por defecto en producción hoy es "nunca
-#      duerme" -- si esta prueba puntual (5) empieza a fallar, alguien
-#      reactivó el default sin revisar antes esa investigación.
+#   5. El default de radio_actividad es 1400 (ACTIVADO). Estuvo en 0 del 24
+#      al 28 sep 2026 como diagnóstico de unos mobs "pegados" en combate,
+#      que resultaron ser réplicas fantasma del cliente (resuelto con
+#      ReplicadorEnemigos). Si esto falla, alguien apagó el sueño por
+#      distancia para todos los mobs.
 #   godot --headless --path . --script res://pruebas/prueba_arbol_duerme_lejos_de_jugadores.gd
 # =============================================================================
 extends SceneTree
@@ -62,7 +57,7 @@ var _no_tiquea_dormido_ok := false
 var _despierta_si_hay_alguien_cerca_ok := false
 var _nunca_duerme_sin_red_ok := false
 var _activo_false_sigue_cortando_ok := false
-var _default_desactivado_ok := false
+var _default_activado_ok := false
 var _ticks_antes_de_despertar := 0
 
 
@@ -104,14 +99,9 @@ func _montar() -> void:
 
 	_arbol = _mob.get_node("ArbolComportamiento")
 
-	_default_desactivado_ok = _arbol.radio_actividad == 0.0
-	print("El default de radio_actividad sigue en 0 (desactivado) (esperado true): %s" % \
-		_default_desactivado_ok)
-
-	# TEMPORALMENTE en 0 en producción (ver el comentario grande en
-	# ArbolComportamiento.gd) -- esta prueba sigue probando el MECANISMO en
-	# sí (para cuando se reactive), así que lo prende a mano acá.
-	_arbol.radio_actividad = 1400.0
+	_default_activado_ok = _arbol.radio_actividad == 1400.0
+	print("El default de radio_actividad es 1400 (activado) (esperado true, valor=%s): %s" % [
+		_arbol.radio_actividad, _default_activado_ok])
 
 
 func _probar_duerme_sin_peers() -> void:
@@ -195,7 +185,7 @@ func _informar() -> bool:
 	var exito := _duerme_sin_peers_ok and _nunca_duerme_si_detecto_jugador_ok and _nunca_duerme_en_llamada_ok \
 		and _no_tiquea_dormido_ok \
 		and _despierta_si_hay_alguien_cerca_ok and _nunca_duerme_sin_red_ok and _activo_false_sigue_cortando_ok \
-		and _default_desactivado_ok
+		and _default_activado_ok
 	print("PRUEBA ARBOL DUERME LEJOS DE JUGADORES %s" % ("OK" if exito else "FALLIDA"))
 	quit(0 if exito else 1)
 	return true

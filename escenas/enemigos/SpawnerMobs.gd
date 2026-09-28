@@ -220,21 +220,12 @@ func _punto_de_generacion_valido() -> Variant:
 ## Sin botín ni XP ni animación de muerte a propósito: esto no es una
 ## muerte de combate, es descartar un estado anómalo.
 ##
-## Reportado en juego real (24 sep 2026, justo al desactivar el sueño por
-## distancia como diagnóstico -- ver ArbolComportamiento.radio_actividad):
-## "no he atacado ni nada y desaparecieron 4 [de 6 hormigas]" -- hormigas
-## completamente sanas, sin pelear, desaparecían solas. Causa probable:
-## _TOLERANCIA_NAVEGACION (6px) es ajustada para un NavigationAgent2D
-## activamente en movimiento (corta esquinas, se desvía por evasión) --
-## un mob de verdad sobre la malla puede estar TRANSITORIAMENTE unos
-## pocos px más allá justo en el instante de esta revisión puntual, sin
-## estar realmente atascado. Con el sueño por distancia desactivado,
-## TODOS los mobs están siempre en movimiento (deambulando) en vez de
-## quietos la mayor parte del tiempo lejos del jugador -- mucha más
-## exposición a este falso positivo que antes. Exigir DOS revisiones
-## seguidas (separadas por _INTERVALO_REVISION_LIMITES) antes de borrar:
-## un mob de verdad atascado sigue fuera de la malla 5s después también;
-## uno de paso ya se corrigió solo para la próxima revisión.
+## Exige DOS revisiones seguidas fuera de la malla (separadas por
+## _INTERVALO_REVISION_LIMITES) antes de borrar: _TOLERANCIA_NAVEGACION
+## (6 px) es ajustada para un mob en movimiento (corta esquinas, se desvía
+## por evasión), que puede quedar un instante unos px afuera sin estar
+## atascado, y con una sola revisión se borraban mobs sanos. Uno de verdad
+## atascado sigue afuera en la revisión siguiente.
 func _revisar_mobs_fuera_de_limites() -> void:
 	if not limpieza_fuera_de_limites_activa:
 		return

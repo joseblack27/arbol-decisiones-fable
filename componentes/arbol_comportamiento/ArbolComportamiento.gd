@@ -46,17 +46,9 @@ extends Node
 ## (dejarlo así en una escena puntual que necesite pensar siempre, p. ej. un
 ## NPC errante cuya rutina dependa del reloj del mundo más que de si hay
 ## alguien cerca).
-## TEMPORALMENTE EN 0 (24 sep 2026) -- desactivado a propósito para
-## diagnosticar el reporte real "si me quedo quieto en un grupo de
-## hormigas, algunas se quedan estáticas... y ya no reciben daño",
-## reportado empezando justo después de esta optimización. La protección
-## "nunca duerme si jugador_detectado" (ver _process/_revisar_sueño_por_
-## distancia) debería alcanzar sin necesitar esto, pero hasta confirmar
-## la causa real con un A/B directo, mejor volver EXACTO al comportamiento
-## de antes (todos los árboles siempre despiertos) que arriesgar mobs
-## fantasma en combate. Volver a 1400.0 una vez descartado o resuelto --
-## ver investigacion-abierta-hormigas-fantasma-en-combate.md.
-@export var radio_actividad: float = 0.0
+## Un mob enganchado con un jugador o respondiendo la llamada de la Reina
+## nunca se duerme (ver _debe_mantenerse_despierto).
+@export var radio_actividad: float = 1400.0
 
 @export_group("Memoria")
 ## Ruta al nodo MemoriaBT. Si se deja vacío, se busca automáticamente
@@ -130,15 +122,10 @@ func _process(delta: float) -> void:
 	if Utils.en_red() and not multiplayer.is_server():
 		return
 	if radio_actividad > 0.0:
-		# Reportado en juego real (23 sep 2026): mobs que estaban atacando
-		# activamente se quedaban "pegados" a mitad de combate -- nunca
-		# debería dormirse uno que YA detectó a un jugador (jugador_
-		# detectado, ver VisionComponente/Enemigo._on_objetivo_detectado:
-		# independiente del propio tick del árbol, así que sigue
-		# actualizado aunque el árbol esté dormido). Chequeo INMEDIATO acá,
-		# no solo en _revisar_sueño_por_distancia() (cada
-		# _INTERVALO_REVISION_SUEÑO, hasta 1.5s de rezago): apenas detecta,
-		# despierta YA, sin esperar el próximo ciclo.
+		# Un mob que detecta a un jugador (jugador_detectado lo actualiza
+		# VisionComponente aunque el árbol duerma) o recibe la llamada de la
+		# Reina despierta YA, sin esperar a _revisar_sueño_por_distancia()
+		# (hasta _INTERVALO_REVISION_SUEÑO de rezago).
 		if _dormido_por_distancia and _debe_mantenerse_despierto():
 			_dormido_por_distancia = false
 		_tiempo_para_revisar_sueño -= delta
