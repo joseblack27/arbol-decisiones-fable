@@ -16,6 +16,8 @@
 # =============================================================================
 extends SceneTree
 
+const JoystickBot := preload("res://herramientas/carga/joystick_bot.gd")
+
 var _ip := "127.0.0.1"
 var _solo_ida := false
 ## Se queda en la cueva en vez de volver — para que OTRO bot compruebe que a
@@ -151,7 +153,7 @@ func _cambiar_fase(nueva: String) -> void:
 
 
 func _mover(dir: Vector2) -> void:
-	root.get_node("/root/SeñalManager").emitir("joystick_movimiento", "", [dir])
+	JoystickBot.mover(root, dir)
 
 
 ## Apunta al portal en vez de caminar derecho: un empujón de mob te desvía

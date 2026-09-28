@@ -14,6 +14,8 @@
 # =============================================================================
 extends SceneTree
 
+const JoystickBot := preload("res://herramientas/carga/joystick_bot.gd")
+
 var _ip := "127.0.0.1"
 var _al_camino := false
 var _mundo: Node2D
@@ -210,7 +212,7 @@ func _cambiar_fase(nueva: String) -> void:
 
 
 func _mover(dir: Vector2) -> void:
-	root.get_node("/root/SeñalManager").emitir("joystick_movimiento", "", [dir])
+	JoystickBot.mover(root, dir)
 
 
 func _hacia_portal(nombre: String, respaldo: Vector2) -> Vector2:

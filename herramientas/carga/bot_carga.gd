@@ -14,6 +14,8 @@
 # =============================================================================
 extends SceneTree
 
+const JoystickBot := preload("res://herramientas/carga/joystick_bot.gd")
+
 var _id: int = 0
 var _duracion: float = 60.0
 ## Vacíos = no tocar Utils.ip_conexion/puerto_conexion (comportamiento de
@@ -116,6 +118,7 @@ func _process(delta: float) -> bool:
 		_registrar_posiciones_ajenas()
 	else:
 		_simular_accion(delta)
+	_medir_recorrido()
 
 	# El cronómetro arranca recién cuando el jugador existe: así --duracion
 	# mide tiempo de JUEGO real, no el rato variable que tarda conectar.
@@ -123,10 +126,26 @@ func _process(delta: float) -> bool:
 	if _duracion <= 0.0:
 		if _observa:
 			print("BOT %d: X maxima vista de otro jugador = %.0f" % [_id, _x_maxima_vista_otro])
+		# Posición que manda el SERVIDOR, no la predicción local: si esto da ~0,
+		# el bot no generó el tráfico de movimiento que se quería medir.
+		print("BOT %d: recorrió %.0f px según el servidor." % [_id, _recorrido_servidor])
 		print("BOT %d: terminó su sesión (%d fotogramas)." % [_id, _fotogramas])
 		quit(0)
 		return true
 	return false
+
+
+var _recorrido_servidor := 0.0
+var _ultima_pos_servidor := Vector2.INF
+
+func _medir_recorrido() -> void:
+	var pos: Vector2 = _jugador.get("_posicion_replicada")
+	if _ultima_pos_servidor != Vector2.INF:
+		var paso := pos.distance_to(_ultima_pos_servidor)
+		# Un salto enorme es un cambio de nivel o reaparición, no caminar.
+		if paso < 200.0:
+			_recorrido_servidor += paso
+	_ultima_pos_servidor = pos
 
 
 func _registrar_posiciones_ajenas() -> void:
@@ -161,10 +180,9 @@ func _buscar_jugador_propio() -> void:
 			return
 
 
-## Cada ~1-2s cambia de dirección (mueve por el joystick, el mismo camino
-## real que usa un jugador humano — SeñalManager es el bus que la UI real
-## dispara) y, con cierta probabilidad, ataca — así el tráfico generado se
-## parece al de una sesión real, no a un bot inmóvil.
+## Cada ~1-2s cambia de dirección (tocando el joystick real del HUD, ver
+## joystick_bot.gd) y, con cierta probabilidad, ataca — así el tráfico
+## generado se parece al de una sesión real, no a un bot inmóvil.
 func _simular_accion(delta: float) -> void:
 	_proxima_decision -= delta
 	if _proxima_decision > 0.0:
@@ -175,8 +193,7 @@ func _simular_accion(delta: float) -> void:
 		_direccion_actual = Vector2.ZERO  # pausa breve, más realista que moverse siempre
 	else:
 		_direccion_actual = Vector2.from_angle(randf_range(0.0, TAU))
-	var señales = root.get_node("/root/SeñalManager")
-	señales.emitir("joystick_movimiento", "", [_direccion_actual])
+	JoystickBot.mover(root, _direccion_actual)
 
 	if randf() < 0.4:
-		señales.emitir("slot_0_activar", "", [])
+		root.get_node("/root/SeñalManager").emitir("slot_0_activar", "", [])

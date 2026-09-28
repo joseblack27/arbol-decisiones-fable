@@ -6,6 +6,8 @@
 # =============================================================================
 extends SceneTree
 
+const JoystickBot := preload("res://herramientas/carga/joystick_bot.gd")
+
 var _ip := "127.0.0.1"
 var _mundo: Node2D
 var _jugador: CharacterBody2D
@@ -98,7 +100,9 @@ func _process(delta: float) -> bool:
 				nombres.append(String(hijo.name))
 				# SpawnerMobs es infraestructura, no un mob — lo que importa es
 				# que no haya NINGÚN otro Enemigo real aparte de la reina.
-				if hijo is Enemigo and not (hijo.name as String).begins_with("EnemigoArañaReina"):
+				# has_method y no "is Enemigo": nombrar la clase desde un script de
+				# --script la compila antes de que existan los autoloads (Utils).
+				if hijo.has_method("esta_muerto") and not (hijo.name as String).begins_with("EnemigoArañaReina"):
 					otros_mobs.append(String(hijo.name))
 			print("[BOT] Enemigos en el nido: %s" % str(nombres))
 			var solo_la_reina := otros_mobs.is_empty()
@@ -120,7 +124,7 @@ func _cambiar_fase(nueva: String) -> void:
 
 
 func _mover(dir: Vector2) -> void:
-	root.get_node("/root/SeñalManager").emitir("joystick_movimiento", "", [dir])
+	JoystickBot.mover(root, dir)
 
 
 func _hacia_portal(nombre: String, respaldo: Vector2) -> Vector2:

@@ -14,6 +14,8 @@
 # =============================================================================
 extends SceneTree
 
+const JoystickBot := preload("res://herramientas/carga/joystick_bot.gd")
+
 var _puerto := 8920
 var _duracion := 40.0
 var _mundo: Node2D
@@ -38,7 +40,6 @@ var _invocacion_equipada := false
 var _proxima_invocacion := 4.0
 var _aliados_vistos := 0
 var _aliados_despachados := 0
-var _joystick
 
 
 func _init() -> void:
@@ -159,26 +160,11 @@ func _simular_accion(delta: float) -> void:
 			if d < mejor:
 				mejor = d
 				objetivo = hijo
-	# Toques reales sobre el joystick del HUD: moviendo por el bus de señales
-	# directo, el rectificador (Jugador._verificar_joystick_soltado) anula la
-	# dirección porque el joystick no está presionado.
-	if _joystick == null:
-		for nodo in root.find_children("*", "", true, false):
-			if nodo.has_method("esta_presionado"):
-				_joystick = nodo
-				break
-	if _joystick == null:
-		return
-	var centro: Vector2 = _joystick.global_position
+	# Toques reales sobre el joystick del HUD, ver joystick_bot.gd.
 	if objetivo == null or mejor <= 45.0:
-		if _joystick.esta_presionado():
-			_joystick._on_touch_finalizado(0, centro)
+		JoystickBot.mover(root, Vector2.ZERO)
 	else:
-		var punto := centro + _jugador.global_position.direction_to(objetivo.global_position) * 40.0
-		if _joystick.esta_presionado():
-			_joystick._on_touch_movido(0, punto)
-		else:
-			_joystick._on_touch_iniciado(0, punto)
+		JoystickBot.mover(root, _jugador.global_position.direction_to(objetivo.global_position))
 	if objetivo != null and mejor < 120.0:
 		root.get_node("/root/SeñalManager").emitir("slot_0_activar", "", [])
 

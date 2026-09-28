@@ -14,6 +14,7 @@
 # =============================================================================
 extends SceneTree
 
+const JoystickBot := preload("res://herramientas/carga/joystick_bot.gd")
 const _DIRECCIONES := [Vector2.RIGHT, Vector2.UP, Vector2.LEFT, Vector2.DOWN, Vector2.ZERO]
 const _SEGUNDOS_EMPUJE := 1.0
 const _SEGUNDOS_PARA_FRENAR := 0.5
@@ -31,7 +32,6 @@ var _pos_inicio := Vector2.ZERO
 var _pos_al_soltar := Vector2.ZERO
 var _pos_frenado := Vector2.ZERO
 var _fallas: Array[String] = []
-var _joystick
 
 
 func _init() -> void:
@@ -85,30 +85,20 @@ func _process(delta: float) -> bool:
 func _correr_tandas(delta: float) -> bool:
 	if _tanda >= _DIRECCIONES.size():
 		return _probar_corte_de_input(delta)
-	# Toques reales sobre el joystick del HUD (no el bus de señales directo):
-	# así se prueba el camino completo, rectificador incluido.
-	if _joystick == null:
-		for nodo in root.find_children("*", "", true, false):
-			if nodo.has_method("esta_presionado"):
-				_joystick = nodo
-				break
-		if _joystick == null:
-			print("[BOT-MOVIMIENTO] ABANDONA: no hay joystick en el HUD.")
-			quit(1)
-			return true
+	# Toques reales sobre el joystick del HUD (ver joystick_bot.gd): así se
+	# prueba el camino completo, rectificador incluido.
 	var direccion: Vector2 = _DIRECCIONES[_tanda]
 	var zigzag := direccion == Vector2.ZERO
-	var centro: Vector2 = _joystick.global_position
 	if _t == 0.0:
 		_pos_inicio = _jugador._posicion_replicada
-		_joystick._on_touch_iniciado(0, centro + (Vector2.RIGHT if zigzag else direccion) * 40.0)
+		JoystickBot.mover(root, Vector2.RIGHT if zigzag else direccion)
 	_t += delta
 	if _t < _SEGUNDOS_EMPUJE:
 		if zigzag:
-			_joystick._on_touch_movido(0, centro + Vector2.from_angle(randf_range(0.0, TAU)) * 40.0)
+			JoystickBot.mover(root, Vector2.from_angle(randf_range(0.0, TAU)))
 		return false
 	if _pos_al_soltar == Vector2.ZERO:
-		_joystick._on_touch_finalizado(0, centro)
+		JoystickBot.mover(root, Vector2.ZERO)
 		_pos_al_soltar = _jugador._posicion_replicada
 		return false
 	if _t < _SEGUNDOS_EMPUJE + _SEGUNDOS_PARA_FRENAR:
@@ -145,7 +135,7 @@ var _pos_tras_corte := Vector2.ZERO
 
 func _probar_corte_de_input(delta: float) -> bool:
 	if _t_corte == 0.0:
-		_joystick._on_touch_iniciado(0, _joystick.global_position + Vector2.RIGHT * 40.0)
+		JoystickBot.mover(root, Vector2.RIGHT)
 	_t_corte += delta
 	if _t_corte < 0.3:
 		return false
@@ -166,7 +156,7 @@ func _probar_corte_de_input(delta: float) -> bool:
 	if deriva > 2.0:
 		_fallas.append("corte de input: el servidor lo dejó caminando (%.1f px)" % deriva)
 	_jugador.set_physics_process(true)
-	_joystick._on_touch_finalizado(0, _joystick.global_position)
+	JoystickBot.mover(root, Vector2.ZERO)
 	return _informar()
 
 

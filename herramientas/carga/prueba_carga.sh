@@ -107,6 +107,10 @@ CONECTADOS=$(grep -c "^BOT .*: spawneado" "$CARPETA_LOGS"/bot_*.log 2>/dev/null 
 ABANDONARON=$(grep -l "no logró spawnear" "$CARPETA_LOGS"/bot_*.log 2>/dev/null | wc -l)
 echo ""
 echo "== Bots que llegaron a spawnear: $CONECTADOS / $CANTIDAD_BOTS (abandonaron por timeout: $ABANDONARON) =="
+# "Se movió" = el SERVIDOR lo registró caminando al menos 100 px: si esto da 0,
+# las cifras de carga de abajo son con bots parados (pasó del 21 al 27 sep 2026).
+SE_MOVIERON=$(grep -hoE "recorrió [0-9]+ px" "$CARPETA_LOGS"/bot_*.log 2>/dev/null | awk '$2 >= 100' | wc -l)
+echo "== Bots que se movieron (según el servidor): $SE_MOVIERON / $CONECTADOS =="
 echo ""
 echo "== Serie temporal de capacidad del servidor =="
 grep "^\[CARGA\]" "$CARPETA_LOGS/servidor.log"
