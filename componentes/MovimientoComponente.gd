@@ -56,10 +56,8 @@ var _destino_definido: bool = false
 
 func _ready() -> void:
 	# Algunos enemigos (p. ej. Lobo) traen su propio NavigationAgent2D
-	# preconfigurado desde el Inspector (con avoidance_enabled=true ya
-	# puesto) en vez de dejar que _crear_agente_navegacion() cree uno por
-	# defecto — en ese caso hay que conectar la señal acá, porque
-	# _crear_agente_navegacion() nunca se llega a ejecutar.
+	# configurado en la escena: _crear_agente_navegacion() no corre para ellos,
+	# así que la señal se conecta acá.
 	if agente_navegacion:
 		agente_navegacion.velocity_computed.connect(_on_velocity_computed)
 		_ajustar_distancia_punto_ruta()
@@ -69,14 +67,11 @@ func _ready() -> void:
 ## de la ruta se da por pasado — ver _ajustar_distancia_punto_ruta().
 const _MARGEN_PUNTO_RUTA := 6.0
 
-## La malla de navegación de los niveles llega hasta el borde de las paredes,
-## así que en cada esquina de túnel la ruta pasa por el vértice MISMO de la
-## pared. El cuerpo nunca puede acercarse a ese punto más que su propio radio:
-## con path_desired_distance <= radio el agente jamás lo daba por pasado y el
-## mob se quedaba empujando contra la esquina para siempre (encontrado con la
-## llamada de auxilio de la Reina Hormiga, 27 sep 2026: obrera de radio 8 y
-## soldado de radio 15 contra 8 px, trabadas a 8 px del punto en 3 esquinas
-## distintas del Hormiguero). Afectaba a cualquier mob que siga una ruta.
+## La malla de navegación llega hasta el borde de las paredes, así que en cada
+## esquina de túnel la ruta pasa por el vértice MISMO de la pared. El cuerpo
+## nunca se acerca a ese punto más que su propio radio: con
+## path_desired_distance <= radio, el agente jamás lo daba por pasado y el mob
+## se quedaba empujando contra la esquina.
 func _ajustar_distancia_punto_ruta() -> void:
 	if agente_navegacion == null or jugador == null:
 		return
@@ -85,15 +80,13 @@ func _ajustar_distancia_punto_ruta() -> void:
 
 
 ## La malla llega hasta el filo de las paredes, así que la ruta corre PEGADA a
-## ellas: en un tramo a lo largo de una pared (p. ej. bajando por el borde de
-## un bloque sólido) el centro del cuerpo tendría que ir por la pared misma, y
-## el mob se quedaba empujando contra ella (dos hormigas trabadas en (3104, 0)
-## del Hormiguero respondiendo la llamada de la Reina, 27 sep 2026). Se apunta
-## a un punto separado de las paredes por el radio del cuerpo: la dirección
-## "hacia adentro" sale de la propia malla, probando en 8 direcciones qué
-## puntos alrededor siguen siendo transitables. El punto final de la ruta no
-## se toca (es el destino pedido). Se calcula una vez por punto, no por
-## fotograma: con decenas de mobs, 8 consultas por fotograma serían caras.
+## ellas: en un tramo a lo largo de una pared, el centro del cuerpo tendría que
+## ir por la pared misma y el mob se quedaba empujando contra ella. Se apunta a
+## un punto separado de las paredes por el radio del cuerpo; la dirección
+## "hacia adentro" sale de la propia malla, probando en 8 direcciones qué puntos
+## alrededor siguen siendo transitables. El punto final de la ruta no se toca
+## (es el destino pedido). Se calcula una vez por punto y no por fotograma: con
+## decenas de mobs, 8 consultas por fotograma serían caras.
 var _punto_ruta_original := Vector2.INF
 var _punto_ruta_desplazado := Vector2.INF
 
@@ -195,27 +188,18 @@ func detener() -> void:
 ## recurso: ver ese comentario.
 var _tiempo_en_destino_actual: float = 0.0
 ## Si tras esto seguimos sin "llegar" ni con is_navigation_finished(), se da
-## por llegado igual — red de seguridad final. Encontrado en la práctica: un
-## destino cuyo punto exacto (o la región navegable alrededor) resultó
-## inalcanzable por la malla dejaba is_navigation_finished() en false PARA
-## SIEMPRE (el agente seguía "intentando" indefinidamente en vez de
-## rendirse), así que ni el margen ni is_navigation_finished() alcanzaban —
-## el leñador se quedaba caminando en el lugar por horas (bug real
-## reportado: "el leñador no se mueve").
+## por llegado igual: un destino inalcanzable por la malla puede dejar
+## is_navigation_finished() en false PARA SIEMPRE, y el que lo pidió (p. ej. el
+## leñador) se quedaba caminando en el lugar.
 const _TIEMPO_MAXIMO_INTENTANDO_LLEGAR := 6.0
 
 
 ## true si ya "llegamos" al último destino de comandar_destino(): cerca de
-## verdad (dentro de margen), O el agente de navegación ya da la ruta por
-## terminada aunque sigamos más lejos que margen — el punto exacto pedido
-## puede quedar dentro de un obstáculo sólido que la malla de navegación
-## rodea (el tronco de un árbol, la base de un mueble), así que el agente
-## nunca se acerca más y esperar el margen a secas lo dejaría caminando en
-## el lugar para siempre —, O ya pasaron _TIEMPO_MAXIMO_INTENTANDO_LLEGAR
-## segundos intentándolo sin ninguna de las dos cosas (ver esa constante).
-## Pensado para llamadores que no pueden hacer caminar hasta el CENTRO
-## exacto de algo con cuerpo sólido (ver Lenador.gd) — comandar_direccion()/
-## jugadores reales no lo necesitan, apuntan a un punto siempre alcanzable.
+## verdad (dentro de margen), O el agente ya da la ruta por terminada aunque
+## sigamos más lejos (el punto pedido puede quedar dentro de algo sólido que la
+## malla rodea, como el tronco de un árbol), O ya pasaron
+## _TIEMPO_MAXIMO_INTENTANDO_LLEGAR segundos intentándolo. Pensado para
+## llamadores que apuntan al centro de algo con cuerpo sólido (ver Lenador.gd).
 func llego_al_destino(margen: float) -> bool:
 	if not _destino_definido:
 		return false
@@ -245,17 +229,16 @@ func _crear_agente_navegacion() -> void:
 	_usar_mapa_del_nivel()
 	# Con avoidance_enabled=true en el agente (ver .tscn), asignar
 	# agente_navegacion.velocity dispara el cálculo de evasión (RVO) contra
-	# otros agentes/NavigationObstacle2D cercanos; el resultado "seguro" llega
-	# por esta señal — sin conectarla, avoidance_enabled no tiene ningún
-	# efecto real (antes solo estaba el flag puesto, nunca usado).
+	# otros agentes cercanos; el resultado "seguro" llega por esta señal. Sin
+	# conectarla, avoidance_enabled no tiene efecto.
 	agente_navegacion.velocity_computed.connect(_on_velocity_computed)
 	_ajustar_distancia_punto_ruta()
 
 
 ## El agente tiene que rutear SOBRE LA MALLA DE SU NIVEL, no sobre la del
-## mundo: con varios niveles cargados a la vez y separados 100.000 px, un mob
-## de un nivel sin malla propia se enganchaba a la malla del OTRO nivel y se
-## iba caminando hacia allá para siempre (ver NivelBase._crear_mapa_navegacion).
+## mundo: con varios niveles cargados a la vez, un mob de un nivel sin malla
+## propia se enganchaba a la del OTRO nivel y se iba caminando hacia allá (ver
+## NivelBase._crear_mapa_navegacion).
 func _usar_mapa_del_nivel() -> void:
 	if agente_navegacion == null or jugador == null or not jugador.is_inside_tree():
 		return
@@ -282,16 +265,11 @@ func _avanzar_hacia_destino(delta: float) -> void:
 		var vel := _velocidad_comandada if _velocidad_comandada > 0.0 else velocidad_base
 		deseada = direccion * vel * _multiplicador_lentitud()
 
-	# En CUALQUIER contexto headless (el servidor dedicado en Docker, y
-	# también las pruebas por --script) el callback de evasión
-	# (velocity_computed) casi no dispara — de cientos de fotogramas, llega
-	# una vez cada varios segundos en vez de cada fotograma, dejando al mob
-	# congelado esperando una velocidad "segura" que nunca llega (bug de
-	# NavigationServer2D en ese contexto, no del juego). Ahí se aplica el
-	# movimiento directo, sin esperar avoidance — perder la evasión entre
-	# mobs es mejor que mobs completamente congelados. (Antes esto solo
-	# cubría al servidor dedicado, y la prueba de la araña —headless sin
-	# red— quedaba en la rama rota: mobs quietos, prueba "inestable".)
+	# En CUALQUIER contexto headless (el servidor dedicado y las pruebas por
+	# --script) el callback de evasión (velocity_computed) casi no dispara:
+	# llega una vez cada varios segundos y el mob queda congelado esperando una
+	# velocidad "segura". Ahí se aplica el movimiento directo: perder la evasión
+	# entre mobs es mejor que mobs congelados.
 	if agente_navegacion != null and DisplayServer.get_name() != "headless":
 		# El movimiento real ocurre en _on_velocity_computed (avoidance).
 		agente_navegacion.velocity = deseada
@@ -304,21 +282,16 @@ func _avanzar_hacia_destino(delta: float) -> void:
 ## pasar por physics_process() para no aplicarle la normalización de
 ## dirección dos veces.
 ##
-## NavigationServer2D calcula esto de forma ASÍNCRONA: una petición de
-## comandar_destino() puede tardar uno o más fotogramas en volver por acá. Si
-## mientras tanto algo tomó control directo del movimiento (p. ej.
-## HabilidadCarga durante el dash, vía liberar_comando() → _modo = LIBRE),
-## una respuesta tardía de la petición VIEJA llegaba igual y pisaba la
-## velocidad/dirección que el dash ya había fijado — el "cambio de dirección
-## a mitad del dash" reportado en juego real. Por eso se descarta cualquier
-## respuesta que llegue cuando ya NO estamos en modo DESTINO.
+## NavigationServer2D calcula esto de forma ASÍNCRONA: la respuesta puede
+## tardar uno o más fotogramas. Si mientras tanto algo tomó el control directo
+## del movimiento (p. ej. HabilidadCarga durante el dash, vía liberar_comando()),
+## una respuesta tardía pisaba la dirección del dash. Por eso se descarta toda
+## respuesta que llegue fuera del modo DESTINO.
 func _on_velocity_computed(velocidad_segura: Vector2) -> void:
 	if _modo != ModoComando.DESTINO:
 		return
-	# Un empuje en curso ya está fijando la velocidad este frame (ver
-	# _physics_process) — una respuesta de avoidance ASÍNCRONA que llegue
-	# mientras tanto no debe pisarla, mismo criterio que ya usa este mismo
-	# chequeo contra respuestas viejas de una petición de destino superada.
+	# Un empuje en curso ya fija la velocidad este frame (ver
+	# _physics_process): una respuesta asíncrona de avoidance no debe pisarla.
 	if _empuje_restante > 0.0:
 		return
 	if _contador_inmovilizacion > 0:
@@ -348,12 +321,8 @@ func physics_process(_delta: float, _direccion: Vector2, velocidad_override: flo
 
 
 ## move_and_slide() SOLO corre si hay velocidad que resolver: con velocidad
-## ZERO la posición no cambia igual (no hay nada que mover), así que
-## llamarlo es puro trabajo de física tirado a la basura — multiplicado por
-## cada mob quieto (idle, en pausa de deambular, en recuperación tras
-## atacar) en todo el mapa, esto pesaba en el servidor headless de un solo
-## núcleo (ver InteresEspacial para el mismo tipo de optimización del lado
-## de red).
+## cero la posición no cambia igual, y llamarlo en cada mob quieto de todo el
+## mapa pesa en el servidor de un solo núcleo.
 func _mover(velocidad_aplicada: Vector2) -> void:
 	jugador.velocity = velocidad_aplicada
 	if velocidad_aplicada != Vector2.ZERO:
@@ -392,9 +361,7 @@ func quitar_inmovilizacion() -> void:
 
 
 ## Velocidad y tiempo restante de un empuje externo en curso (ver
-## aplicar_empuje) — cero en todo momento salvo mientras dura un knockback
-## (Onda de Choque). No existía ningún mecanismo de fuerza externa antes de
-## esto (confirmado: ni jugador ni mobs podían ser empujados).
+## aplicar_empuje): cero salvo mientras dura un knockback (Onda de Choque).
 var _empuje_velocidad: Vector2 = Vector2.ZERO
 var _empuje_restante: float = 0.0
 
@@ -417,39 +384,30 @@ func aplicar_empuje(direccion: Vector2, fuerza: float, duracion: float) -> void:
 ## real de fuga, no ruido de la consulta.
 const MARGEN_FUERA_DE_MAPA := 6.0
 
-## Red de seguridad contra fugas del mapa: la colisión física del borde
-## (tiles diagonales en las esquinas del contorno) puede tener puntos
-## localmente delgados donde una embestida a alta velocidad cruza en un solo
-## fotograma físico sin que move_and_slide() llegue a detectarlo — mismo
-## tipo de bug que el de los proyectiles atravesando objetivos, ver
-## Proyectil.gd. En vez de perseguir cada unión diagonal de tiles, se usa la
-## malla de NAVEGACIÓN (ya comprobada sin huecos reales) como fuente de
+## Red de seguridad contra fugas del mapa: la colisión física del borde (tiles
+## diagonales en las esquinas del contorno) puede tener puntos delgados que una
+## embestida a alta velocidad cruza en un solo fotograma sin que
+## move_and_slide() lo detecte. Se usa la malla de NAVEGACIÓN como fuente de
 ## verdad de "qué es adentro": si tras moverse el cuerpo quedó fuera de ella,
 ## se lo devuelve al punto navegable más cercano.
 ##
-## Pública y NO llamada automáticamente en cada physics_process(): el
-## movimiento normal (caminar, IA persiguiendo) nunca es tan rápido como
-## para tunelear, y llamarla en cada fotograma para TODO movimiento rompía
-## casos legítimos donde la posición cambia de golpe por otro motivo (spawn
-## inicial, teletransporte al cambiar de nivel) contra una malla que recién
-## está sincronizando — el jugador terminaba corregido a ~800px de su punto
-## de aparición real (reportado como regresión de esta misma prueba).
-## Llamar SOLO desde las habilidades que sí mueven el cuerpo a velocidad de
-## riesgo: HabilidadCarga, HabilidadCargaJugador (ver ahí) y HabilidadParpadeo
-## (que hace su propio chequeo equivalente, no pasa por acá).
+## Pública y NO llamada en cada physics_process(): el movimiento normal nunca
+## es tan rápido como para tunelear, y llamarla siempre rompía cambios de
+## posición legítimos (spawn, teletransporte al cambiar de nivel) contra una
+## malla que recién sincroniza. Llamar SOLO desde las habilidades que mueven el
+## cuerpo a velocidad de riesgo: HabilidadCarga y HabilidadCargaJugador
+## (HabilidadParpadeo hace su propio chequeo equivalente).
 ##
-## Sin malla en la escena (pruebas sueltas, mobs sin nivel real) esto no
-## hace nada — se sale solo si de verdad hay una malla contra la cual comparar.
+## Sin malla en la escena (pruebas sueltas) no hace nada.
 func contener_dentro_del_mapa() -> void:
 	# El mapa de SU nivel, no el del mundo: con varios niveles a la vez, el
 	# compartido devolvería el punto navegable de otro nivel y este "rescate"
 	# teletransportaría al cuerpo a 100.000 px de distancia.
 	var mapa: RID = GestorNiveles.mapa_navegacion_de(jugador)
-	# iteration_id == 0: el mapa todavía no terminó su primera sincronización
-	# (recién cargado el nivel, mismo fotograma) — consultarlo ya dispara un
-	# ERROR de NavigationServer y, peor, puede devolver un punto sin sentido
-	# (0,0) que teletransportaría al recién llegado ahí. Sin regiones
-	# tampoco hay nada contra qué comparar (pruebas sueltas sin nivel real).
+	# iteration_id == 0: el mapa todavía no terminó su primera sincronización.
+	# Consultarlo ya da un ERROR de NavigationServer y puede devolver (0,0),
+	# que teletransportaría al recién llegado ahí. Sin regiones tampoco hay
+	# contra qué comparar.
 	if NavigationServer2D.map_get_iteration_id(mapa) == 0:
 		return
 	if NavigationServer2D.map_get_regions(mapa).is_empty():

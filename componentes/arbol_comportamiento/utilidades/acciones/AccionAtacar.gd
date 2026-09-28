@@ -36,52 +36,34 @@ extends Accion
 @export var usar_rango_de_habilidades: bool = false
 ## Velocidad al acercarse para entrar en rango de una habilidad libre.
 @export var velocidad_aproximacion: float = 130.0
-## Punto al que apunta mientras se acerca (nunca el centro exacto del
-## objetivo) — antes se comandaba caminar directo a objetivo.global_position,
-## así que el mob terminaba pegado/encima del jugador (pedido del usuario:
-## "que lleguen a 20 o 25 pixeles, porque actualmente se colocan encima... y
-## casi no le da"): un golpe que se coloca alcance_golpe px por DELANTE del
-## propio mob se pasa de largo del objetivo si el mob ya está a distancia
-## casi nula. OJO: tiene que quedar BIEN por debajo del rango_maximo real de
-## la habilidad (donde el mob de verdad se frena, ver hay_habilidades_fuera_
-## de_rango) — no es "la distancia final de descanso", es solo hacia dónde
-## apunta el movimiento mientras todavía está lejos. Si quedara muy pegado a
-## ese rango_maximo, el mob se traba a mitad de camino: MovimientoComponente.
-## MARGEN_DESTINO (6px) hace que comandar_destino() no haga NADA si el punto
-## comandado ya está a menos de 6px de donde el mob está parado — con un
-## margen chico entre este valor y el rango_maximo de la habilidad, esa
-## distancia que falta cerrar puede caer por debajo de esos 6px SIN que el
-## mob haya entrado todavía en rango, y se queda congelado ahí para siempre
-## (reproducido con un Lobo real: rango_maximo=25, este valor en 22 → se
-## trababa clavado a 26.35px, ni un píxel más cerca, para siempre).
-## Subido de 20 a 50 (pedido del usuario: "que no sea tan pegado") — los
-## mobs cuyo rango_maximo de ataque era chico (35, ver ArañazoLobo.tres/
-## ArañazoLoboFeroz.tres/GolpeBasicoJefe.tres) se subieron a 70 junto con
-## esto para no quedar más cerca del rango_maximo que el margen de 15px de
-## más arriba.
+## Distancia a la que apunta mientras se acerca (nunca el centro exacto del
+## objetivo): un mob encima del jugador casi no le pega, porque el golpe se
+## coloca por DELANTE del propio mob.
+## OJO: tiene que quedar BIEN por debajo del rango_maximo real de la habilidad
+## (donde el mob se frena, ver hay_habilidades_fuera_de_rango). Con un margen
+## chico, lo que falta cerrar puede caer bajo MovimientoComponente.
+## MARGEN_DESTINO (6 px) sin haber entrado en rango, y comandar_destino() no
+## hace nada: el mob queda congelado (p. ej. rango_maximo 25 con este valor en
+## 22 lo trababa a 26 px). Por eso los mobs con este valor en 50 usan
+## rango_maximo 70.
 @export var distancia_minima_acercamiento: float = 50.0
 ## Segundos de pausa tras ejecutar cualquier habilidad.
 @export var duracion_recuperacion: float = 3.0
 ## Segundos entre intentos de selección de habilidad.
 @export var intervalo_entre_intentos: float = 1.0
-## Segundos que debe pasar "apuntando" hacia el objetivo (sin un giro brusco
-## de dirección) antes de poder disparar una habilidad. Sin esto, el mob
-## gira y dispara EN EL MISMO tick del árbol (10/s) apenas adquiere o
-## reorienta hacia el objetivo — visualmente "no mira, solo tira la
-## habilidad". Con esta ventana, direccion_mirada tiene un par de ticks para
-## rotar de verdad antes del primer disparo.
+## Segundos que debe pasar "apuntando" hacia el objetivo (sin un giro brusco)
+## antes de poder disparar. Sin esto, el mob gira y dispara en el mismo tick
+## del árbol: se ve como que "no mira, solo tira la habilidad".
 @export var duracion_apuntado: float = 0.25
 ## Ángulo (rad) de cambio de dirección que reinicia la ventana de apuntado
 ## (objetivo se movió mucho / cambió de lado — hay que reapuntar de nuevo).
 const _UMBRAL_CAMBIO_DIRECCION_APUNTADO := 0.35  # ~20°
 
 @export_group("Reposicionamiento en recuperación")
-## Tras atacar, en vez de quedarse plantado durante toda la recuperación, se
-## desplaza a un costado del objetivo MANTENIENDO la distancia que ya
-## tenía (un mob a distancia como el Arquero conserva su rango de disparo;
-## uno cuerpo a cuerpo, su cercanía) — pedido del usuario: "se queda quieto
-## esperando los golpes, se me hace muy fácil", y de paso se sentía "muerto"
-## parado ahí. false = desactivado, vuelve a quedarse quieto como antes.
+## Tras atacar, en vez de quedarse plantado toda la recuperación, se desplaza
+## a un costado del objetivo MANTENIENDO la distancia que ya tenía (un Arquero
+## conserva su rango de disparo; uno cuerpo a cuerpo, su cercanía): quieto era
+## demasiado fácil de pegar. false = se queda quieto.
 @export var reposicionarse_en_recuperacion: bool = true
 ## Cuánto puede variar el ángulo alrededor del objetivo, a cada lado de "la
 ## dirección opuesta a donde está parado ahora mismo" (así no siempre
@@ -92,10 +74,8 @@ const _UMBRAL_CAMBIO_DIRECCION_APUNTADO := 0.35  # ~20°
 ## Distancia a la que el punto de reposicionamiento se considera alcanzado.
 const _RADIO_LLEGADA_REPOSICIONAMIENTO := 10.0
 ## Al llegar al punto elegido, cuánto espera parado antes de elegir OTRO y
-## seguir moviéndose — sin esto, apenas llegaba (rápido, sobre todo a la
-## velocidad actual) se quedaba plantado el resto de la ventana de
-## recuperación, que es exactamente lo que se quería evitar (reportado por
-## el usuario: "el lobo después de pegar se queda quieto en el puesto").
+## seguir moviéndose; sin esto, llegaba rápido y se quedaba plantado el resto
+## de la recuperación.
 const _PAUSA_ENTRE_REPOSICIONAMIENTOS := 0.4
 
 var _selector_habilidades: SelectorHabilidades
@@ -120,27 +100,19 @@ func _on_inicializar() -> void:
 func _on_ejecutar() -> Estado:
 	var agente := _memoria.obtener("agente") as Node2D
 	var movimiento: MovimientoComponente = _memoria.obtener("componente_movimiento")
-	# En red: si el jugador-objetivo se desconecta a mitad de combate, su
-	# nodo se libera con queue_free() (ver ServidorDedicado._al_desconectar)
-	# pero la memoria del BT puede seguir apuntando a esa referencia ya
-	# liberada — castear un Object liberado con "as" revienta con "Trying
-	# to cast a freed object", por eso hay que validar ANTES de castear.
+	# En red, si el jugador-objetivo se desconecta, su nodo se libera pero la
+	# memoria del BT puede seguir apuntándolo, y castear un Object liberado con
+	# "as" revienta: validar ANTES de castear.
 	var objetivo_raw = _memoria.obtener("objetivo")
 	if not agente or not movimiento or not _selector_habilidades:
 		return Estado.FALLIDO
 	if not is_instance_valid(objetivo_raw):
 		return Estado.FALLIDO
-	# Un jugador muerto sigue existiendo como nodo (reaparece en el mismo
-	# lugar, no se libera) — sin este chequeo, los mobs seguían atacando
-	# "lo que queda" de un jugador ya muerto porque is_instance_valid()
-	# sigue dando true. Se limpia el objetivo para que, si reaparece cerca,
-	# haga falta redetectarlo por visión — no queda "enganchado" al mismo
-	# cadáver para siempre.
-	# Muerto U OCULTO: en los dos casos deja de ser objetivo. Sin el corte por
-	# camuflaje, un mob que ya te tenía fichado seguía persiguiendo tu última
-	# posición conocida unos segundos, o seguía pegándote si te tenía a
-	# distancia — y el camuflaje no serviría para lo único que se hizo:
-	# despegarte de una pelea.
+	# Muerto (sigue existiendo como nodo, porque reaparece) u OCULTO: en los
+	# dos casos deja de ser objetivo y se limpia, así haga falta redetectarlo
+	# por visión. Sin el corte por camuflaje, un mob que ya lo tenía fichado
+	# seguía persiguiéndolo o pegándole, y el camuflaje no serviría para
+	# despegarse de una pelea.
 	if _objetivo_perdido(objetivo_raw):
 		_memoria.establecer("objetivo", null)
 		_memoria.establecer("jugador_detectado", false)
@@ -160,33 +132,24 @@ func _on_ejecutar() -> Estado:
 		_ataque_en_curso_anterior = true
 		return Estado.EXITOSO
 	elif _ataque_en_curso_anterior:
-		# Una habilidad de larga duración que conduce el cuerpo ella misma
-		# (p. ej. HabilidadCarga: PREPARACION + DASH) recién soltó el
-		# control. _fin_recuperacion se había fijado ni bien se DISPARÓ la
-		# habilidad, contando duracion_recuperacion desde ESE instante — si
-		# la preparación+dash duran menos que eso (lo normal), sobraba un
-		# resto de la ventana original y el reposicionamiento arrancaba de
-		# golpe apenas terminaba el dash, como si seguiera empujando al mob
-		# (reportado por el usuario: "cuando usa el dash, el reposicionamiento
-		# lo hace mover, no debería moverlo"). Arrancar la recuperación RECIÉN
-		# ACÁ, desde la posición real post-dash, da el mismo respiro que
-		# cualquier otra habilidad, sin el resto fantasma.
+		# Una habilidad que conduce el cuerpo ella misma (p. ej. HabilidadCarga:
+		# preparación + dash) recién soltó el control. _fin_recuperacion se fijó
+		# al DISPARARLA, así que sobraba un resto de la ventana y el
+		# reposicionamiento arrancaba apenas terminaba el dash, como si siguiera
+		# empujando al mob. La recuperación arranca RECIÉN ACÁ, desde la posición
+		# real post-dash.
 		_ataque_en_curso_anterior = false
 		_fin_recuperacion = ahora + duracion_recuperacion
 		_tiene_destino_reposicionamiento = false
 		_fin_pausa_reposicionamiento = 0.0
 
 	# Orientar hacia el objetivo (las habilidades disparan en esta dirección).
-	# "direccion_mirada" (no "direccion"): esta última la pisa cada fotograma
-	# MovimientoComponente con la dirección REAL de la ruta al acercarse
-	# (comandar_destino más abajo), que al rodear un obstáculo puede apuntar
-	# de costado o hacia atrás respecto al jugador — de ahí el parpadeo y el
-	# "caminar de espaldas mirando al jugador" reportado antes de este fix.
+	# "direccion_mirada" y no "direccion": esta última la pisa cada fotograma
+	# MovimientoComponente con la dirección REAL de la ruta, que al rodear un
+	# obstáculo puede apuntar de costado o hacia atrás respecto al jugador.
 	#
-	# ANTES del corte de recuperación a propósito: ese return temprano
-	# dejaba la mirada congelada durante los ~3s de recuperación entre
-	# ataques — si el jugador rodeaba al mob en ese lapso, el mob seguía
-	# "mirando" hacia donde el jugador ESTABA cuando atacó por última vez.
+	# Va ANTES del corte de recuperación a propósito: si no, la mirada queda
+	# congelada los ~3 s de recuperación mientras el jugador lo rodea.
 	var direccion := (objetivo.global_position - agente.global_position).normalized()
 	if "direccion_mirada" in agente:
 		agente.set("direccion_mirada", direccion)
@@ -199,12 +162,9 @@ func _on_ejecutar() -> Estado:
 		_direccion_apuntado = direccion
 
 	# Recuperación post-habilidad: reposicionarse a un costado del objetivo
-	# en vez de quedarse plantado (ver _elegir_destino_reposicionamiento) —
-	# al llegar, una pausa corta y elige OTRO punto, repitiendo mientras dure
-	# la recuperación (sin esto, con la velocidad actual llegaba casi de
-	# inmediato y se quedaba plantado el resto de la ventana — reportado por
-	# el usuario). reposicionarse_en_recuperacion = false vuelve a quedarse
-	# quieto, el comportamiento de siempre.
+	# en vez de quedarse plantado (ver _elegir_destino_reposicionamiento). Al
+	# llegar, una pausa corta y elige OTRO punto, mientras dure la
+	# recuperación.
 	if ahora < _fin_recuperacion:
 		if _corregir_si_demasiado_cerca(agente, objetivo, movimiento):
 			return Estado.EXITOSO
@@ -261,26 +221,18 @@ func _punto_de_acercamiento(agente: Node2D, objetivo: Node2D) -> Vector2:
 	return objetivo.global_position + hacia_agente.normalized() * distancia_minima_acercamiento
 
 
-## Corrección dura, chequeada CADA tick (no solo al elegir un destino nuevo):
-## si la distancia REAL ya cayó por debajo del piso, manda a alejarse derecho
-## hasta distancia_minima_acercamiento y devuelve true (el llamador corta ahí,
-## sin seguir con la lógica normal de esa rama). Sin este chequeo en caliente,
-## un solo tick de más al acercarse o al viajar hacia el punto de
-## reposicionamiento (mismo motivo, ver el comentario largo en
-## _elegir_destino_reposicionamiento) deja al mob más cerca de lo pensado, y
-## como el próximo ciclo "preserva la distancia actual" partiendo de ESE
-## valor ya corrompido, se va acercando ciclo tras ciclo en vez de
-## estabilizarse — este chequeo corta esa cadena apenas ocurre, no recién en
-## el próximo punto de reposicionamiento.
-## Cuánto más allá del piso apunta la corrección — NUNCA justo al piso mismo:
-## a medida que se acerca a distancia_minima_acercamiento EXACTO, el último
-## tramo cae bajo MovimientoComponente.MARGEN_DESTINO (6px) y deja de
-## moverse antes de cruzarlo — reproducido con el jugador pegado al lobo: se
-## frenaba en 15.14px con el piso en 20, sin llegar nunca, congelado para
-## siempre (ni reposicionaba ni atacaba). Mismo motivo que el margen entre
-## rango_maximo y distancia_minima_acercamiento (ver ese comentario).
+## Cuánto más allá del piso apunta la corrección, NUNCA justo al piso: el
+## último tramo cae bajo MovimientoComponente.MARGEN_DESTINO (6 px) y el mob
+## deja de moverse antes de cruzarlo, congelado sin reposicionar ni atacar.
+## Mismo motivo que el margen entre rango_maximo y
+## distancia_minima_acercamiento.
 const _MARGEN_CORRECCION_CERCANIA := 15.0
 
+## Corrección dura, chequeada CADA tick: si la distancia REAL ya cayó por
+## debajo del piso, manda a alejarse derecho y devuelve true (el llamador corta
+## ahí). Sin este chequeo, un tick de más al acercarse deja al mob más cerca de
+## lo pensado, y como el próximo ciclo "preserva la distancia actual", se iría
+## acercando ciclo tras ciclo.
 func _corregir_si_demasiado_cerca(agente: Node2D, objetivo: Node2D, movimiento: MovimientoComponente) -> bool:
 	var lejos := agente.global_position - objetivo.global_position
 	if lejos.length() >= distancia_minima_acercamiento:
@@ -294,14 +246,10 @@ func _corregir_si_demasiado_cerca(agente: Node2D, objetivo: Node2D, movimiento: 
 	return true
 
 
-## OJO: acá NO se limpia direccion_mirada (antes se hacía en _on_salir):
-## esta acción retorna EXITOSO POR TICK (nunca EN_EJECUCION), y NodoBT
-## dispara _on_salir en CADA tick que no termina EN_EJECUCION — así que la
-## mirada se borraba en el mismo tick en que se seteaba, y para cuando
-## Enemigo._physics_process la leía siempre estaba en ZERO (el mob nunca
-## miraba de verdad al objetivo, ni siquiera en un solo jugador). La
-## limpieza vive ahora en AccionDeambular (la rama de "no combate"), que
-## es cuando de verdad corresponde soltar la mirada.
+## OJO: acá NO se limpia direccion_mirada. Esta acción retorna EXITOSO POR TICK
+## (nunca EN_EJECUCION) y NodoBT dispara _on_salir en cada uno, así que
+## limpiarla acá la borraría en el mismo tick en que se fija. La limpieza vive
+## en AccionDeambular (la rama de "no combate").
 func _on_reiniciar() -> void:
 	super._on_reiniciar()
 	_fin_recuperacion = 0.0
@@ -313,52 +261,28 @@ func _on_reiniciar() -> void:
 	_fin_pausa_reposicionamiento = 0.0
 
 
-## Punto a la MISMA distancia del objetivo que el agente ya tenía (nunca una
-## distancia fija: un mob a rango como el Arquero debe conservar SU rango de
-## disparo, no que lo jale a una cercanía de melee — reportado al probar
-## esto la primera vez), rotado al azar respecto de "la dirección opuesta a
-## donde está parado ahora mismo" (dispersion_angulo_reposicionamiento_grados
-## a cada lado) — así no siempre retrocede derecho para atrás ni siempre
-## hacia el mismo lado. Elegido al entrar en recuperación y de nuevo cada vez
-## que llega y pasa la pausa (ver _on_ejecutar) — no recalculado cada tick
-## mientras está en camino, o moverse hacia un objetivo que se mueve por su
-## cuenta tironearía sin llegar nunca.
+## Punto a la MISMA distancia del objetivo que el agente ya tenía (un Arquero
+## conserva SU rango de disparo), rotado al azar respecto de "la dirección
+## opuesta a donde está parado" (dispersion_angulo_reposicionamiento_grados a
+## cada lado), para que no siempre retroceda derecho ni hacia el mismo lado. Se
+## elige al entrar en recuperación y cada vez que llega y pasa la pausa, no en
+## cada tick: recalcularlo con el objetivo moviéndose tironearía sin llegar.
 func _elegir_destino_reposicionamiento(agente: Node2D, objetivo: Node2D) -> void:
 	var vector_actual := agente.global_position - objetivo.global_position
-	# Piso en distancia_minima_acercamiento + _MARGEN_CORRECCION_CERCANIA (NO
-	# distancia_minima_acercamiento sola): sin esto, si el acercamiento
-	# se pasó de largo del rango de la habilidad en un solo tick del árbol
-	# (10/s a velocidad_aproximacion, puede recorrer más que el margen entre
-	# rango_maximo y este piso de una sola vez), ese "de más" quedaba
-	# grabado como la nueva distancia "normal" a mantener — y como cada
-	# ataque siguiente vuelve a arrancar desde ahí, con cada ciclo el mob
-	# terminaba MÁS cerca todavía, nunca se corregía hacia afuera (reproducido
-	# con un Lobo real: 15.97 → 14.81 → 13.47 → 12.10 → 10.83 → 9.96px,
-	# achicándose ataque tras ataque en vez de estabilizarse).
-	# El margen extra (no solo el piso exacto) es OTRO fix aparte: el camino
-	# en línea recta entre dos puntos sobre un mismo círculo de radio
-	# distancia_minima_acercamiento (una cuerda) pasa por DENTRO de ese
-	# círculo — con el giro máximo (dispersion_angulo_reposicionamiento_grados
-	# completo) arrancando justo desde el piso, el punto más cercano de esa
-	# cuerda cae bien por debajo del piso a mitad de camino, lo que dispara
-	# _corregir_si_demasiado_cerca ahí mismo: aborta este destino recién
-	# elegido (_tiene_destino_reposicionamiento = false) y manda a otro punto
-	# que, si TAMBIÉN arranca pegado al piso, vuelve a cortarse igual — el mob
-	# quedaba oscilando sin avanzar nunca, reproducido con un Lobo real tras
-	# subir distancia_minima_acercamiento a 50 (0.0px recorridos, trabado
-	# ~1s seguido). Mismo margen que ya usa el destino de esa corrección más
-	# abajo, para que el radio de este reposicionamiento y el piso "seguro"
-	# de la corrección sean la misma familia de distancia.
+	# Piso en distancia_minima_acercamiento + _MARGEN_CORRECCION_CERCANIA:
+	# - Sin piso, si el acercamiento se pasó del rango en un tick, ese "de más"
+	#   quedaba como la nueva distancia a mantener y el mob se acercaba más en
+	#   cada ataque (medido: 16 → 10 px en cinco ciclos).
+	# - Sin el margen extra, la cuerda entre dos puntos del círculo del piso pasa
+	#   por DENTRO del círculo, dispara _corregir_si_demasiado_cerca a mitad de
+	#   camino y el mob queda oscilando sin avanzar.
 	var distancia_actual := maxf(vector_actual.length(), distancia_minima_acercamiento + _MARGEN_CORRECCION_CERCANIA)
 	if vector_actual.length() < 1.0:
 		vector_actual = Vector2.RIGHT
 	var dispersion := deg_to_rad(dispersion_angulo_reposicionamiento_grados)
-	# El giro nunca es casi-cero: a un mob cuerpo a cuerpo (radio de órbita
-	# chico) un ángulo mínimo daría una cuerda más corta que el radio de
-	# llegada, y el destino quedaría "ya alcanzado" sin moverse ni un
-	# píxel — justo lo que se quería evitar. Por eso la MAGNITUD del giro
-	# se sortea entre la mitad y el máximo de la dispersión (nunca cerca
-	# de 0), y el lado (izquierda/derecha) sí es al azar.
+	# El giro nunca es casi cero: a un mob cuerpo a cuerpo (órbita chica) un
+	# ángulo mínimo daría un destino "ya alcanzado". La magnitud se sortea
+	# entre la mitad y el máximo de la dispersión; el lado, al azar.
 	var magnitud := randf_range(dispersion * 0.5, dispersion)
 	if randf() < 0.5:
 		magnitud = -magnitud

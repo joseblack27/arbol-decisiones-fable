@@ -1,45 +1,32 @@
 extends Node
 
-## true si el juego corre con un MultiplayerPeer de red real (ENetMultiplayerPeer
-## como servidor o cliente conectado) — a diferencia de
-## multiplayer.has_multiplayer_peer(), que en Godot 4 SIEMPRE da true (por
-## defecto hay un OfflineMultiplayerPeer asignado, nunca null). Usar esto en
-## cualquier chequeo de "¿estoy en red?" del plan de multijugador — ver
-## Jugador.gd, HabilidadBase.gd, VidaComponente.gd, Enemigo.gd,
-## ArbolComportamiento.gd, SpawnerMobs.gd.
+## true si el juego corre con un MultiplayerPeer de red real (ENet, servidor o
+## cliente). multiplayer.has_multiplayer_peer() no sirve: en Godot 4 SIEMPRE da
+## true, porque por defecto hay un OfflineMultiplayerPeer asignado. Usar esto
+## en todo chequeo de "¿estoy en red?".
 func en_red() -> bool:
 	return not (multiplayer.multiplayer_peer is OfflineMultiplayerPeer)
 
-## false SOLO en un cliente puro (en red, y no soy el servidor) — todo el
-## que aplica daño (Arañazo, Proyectil, GolpeBasico, AreaEfecto, HabilidadCarga,
-## HabilidadCargaJugador, muro.gd, EfectoDoT) corre igual en servidor Y en
-## cada cliente (predicción visual del propio golpe + réplica para
-## espectadores, ver HabilidadBase.activar()/_reproducir_visual_red) — pero
-## el número que calculan ahí (AtributosComponente.calcular_pipeline, con
-## su propio randf() de crítico) es SOLO SUYO, no el real: cada peer sacaba
-## un número distinto para el MISMO golpe. El único número real lo emite
-## VidaComponente._recibir_vida_red() a partir del delta de vida ya
-## replicado — por eso el resto NO debe mostrar el suyo en un cliente puro
-## (sí en el servidor y en single-player, donde su cálculo YA es el real).
+## false SOLO en un cliente puro (en red y no servidor). Lo que aplica daño
+## corre igual en el servidor y en cada cliente (predicción visual del propio
+## golpe y réplica para espectadores, ver HabilidadBase.activar()), pero el
+## número que calcula cada peer (con su propio randf() de crítico) no es el
+## real. El número real lo emite VidaComponente._recibir_vida_red() a partir
+## del delta de vida replicado; el resto no debe mostrar el suyo en un cliente
+## puro (sí en el servidor y sin red, donde su cálculo ya es el real).
 func debe_mostrar_dano_local() -> bool:
 	return not (en_red() and not multiplayer.is_server())
 
-## Puerto ENet fijo del juego real (servidor dedicado en Docker + clientes
-## locales) — distinto del puerto usado por los prototipos en
-## prototipos/red/, para poder correr ambos sin pisarse. Sigue siendo el
-## valor por DEFECTO que precarga MenuInicio — puerto_conexion (abajo) es lo
-## que Mundo.gd usa de verdad para conectar.
+## Puerto ENet del juego real (servidor dedicado en Docker y clientes). Es el
+## valor por DEFECTO que precarga MenuInicio; Mundo.gd conecta con
+## puerto_conexion.
 const PUERTO_JUEGO := 8920
 
-## Configuración de conexión elegida en MenuInicio.tscn (pantalla previa a
-## Mundo.tscn, ver run/main_scene en project.godot) — Mundo._conectar_como_
-## cliente() los lee de acá en vez de tener la IP hardcodeada. Viven en este
-## autoload (no en MenuInicio, que se libera al cambiar de escena) para
-## sobrevivir el change_scene_to_file hacia Mundo.tscn.
-## IP de LAN de la PC que corre el servidor Docker — precargada de
-## entrada para no tener que escribirla cada vez desde el celular. Si el
-## servidor pasa a otra máquina/red, cambiar esto (o simplemente escribir la
-## IP nueva en MenuInicio, que sigue funcionando igual).
+## Conexión elegida en MenuInicio.tscn (ver run/main_scene en project.godot).
+## Vive en este autoload y no en MenuInicio porque esa escena se libera al
+## pasar a Mundo.tscn, que la lee en Mundo._conectar_como_cliente().
+## IP de LAN de la PC que corre el servidor Docker, precargada para no tener
+## que escribirla desde el celular.
 var ip_conexion := "192.168.40.27"
 var puerto_conexion := PUERTO_JUEGO
 ## "" = usar nombre_jugador_local() de siempre (el de Windows/env var, ver
@@ -54,43 +41,31 @@ var pin_conexion := ""
 ## lo setea Jugador._rechazar_cuenta_red y lo muestra/limpia MenuInicio.
 var error_conexion := ""
 
-## true = este cliente se juega solo (ver BotIA.gd, agregado por Jugador.gd
-## en _ready() cuando esto está prendido) en vez de esperar input real —
-## pedido del usuario: probar el servidor con varias instancias de Godot
-## conectadas a la vez, viendo bots recorrer el mapa y pelear contra mobs
-## por su cuenta. Lo tilda MenuInicio (checkbox "Controlar como bot") justo
-## antes de cargar Mundo.tscn — a propósito NO se persiste en guardar_config
-## (arranca destildado siempre, no es una preferencia de usuario real).
+## true = este cliente se juega solo con BotIA.gd (lo agrega Jugador.gd en
+## _ready()), para probar el servidor con varias instancias peleando por su
+## cuenta. Lo tilda MenuInicio ("Controlar como bot") justo antes de cargar
+## Mundo.tscn; a propósito NO se guarda en guardar_config.
 var modo_bot := false
 
-## Muestra en partida los datos de DIAGNÓSTICO (contador de FPS, latencia,
-## estado de conexión y el panel de log de red). Apagado por defecto: son
-## herramientas de desarrollo, no información de juego — flotaban sueltas
-## sobre el mapa, sin panel detrás, encimándose entre sí e ilegibles sobre
-## el terreno claro. Se enciende desde MenuInicio (se guarda junto al resto
-## de la config, ver guardar_config()) y desde el panel de Configuración del
-## OS, para poder diagnosticar en el celular sin recompilar.
-
+## Muestra en partida los datos de DIAGNÓSTICO (FPS, latencia, estado de
+## conexión y log de red). Apagado por defecto: son herramientas de desarrollo.
+## Se enciende desde MenuInicio o desde el panel de Configuración del OS (se
+## guarda con el resto de la config), para diagnosticar en el celular sin
+## recompilar.
 var mostrar_depuracion := false
 
-## Volumen de los efectos de sonido (0.0-1.0), controlado desde el slider
-## "Volumen SFX" de PanelConfiguracion — ver GestorSonido.aplicar_volumen(),
-## que es quien de verdad lo vuelca al AudioServer. 10% de arranque (pedido
-## del usuario, 18 sep 2026).
+## Volumen de los efectos de sonido (0.0-1.0), del slider "Volumen SFX" de
+## PanelConfiguracion. Lo vuelca al AudioServer GestorSonido.aplicar_volumen().
 var volumen_sfx := 0.1
 
-## Volumen de la música de fondo (0.0-1.0), controlado desde el slider
-## "Volumen Música" de PanelConfiguracion — separado de volumen_sfx a
-## propósito (pedido del usuario), ver GestorMusica.aplicar_volumen(), que es
-## quien de verdad lo vuelca al AudioServer (bus "Music", no "SFX"). 10% de
-## arranque (pedido del usuario, 18 sep 2026).
+## Volumen de la música de fondo (0.0-1.0), del slider "Volumen Música" de
+## PanelConfiguracion, separado de volumen_sfx. Lo vuelca al bus "Music"
+## GestorMusica.aplicar_volumen().
 var volumen_musica := 0.1
 
-## SOLO para pruebas headless (prueba_niveles, prueba_muerte_jugador...): el
-## juego real es multijugador puro — Mundo reintenta conectarse para siempre
-## y jamás arranca sin servidor. Las pruebas necesitan lo contrario: un
-## jugador local determinista SIN tocar la red (ni conectarse de verdad al
-## servidor Docker si está corriendo). Ver Mundo._arrancar_modo_prueba_local.
+## SOLO para pruebas headless: el juego real es multijugador puro (Mundo
+## reintenta conectarse para siempre), y las pruebas necesitan un jugador local
+## determinista SIN tocar la red. Ver Mundo._arrancar_modo_prueba_local.
 var modo_local_pruebas := false
 
 ## Nombre para mostrar del jugador de ESTA máquina (el nombre de usuario del
@@ -98,10 +73,9 @@ var modo_local_pruebas := false
 ## red viaja al servidor vía Jugador._registrar_identidad_red y se replica a
 ## todos los peers como Jugador.nombre_visible.
 ##
-## OJO: esto es SOLO estético — puede repetirse entre jugadores distintos
-## sin ningún problema ("Jose" y "Jose" está bien). Para identidad real
-## (la clave con la que el servidor guarda la partida de cada uno) usar
-## id_jugador_local(), NUNCA esto — ver esa función para el porqué.
+## OJO: es SOLO estético y puede repetirse entre jugadores. Para identidad
+## real (la clave con la que el servidor guarda la partida) usar
+## id_jugador_local(), NUNCA esto.
 func nombre_jugador_local() -> String:
 	if nombre_conexion != "":
 		return nombre_conexion.substr(0, 24)
@@ -113,76 +87,53 @@ func nombre_jugador_local() -> String:
 
 
 const _RUTA_ID_JUGADOR := "user://id_jugador.txt"
-## Slots numerados para más de una ventana real en la MISMA PC a la vez —
-## ver el comentario grande en id_jugador_local() para el porqué. El slot 0
-## sigue siendo _RUTA_ID_JUGADOR de siempre (compatibilidad con partidas ya
-## guardadas); "_2", "_3"... son archivos NUEVOS, uno por ventana adicional.
+## Slots numerados para más de una ventana real en la MISMA PC (ver
+## id_jugador_local()). El slot 0 es _RUTA_ID_JUGADOR de siempre (partidas ya
+## guardadas); "_2", "_3"... son uno por ventana adicional.
 const _RUTA_ID_JUGADOR_SLOT_N := "user://id_jugador_%d.txt"
 const _RUTA_LOCK_SLOT_N := "user://id_jugador_%d.lock"
-## Cuántas ventanas simultáneas en la misma PC se soportan antes de
-## resignarse a una identidad de sesión sin persistir (ver el "else" final
-## de id_jugador_local()) — de sobra para cualquier prueba local real.
+## Cuántas ventanas simultáneas en la misma PC se soportan antes de caer a una
+## identidad de sesión sin persistir.
 const _MAX_SLOTS_ID_JUGADOR := 8
-## Un lock más viejo que esto se considera abandonado (la ventana que lo
-## escribió se cerró sin avisar, o directo crasheó) — bastante más que
-## _INTERVALO_HEARTBEAT_ID_JUGADOR para tolerar hiccups sin declarar el
-## slot libre por error mientras esa ventana sigue viva.
+## Un lock más viejo que esto se considera abandonado (la ventana se cerró o
+## crasheó). Bastante más que _INTERVALO_HEARTBEAT_ID_JUGADOR, para no liberar
+## el slot de una ventana viva por un tirón.
 const _VENTANA_LOCK_ID_JUGADOR_SEGUNDOS := 6.0
 const _INTERVALO_HEARTBEAT_ID_JUGADOR := 2.0
 
-## Identidad ÚNICA y persistente de ESTE jugador en ESTA instalación: un
-## UUID generado una sola vez (la primera vez que el juego corre acá) y
-## guardado en disco. Fase 0 del plan de escalado a MMO: antes esto era
-## nombre_jugador_local() (el nombre de usuario de Windows) — con pocos
-## jugadores de prueba nunca importó, pero con desconocidos reales es casi
-## seguro que dos compartan un nombre de usuario común ("Usuario", "Admin",
-## "PC", el nombre por defecto de muchas instalaciones de Windows), y como
-## el servidor usa esa clave para el archivo de guardado (ver
-## GestorGuardado._ruta_partida_de_peer), dos jugadores distintos terminaban
-## compartiendo — y pisándose — la misma partida sin enterarse.
-##
-## Este UUID viaja al servidor junto con el nombre (Jugador._registrar_
-## identidad_red) pero NUNCA se muestra en pantalla — es un identificador
-## interno, no una cuenta con contraseña: no evita que alguien mande el UUID
-## de otro a propósito (eso requeriría autenticación real, fuera de alcance
-## acá), pero sí elimina las colisiones ACCIDENTALES, que eran el problema
-## real a esta escala.
-## UUID de bot para ESTA sesión — nunca tocar _RUTA_ID_JUGADOR (ver más
-## abajo el porqué). Vacío hasta la primera llamada en modo bot.
+## UUID de bot para ESTA sesión (nunca se escribe a disco, ver
+## id_jugador_local()). Vacío hasta la primera llamada en modo bot.
 var _id_bot_actual := ""
 ## Cache: id_jugador_local() decide el slot UNA sola vez por proceso (el
 ## heartbeat necesita saber a qué archivo de lock seguir escribiéndole).
 var _id_jugador_local_cache := ""
 
+## Identidad ÚNICA y persistente de ESTE jugador en ESTA instalación: un UUID
+## generado la primera vez y guardado en disco. El servidor lo usa como clave
+## del archivo de guardado (ver GestorGuardado), así que no puede ser el nombre
+## de usuario de Windows: "Usuario" o "Admin" se repiten y dos jugadores
+## terminarían pisándose la partida.
+##
+## Viaja al servidor con el nombre (Jugador._registrar_identidad_red) pero
+## nunca se muestra. No es autenticación (nada impide mandar el UUID de otro a
+## propósito): solo elimina las colisiones accidentales.
 func id_jugador_local() -> String:
-	# "user://" es por INSTALACIÓN, no por proceso — todas las instancias de
-	# Godot corriendo en la MISMA PC (mismo usuario de Windows) comparten el
-	# mismo id_jugador.txt. Sin este corte, 2+ bots (o un bot + el jugador
-	# real) en la misma máquina terminaban con el MISMO id_jugador_local(),
-	# así que el servidor los trataba como la MISMA cuenta reconectándose
-	# una y otra vez — bug real reportado: "creaba el mundo en bucle...
-	# movía a todos los jugadores a la misma posición". Un UUID fresco EN
-	# MEMORIA (nunca escrito a disco) evita la colisión: cada bot es una
-	# cuenta nueva cada vez que arranca, nunca comparte identidad con nadie.
+	# "user://" es por INSTALACIÓN, no por proceso: todas las instancias en la
+	# MISMA PC comparten id_jugador.txt, y dos bots (o un bot y el jugador real)
+	# serían la misma cuenta reconectándose sin fin. Cada bot usa un UUID fresco
+	# EN MEMORIA: una cuenta nueva cada vez que arranca.
 	if modo_bot:
 		if _id_bot_actual == "":
 			_id_bot_actual = _generar_uuid()
 		return _id_bot_actual
 	if _id_jugador_local_cache != "":
 		return _id_jugador_local_cache
-	# Mismo problema que el bloque de arriba, pero con JUGADORES REALES sin
-	# PIN: dos ventanas de Godot en la misma PC (sin cuenta por nombre+PIN)
-	# volvían a compartir _RUTA_ID_JUGADOR — reportado por el usuario: "se
-	# sobreescriben y se reinician cada rato" (el servidor expulsa al viejo
-	# apenas el nuevo se conecta con la MISMA identidad, ver Jugador.
-	# _expulsar_fantasma_de_la_misma_identidad, y el viejo reintenta solo,
-	# expulsando al nuevo a su vez — bucle infinito). A diferencia de los
-	# bots (que no necesitan progreso persistente), acá SÍ importa: en vez
-	# de una identidad de sesión descartable, cada ventana adicional reclama
-	# su PROPIO archivo numerado (slot 0 = _RUTA_ID_JUGADOR de siempre, "_2"
-	# en adelante para las que abren mientras otra ya está activa) y lo
-	# mantiene vivo con un heartbeat mientras dure el proceso — así cada
-	# ventana tiene una cuenta real y estable, no solo evita la colisión.
+	# Lo mismo con JUGADORES REALES sin PIN: dos ventanas en la misma PC con la
+	# misma identidad se expulsan entre sí en bucle (ver
+	# Jugador._expulsar_fantasma_de_la_misma_identidad). A diferencia de los
+	# bots, acá el progreso importa: cada ventana adicional reclama su PROPIO
+	# archivo numerado y lo mantiene vivo con un heartbeat mientras dure el
+	# proceso, así cada una tiene una cuenta real y estable.
 	for slot in _MAX_SLOTS_ID_JUGADOR:
 		var ruta_id := _RUTA_ID_JUGADOR if slot == 0 else _RUTA_ID_JUGADOR_SLOT_N % slot
 		var ruta_lock := _RUTA_LOCK_SLOT_N % slot
@@ -290,11 +241,9 @@ func jugador_local() -> Node:
 	return null
 
 
-## Atajo: el SlotHabilidades del jugador propio (ver jugador_local()). Antes
-## la UI (UIHabilidad, IndicadorApunte, PanelDetalleHabilidad/Habilidades)
-## usaba get_first_node_in_group("slot_habilidades") — con 2+ jugadores en
-## el árbol, el "primero" podía ser el del OTRO jugador: los botones
-## táctiles mostraban/equipaban la habilidad de quien no correspondía.
+## Atajo: el SlotHabilidades del jugador propio (ver jugador_local()). Con 2+
+## jugadores en el árbol, get_first_node_in_group("slot_habilidades") podía
+## devolver el del OTRO jugador.
 func slot_habilidades_local() -> SlotHabilidades:
 	var jugador := jugador_local()
 	if jugador == null:
@@ -403,25 +352,19 @@ func snake_to_pascal(text: String) -> String:
 	return result
 
 
-## "0.5s" en vez de "1s": %.0f redondea cualquier valor fraccionario a un
-## entero, así que un intervalo/duración ajustado a algo como 0.5 se
-## mostraba como "1s" (reportado en Aura: "tengo intervalo tick en 0,5 y
-## allá sale 1s"). Compartido por cualquier descripción de buff que
-## muestre segundos (Aura, Veneno, Curación...) para no repetir esta
-## lógica en cada habilidad. Solo se ve el decimal cuando de verdad hace
-## falta — un valor redondo como 1.0 sigue mostrando "1s", no "1.0s".
+## "0.5s" en vez de "1s" (%.0f redondea cualquier fracción a entero); un valor
+## redondo sigue mostrando "1s", no "1.0s". Compartido por las descripciones de
+## buffs que muestran segundos (Aura, Veneno, Curación...).
 func formatear_segundos(valor: float) -> String:
 	if is_equal_approx(valor, roundf(valor)):
 		return "%ds" % int(valor)
 	return "%.1fs" % valor
 
 
-## Fila de íconos de los buffs de estado ACTIVOS de "buffs", centrada en el
-## eje X local de "sobre" (el CanvasItem dueño del _draw que llama a esto),
-## a la altura local "y" — compartido por Enemigo (fila arriba del nombre,
-## por eso "y" != 0: comparte nodo con el texto del nombre) y Jugador (fila
-## propia, "y" = 0.0 de sobra). Antes cada uno tenía su propia copia de este
-## mismo bucle, ligeramente distinta.
+## Fila de íconos de los buffs de estado ACTIVOS de "buffs", centrada en el eje
+## X local de "sobre" (el CanvasItem dueño del _draw que llama a esto), a la
+## altura local "y". La usan Enemigo (fila arriba del nombre, en el mismo nodo
+## que el texto) y Jugador (fila propia).
 func dibujar_iconos_estado(sobre: CanvasItem, buffs: BuffsComponente, activos: Array[String],
 		tamano: float, separacion: float, color_contorno: Color, y: float = 0.0) -> void:
 	if buffs == null or activos.is_empty():
@@ -442,12 +385,9 @@ func dibujar_iconos_estado(sobre: CanvasItem, buffs: BuffsComponente, activos: A
 		x += tamano + separacion
 
 
-## Texto/estado del botón "Mejorar" de una habilidad o pasiva — un estado
-## claro para cada caso (nivel máximo / sin puntos / cuánto cuesta subir),
-## en vez de mostrar siempre el mismo texto de costo sin importar por qué
-## está deshabilitado (pedido del usuario). Compartido por
-## PanelDetalleHabilidad y PanelDetallePasiva — antes cada uno tenía su
-## propia copia de este mismo if/elif/else, y ya se desincronizaron una vez.
+## Texto y estado del botón "Mejorar" de una habilidad o pasiva: un texto claro
+## para cada caso (nivel máximo, sin puntos, cuánto cuesta). Compartido por
+## PanelDetalleHabilidad y PanelDetallePasiva.
 func actualizar_boton_mejorar(boton: Button, al_tope: bool, sin_puntos: bool, costo: int) -> void:
 	if al_tope:
 		boton.text = "Nivel máximo"
@@ -458,10 +398,9 @@ func actualizar_boton_mejorar(boton: Button, al_tope: bool, sin_puntos: bool, co
 	boton.disabled = al_tope or sin_puntos
 
 
-## Los dos estilos de fondo que usan las filas seleccionables de la lista
-## de habilidades/pasivas (ItemHabilidad, ItemPasiva): blanco al presionar/
-## enfocar, negro en reposo — antes cada una construía los mismos
-## StyleBoxFlat a mano, por separado.
+## Los dos estilos de fondo de las filas seleccionables de la lista de
+## habilidades/pasivas (ItemHabilidad, ItemPasiva): blanco al presionar o
+## enfocar, negro en reposo.
 func crear_estilos_fila_seleccionable() -> Dictionary:
 	var presionado := StyleBoxFlat.new()
 	presionado.bg_color = Color.WHITE
@@ -493,12 +432,9 @@ func aplicar_fondo_fila(boton: Button, estilo: StyleBoxFlat) -> void:
 
 
 # ── Preferencias persistentes ────────────────────────────────────────────────
-## Archivo donde viven las preferencias del jugador entre sesiones. Vivía
-## como método privado de MenuInicio, pero esa escena se libera al entrar al
-## juego (change_scene_to_file), así que el panel de Configuración del OS no
-## podía reusarla: quedaba duplicar la lista de claves en dos lados y que se
-## desincronizaran con el tiempo. Acá, junto a las variables que guarda, hay
-## una sola implementación para los dos.
+## Archivo de las preferencias del jugador entre sesiones. Vive acá, junto a
+## las variables que guarda, para que MenuInicio y el panel de Configuración
+## del OS compartan una sola implementación.
 const RUTA_CONFIG := "user://config_conexion.cfg"
 
 
@@ -538,32 +474,22 @@ func cargar_config() -> void:
 
 
 ## Espera hasta que la malla de navegación DEL NIVEL de "nodo" responda
-## consultas de verdad, no solo que exista — recién cargado un nivel, la
-## malla tarda unos physics_frame en terminar de bakear/sincronizar, y hasta
-## entonces cualquier consulta de posición devuelve Vector2.ZERO ("no
-## encontrado"). Extraído de SpawnerMobs (que ya esperaba esto antes de
-## generar cualquier mob) para que CUALQUIER enemigo "colocado a mano" en
-## una escena (ver EnemigoArañaReina, el único caso hoy — no pasa por
-## SpawnerMobs así que nunca tenía esta espera) pueda usar el mismo
-## mecanismo: reportado "no se mueve, no ataca" al pelear apenas se entra al
-## nivel, con la malla todavía sin sincronizar.
+## consultas de verdad: recién cargado un nivel, la malla tarda unos
+## physics_frame en sincronizar, y hasta entonces cualquier consulta devuelve
+## Vector2.ZERO. La usan SpawnerMobs y los enemigos colocados a mano en una
+## escena (que sin esto no se movían ni atacaban al entrar al nivel).
 ##
-## OJO: map_get_iteration_id() != 0 NO basta, y "que el iteration_id no
-## cambie durante N físicas" TAMPOCO — en un nivel grande el motor hace
-## VARIAS pasadas de sincronización y se queda quieto ENTRE pasada y pasada
-## (en Pradera, el id se mantiene en 1 unas 7 físicas seguidas antes de
-## saltar a 2, la sincronización real) — cualquier contador de estabilidad
-## corto corta justo en esa meseta y cree estar listo. Por eso se le
-## pregunta a la malla lo único que de verdad importa: ¿ya contesta
-## consultas? (ver _malla_de_nivel_responde). Sin malla real (mundo sin
-## nivel, prueba aislada) vuelve enseguida.
+## OJO: ni map_get_iteration_id() != 0 ni "que el iteration_id no cambie
+## durante N físicas" alcanzan: en un nivel grande el motor hace VARIAS pasadas
+## de sincronización y se queda quieto entre una y otra. Por eso se le pregunta
+## a la malla si ya contesta consultas (ver _malla_de_nivel_responde). Sin
+## malla real (prueba aislada) vuelve enseguida.
 const FRAMES_ESPERA_MALLA := 90
 const _DISTANCIA_SONDA_MALLA := 1_000_000.0
 
 func esperar_malla_de_nivel_lista(nodo: Node) -> void:
-	# Ceder SIEMPRE al menos una física: llamar esto desde _ready() (el nodo
-	# todavía se está armando) y volver sin ningún await puede pisar código
-	# que asuma que ya pasó al menos un físico.
+	# Ceder SIEMPRE al menos una física: llamar esto desde _ready() y volver
+	# sin ningún await puede pisar código que asuma que ya pasó una física.
 	await nodo.get_tree().physics_frame
 	var mapa := GestorNiveles.mapa_navegacion_de(nodo)
 	var intentos := 0
@@ -579,11 +505,9 @@ func _malla_de_nivel_responde(mapa: RID) -> bool:
 	return NavigationServer2D.map_get_closest_point(mapa, sonda) != Vector2.ZERO
 
 
-## Orden y etiqueta en español de cada campo de AtributosBase que se muestra
-## en el detalle de un ítem — extraído de PanelInventario (único dueño
-## original) porque PanelTienda necesita exactamente lo mismo al elegir un
-## equipable propio para vender. Solo se listan los bonos que el ítem
-## realmente aporta (valor != 0).
+## Orden y etiqueta en español de cada campo de AtributosBase que se muestra en
+## el detalle de un ítem (PanelInventario y PanelTienda). Solo se listan los
+## bonos que el ítem realmente aporta (valor != 0).
 const ETIQUETAS_ATRIBUTOS_ITEM := [
 	["danos", "Daños"],
 	["potencia", "Potencia"],
@@ -627,24 +551,19 @@ func llenar_caracteristicas_item(vbox: VBoxContainer, item: DatosItem) -> void:
 		_agregar_fila_conjunto(vbox, item.conjunto)
 
 
-## Tramos de conjunto y sus bonos — el NOMBRE del conjunto ya no se repite
-## acá: pedido explícito del usuario, ahora vive arriba, junto a Tipo/
-## Cantidad (ver PanelInventario._update_details, conjunto_label/
-## conjunto_value). Cuántas piezas tiene puestas AHORA el jugador local sale
-## de GestorEquipo (no de "item" — sirve igual mirando un ítem sin equipar
-## del inventario o uno en la vidriera de un NPC, ver PanelTienda que reusa
-## este mismo helper), para que se entienda de un vistazo si falta poco
-## para el próximo tramo de bono (ver AtributosComponente.
-## _sumar_bonos_de_conjuntos).
+## Tramos de conjunto y sus bonos (el nombre del conjunto se muestra arriba,
+## junto a Tipo/Cantidad; ver PanelInventario._update_details). Las piezas
+## puestas se cuentan desde GestorEquipo y no desde "item", así sirve igual
+## mirando un ítem sin equipar o uno en la vidriera de un NPC (PanelTienda), y
+## se entiende de un vistazo cuánto falta para el próximo tramo.
 func _agregar_fila_conjunto(vbox: VBoxContainer, conjunto: ConjuntoDatos) -> void:
 	var piezas_equipadas := 0
 	for equipado in GestorEquipo.equipados:
 		if equipado and equipado.conjunto == conjunto:
 			piezas_equipadas += 1
 
-	# Pedido explícito del usuario: "un pequeño espacio entre las
-	# estadisticas del objeto y estos bonus extras" — para que se lean como
-	# dos bloques separados, no una lista continua.
+	# Un pequeño espacio para que las estadísticas del objeto y los bonos de
+	# conjunto se lean como dos bloques separados.
 	var espaciador := Control.new()
 	espaciador.custom_minimum_size = Vector2(0, 8)
 	vbox.add_child(espaciador)
@@ -654,11 +573,7 @@ func _agregar_fila_conjunto(vbox: VBoxContainer, conjunto: ConjuntoDatos) -> voi
 		var texto_estado := "✓" if activo else "(%d/%d)" % [piezas_equipadas, tramo.piezas_requeridas]
 		_agregar_fila_indentada(vbox, "%d piezas" % tramo.piezas_requeridas, texto_estado)
 
-		# Pedido explícito del usuario: "no se sabe que efectos da el usar 2
-		# o 4 parte del mismo set" — antes solo se veía "(2/4)" sin decir
-		# QUÉ otorgaba ese tramo. Pedido explícito, segunda vuelta: "colocar
-		# en lista las bonificaciones" — una fila por bono, no un solo
-		# renglón con todo junto separado por comas.
+		# Una fila por bono de cada tramo, para que se sepa QUÉ otorga.
 		if tramo.bonos:
 			for par in ETIQUETAS_ATRIBUTOS_ITEM:
 				var campo: String = par[0]
@@ -670,24 +585,16 @@ func _agregar_fila_conjunto(vbox: VBoxContainer, conjunto: ConjuntoDatos) -> voi
 				_agregar_fila_indentada(vbox, etiqueta, texto_valor)
 
 
-## Fila SIN sangría — pedido explícito del usuario tras ver una sangría de
-## 12px que agregué en la vuelta anterior: "quiero que lo de las piezas y
-## los bonus de conjunto aparezcan todo a la izquierda asi como las
-## estadisticas de arriba" — mismo margen izquierdo que
-## _agregar_fila_caracteristica_item, no un nivel más adentro. Sigue siendo
-## una función propia (no la reusa directo) porque acá el valor ya viene
-## formateado como texto ("✓", "(2/4)"), no como float con el signo "+"
-## automático.
-## Pedido explícito del usuario: "reduce un poco la fuente del panel de
-## detalles" — theme_override_font_sizes puesto en un Control ancestro
-## (ej. ContenidoDetalle) NO se hereda a los hijos (confirmado a mano en
-## headless: cada Label resuelve su propio tamaño, no el del padre) — hay
-## que aplicarlo nodo por nodo. Estas dos filas se arman por código, así
-## que van acá; las estáticas del .tscn (Tipo/Cantidad/Descripción/etc.)
-## tienen su propio override en PanelInventario.tscn con el mismo valor.
+## theme_override_font_sizes en un Control ancestro NO se hereda a los hijos:
+## cada Label resuelve su propio tamaño. Las filas armadas por código lo
+## aplican acá; las estáticas del .tscn tienen su propio override con el mismo
+## valor en PanelInventario.tscn.
 const _TAMANO_FUENTE_CARACTERISTICAS := 10
 
 
+## Fila de conjunto, con el mismo margen izquierdo que
+## _agregar_fila_caracteristica_item. Función propia porque acá el valor ya
+## viene como texto ("✓", "(2/4)"), no como float con el "+" automático.
 func _agregar_fila_indentada(vbox: VBoxContainer, etiqueta: String, valor_texto: String) -> void:
 	var fila := HBoxContainer.new()
 	var nombre := Label.new()

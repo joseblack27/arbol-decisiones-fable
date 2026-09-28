@@ -3,21 +3,19 @@ extends Node
 ##
 ## Funciona en DOS modos, a propósito distintos:
 ##
-##  • CLIENTE y UN JUGADOR — hay UN nivel a la vez dentro del contenedor: al
+##  • CLIENTE y UN JUGADOR: hay UN nivel a la vez dentro del contenedor. Al
 ##    cambiar se libera el anterior y se instancia el nuevo, con fundido a
-##    negro y barra de progreso. Es el comportamiento de toda la vida.
+##    negro y barra de progreso.
 ##
-##  • SERVIDOR DEDICADO — hay N niveles cargados A LA VEZ y cada jugador
-##    pertenece a uno (ver _nivel_por_peer). Antes el servidor tenía un solo
-##    nivel para todos: el primero que cruzaba un portal le cambiaba el mundo
-##    abajo de los pies a todos los demás (se los llevaba puestos a la cueva).
+##  • SERVIDOR DEDICADO: hay N niveles cargados A LA VEZ y cada jugador
+##    pertenece a uno (ver _nivel_por_peer), así cruzar un portal mueve solo a
+##    ese jugador.
 ##
 ## Para que dos niveles convivan en el MISMO mundo físico sin tocarse, cada
 ## uno se instancia DESPLAZADO (ver desplazamiento_de_nivel): la Pradera en
-## x=0, la Cueva en x=100000. Así nunca se cruzan colisiones ni navegación, y
-## de yapa sale gratis el filtrado de red: InteresEspacial ya sólo replica lo
-## que está a menos de 1400 px de cada jugador, así que los mobs de un nivel
-## dejan de viajarle a los jugadores de otro sin escribir ni un filtro nuevo.
+## x=0, la Cueva en x=100000. Así nunca se cruzan colisiones ni navegación, e
+## InteresEspacial (radio 1400 px) no replica los mobs de un nivel a los
+## jugadores de otro.
 ##
 ## El desplazamiento TIENE que ser idéntico en servidor y cliente: las
 ## posiciones se replican como coordenadas absolutas.
@@ -28,13 +26,12 @@ signal nivel_cargado(nivel: NivelBase)
 ## entonces spawnear su Jugador — así el cliente carga el mapa completo ANTES
 ## de que exista su personaje.
 signal peer_listo(peer_id: int)
-## SERVIDOR: un peer dejó su nivel anterior por otro (cruzó un portal) — se
-## emite ANTES de que ese nivel anterior se quede sin jugadores y
-## _actualizar_actividad_niveles() le ponga PROCESS_MODE_DISABLED a todo su
-## subárbol. Cualquier cosa "atada" a ese jugador en concreto que viva
-## colgada del nivel viejo (por ejemplo un AliadoInvocado) tiene que
-## reaccionar acá — una vez desactivado el subárbol, su propio
-## _physics_process deja de correr y ya no puede notar el cambio solo.
+## SERVIDOR: un peer dejó su nivel anterior por otro (cruzó un portal). Se
+## emite ANTES de que ese nivel se quede sin jugadores y
+## _actualizar_actividad_niveles() lo desactive: lo que esté atado a ese
+## jugador y cuelgue del nivel viejo (p. ej. un AliadoInvocado) tiene que
+## reaccionar acá, porque con el subárbol desactivado ya no corre su
+## _physics_process.
 signal jugador_cambio_de_nivel(peer_id: int)
 
 ## Segundos tras cambiar de nivel en los que se ignoran nuevas peticiones
@@ -56,11 +53,9 @@ const NIVELES := [
 	"res://escenas/niveles/NivelMina.tscn",
 	"res://escenas/niveles/NivelHormiguero.tscn",
 ]
-## Separación entre niveles. Enorme a propósito: tiene que superar de sobra
-## el tamaño de cualquier mapa y el radio de interés (1400 px), para que dos
-## niveles jamás se rocen ni por física ni por réplica de red. A 100.000 px un
-## float de 32 bits todavía distingue centésimas de píxel, así que no hay
-## problema de precisión.
+## Separación entre niveles. Enorme a propósito: tiene que superar de sobra el
+## tamaño de cualquier mapa y el radio de interés (1400 px). A 100.000 px un
+## float de 32 bits todavía distingue centésimas de píxel.
 const SEPARACION_NIVELES := 100000.0
 
 var _contenedor: Node
@@ -87,16 +82,11 @@ var _peers_listos: Array[int] = []
 
 # ── Estado del CLIENTE ────────────────────────────────────────────────────
 ## La generación que mandó el SERVIDOR con la orden de nivel que este cliente
-## está cargando. Se le devuelve tal cual al confirmar.
-##
-## OJO, acá hubo una trampa que costó encontrar: antes el cliente confirmaba
-## con un contador SUYO. Coincidía de casualidad mientras cliente y servidor
-## cargaran la misma cantidad de veces, pero un cliente que entraba con el
-## servidor ya en otro nivel confirmaba su carga nº1 contra un servidor que
-## iba por la nº2: el servidor la descartaba por "vieja" y ese jugador quedaba
-## para siempre fuera de la lista de listos — sin réplica de mobs, sin réplica
-## de su propia posición, y con su personaje apareciendo sólo gracias al
-## temporizador de respaldo.
+## está cargando. Se le devuelve TAL CUAL al confirmar: con un contador propio
+## del cliente, uno que entraba con el servidor ya en otro nivel confirmaba
+## una generación "vieja", el servidor la descartaba y ese jugador quedaba
+## para siempre fuera de la lista de listos (sin réplica de mobs ni de su
+## propia posición).
 var _generacion_servidor: int = 0
 
 ## Overlay de fundido autoconstruido: así el gestor no depende de que
@@ -135,18 +125,14 @@ func registrar(contenedor: Node, jugador: Node2D) -> void:
 	_jugador = jugador
 
 
-## Mundo.tscn/ServidorDedicado.tscn llaman esto al arrancar — contenedor
-## FIJO, hermano de "Jugadores" y fuera de cualquier nivel (existe siempre,
-## en todo cliente, sin importar qué nivel tenga cargado). Lo usan entidades
-## no-jugador que igual necesitan moverse "entre niveles" replicándose bien
-## a todos los clientes (el leñador, ver GestorLenador.gd/Lenador.gd): un
-## jugador NUNCA se reparenta entre niveles al cruzar un portal (cuelga de
-## "Jugadores" siempre, ver mapa_navegacion_de) — solo se le cambia
-## global_position, así su ruta en el árbol nunca cambia y las RPC dirigidas
-## a él siguen resolviendo en cualquier cliente, esté donde esté. Mismo
-## criterio acá: reparentar entre los NPCs de cada nivel rompía las RPC de
-## réplica en cualquier cliente que no tuviera ESE nivel cargado en ese
-## momento (bug real reportado: "el leñador no se mueve").
+## Mundo.tscn/ServidorDedicado.tscn llaman esto al arrancar: contenedor FIJO,
+## hermano de "Jugadores" y fuera de cualquier nivel (existe siempre en todo
+## cliente). Lo usan entidades no-jugador que se mueven "entre niveles" (el
+## leñador, ver GestorLenador.gd/Lenador.gd). Igual que un jugador, que nunca
+## se reparenta al cruzar un portal (solo cambia global_position), su ruta en
+## el árbol no cambia y las RPC dirigidas a ella resuelven en cualquier
+## cliente. Reparentarla entre los niveles rompía esas RPC en los clientes que
+## no tenían ese nivel cargado.
 var _contenedor_errantes: Node2D
 
 
@@ -223,10 +209,8 @@ func _cambiar_nivel_local(ruta_escena: String, forzar: bool = false) -> bool:
 
 
 func _cargar(ruta_escena: String) -> void:
-	# Capturado ANTES de liberar el nivel viejo (unas líneas más abajo) —
-	# _colocar_jugador_local() lo necesita para aparecer junto al portal de
-	# regreso correspondiente, no siempre en el mismo PuntoAparicion fijo
-	# (ver ese comentario).
+	# Capturado ANTES de liberar el nivel viejo: _colocar_jugador_local() lo
+	# necesita para aparecer junto al portal de regreso (ver _punto_de_llegada).
 	var nivel_anterior := nivel_actual()
 	var ruta_origen := nivel_anterior.scene_file_path if nivel_anterior != null else ""
 
@@ -302,12 +286,9 @@ func _colocar_jugador_local(nivel: NivelBase, ruta_origen: String = "") -> void:
 		# seguiría anunciando la posición vieja durante un fotograma.
 		if "_posicion_replicada" in _jugador:
 			_jugador.set("_posicion_replicada", punto)
-	# Mientras dura el fundido (y un poco más) el jugador copia la posición
-	# del servidor sin suavizar: el servidor sigue moviendo el cuerpo con la
-	# última dirección de joystick mientras este cliente carga, así que al
-	# levantarse la pantalla había decenas de píxeles de diferencia y se veía
-	# al personaje deslizarse solo hasta su lugar (reportado: "sale unos 70 px
-	# a la derecha y después corrige su posición").
+	# Mientras dura el fundido (y un poco más) el jugador copia la posición del
+	# servidor sin suavizar: el servidor movió el cuerpo mientras este cliente
+	# cargaba, y corregir la diferencia a la vista se ve como un deslizamiento.
 	if _jugador.has_method(&"sincronizar_posicion_dura"):
 		_jugador.call(&"sincronizar_posicion_dura", DURACION_FUNDIDO * 2.0 + 0.2)
 	# Quieto, sin habilidades e invulnerable mientras aterriza en el mapa
@@ -439,9 +420,8 @@ func mover_peer_a_nivel(peer_id: int, ruta: String) -> void:
 	var nivel := _asegurar_nivel_cargado(ruta)
 	if nivel == null:
 		return
-	# Capturado ANTES de pisar _nivel_por_peer[peer_id] con el destino — ver
-	# _punto_de_llegada() para cómo se usa (aparecer junto al portal de
-	# regreso correspondiente, no siempre en el mismo PuntoAparicion fijo).
+	# Capturado ANTES de pisar _nivel_por_peer[peer_id] con el destino (ver
+	# _punto_de_llegada()).
 	var ruta_origen: String = _nivel_por_peer.get(peer_id, "")
 	jugador_cambio_de_nivel.emit(peer_id)
 	_nivel_por_peer[peer_id] = ruta
@@ -486,17 +466,11 @@ func _colocar_peer_en_aparicion(peer_id: int, nivel: NivelBase, jugador: Node2D 
 	_bloquear_por_transicion(cuerpo)
 
 
-## Dónde aparece un jugador al entrar a "nivel". Pedido del usuario: si
-## cruzó un portal de verdad (ruta_origen no vacía) Y ese nivel tiene un
-## PortalNivel que lleva DE VUELTA a ruta_origen, aparece en el
-## PortalNivel.punto_llegada de ESE portal (el mismo por el que "saldría"
-## si quisiera volver) — un Marker2D hijo del portal, elegido a mano en el
-## editor para cada uno ("con eso se establece bien una buena posición de
-## respawn": ver el comentario en PortalNivel.gd, reemplaza la versión
-## anterior que dispersaba a un ángulo al azar, que podía caer hacia
-## terreno no despejado). Sin portal de regreso identificable (llegada
-## nueva al conectarse, o un nivel sin ese portal) cae al PuntoAparicion
-## fijo de siempre — mismo comportamiento que antes.
+## Dónde aparece un jugador al entrar a "nivel". Si cruzó un portal
+## (ruta_origen no vacía) y el nivel tiene un PortalNivel que lleva DE VUELTA
+## a ruta_origen, aparece en el punto_llegada de ESE portal (un Marker2D
+## elegido a mano en el editor, ver PortalNivel.gd). Si no (recién conectado,
+## o un nivel sin ese portal), cae al PuntoAparicion fijo.
 func _punto_de_llegada(nivel: NivelBase, ruta_origen: String):
 	if ruta_origen != "":
 		var portal := _portal_de_regreso(nivel, ruta_origen)
@@ -507,8 +481,7 @@ func _punto_de_llegada(nivel: NivelBase, ruta_origen: String):
 
 
 ## El PortalNivel de "nivel" cuya ruta_nivel_destino apunta de vuelta a
-## ruta_origen — "el mismo círculo del tp correspondiente" que el jugador
-## usaría para volver por donde vino.
+## ruta_origen: el que el jugador usaría para volver por donde vino.
 func _portal_de_regreso(nivel: NivelBase, ruta_origen: String) -> PortalNivel:
 	for portal in get_tree().get_nodes_in_group(&"portales_nivel"):
 		if portal is PortalNivel and nivel.is_ancestor_of(portal) \
@@ -520,9 +493,8 @@ func _portal_de_regreso(nivel: NivelBase, ruta_origen: String) -> PortalNivel:
 func _bloquear_por_transicion(cuerpo: Node) -> void:
 	# El servidor es la autoridad del movimiento y del daño: acá es donde el
 	# bloqueo y la invulnerabilidad de llegada valen de verdad (el cliente
-	# aplica el suyo al terminar de cargar, ver _colocar_jugador_local).
-	# Además ataja de raíz el deslizamiento que se veía al llegar: sin esto
-	# el servidor seguía caminando con la última dirección de joystick
+	# aplica el suyo al terminar de cargar, ver _colocar_jugador_local). Sin
+	# esto, el servidor seguía caminando con la última dirección de joystick
 	# mientras el cliente todavía fundía.
 	if cuerpo.has_method(&"bloquear_por_transicion"):
 		cuerpo.call(&"bloquear_por_transicion")
@@ -552,11 +524,9 @@ func olvidar_peer(peer_id: int) -> void:
 	_actualizar_actividad_niveles()
 
 
-## nodo -> ruta del nivel donde está AHORA — mismo rol que _nivel_por_peer,
-## pero para entidades no-jugador que tampoco viven dentro de un NivelBase
-## (cuelgan de contenedor_errantes(), ver registrar_errantes): el leñador es
-## la primera (ver Lenador.gd), pero cualquier NPC futuro que necesite
-## "moverse entre niveles" sin reparentarse puede reusar esto.
+## nodo -> ruta del nivel donde está AHORA: el mismo rol que _nivel_por_peer,
+## para entidades no-jugador que cuelgan de contenedor_errantes() (el leñador,
+## ver Lenador.gd).
 var _nivel_por_entidad: Dictionary = {}
 
 
@@ -566,16 +536,15 @@ func fijar_nivel_de_entidad(nodo: Node, ruta: String) -> void:
 
 ## El mapa de navegación que le corresponde a un nodo cualquiera.
 ##
-## Cada nivel tiene el SUYO (ver NivelBase._crear_mapa_navegacion): con varios
-## niveles cargados a la vez y separados 100.000 px, usar el mapa compartido
-## del mundo hacía que un mob de un nivel sin malla propia rutease hacia la
-## malla del otro nivel y se fuera caminando para allá.
+## Cada nivel tiene el SUYO (ver NivelBase._crear_mapa_navegacion): con el
+## mapa compartido del mundo, un mob de un nivel sin malla propia ruteaba hacia
+## la malla de otro nivel y se iba caminando para allá.
 ##
 ## Los mobs viven DENTRO del nivel, así que se resuelve subiendo por el árbol
-## (ver nivel_de_nodo). Los jugadores no (cuelgan de "Jugadores", fuera de los niveles), así que
-## para ellos se pregunta en qué nivel están; las entidades errantes
-## registradas en _nivel_por_entidad, lo mismo. Si no se puede determinar, se
-## cae al mapa del mundo: es lo que había antes y nunca es peor.
+## (ver nivel_de_nodo). Los jugadores cuelgan de "Jugadores", fuera de los
+## niveles, así que para ellos se pregunta en qué nivel están; lo mismo para
+## las entidades errantes de _nivel_por_entidad. Si no se puede determinar,
+## cae al mapa del mundo.
 func mapa_navegacion_de(nodo: Node) -> RID:
 	if nodo == null or not nodo.is_inside_tree():
 		return RID()
@@ -596,23 +565,8 @@ func mapa_navegacion_de(nodo: Node) -> RID:
 	return nodo.get_viewport().world_2d.navigation_map
 
 
-## Apaga el procesamiento de los niveles SIN jugadores y lo enciende en los que
-## sí tienen. Los niveles se quedan cargados (volver a instanciarlos en cada
-## viaje sería peor), pero un nivel vacío no tiene por qué seguir pensando.
-##
-## Sin esto, el servidor seguía simulando la IA de TODOS los mobs de TODOS los
-## niveles que alguien hubiera visitado alguna vez: con el Camino (90 mobs)
-## medía 62-72% de CPU con NADIE conectado, y el contenedor tiene un solo
-## núcleo. Apagando los vacíos, ese costo desaparece hasta que alguien entre.
-##
-## PROCESS_MODE_DISABLED corta _process y _physics_process de todo el subárbol
-## (mobs, árboles de comportamiento, generadores, portales) sin sacar nada de
-## la escena: la colisión y la malla de navegación siguen ahí, y al reactivarlo
-## todo sigue donde estaba.
-## Rutas que se mantienen activas SIEMPRE, tengan o no jugadores — pedido
-## explícito del usuario ("dejar activo ambos mapa a la vez") para que
-## Ciudad y Pradera nunca se congelen mientras el leñador (o cualquier otra
-## simulación de fondo) las necesite funcionando.
+## Rutas que se mantienen activas SIEMPRE, tengan o no jugadores (Ciudad y
+## Pradera, para el leñador y otras simulaciones de fondo).
 var _rutas_siempre_activas: Array[String] = []
 
 
@@ -621,6 +575,15 @@ func mantener_siempre_activo(ruta: String) -> void:
 		_rutas_siempre_activas.append(ruta)
 
 
+## Apaga el procesamiento de los niveles SIN jugadores y lo enciende en los que
+## sí tienen. Los niveles se quedan cargados (volver a instanciarlos en cada
+## viaje sería peor), pero un nivel vacío no tiene por qué seguir pensando: con
+## el Camino (90 mobs), simular todos los niveles visitados costaba 62-72% de
+## CPU con NADIE conectado, en un contenedor de un solo núcleo.
+##
+## PROCESS_MODE_DISABLED corta _process y _physics_process de todo el subárbol
+## sin sacar nada de la escena: la colisión y la malla de navegación siguen
+## ahí, y al reactivarlo todo sigue donde estaba.
 func _actualizar_actividad_niveles() -> void:
 	if not _es_servidor or _contenedor == null:
 		return
@@ -633,17 +596,11 @@ func _actualizar_actividad_niveles() -> void:
 		var modo := Node.PROCESS_MODE_INHERIT if (hay_jugadores or siempre_activo) else Node.PROCESS_MODE_DISABLED
 		if nivel.process_mode != modo:
 			nivel.process_mode = modo
-		# Un nivel "siempre activo" (Pradera/Ciudad/Mina, por los NPCs
-		# errantes que necesitan su terreno/portales funcionando — ver
-		# mantener_siempre_activo()) no tiene por qué mantener a TODOS sus
-		# mobs hostiles pensando sin nadie mirando: eso es la mayor parte del
-		# costo real (medido en la VM de producción: ~200ms de física por
-		# fotograma con 0 jugadores conectados, contra un presupuesto de
-		# ~16ms). El terreno/navegación/portales del nivel siguen activos
-		# arriba (siempre_activo los deja en INHERIT); acá se apaga aparte
-		# solo "Enemigos" (IA + física de lobos/arañas/jefes, ver
-		# NivelBase.contenedor_enemigos) cuando no hay jugadores, sin tocar
-		# nada de lo que el leñador/cazador/minero necesitan.
+		# Un nivel "siempre activo" no tiene por qué mantener a sus mobs pensando
+		# sin nadie mirando: es la mayor parte del costo (~200 ms de física por
+		# fotograma con 0 jugadores en la VM de producción, contra ~16 ms de
+		# presupuesto). Terreno, navegación y portales siguen activos; acá se
+		# apaga aparte solo "Enemigos" (ver NivelBase.contenedor_enemigos).
 		if siempre_activo:
 			var enemigos := nivel.contenedor_enemigos()
 			if enemigos:
@@ -655,10 +612,9 @@ func _actualizar_actividad_niveles() -> void:
 ## true si hay al menos un jugador dentro de ese nivel. Lo usa SpawnerMobs
 ## para no generar mobs en niveles vacíos.
 func hay_jugadores_en(nivel: NivelBase) -> bool:
-	# Fuera del servidor dedicado (un jugador, pruebas sueltas) o si no se
-	# sabe de qué nivel se trata, no se bloquea nada: vale el comportamiento
-	# de siempre. Sólo el servidor, que es el único con varios niveles a la
-	# vez, deja de poblar los que están vacíos.
+	# Fuera del servidor dedicado (un jugador, pruebas) o sin nivel conocido
+	# no se bloquea nada. Solo el servidor, el único con varios niveles a la
+	# vez, deja de poblar los vacíos.
 	if not _es_servidor or nivel == null:
 		return true
 	var ruta := nivel.scene_file_path
@@ -669,12 +625,10 @@ func hay_jugadores_en(nivel: NivelBase) -> bool:
 
 
 ## true si ese peer YA confirmó tener cargado el nivel que le tocó. Lo usa
-## InteresEspacial para no mandarle estado de mobs a quien todavía está
-## cargando: esos RPCs apuntan a nodos que en su árbol no existen todavía y el
-## motor los rechaza uno por uno con "Invalid packet received. Requested node
-## was not found" — eran miles de líneas de error por cada cambio de nivel, y
-## peor cuanto más tarda en cargar el aparato (un celular tarda mucho más que
-## un PC).
+## InteresEspacial para no mandarle estado de mobs a quien todavía carga: esos
+## RPC apuntan a nodos que en su árbol no existen y el motor los rechaza uno
+## por uno con "Requested node was not found" (miles de errores por cambio de
+## nivel, peor cuanto más tarda el aparato).
 func peer_listo_para_nivel_actual(peer_id: int) -> bool:
 	return _peers_listos.has(peer_id)
 
@@ -692,10 +646,8 @@ func _recibir_cambio_nivel_red(ruta_escena: String, generacion: int) -> void:
 	_cambiar_nivel_local(ruta_escena, true)
 
 
-## Un cliente recién conectado pregunta qué nivel le toca cargar. Antes
-## cargaba SIEMPRE nivel_inicial a ciegas (ver Mundo._al_conectar_ok): si el
-## servidor no estaba en ese nivel, ese cliente arrancaba en un mapa distinto
-## al del servidor desde el segundo cero.
+## Un cliente recién conectado pregunta qué nivel le toca cargar, en vez de
+## cargar nivel_inicial a ciegas (arrancaría en otro mapa que el servidor).
 @rpc("any_peer", "reliable")
 func _pedir_nivel_actual_red() -> void:
 	if not multiplayer.is_server():
@@ -750,11 +702,8 @@ func _marcar_listo_red(generacion: int) -> void:
 # =============================================================================
 
 ## Carga el PackedScene del nivel EN UN HILO APARTE, reportando el progreso
-## real a GestorCarga mientras tanto. Antes era un load() sincrónico: la
-## etapa más cara de todo el arranque (NivelPradera.tscn pesa ~660 KB) y la
-## única con un porcentaje genuino disponible — con load() el juego se
-## congelaba sin poder informar nada, que es justo lo que la pantalla de
-## carga tiene que evitar.
+## real a GestorCarga: es la etapa más cara del arranque (NivelPradera.tscn
+## pesa ~660 KB) y con load() el juego se congelaba sin poder informar nada.
 ##
 ## Respaldo a load() sincrónico si la carga en hilo no se puede iniciar o
 ## falla: mejor un tirón que no cargar el nivel.
@@ -781,25 +730,15 @@ func _cargar_escena_con_progreso(ruta_escena: String) -> PackedScene:
 	return null
 
 
-## La carga EN HILO existe sólo para que la barra de progreso del cliente siga
-## viva mientras carga (ver GestorCarga). Donde no hay barra que animar no
-## aporta nada — y con un solo núcleo directamente CUELGA EL PROCESO.
+## La carga EN HILO existe solo para que la barra de progreso siga viva (ver
+## GestorCarga). Donde no hay barra no aporta nada, y con un solo núcleo
+## CUELGA EL PROCESO: el WorkerThreadPool se queda sin hilo donde correr la
+## tarea y load_threaded_get() bloquea el hilo principal esperando algo que
+## nadie va a ejecutar (0% de CPU, no le responde a nadie, no se recupera).
 ##
-## El contenedor del servidor corre con UN núcleo (`nproc` = 1, confirmado
-## adentro). Con uno solo, el WorkerThreadPool de Godot se queda sin hilo
-## donde correr la tarea de carga y load_threaded_get() bloquea el hilo
-## PRINCIPAL esperando algo que nadie va a ejecutar: el proceso queda vivo
-## pero con el bucle principal detenido (0% de CPU, deja de responderle a
-## todo el mundo) y no se recupera solo — hay que reiniciar el servidor.
-##
-## Así se rompía volver de la Cueva: NivelPradera.tscn es la escena más
-## pesada del juego y al recargarla el servidor se congelaba a mitad de
-## camino. Desde afuera se veía exactamente como lo reportó el usuario: "al
-## salir de la cueva se buguea, se pierde la conexión con el servidor y no me
-## puedo mover", sin arreglo hasta reiniciar el servidor.
-##
-## Se cubre también el cliente de un solo núcleo (celulares viejos), que
-## tendría el mismo problema: mejor un tirón corto que un cuelgue eterno.
+## El contenedor del servidor corre con UN núcleo (`nproc` = 1). También se
+## cubre el cliente de un solo núcleo (celulares viejos): mejor un tirón corto
+## que un cuelgue eterno.
 func _conviene_carga_sincronica() -> bool:
 	if OS.get_processor_count() <= 1:
 		return true

@@ -1,13 +1,12 @@
 class_name HabilidadBase
 extends Node
+## Clase base abstracta de todas las habilidades: gestiona la recarga y da una
+## interfaz de activación uniforme. Para una habilidad nueva, extender esta
+## clase y sobreescribir _ejecutar(). entidad_dueña la asigna SlotHabilidades
+## antes de add_child (o _ready(), para las habilidades de mobs).
 
-## Píxeles por metro — factor de conversión para alcance_metros → píxeles.
+## Píxeles por metro: factor de conversión de alcance_metros a píxeles.
 const ESCALA_METROS_PIXEL := 40.0
-## Clase base abstracta para todas las habilidades.
-## Gestiona el ciclo de vida de la recarga y provee una interfaz de activación uniforme.
-## Para añadir una nueva habilidad: extender esta clase y sobreescribir _ejecutar().
-##
-## entidad_dueña es asignada externamente por SlotHabilidades antes de add_child.
 
 ## Emitida al activar la habilidad.
 signal habilidad_activada(habilidad: HabilidadBase)
@@ -26,54 +25,33 @@ signal recarga_terminada(habilidad: HabilidadBase)
 ## Tipo de daño que inflige esta habilidad. Afecta las resistencias del defensor.
 @export var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
 ## Datos opcionales para habilidades de MOBS: el jugador aplica su
-## DatosHabilidad al equipar (ver SlotHabilidades.gd), pero las habilidades
-## de un mob son nodos fijos en su escena, sin ningún SlotHabilidades de
-## por medio — antes de esto, su única forma de configurarse era un
-## override de instancia en el .tscn, que solo funciona en campos @export
-## (ver el bug de HabilidadGolpeBasico.daño, una var plana que un
-## daño = 47.0 en el .tscn nunca aplicaba). Se aplica una sola vez acá, en
-## _ready(), ANTES de que el _ready() de la subclase corra — así cualquier
-## nombre_habilidad/tipo_habilidad hardcodeado ahí (ej. "Arañazo") sigue
-## ganando por sobre lo cosmético que traiga el recurso.
+## DatosHabilidad al equipar (ver SlotHabilidades.gd), pero las de un mob son
+## nodos fijos en su escena, y un override en el .tscn solo funciona en campos
+## @export. Se aplica una vez en _ready(), ANTES del _ready() de la subclase:
+## lo que la subclase fije ahí (ej. el nombre "Arañazo") sigue ganando sobre
+## lo cosmético del recurso.
 @export var datos: DatosHabilidad = null
 ## Sonido opcional reproducido UNA vez por _ejecutar() (posicional, en
-## entidad_dueña) — null = silencio, sin cambio de comportamiento para
-## ninguna instancia existente. Las subclases que lo soporten llaman
-## _reproducir_sonido() desde su propio _ejecutar(); como corre ahí (no en
-## activar()), replica igual que el resto del efecto visual — ver
-## _reproducir_visual_red().
+## entidad_dueña); null = silencio. Las subclases que lo soportan llaman
+## _reproducir_sonido() desde su _ejecutar(), así que replica igual que el
+## resto del efecto (ver _reproducir_visual_red()).
 @export var sonido: AudioStream = null
 ## Apagar SOLO en habilidades cuyo propósito ES moverse (dash, parpadeo):
 ## para esas, congelar al activar no tiene sentido (el desplazamiento es la
 ## habilidad misma) y ya tienen su propio manejo de posición. El resto
 ## (proyectiles, áreas, ráfaga...) se congela por defecto — ver activar().
 @export var congela_movimiento_en_red := true
-## Ida y vuelta de red que se le da al dueño para congelarse ANTES de que
-## el servidor procese _activar_red — ver activar(). Si el ping real supera
-## esto, la mitigación no alcanza a cubrir todo el hueco (mejor que nada,
-## pero no es una garantía dura — la solución completa sería lag
-## compensation del lado del servidor).
-## Confirmado en juego real (probado con 1.0s a propósito, bien
-## perceptible: el disparo SÍ esperaba el congelamiento completo antes de
-## salir — el mecanismo funciona) que el atravesar/no-hacer-daño reportado
-## sigue pasando incluso con el congelamiento funcionando, así que no era
-## (solo) un problema de timing del freeze. Se deja en 0.5s — más margen
-## que el 0.25 original, sin el costo de sentirse "pegado" al disparar.
-## @export (no const): Cepo/Trampa también lo usan (congela al colocarse
-## para que la posición no se corra si el jugador sigue moviéndose después
-## de soltar el touch) — se probó un margen propio más corto (0.2s) pero
-## no alcanzaba en juego real, así que quedaron con el mismo default que
-## el resto en vez de un override.
+## Ida y vuelta de red que se le da al dueño para congelarse ANTES de que el
+## servidor procese _activar_red (ver activar()). Si el ping real la supera,
+## la mitigación no cubre todo el hueco (arreglarlo del todo pediría
+## compensación de lag en el servidor). @export y no const: Cepo y Trampa
+## también congelan al colocarse, para que la posición no se corra.
 @export var margen_congelamiento_red: float = 0.5
 
-## Cuánto de margen_congelamiento_red pasa ANTES de que el SERVIDOR fije la
-## posición y dispare de verdad — el resto (margen_congelamiento_red menos
-## esto) es un colchón EXTRA después del disparo, antes de soltar el
-## bloqueo de movimiento. Separar "cuándo se dispara" de "cuándo se puede
-## volver a mover" evita soltar el bloqueo en el MISMO instante en que se
-## decidió la posición: pedido explícito del usuario tras seguir viendo la
-## posición de Cepo/Trampa correrse con las dos fases pegadas en el mismo
-## instante (ver activar()).
+## Cuánto de margen_congelamiento_red pasa ANTES de disparar de verdad; el
+## resto es un colchón después del disparo, antes de soltar el bloqueo de
+## movimiento. Soltar el bloqueo en el mismo instante en que se fija la
+## posición dejaba que la de Cepo/Trampa se corriera.
 @export var margen_previo_disparo: float = 0.4
 
 ## Entidad a la que pertenece esta habilidad (asignada automáticamente en _ready).
@@ -93,25 +71,16 @@ var multiplicador_recarga: float = 1.0
 
 ## INSTRUMENTACIÓN TEMPORAL (ver ArbolComportamiento.us_acumulados_todos_los_
 ## arboles y ServidorDedicado._reportar_capacidad): microsegundos acumulados
-## dentro de _ejecutar() al disparar CUALQUIER habilidad (mob vía árbol de
-## comportamiento, o jugador vía _activar_red) desde el último reporte.
-## Objetivo: la medición de "arboles=" solo mide actualizar() del árbol — el
-## _ejecutar() que dispara una habilidad de JUGADOR llega por el RPC
-## _activar_red(), fuera de ese temporizado, así que la sospecha de que el
-## costo idle restante en combate real es el disparo de habilidades en sí
-## (no la evaluación del árbol) necesita su propio contador.
+## dentro de _ejecutar() de CUALQUIER habilidad desde el último reporte. Va
+## aparte de "arboles=" porque las de jugador llegan por el RPC _activar_red(),
+## fuera de ese temporizado.
 static var us_acumulados_ejecutar_habilidades: int = 0
 
-## Factor de velocidad (0..1, mismo significado que MovimientoComponente.
-## agregar_lentitud) aplicado al dueño MIENTRAS arma el apunte de ESTA
-## habilidad (entre tocar el joystick y soltar/cancelar) — 1.0 = sin
-## cambio (default, la inmensa mayoría de las habilidades). Pedido
-## explícito del usuario para Cepo/Trampa (0.2 = 20% de la velocidad
-## máxima): obliga a pensar mejor cuándo y dónde colocarlas, y de paso
-## reduce el margen real de "la posición de colocación se corre" (ver
-## activar()) — a un quinto de la velocidad, cualquier resto de
-## movimiento que se cuele durante la ida y vuelta de red pesa un quinto
-## de lo que pesaría a velocidad normal.
+## Factor de velocidad (0..1, como MovimientoComponente.agregar_lentitud)
+## aplicado al dueño MIENTRAS arma el apunte de ESTA habilidad (entre tocar el
+## joystick y soltar o cancelar). 1.0 = sin cambio. Cepo y Trampa usan 0.2:
+## obliga a pensar dónde colocarlas y achica lo que se corre la posición
+## durante la ida y vuelta de red (ver activar()).
 @export_range(0.05, 1.0, 0.05) var factor_velocidad_apuntando: float = 1.0
 var _lentitud_apuntando_activa: bool = false
 
@@ -138,18 +107,11 @@ func _ready() -> void:
 		entidad_dueña = get_parent().get_parent()
 	if datos:
 		aplicar_datos(datos)
-	# Diferido (no acá directo): la subclase recién fija su propio
-	# factor_velocidad_apuntando DESPUÉS de llamar a super._ready() (mismo
-	# orden que congela_movimiento_en_red), así que filtrar por el factor
-	# ACÁ vería siempre el default 1.0. call_deferred corre después de que
-	# TODO _ready() (base + subclase) terminó, con el valor real ya puesto.
-	# Filtrar por factor < 1.0 (no conectar siempre) importa de verdad: una
-	# habilidad como HabilidadLanzallamas ya escucha su PROPIA señal de
-	# apunte con este mismo self, y SeñalManager solo admite UN método por
-	# (señal, suscriptor) — conectar acá sin condición le robaba el lugar a
-	# su conexión real (quedaba sin registrar, "ya está conectado" en el
-	# log), rompiéndole el apuntado de verdad. Con el factor en 1.0 (su
-	# default) esto nunca llega a conectar nada, cero choque posible.
+	# Diferido: la subclase fija su factor_velocidad_apuntando DESPUÉS de
+	# super._ready(), así que acá se vería siempre el 1.0 por defecto. Y solo se
+	# conecta con factor < 1.0: SeñalManager admite UN método por (señal,
+	# suscriptor), y conectar siempre le robaría el lugar a las habilidades que ya
+	# escuchan su propia señal de apunte (p. ej. HabilidadLanzallamas).
 	call_deferred("_conectar_lentitud_al_apuntar")
 
 
@@ -204,22 +166,14 @@ func obtener_recarga_restante() -> float:
 func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	if not puede_usarse():
 		return
-	# "Bloquear control" ya significa "no puede hacer nada", no solo "no
-	# se mueve" — sin este chequeo, mientras una habilidad tiene al dueño
-	# bloqueado (el margen de congelamiento de red de CUALQUIER otra, o el
-	# gancho arrastrando/siendo arrastrado, ver HabilidadGancho) igual se
-	# podía activar una habilidad distinta desde otro slot. Corre en
-	# activar() (no en cada _activar_slot de la UI) para proteger también
-	# la copia autoritativa del servidor, que llega acá directo por
-	# _activar_red() sin pasar por la UI.
-	# ignora_bloqueos: escotilla de escape para una habilidad que DEBE poder
-	# lanzarse aunque el dueño esté aturdido/congelado (hoy solo
-	# HabilidadCorte, pedido del usuario: "este ataque siempre debe estar
-	# disponible para lanzarse, sin importar si el jugador está en algún
-	# estado alterado"). Duck typing, mismo criterio que "es_canal_continuo"
-	# de HabilidadLanzallamas — nadie tiene que conocer la clase.
-	# La MUERTE no entra acá a propósito: un muerto no lanza nada, y eso lo
-	# corta esta_bloqueado()/_muerto aguas arriba y en _activar_red().
+	# Con el control bloqueado (aturdido, el margen de congelamiento de red de
+	# OTRA habilidad, el gancho arrastrando; ver HabilidadGancho) no se lanza
+	# nada. Va en activar() y no en la UI para proteger también la copia del
+	# servidor, que llega directo por _activar_red().
+	# ignora_bloqueos: escotilla para una habilidad que DEBE poder lanzarse
+	# aunque el dueño esté aturdido (hoy HabilidadCorte). Duck typing, como
+	# "es_canal_continuo" de HabilidadLanzallamas. La MUERTE no entra acá: la
+	# cortan esta_bloqueado() aguas arriba y _activar_red().
 	if not _ignora_bloqueos() and is_instance_valid(entidad_dueña) \
 			and ("_bloqueos_control" in entidad_dueña) \
 			and entidad_dueña._bloqueos_control > 0:
@@ -235,47 +189,30 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 	habilidad_activada.emit(self)
 	BusEventos.habilidad_usada.emit(entidad_dueña, tipo_habilidad)
 
-	# Girar al dueño hacia donde apunta — necesario ACÁ (no solo en
-	# Jugador._activar_slot) porque el SERVIDOR nunca pasa por ese método:
-	# recibe la activación directo por _activar_red() y llama activar() acá
-	# mismo. Sin esto, el giro solo se veía en la pantalla de quien lanzaba
-	# (reportado: "la dirección solo cambia en el local, no en los demás
-	# jugadores") — el servidor (la copia autoritativa que se replica a
-	# todos) nunca se enteraba. Acotado a jugadores (grupo "jugadores"): los
-	# mobs ya manejan su propio direccion_mirada desde su IA/acciones de
-	# combate, con más criterio (p. ej. mantenerlo mientras dura el ataque).
+	# Girar al dueño hacia donde apunta. Va ACÁ y no solo en
+	# Jugador._activar_slot porque el SERVIDOR no pasa por ese método: sin esto,
+	# el giro solo se veía en la pantalla de quien lanzaba. Solo jugadores: los
+	# mobs manejan su direccion_mirada desde su IA.
 	if requiere_direccion and direccion.length() > 0.1 and is_instance_valid(entidad_dueña) \
 			and entidad_dueña.is_in_group("jugadores") and "direccion_mirada" in entidad_dueña:
 		entidad_dueña.direccion_mirada = direccion.normalized()
 
 	if Utils.en_red() and congela_movimiento_en_red \
 			and entidad_dueña and entidad_dueña.has_method("bloquear_control"):
-		# El CLIENTE dueño marca todo el ritmo — el servidor nunca decide su
-		# propio timing, solo reacciona a lo que el cliente le avisa (ver
-		# _congelar_real_red/_descongelar_real_red más abajo). Regresión real
-		# encontrada con la versión anterior (el servidor esperaba su PROPIO
-		# margen_previo_disparo antes de disparar, mientras el cliente ya
-		# disparaba de una): el proyectil que veía quien lo tiraba salía al
-		# instante, pero el real (el que decide el golpe) recién nacía 0.4s
-		# después, desde una posición ya distinta — "golpes fantasma": pegan
-		# visualmente pero no hacen daño, o el proyectil sigue de largo
-		# mientras el daño real pega al costado. Server y cliente TIENEN que
-		# disparar en el mismo instante relativo (salvo el ping en sí, que
-		# siempre existió) para que la predicción visual coincida con lo que
-		# de verdad pasó.
+		# El CLIENTE dueño marca el ritmo: el servidor no decide su propio timing,
+		# solo reacciona a lo que el cliente avisa (ver _congelar_real_red y
+		# _descongelar_real_red). Servidor y cliente TIENEN que disparar en el mismo
+		# instante relativo (salvo el ping): si el servidor esperara su propio
+		# margen, el proyectil real saldría desde otra posición y los golpes
+		# "pegarían" en pantalla sin hacer daño.
 		if multiplayer.is_server():
-			# Autoridad real: el bloqueo de verdad (Jugador._congelamientos_
-			# disparo, ver congelar_disparo_pendiente()) ya está puesto desde
-			# bastante antes (llegó por _congelar_real_red, en el mismo canal
-			# reliable y por lo tanto ANTES que este _activar_red) — la
-			# posición ya está asentada, no hay nada que esperar más:
-			# disparar YA.
+			# Autoridad: el congelamiento real (congelar_disparo_pendiente) ya llegó
+			# antes por _congelar_real_red, en el mismo canal reliable, así que la
+			# posición ya está asentada: disparar YA.
 			_disparar(direccion, poder)
 		else:
-			# Cliente dueño: frenar YA (sensación local) y avisarle al
-			# servidor que se congele DE VERDAD ya mismo — no como antes,
-			# que solo ponía la dirección en cero una vez y no impedía que
-			# un pedido de movimiento nuevo la pisara.
+			# Cliente dueño: frenar YA (sensación local) y pedirle al servidor que
+			# congele el cuerpo real.
 			entidad_dueña.bloquear_control()
 			rpc_id(1, "_congelar_real_red")
 			var dueño_congelado := entidad_dueña
@@ -298,14 +235,10 @@ func activar(direccion: Vector2 = Vector2.ZERO, poder: float = 1.0) -> void:
 ## posponer también el cooldown/los avisos (ver activar()).
 func _disparar(direccion: Vector2, poder: float) -> void:
 	if _debe_pedirle_al_servidor():
-		# Fase 3 del plan de multijugador: el servidor es quien de verdad
-		# corre _ejecutar() con autoridad (el daño real, vía
-		# VidaComponente.quitar_vida, está gateado a "solo servidor") para
-		# que dos clientes no calculen resultados de combate distintos por
-		# su cuenta. PERO no cortar acá: seguir abajo y llamar _ejecutar()
-		# también en este cliente es predicción visual pura — el golpe se
-		# ve y se anima al instante en vez de esperar la ida y vuelta de
-		# red, sin aplicar daño de verdad (VidaComponente ya lo bloquea).
+		# El servidor corre _ejecutar() con autoridad (el daño real solo se aplica
+		# allá). Pero no cortar acá: _ejecutar() también corre en este cliente como
+		# predicción visual pura, para ver el golpe sin esperar la ida y vuelta
+		# (VidaComponente ya bloquea el daño).
 		rpc_id(1, "_activar_red", direccion, poder)
 	var _inicio_us := Time.get_ticks_usec()
 	_ejecutar(direccion, poder)
@@ -326,10 +259,9 @@ func _disparar(direccion: Vector2, poder: float) -> void:
 				rpc_id(peer_id, "_reproducir_visual_red", direccion, poder)
 
 
-## true si esto corre en red, la dueña es un jugador con identidad de peer
-## (ver Jugador.peer_id_dueño), y YO NO SOY el servidor. Sin multiplayer
-## activo (juego de un jugador, o habilidades de enemigos sin peer_id_dueño)
-## siempre da false — cero cambio de comportamiento en esos casos.
+## true si esto corre en red, la dueña es un jugador con peer (ver
+## Jugador.peer_id_dueño) y YO NO SOY el servidor. Sin red, o para
+## habilidades de mobs, siempre da false.
 func _debe_pedirle_al_servidor() -> bool:
 	if not Utils.en_red():
 		return false
@@ -484,14 +416,11 @@ func _terminar_apunte_lento_red() -> void:
 	_quitar_lentitud_apuntando()
 
 
-## El servidor le avisa a TODOS los clientes que reproduzcan el efecto
-## visual de esta habilidad — el cliente dueño (si lo hay) ya lo mostró
-## solo con predicción (ver activar()), así que se salta acá para no
-## duplicar el golpe/animación. Nunca aplica daño de verdad: eso lo decide
-## únicamente VidaComponente.quitar_vida(), gateado a "solo servidor".
-## reliable: es UN paquete por activación (no un flujo continuo como la
-## posición) — si se pierde, el jugador recibe el golpe "de la nada", sin
-## ninguna animación (reportado con el lobo).
+## El servidor avisa a los clientes cercanos que reproduzcan el efecto visual.
+## El cliente dueño ya lo mostró por predicción (ver activar()), así que se lo
+## salta. Nunca aplica daño: eso lo decide VidaComponente.quitar_vida() en el
+## servidor. reliable: es UN paquete por activación y, si se pierde, el golpe
+## llega "de la nada", sin animación.
 @rpc("authority", "reliable")
 func _reproducir_visual_red(direccion: Vector2, poder: float) -> void:
 	if is_instance_valid(entidad_dueña) and ("peer_id_dueño" in entidad_dueña) \
@@ -509,13 +438,10 @@ func aplicar_datos(d: DatosHabilidad) -> void:
 	nombre_habilidad = d.nombre
 	costo_energia    = float(d.costo_energia)
 	duracion_recarga = d.enfriamiento
-	# El elemento vive en el .tres (DatosHabilidad.tipo_dano) — sin esta
-	# copia, toda habilidad equipada pegaba como PHYSIC sin importar el
-	# elemento asignado en el editor, y las resistencias elementales de
-	# calcular_dano_entrante() nunca entraban en juego. OJO: igual que con
-	# costo_energia/enfriamiento (ver el bug de lanzallamas.tres), el .tres
-	# SIEMPRE pisa lo que diga la escena — una habilidad elemental necesita
-	# su tipo_dano asignado en el .tres, no solo en el .tscn.
+	# El elemento vive en el .tres: sin esta copia, toda habilidad equipada
+	# pegaba como física y las resistencias elementales nunca contaban. El .tres
+	# SIEMPRE pisa lo que diga la escena: una habilidad elemental necesita su
+	# tipo_dano en el .tres, no solo en el .tscn.
 	tipo_dano        = d.tipo_dano
 	_dano_min        = d.dano_base_min
 	_dano_max        = d.dano_base_max
@@ -599,9 +525,7 @@ func aplicar_nivel_mejora(nivel: int) -> void:
 func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 	pass
 
-## Reproduce [sonido] por GestorSonido (bus "SFX", ver
-## NotificacionLoot.gd para el mismo patrón) — no-op si sonido es null
-## (todas las instancias existentes que no lo configuran).
+## Reproduce [sonido] por GestorSonido (bus "SFX"). No-op si sonido es null.
 func _reproducir_sonido() -> void:
 	if sonido == null:
 		return

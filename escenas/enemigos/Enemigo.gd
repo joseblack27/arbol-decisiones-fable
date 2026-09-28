@@ -14,15 +14,11 @@ class_name Enemigo
 ## así que nunca queda atrapado por sus propias habilidades.
 const CAPA_OBSTACULOS_HABILIDAD := 4
 
-## Los mobs viven en su propia capa física (CAPA_MOB, fijada por CÓDIGO en
-## _ready — no confiar en los .tscn: EnemigoLobo/Araña/Caballero/Raton son
-## escenas independientes, no heredan de enemigo.tscn, y sus raíces seguían
-## en la capa 1 — por eso "el dash chocaba en seco con los enemigos" aunque
-## la base ya estuviera en la 2). Máscara: mundo (1) + Muro (4). Nadie choca
-## con nadie: mob-mob no (ni capa 2 ni 8 en la máscara), mob-jugador no (el
-## jugador vive en la capa 8, ver Jugador.tscn, y su máscara es solo 1).
-## El daño entre mobs ya estaba bloqueado aparte, por equipo (ver
-## Combate.mismo_equipo — ambos en el grupo "enemigos" cuentan como aliados).
+## Los mobs viven en su propia capa física, fijada por CÓDIGO en _ready (no
+## confiar en los .tscn: varias escenas de mob no heredan de enemigo.tscn).
+## Máscara: mundo (1) + obstáculos de habilidad (4). Nadie choca con nadie:
+## ni mob-mob ni mob-jugador (el jugador vive en la capa 8 con máscara 1). El
+## daño entre mobs se bloquea aparte, por equipo (Combate.mismo_equipo).
 const CAPA_MOB := 2
 const CAPA_MUNDO := 1
 
@@ -54,18 +50,13 @@ const MARGEN_CAMBIO_OBJETIVO := 40.0
 ## mob (eso es umbral_vida_baja, arriba).
 @export_range(0.0, 1.0, 0.05) var umbral_vida_tentadora: float = 0.35
 ## Probabilidad de preferir a un candidato tentador en vez del criterio de
-## distancia de siempre. 0 = nunca tienta (el criterio queda sin efecto),
-## 1 = siempre que haya alguien por debajo del umbral. Pedido de diseño:
-## "atacar por probabilidad a quien tenga menos vida" — se SUMA al
-## criterio de distancia existente, no lo reemplaza.
+## distancia. 0 = nunca, 1 = siempre que haya alguien bajo el umbral. Se SUMA
+## al criterio de distancia, no lo reemplaza.
 @export_range(0.0, 1.0, 0.05) var probabilidad_rematar_vida_baja: float = 0.5
 
 @export_group("Nombre")
-## "Nv.X Nombre" arriba del mob, leído de EnemigoDatos. Vive ACÁ (no en
-## BarraVidaEnergiaComponente, donde estaba antes) porque el nombre es una
-## propiedad de la ENTIDAD, no de sus barras de vida/energía — quedaba raro
-## que un mob sin EnergiaComponente (que ya oculta esa barra sola) pudiera
-## arrastrar el nombre con ella el día que alguien quisiera ocultarla aparte.
+## "Nv.X Nombre" arriba del mob, leído de EnemigoDatos. Vive en la entidad y
+## no en BarraVidaEnergiaComponente porque el nombre no depende de las barras.
 ## Sin "datos" asignado (p. ej. AliadoInvocado) no se dibuja nada.
 @export var mostrar_nombre: bool = true
 ## Dorado en los jefes (ver EnemigoJefeEsqueleto) para diferenciarlos de un
@@ -78,11 +69,10 @@ const MARGEN_CAMBIO_OBJETIVO := 40.0
 @export var altura_nombre: float = -53.0
 
 @export_group("Íconos de estado")
-## Fila de íconos (veneno, lentitud, aturdido...) ENCIMA del nombre — pedido
-## del usuario: "una barra de estados así como los efectos del jugador, para
-## saber cuando está aturdido, ralentizado, o tenga algún efecto presente".
-## Se dibujan con el mismo BuffsComponente que ya llenan Veneno/Lentitud/
-## Aturdido (ver esos scripts) — nada que registrar acá por tipo.
+## Fila de íconos de estado (veneno, lentitud, aturdido...) ENCIMA del nombre,
+## para ver de un vistazo qué efectos tiene el mob. Se dibujan desde el mismo
+## BuffsComponente que llenan Veneno, Lentitud y Aturdido: nada que registrar
+## acá por tipo.
 @export var tamano_icono_estado: float = 16.0
 @export var separacion_iconos_estado: float = 3.0
 ## Separación entre el borde superior del texto del nombre y el borde
@@ -109,21 +99,17 @@ var direccion: Vector2 = Vector2.ZERO
 var direccion_mirada: Vector2 = Vector2.ZERO
 var esta_atacando: bool = false
 
-## Quién dio el último golpe — normalmente el mismo Node que las
-## habilidades pasan como "fuente" a BusEventos.daño_aplicado (el jugador
-## dueño, un Muro, etc.). Fase 4 del plan de multijugador: el botín/XP se le
-## reparte a ESTE atacante puntual, no "al primer jugador de la escena" (que
-## era lo que hacían GestorInventario/GestorExperiencia antes de esto —
-## incorrecto en cuanto hay más de un jugador conectado).
+## Quién dio el último golpe (el mismo Node que las habilidades pasan como
+## "fuente" a BusEventos.daño_aplicado: el jugador dueño, un Muro, etc.). El
+## botín y la XP se le reparten a ESTE atacante, no al primer jugador de la
+## escena.
 var _ultimo_atacante: Node = null
 
-## true desde el primer instante de _on_muerte (antes incluso del fotograma
-## diferido de _procesar_muerte) — cualquier sistema con su PROPIO bucle de
-## física independiente del árbol de comportamiento (p. ej. HabilidadCarga
-## durante el dash, que mueve el cuerpo directo en su _physics_process, sin
-## pasar por MovimientoComponente) debe consultar esto para cortarse solo:
-## apagar arbol.activo no lo alcanza, porque esas habilidades no tickean por
-## el árbol una vez activadas.
+## true desde el primer instante de _on_muerte (antes del fotograma diferido
+## de _procesar_muerte). Todo sistema con su PROPIO bucle de física (p. ej.
+## HabilidadCarga durante el dash, que mueve el cuerpo sin pasar por
+## MovimientoComponente) debe consultarlo para cortarse: apagar arbol.activo
+## no lo alcanza.
 var _muerto: bool = false
 
 @onready var habilidades: Marker2D = $Habilidades
@@ -133,29 +119,25 @@ var _muerto: bool = false
 var _tween_parpadeo: Tween = null
 
 var _texto_nombre: String = ""
-## Nodo de dibujo puro para el nombre — SIN script propio: no es otro
-## "componente" reutilizable, es la entidad dibujando su propio nombre. Se
-## crea por código en _ready() (no en el .tscn) para no tener que tocar las
-## 7 escenas, y a propósito DESPUÉS de que Sprite2D ya existe: Godot pinta
-## hermanos en orden de árbol, así que quedar último garantiza dibujarse
-## ENCIMA del sprite (si viviera en el _draw() de esta misma raíz, Godot
-## pinta el contenido propio de un nodo ANTES que el de sus hijos, y el
-## nombre quedaría tapado por sprites grandes como el del Jefe Esqueleto).
+## Nodo de dibujo puro para el nombre (sin script propio). Se crea por código
+## en _ready(), a propósito DESPUÉS del Sprite2D: Godot pinta hermanos en orden
+## de árbol, así que quedar último lo dibuja ENCIMA del sprite. En el _draw()
+## de la raíz quedaría tapado, porque un nodo pinta lo propio antes que a sus
+## hijos.
 var _nodo_nombre: Node2D = null
 
-## BuffsComponente puede no existir todavía cuando el mob arranca (recién se
-## crea con el PRIMER debuff, ver EfectoVeneno._anotar_icono y similares) —
-## por eso se reintenta cada _INTERVALO_REINTENTO_BUFFS en vez de buscarlo
-## una sola vez, mismo criterio que BarraBuffs.gd (la versión del jugador).
+## BuffsComponente recién se crea con el PRIMER debuff (ver
+## EfectoVeneno._anotar_icono y similares), así que se reintenta cada
+## _INTERVALO_REINTENTO_BUFFS (mismo criterio que BarraBuffs.gd).
 var _buffs: BuffsComponente = null
 var _buffs_activos: Array[String] = []
 const _INTERVALO_REINTENTO_BUFFS := 0.5
 var _acumulador_reintento_buffs := 0.0
 
 
-## Fase 6: lo que se replica NO es global_position directo — es esta
-## variable, para poder interpolar del lado del cliente (ver _physics_process)
-## en vez de saltar de golpe a cada actualización de red.
+## Lo que se replica no es global_position directo sino esta variable, para
+## interpolar del lado del cliente (ver _physics_process) en vez de saltar a
+## cada actualización de red.
 var _posicion_replicada: Vector2 = Vector2.ZERO
 ## Posición del fotograma anterior en un cliente puro — para inferir
 ## "caminando" del desplazamiento REAL en pantalla (ver _physics_process).
@@ -164,41 +146,24 @@ var _posicion_render_anterior: Vector2 = Vector2.ZERO
 ## en un cliente (0.1px/frame ≈ 6px/s, muy por debajo de cualquier
 ## velocidad real de mob, incluso ralentizado).
 const _UMBRAL_CAMINANDO_RED := 0.1
-# Antes en 12.0, luego en 20.0: con cada valor el mob visual del cliente
-# queda un poco MÁS atrás de su posición real en el servidor (constante de
-# tiempo ≈ 1/valor: ~50ms de rezago con 20.0). Ese rezago es justo la causa
-# de "el proyectil impacta pero no hace daño" en red — el disparo del
-# cliente conecta contra la posición ATRASADA que ve, pero el servidor (el
-# único que decide el daño real) simula el mismo tiro contra la posición
-# REAL y actualizada, que para cuando el proyectil llega ya se movió más
-# allá. 30.0 (~33ms de rezago) es una mitigación PARCIAL: reduce cuánto se
-# nota, no lo elimina — solución completa requeriría rebobinar la posición
-# en el servidor al momento exacto del disparo (lag compensation/rollback),
-# fuera de alcance de este cambio. Contrapartida de subir este valor: con
-# paquetes perdidos o picos de lag, la corrección se nota un poco más
-# (menos "amortiguada") que con 20.0.
+# Constante de tiempo ≈ 1/valor (~33 ms de rezago del mob visual respecto del
+# servidor). Ese rezago hace que un proyectil que en el cliente "conecta"
+# contra la posición atrasada no dañe en el servidor, que usa la real. Subirlo
+# reduce el efecto (arreglarlo del todo pediría compensación de lag en el
+# servidor), a cambio de que las correcciones por paquetes perdidos se noten
+# un poco más.
 const VELOCIDAD_INTERPOLACION_RED := 30.0
 
-## Último estado replicado por RPC — para no reenviar lo mismo cada physics
-## frame cuando el mob está quieto (con varios mobs idle era tráfico y
-## deserialización de sobra en cada cliente, ~60 paquetes/seg POR MOB).
+## Último estado replicado por RPC, para no reenviar lo mismo cada fotograma
+## físico cuando el mob está quieto.
 var _ultima_pos_enviada := Vector2.INF
 var _ultima_dir_enviada := Vector2.INF
 var _ultima_mirada_enviada := Vector2.INF
 var _fotogramas_sin_enviar := 0
-## Quiénes tenían a este mob dentro de RADIO_INTERES el fotograma anterior —
-## para detectar un peer RECIÉN entrado y mandarle su primer estado real de
-## inmediato (ver más abajo), en vez de esperar al próximo cambio real o al
-## keepalive (hasta _FOTOGRAMAS_KEEPALIVE_RED fotogramas). Sin esto, un mob
-## generado lejos y quieto por un buen rato (nada "cambia" para el chequeo de
-## abajo) podía dejar a un jugador que recién se acerca sin ningún
-## _recibir_estado_red hasta el próximo keepalive — mientras tanto, su cliente
-## ya tiene el NODO creado (MultiplayerSpawner replica sin filtrar por
-## distancia) pero con direccion/direccion_mirada todavía en el default de la
-## escena, así que actualizar_blend()/_aplicar_presentacion() no tienen nada
-## real que animar: el sprite queda pegado en la pose con la que se creó el
-## nodo (reportado: "un lobo respawneado fuera del área jugable, al entrar
-## se queda siempre con el mismo sprite").
+## Quiénes tenían a este mob dentro de RADIO_INTERES el fotograma anterior,
+## para mandarle YA su primer estado real a un peer RECIÉN entrado en vez de
+## esperar a un cambio o al keepalive. Sin esto, un mob quieto se veía en la
+## pantalla de quien se acerca pegado en la pose con la que se creó el nodo.
 var _peers_relevantes_anterior: Array[int] = []
 ## Aunque nada cambie, reenviar cada tanto igual (~2 veces/seg): el RPC es
 ## unreliable — si el último paquete antes de quedarse quieto se perdió, sin
@@ -207,26 +172,18 @@ const _FOTOGRAMAS_KEEPALIVE_RED := 30
 
 ## INSTRUMENTACIÓN TEMPORAL (ver ArbolComportamiento.us_acumulados_todos_los_
 ## arboles y HabilidadBase.us_acumulados_ejecutar_habilidades): microsegundos
-## acumulados en el bloque de replicación de estado (peers_cercanos() +
-## rpc_id de _recibir_estado_red) de TODOS los mobs desde el último reporte.
-## A diferencia del árbol (10Hz) esto corre en _physics_process, 60 veces por
-## segundo, para CADA mob vivo — candidato fuerte para el resto del costo
-## idle sostenido en combate real que ni "arboles=" ni "habilidades=" explican
-## (juntas apenas cubrían ~15-18% del pico medido).
+## acumulados en la replicación de estado (peers_cercanos() + rpc_id de
+## _recibir_estado_red) de TODOS los mobs desde el último reporte. Corre 60
+## veces por segundo por cada mob vivo.
 static var us_acumulados_replicacion_estado: int = 0
 
 
 
-## Fase 5 del plan de multijugador: en red, todos los mobs son autoridad
-## del SERVIDOR (nunca de un peer puntual, a diferencia del Jugador). La
-## posición se replica por RPC explícito (ver _physics_process/_recibir_
-## posicion_red) en vez de un MultiplayerSynchronizer: para mobs YA
-## PRESENTES en el nivel (colocados a mano en el .tscn, no spawneados por
-## MultiplayerSpawner) un Synchronizer armado por código nunca llegó a
-## sincronizar nada de forma confiable en pruebas reales — el mob se movía
-## del lado del servidor pero el cliente quedaba congelado en su posición
-## de spawn para siempre. RPC directo es más simple y sí funciona. Qué mobs
-## existen (altas/bajas) lo replica ReplicadorEnemigos.
+## En red, todos los mobs son autoridad del SERVIDOR. La posición viaja por
+## RPC explícito (ver _physics_process/_recibir_estado_red) y no por un
+## MultiplayerSynchronizer armado por código, que con los mobs colocados en el
+## .tscn nunca sincronizó de forma confiable (el cliente los veía congelados).
+## Qué mobs existen (altas y bajas) lo replica ReplicadorEnemigos.
 func _enter_tree() -> void:
 	if not Utils.en_red():
 		return
@@ -285,39 +242,26 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
-	# Fase 6: en red, el cliente nunca corre la IA de este mob (Fase 5), así
-	# que nadie más mueve el cuerpo acá — solo interpola hacia la posición
-	# replicada por el servidor. La PRESENTACIÓN (rotación de apuntado,
-	# orientación del sprite, caminar/reposo) la calcula el propio cliente
-	# con EXACTAMENTE el mismo código que el servidor (_aplicar_presentacion)
-	# a partir del estado crudo replicado: direccion y direccion_mirada. Así
-	# no hay dos lógicas visuales que mantener sincronizadas — un mob que
-	# huye mira hacia donde huye, un kiter apunta al jugador, etc., igual
-	# que en un solo jugador.
+	# En red, el cliente nunca corre la IA de este mob: solo interpola hacia la
+	# posición replicada. La PRESENTACIÓN (apuntado, orientación del sprite,
+	# caminar/reposo) la calcula el propio cliente con el mismo código que el
+	# servidor (_aplicar_presentacion), a partir del estado crudo replicado
+	# (direccion y direccion_mirada): una sola lógica visual para ambos lados.
 	if Utils.en_red() and not multiplayer.is_server():
 		var diferencia := _posicion_replicada - global_position
-		# Movimientos bruscos (el dash del lobo cruza media pantalla en
-		# fotogramas) dejan a la interpolación suave MUY atrás: el golpe
-		# llegaba "desde lejos" y después el mob del cliente se arrastraba
-		# lento hasta su posición real. Más allá de este umbral, saltar
-		# directo — un teletransporte corto se ve mejor que un mob fantasma
-		# pegando a distancia.
+		# Movimientos bruscos (el dash del lobo cruza media pantalla en pocos
+		# fotogramas) dejan muy atrás a la interpolación suave, y el golpe llegaba
+		# "desde lejos". Más allá de este umbral se salta directo.
 		if diferencia.length() > 50.0:
 			global_position = _posicion_replicada
 		else:
 			global_position = global_position.lerp(
 				_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
 			)
-		# "Caminando" se infiere del desplazamiento REAL de este fotograma
-		# (no hay velocity local en un cliente). OJO: antes se usaba la
-		# BRECHA de interpolación (diferencia > 1.0px) — pero un mob lento
-		# (p. ej. ralentizado al 50% por EfectoLentitud: 40px/s ≈ 0.67px
-		# por fotograma) avanza menos de lo que la interpolación alcanza a
-		# cerrar, la brecha quedaba bajo el umbral y el cliente lo animaba
-		# en IDLE aunque seguía avanzando ("no entiendo porque no sigue
-		# usando la animacion de caminar" — reportado). Medir cuánto se
-		# movió de verdad en pantalla no depende de qué tan al día vaya la
-		# interpolación.
+		# "Caminando" se infiere del desplazamiento REAL de este fotograma (no hay
+		# velocity local en un cliente). No usar la brecha de interpolación: un mob
+		# lento (p. ej. ralentizado) avanza menos de lo que la interpolación cierra
+		# por fotograma y se animaba en reposo aunque siguiera avanzando.
 		var avance := global_position.distance_to(_posicion_render_anterior)
 		_posicion_render_anterior = global_position
 		_aplicar_presentacion(avance > _UMBRAL_CAMINANDO_RED)
@@ -352,12 +296,8 @@ func _physics_process(delta: float) -> void:
 				peers_nuevos.append(peer_id)
 		_peers_relevantes_anterior = peers_relevantes
 		if cambio or _fotogramas_sin_enviar >= _FOTOGRAMAS_KEEPALIVE_RED:
-			# Fase 1 del plan de escalado a MMO (interés espacial): antes esto
-			# era rpc() — broadcast a TODOS los peers conectados, sin importar
-			# dónde estuvieran parados. Con 100 jugadores dispersos por el
-			# mapa, cada mob mandaba su posición a jugadores que ni siquiera
-			# lo tenían cerca — tráfico y costo de simulación que crecían como
-			# mobs × jugadores. Ahora solo a quien lo tiene a RADIO_INTERES.
+			# Solo a quien lo tiene a RADIO_INTERES (ver InteresEspacial), no a
+			# todos: mandarlo a todos crecía como mobs × jugadores.
 			for peer_id in peers_relevantes:
 				rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
 			_ultima_pos_enviada    = global_position
@@ -365,10 +305,9 @@ func _physics_process(delta: float) -> void:
 			_ultima_mirada_enviada = direccion_mirada
 			_fotogramas_sin_enviar = 0
 		elif not peers_nuevos.is_empty():
-			# Peer recién entrado al radio de interés (ver el comentario largo
-			# en _peers_relevantes_anterior) — no esperar a que "cambie" algo
-			# ni al próximo keepalive: mandarle YA su primer estado real, sin
-			# tocar el resto del throttle (no cuenta como el envío normal).
+			# Peer recién entrado al radio de interés (ver
+			# _peers_relevantes_anterior): mandarle YA su primer estado, sin tocar
+			# el resto del throttle (no cuenta como el envío normal).
 			for peer_id in peers_nuevos:
 				rpc_id(peer_id, "_recibir_estado_red", global_position, direccion, direccion_mirada)
 		us_acumulados_replicacion_estado += Time.get_ticks_usec() - _inicio_us
@@ -385,14 +324,10 @@ func _aplicar_presentacion(caminando: bool) -> void:
 		habilidades.rotation = hacia_donde_mirar.angle()
 
 	if componente_animacion:
-		# Mientras dure un ataque con fases propias (p. ej. la pose del
-		# Esqueleto Arquero o la mordida del Lobo, ver memoria["ataque_en_
-		# curso"]), ESA habilidad es dueña de debeCaminar/debeIdle — este
-		# bloque corre TODOS los fotogramas y, sin este chequeo, pisaba
-		# debeIdle a true cada vez (el mob está quieto = caminando=false)
-		# justo encima del debeIdle=false que la habilidad acababa de poner,
-		# y el árbol de animación parpadeaba entre IDLE y su propio estado
-		# (reportado con el arquero: "parpadeando entre idle y atacar").
+		# Mientras dure un ataque con fases propias (ver memoria
+		# ["ataque_en_curso"]), ESA habilidad es dueña de debeCaminar/debeIdle:
+		# si este bloque, que corre todos los fotogramas, los pisara, el árbol de
+		# animación parpadearía entre reposo y el ataque.
 		if not memoria.obtener("ataque_en_curso", false):
 			componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", caminando)
 			componente_animacion.establecer_condicion("parameters/conditions/debeIdle",    not caminando)
@@ -431,10 +366,9 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 # SEÑALES DE COMPONENTES
 # =============================================================================
 
-## Con un solo jugador cerca esto se resuelve solo (el primero detectado es
-## el único candidato). Con varios, no se queda con "el último que entró en
-## rango" (comportamiento viejo, reportado como indeciso/errático) — ver
-## _evaluar_objetivo.
+## Con un solo jugador cerca se resuelve solo (el primero detectado es el
+## único candidato). Con varios, no se queda con "el último que entró en
+## rango" (ver _evaluar_objetivo).
 func _on_objetivo_detectado(area: Area2D) -> void:
 	memoria.establecer("jugador_detectado", true)
 	_evaluar_objetivo(area)
@@ -466,11 +400,9 @@ func _evaluar_objetivo(candidato: Area2D) -> void:
 		memoria.establecer("objetivo", nuevo)
 
 
-## "jugador_detectado" refleja si queda ALGUIEN detectado, no solo si el área
-## puntual que se acaba de ir era el único — antes, con dos jugadores cerca,
-## que se fuera cualquiera de los dos (aunque no fuera el objetivo actual)
-## apagaba la bandera igual y el mob se quedaba pasivo con el otro todavía
-## ahí delante.
+## "jugador_detectado" refleja si queda ALGUIEN detectado, no solo si se fue
+## el área puntual: con dos jugadores cerca, que se vaya uno no debe dejar al
+## mob pasivo con el otro todavía delante.
 func _on_objetivo_perdido(area: Area2D) -> void:
 	var quedan_candidatos := componente_vision and not componente_vision.areas_detectadas.is_empty()
 	memoria.establecer("jugador_detectado", quedan_candidatos)
@@ -523,22 +455,16 @@ func _tienta_por_vida_baja(area: Area2D) -> bool:
 	return randf() <= probabilidad_rematar_vida_baja
 
 
-## Reacción a un golpe de alguien que NO es el objetivo actual — depende de
-## si el mob lo tiene detectado (con visión real) en este instante:
-##   - Detectado: pasa a ser el objetivo al instante (ya sabe bien dónde
-##     está, puede perseguirlo de verdad).
-##   - NO detectado (a distancia, detrás de un obstáculo, o desde
-##     camuflaje — que igual se corta solo al atacar, ver CamuflajeComponente):
-##     NO se convierte en un objetivo fantasma que el mob persigue a ciegas
-##     sin haberlo visto — eso sería "detectarlo" a cualquier distancia con
-##     solo golpearlo una vez. En cambio, deja un aviso de "ruido" que sesga
-##     el PRÓXIMO paso de AccionDeambular hacia esa dirección (ver
-##     AccionDeambular._elegir_destino), acotado igual al radio de
-##     deambulación normal del mob — se ve como si fuera a mirar hacia
-##     donde vino el golpe, sin que eso equivalga a detectar a esa
-##     distancia. Pedido explícito del usuario: antes un golpe desde fuera
-##     de la visión no generaba ninguna reacción, y eso volvía gratis
-##     pegarle a un mob desde fuera de su rango de detección.
+## Reacción a un golpe de alguien que NO es el objetivo actual, según si el mob
+## lo tiene detectado (con visión real) en este instante:
+##   - Detectado: pasa a ser el objetivo al instante.
+##   - NO detectado (a distancia, detrás de un obstáculo o desde camuflaje):
+##     no se vuelve un objetivo que el mob persigue a ciegas (eso sería
+##     "detectarlo" a cualquier distancia con un solo golpe). Deja un aviso de
+##     "ruido" que sesga el PRÓXIMO paso de AccionDeambular hacia esa dirección
+##     (ver AccionDeambular._elegir_destino), acotado al radio de deambulación:
+##     va a mirar de dónde vino el golpe. Así pegarle desde fuera de su visión
+##     no es gratis.
 func _priorizar_atacante(fuente: Node) -> void:
 	if not is_instance_valid(fuente) or fuente == self or not (fuente is Node2D):
 		return
@@ -566,25 +492,19 @@ func _on_vida_cambiada(nuevo_valor: float) -> void:
 	memoria.establecer("vida", nuevo_valor)
 
 
-## El daño ya lo aplica la propia habilidad internamente — aquí solo
-## notificamos al BT. Nombre heredado de cuando solo lo conectaba el
-## arañazo (ver _ready() de EnemigoLobo/EnemigoCaballeroEsqueleto, que la
-## siguen cableando a SU HabilidadArañazo.habilidad_activada) — la lógica
-## en sí no tiene nada de arañazo específico, por eso vive acá compartida
-## en vez de repetida en cada subclase que la usa.
+## El daño ya lo aplica la propia habilidad: acá solo se notifica al BT. El
+## nombre viene de cuando solo lo conectaba el arañazo (EnemigoLobo y
+## EnemigoCaballeroEsqueleto lo siguen cableando a su
+## HabilidadArañazo.habilidad_activada), pero la lógica es genérica.
 func _on_arañazo_activado(_habilidad: HabilidadBase) -> void:
 	componente_animacion.establecer_condicion("parameters/conditions/debeIdle", true)
 	memoria.establecer("habilidad_lanzada", true)
 
 
-## En el cliente REAL (a diferencia del servidor/single-player, donde esto
-## dispara al instante desde la propia habilidad) esta señal solo llega acá
-## cuando VidaComponente._recibir_vida_red() confirma el daño replicado por
-## el servidor — no antes. Por eso alcanza con este único chequeo para
-## cumplir las dos condiciones pedidas: "esperar la confirmación real" Y
-## "que sea mi propio golpe" (ver _es_mi_propio_golpe) — ambas ya vienen
-## resueltas por cómo funciona esta señal, sin tocar Proyectil/Arañazo/
-## HabilidadCarga/Combate para nada.
+## En un cliente, esta señal solo llega cuando VidaComponente._recibir_vida_red()
+## confirma el daño replicado por el servidor. Por eso, con este único chequeo,
+## el parpadeo espera la confirmación real y es solo para el propio golpe (ver
+## _es_mi_propio_golpe).
 func _on_daño_aplicado(objetivo: Node, _cantidad: float, fuente: Node, _tipo: int = 2, _critico: bool = false) -> void:
 	if objetivo == self:
 		_ultimo_atacante = fuente
@@ -593,10 +513,9 @@ func _on_daño_aplicado(objetivo: Node, _cantidad: float, fuente: Node, _tipo: i
 		_priorizar_atacante(fuente)
 
 
-## true si "fuente" es el jugador que controla ESTE cliente — el parpadeo
-## de abajo es local a propósito (pedido del usuario: feedback de "mi
-## golpe conectó" sin confundirse con los golpes de otros jugadores). Sin
-## red (un solo jugador) cualquier golpe es siempre "propio".
+## true si "fuente" es el jugador que controla ESTE cliente: el parpadeo es
+## feedback local de "mi golpe conectó", sin confundirse con los golpes de
+## otros jugadores. Sin red, cualquier golpe es "propio".
 func _es_mi_propio_golpe(fuente: Node) -> bool:
 	if not is_instance_valid(fuente):
 		return false
@@ -607,11 +526,9 @@ func _es_mi_propio_golpe(fuente: Node) -> bool:
 	return fuente.peer_id_dueño == multiplayer.get_unique_id()
 
 
-## Un solo parpadeo (pedido del usuario — antes eran varios seguidos, ver
-## el mismo cambio en Jugador.gd). Mata cualquier tween anterior antes de
-## arrancar uno nuevo: con golpes más frecuentes que la duración del
-## parpadeo, dos tweens vivos a la vez se pelean por el mismo modulate y
-## el sprite queda trabado en rojo en vez de volver a blanco.
+## Un solo parpadeo. Mata el tween anterior antes de arrancar otro: con golpes
+## más seguidos que el parpadeo, dos tweens se pelean el modulate y el sprite
+## queda trabado en rojo.
 func parpadear(duracion: float = 0.1) -> void:
 	if not sprite:
 		return
@@ -623,10 +540,8 @@ func parpadear(duracion: float = 0.1) -> void:
 	_tween_parpadeo.tween_property(sprite, "modulate", Color.WHITE, duracion)
 
 
-## Getter público — mismo criterio que ObjetoRecolectable.esta_agotado():
-## _muerto en sí es privado, pero quien necesita saber "¿este mob sigue
-## vivo?" desde AFUERA (ej. Cazador._presa_mas_cercana()) no debería tocar
-## el campo directo.
+## Getter público: quien necesita saber desde AFUERA si el mob sigue vivo (p.
+## ej. Cazador._presa_mas_cercana()) no debería tocar _muerto directo.
 func esta_muerto() -> bool:
 	return _muerto
 
@@ -642,10 +557,8 @@ func _on_muerte(_valor: float) -> void:
 	if componente_movimiento:
 		componente_movimiento.detener()
 	# El golpe que mata llega desde un callback de física (area_entered /
-	# body_entered de Proyectil, Arañazo, GolpeBasico, AreaEfecto...). Repartir
-	# botín, sumar XP e instanciar filas de notificación en ese mismo stack
-	# se sintió como un tirón notable en Android — se difiere un fotograma
-	# (call_deferred) para que ese trabajo corra fuera del paso de física.
+	# body_entered). Repartir botín, sumar XP e instanciar notificaciones en ese
+	# mismo stack da un tirón notable en Android: se difiere un fotograma.
 	call_deferred("_procesar_muerte")
 
 
@@ -715,15 +628,12 @@ func _otorgar_xp_a(entidad: Node, cantidad: int) -> void:
 			confirmaciones.rpc_id(dueño, "_recibir_xp_red", cantidad)
 
 
-## Feature C del plan MMO ("grupos"): reparte "cantidad" de XP COMPLETA (sin
-## dividir — principio "sin roles, no depender de otro", ver memoria
-## sin-roles-supervivencia-solo) a cada compañero de grupo de
-## _ultimo_atacante que esté dentro de RADIO_PARTICIPACION_GRUPO_XP del
-## punto donde murió el mob — más chico que InteresEspacial.RADIO_INTERES a
-## propósito: "estaba participando del combate", no solo "conectado en el
-## mismo mapa". _ultimo_atacante ya recibió la suya en _otorgar_xp de
-## arriba, por eso se salta acá. Sin grupo, esto no hace nada — mismo
-## comportamiento de siempre.
+## Grupos: reparte la XP COMPLETA (sin dividir: nadie debe depender de otro
+## para progresar) a cada compañero de grupo de _ultimo_atacante que esté a
+## RADIO_PARTICIPACION_GRUPO_XP del punto donde murió el mob. Más chico que
+## InteresEspacial.RADIO_INTERES a propósito: "participó del combate", no solo
+## "estaba en el mapa". _ultimo_atacante ya recibió la suya en _otorgar_xp, por
+## eso se salta. Sin grupo no hace nada.
 const RADIO_PARTICIPACION_GRUPO_XP := 600.0
 
 func _repartir_xp_de_grupo(cantidad: int) -> void:
@@ -770,27 +680,10 @@ func _peer_dueño_del_atacante() -> int:
 	return _peer_dueño_de(_ultimo_atacante)
 
 
-## Hace desaparecer el cuerpo (queda en idle, se pone negro y luego se
-## desvanece) y lo libera de verdad.
-## NO se recicla (sin object pooling): un mob arrastra demasiado estado
-## propio (memoria del árbol de comportamiento, agente de navegación,
-## áreas de visión, cooldowns de habilidades) para reutilizarlo con
-## garantías, y muere pocas veces por partida — a diferencia de un
-## proyectil o un número de daño (ver GestorPiscinas), el coste de crear
-## uno nuevo la próxima vez es insignificante.
-##
-## Quien necesite saber "este mob ya no existe" (p. ej. SpawnerMobs, para
-## liberar un hueco) puede escuchar la señal nativa `tree_exiting`, que
-## dispara justo cuando queue_free() lo retira de verdad — no hace falta
-## una señal propia.
-## Apaga la colisión del cuerpo Y de cualquier VidaComponente hijo (un
-## Area2D con capas/máscara PROPIAS, independientes del cuerpo — zerar solo
-## las del CharacterBody2D no alcanza). En mobs cuyo VidaComponente lleva
-## forma de colisión real (Araña, Ratón — a diferencia de Lobo/Caballero,
-## que detectan golpes solo por el cuerpo), sin esto el cadáver seguía
-## siendo "golpeable" por esa área durante todo el fundido de 0.4s,
-## consumiendo proyectiles/dashes del jugador contra un mob ya muerto
-## (reportado: "aun chocan con las habilidades del jugador").
+## Apaga la colisión del cuerpo Y la de su VidaComponente (un Area2D con capas
+## propias): en mobs cuyo VidaComponente lleva forma de colisión (Araña,
+## Ratón), el cadáver seguía consumiendo proyectiles y dashes del jugador
+## durante el fundido.
 func _apagar_colision_de_muerto() -> void:
 	set_deferred("collision_layer", 0)
 	set_deferred("collision_mask", 0)
@@ -801,6 +694,11 @@ func _apagar_colision_de_muerto() -> void:
 		componente_vida.set_deferred("monitoring", false)
 
 
+## Hace desaparecer el cuerpo (queda en reposo, se pone negro y se desvanece)
+## y lo libera. No se recicla: un mob arrastra demasiado estado propio (memoria
+## del árbol, agente de navegación, visión, cooldowns) para reutilizarlo con
+## garantías, y crear uno nuevo es barato. Para enterarse de que ya no existe
+## (p. ej. SpawnerMobs), alcanza con la señal nativa `tree_exiting`.
 func _desvanecer_y_eliminar() -> void:
 	# Diferido: _on_muerte() puede llegar desde dentro de un callback de
 	# física (un golpe cuerpo a cuerpo), donde cambiar capas de colisión
@@ -816,14 +714,10 @@ func _desvanecer_y_eliminar() -> void:
 		# override tiene el AnimationTree apagado: cancelarla primero o las
 		# condiciones de abajo no tendrían ningún efecto.
 		componente_animacion.cancelar_override()
-		# Fijar el blend en la última dirección mirada ANTES de que
-		# _physics_process (que la actualizaba cada frame) se apague, para
-		# que el idle quede mirando hacia donde miraba, quieto. MISMO criterio
-		# que _aplicar_presentacion (no "direccion" a secas): un mob que
-		# muere en combate suele estar mirando al jugador vía
-		# direccion_mirada (AccionAtacar), no hacia donde caminó por última
-		# vez — usar solo "direccion" giraba el cadáver hacia un lado
-		# random al morir (reportado con la araña).
+		# Fijar el blend en la última dirección mirada ANTES de apagar
+		# _physics_process, para que el reposo quede orientado. Mismo criterio que
+		# _aplicar_presentacion: direccion_mirada primero (en combate suele estar
+		# mirando al jugador), "direccion" como respaldo.
 		var hacia_donde_mirar := direccion_mirada if direccion_mirada != Vector2.ZERO else direccion
 		componente_animacion.actualizar_blend(hacia_donde_mirar)
 		componente_animacion.establecer_condicion("parameters/conditions/debeCaminar", false)
@@ -847,9 +741,9 @@ func desvanecer_replica() -> void:
 	_apagar_colision_de_muerto()
 	if componente_animacion:
 		# Mismo motivo que en _desvanecer_y_eliminar(): fijar el idle ANTES
-		# de apagar _physics_process, o el cliente ve el desvanecido
-		# congelado a mitad de la animación que estuviera corriendo
-		# (caminar, ataque) en vez de quieto en reposo.
+		# Mismo motivo que en _desvanecer_y_eliminar(): fijar el reposo ANTES
+		# de apagar _physics_process, o el desvanecido se congela a mitad de la
+		# animación que estuviera corriendo.
 		componente_animacion.cancelar_override()
 		# Mismo criterio que _desvanecer_y_eliminar(): direccion_mirada
 		# primero (mirando al jugador en combate), direccion como respaldo.
@@ -880,13 +774,11 @@ func _on_memoria_variable_cambiada(nombre: String, _anterior, _nuevo) -> void:
 			memoria.establecer("jugador_detectado", true)
 
 
-## "Respiro" telegrafiado al cambiar de fase de un jefe multi-fase: apaga
-## el árbol de comportamiento, frena el movimiento, fuerza la animación de
-## reposo — y tras "duracion" segundos, si el jefe sigue vivo y en el
-## árbol, reactiva el árbol y llama a "al_reanudar" con lo que haga falta
-## agregar (habilidades nuevas, refuerzos, etc.). Compartido por los jefes
-## con fases (EnemigoJefeEsqueleto, EnemigoArañaReina) — antes cada uno
-## tenía su propia copia casi idéntica de este mismo patrón.
+## "Respiro" telegrafiado al cambiar de fase de un jefe: apaga el árbol de
+## comportamiento, frena el movimiento y fuerza el reposo; tras "duracion"
+## segundos, si el jefe sigue vivo y en el árbol, reactiva el árbol y llama a
+## "al_reanudar" (habilidades nuevas, refuerzos, etc.). Compartido por los
+## jefes con fases.
 func _telegrafiar_pausa_de_fase(duracion: float, al_reanudar: Callable) -> void:
 	var arbol := get_node_or_null("ArbolComportamiento") as ArbolComportamiento
 	if arbol:
@@ -904,15 +796,12 @@ func _telegrafiar_pausa_de_fase(duracion: float, al_reanudar: Callable) -> void:
 		al_reanudar.call())
 
 
-## Reacciona a una "Llamada de Auxilio" (ver HabilidadLlamadaAuxilio.gd, la
-## habilidad de la Reina de las Hormigas): deja lo que esté haciendo y viaja
-## directo a "destino", ignorando cualquier jugador en el camino. Vive ACÁ
-## (no en un mob concreto) porque cualquier tipo de mob —obrera, soldado, o
-## el que venga— tiene que poder responder igual, sin código nuevo por
-## especie. Solo pone banderas en la memoria compartida: quien de verdad
-## mueve al mob es la rama "ResponderLlamada" (Secuencia + CondicionMemoria +
-## AccionIrAPunto) que cada .tscn de hormiga trae como PRIMER hijo de su
-## Selector — máxima prioridad, por encima de huir/atacar/perseguir/deambular.
+## Reacciona a una "Llamada de Auxilio" (ver HabilidadLlamadaAuxilio.gd): deja
+## lo que esté haciendo y viaja directo a "destino", ignorando jugadores en el
+## camino. Vive en la base para que cualquier mob pueda responder sin código
+## propio. Solo pone banderas en la memoria: lo mueve la rama
+## "ResponderLlamada" (Secuencia + CondicionMemoria + AccionIrAPunto), que cada
+## .tscn que responde trae como PRIMER hijo de su Selector (máxima prioridad).
 func responder_llamada_auxilio(destino: Vector2) -> void:
 	if _muerto or memoria == null:
 		return
@@ -929,14 +818,10 @@ func _aplicar_datos() -> void:
 		return
 	if componente_vida:
 		componente_vida.salud_maxima = datos.vida_maxima
-		# VidaComponente._ready() (un HIJO — corre ANTES que este _ready() del
-		# padre) ya fijó salud_actual = salud_maxima usando el valor por
-		# DEFECTO del export (100.0), antes de que datos.vida_maxima pisara
-		# salud_maxima acá arriba — sin este restaurar_vida(), un mob con
-		# vida_maxima distinta de 100 (Caballero=150, Tanque=250, Rápido=60,
-		# cualquier boss) arrancaba con la vida real vieja (100) aunque la
-		# barra mostrara el máximo correcto. Bug real, no solo del jefe —
-		# encontrado al armar uno con vida_maxima=400 (moría de 30 de golpe).
+		# VidaComponente._ready() (un HIJO, corre ANTES que este _ready()) ya fijó
+		# salud_actual con el valor por defecto del export (100). Sin este
+		# restaurar_vida(), un mob con otra vida_maxima arrancaba con 100 de vida
+		# real aunque la barra mostrara el máximo correcto.
 		componente_vida.restaurar_vida(datos.vida_maxima)
 	if componente_movimiento:
 		componente_movimiento.velocidad_base = datos.velocidad_base
@@ -951,8 +836,7 @@ func _aplicar_datos() -> void:
 	if comp_atributos and comp_atributos.base:
 		comp_atributos.base.regeneracion_energia = datos.regeneracion_energia
 		# También en la copia "de fábrica": recalcular_con_equipo() parte de
-		# ella — sin esto, cualquier recálculo revertiría el valor de la
-		# plantilla (los mobs hoy no equipan nada, pero mejor no dejar la mina).
+		# ella, y sin esto cualquier recálculo revertiría el valor de la plantilla.
 		if comp_atributos._base_sin_equipo:
 			comp_atributos._base_sin_equipo.regeneracion_energia = datos.regeneracion_energia
 	var spr := get_node_or_null("Sprite2D") as Sprite2D
@@ -960,20 +844,13 @@ func _aplicar_datos() -> void:
 		spr.modulate = datos.color
 
 
-## Sin "datos" (p. ej. un aliado invocado por el jugador) no se dibuja
-## NADA, ni nombre ni íconos de estado — mismo criterio que tenía antes
-## BarraVidaEnergiaComponente.
+## Sin "datos" (p. ej. un aliado invocado) no se dibuja NADA, ni nombre ni
+## íconos de estado.
 ##
-## CON datos, en cambio, _nodo_nombre (la superficie de dibujo compartida)
-## se crea SIEMPRE, aunque mostrar_nombre sea false — jefes con su propio
-## cartel dedicado (NombreJefe, ver EnemigoReinaHormigas y los otros 4
-## jefes con este mismo `mostrar_nombre = false`). Antes, mostrar_nombre
-## en false cortaba esta función ACÁ MISMO, así que _nodo_nombre nunca se
-## creaba — y sin él, ni _intentar_conectar_buffs_estado() ni _dibujar_
-## iconos_estado_mob() se llamaban jamás: NINGÚN jefe del juego podía
-## mostrar NUNCA ningún debuff (reportado en juego real, 20 sep 2026:
-## "en la reina no se le ve ninguno, ni veneno, ni cepo, nada" — no es un
-## bug puntual del Cepo, afecta a los 5 jefes que usan este patrón).
+## CON datos, _nodo_nombre (la superficie de dibujo compartida) se crea
+## SIEMPRE, aunque mostrar_nombre sea false (los jefes con cartel propio,
+## NombreJefe): sin ese nodo no se dibujan los íconos de estado, y los jefes
+## nunca mostrarían sus debuffs.
 func _crear_nombre_mob() -> void:
 	if datos == null:
 		return
@@ -989,10 +866,8 @@ func _crear_nombre_mob() -> void:
 	add_child(_nodo_nombre)
 	if _texto_nombre != "":
 		_nodo_nombre.draw.connect(_dibujar_nombre_mob)
-	# Los íconos de estado usan el MISMO nodo/draw que el nombre (no uno
-	# aparte): así quedan garantizados en el mismo orden de dibujo, encima
-	# del sprite, sin duplicar la lógica de "quedar último en el árbol" de
-	# arriba.
+	# Los íconos de estado usan el MISMO nodo y draw que el nombre: quedan en el
+	# mismo orden de dibujo, encima del sprite.
 	_nodo_nombre.draw.connect(_dibujar_iconos_estado_mob)
 	_nodo_nombre.queue_redraw()
 	_intentar_conectar_buffs_estado()
@@ -1034,12 +909,9 @@ func _al_cambiar_buffs_estado(_id: String) -> void:
 
 
 ## Y local (dentro de NombreMob) donde se apoya la fila de íconos. El texto
-## crece hacia arriba desde su línea base en y=0 (ver _dibujar_nombre_mob),
-## así que la fila va más arriba todavía: por eso resta la altura REAL de
-## la fuente (no un número fijo), y sigue quedando bien despegada del texto
-## aunque cambie tamano_fuente_nombre. Función aparte (no inline en el
-## _draw) para que se pueda verificar por fuera que el resultado da negativo
-## de verdad — "arriba del nombre" en los hechos, no solo en la intención.
+## crece hacia arriba desde su línea base en y=0 (ver _dibujar_nombre_mob), así
+## que se resta la altura REAL de la fuente, no un número fijo. Función aparte
+## para poder verificar desde afuera que da negativo (arriba del nombre).
 func _altura_iconos_estado() -> float:
 	var altura_texto := _FUENTE_NOMBRE.get_height(tamano_fuente_nombre)
 	return -(altura_texto + margen_iconos_estado + tamano_icono_estado)

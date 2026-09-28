@@ -4,25 +4,18 @@
 
 extends CharacterBody2D
 
-# --- Referencias de Componentes ---
-# Estos componentes deben estar adjuntos como nodos hijos de este jugador y deben existir
-# en la escena de Godot. El usuario debe arrastrar las referencias aquí en el Inspector.
+# --- Referencias de componentes (se asignan en el Inspector) ---
 @export var componente_vida: VidaComponente # Componente de vida.
 @export var componente_movimiento: MovimientoComponente # Componente de movimiento.
-#@export var arbol_comportamiento: ArbolComportamiento # Referencia principal del sistema de IA.
 
 # --- Variables de estado ---
 var componentes_de_acciones: Dictionary = {}
 var _vida_anterior: float = 0.0
 var direccion: Vector2
-## Dirección hacia la que apuntó la última habilidad direccional lanzada —
-## tiene prioridad sobre la dirección de movimiento para orientar el sprite
-## (mismo patrón que Enemigo.direccion_mirada): lanzar una habilidad hacia
-## un lado debe girar al personaje hacia ahí, aunque en ese instante siga
-## caminando hacia otro (reportado: "el personaje no cambia su dirección
-## hacia donde lanzó la habilidad"). Pulso de un solo fotograma — ver
-## _aplicar_presentacion, que la consume y la limpia enseguida; lo que
-## persiste después es _ultima_direccion, ya actualizada con este valor.
+## Dirección de la última habilidad direccional lanzada: tiene prioridad sobre
+## la de movimiento para orientar el sprite (lanzar hacia un lado gira al
+## personaje aunque siga caminando hacia otro). Pulso de un fotograma: lo
+## consume _aplicar_presentacion, y lo que persiste es _ultima_direccion.
 var direccion_mirada: Vector2 = Vector2.ZERO
 
 @onready var sprite: Sprite2D = $Sprite2D
@@ -40,28 +33,20 @@ var _ultima_direccion: Vector2 = Vector2.RIGHT
 ## hay velocity local propio para consultar. Mismo criterio que Enemigo.gd.
 var _posicion_render_anterior: Vector2 = Vector2.ZERO
 ## Desplazamiento mínimo por fotograma físico para considerarse "caminando"
-## en esa réplica (mismo valor que Enemigo.gd — ver ese archivo para el
-## razonamiento completo: más bajo que cualquier velocidad real, incluso
-## ralentizado).
+## en esa réplica (mismo valor que Enemigo.gd).
 const _UMBRAL_CAMINANDO_RED := 0.1
 
 # ── Muerte / reaparición ─────────────────────────────────────────────────────
 ## Segundos entre morir y reaparecer en el punto de aparición del nivel.
 const TIEMPO_REAPARICION := 5.0
-## Invulnerabilidad al APARECER (conectarse, cambiar de nivel, reaparecer
-## tras morir) — reportado: "al iniciar la conexion al servidor y cargar al
-## jugador recibe daño pero nunca se de que es". El cuerpo ya existe y es
-## atacable en el servidor mientras el cliente todavía está cargando el
-## nivel y fundiendo desde negro, así que los mobs que quedaron cerca del
-## punto de aparición pegan sin que se llegue a ver de dónde vino. Cubre
-## esa ventana con margen (el fundido de GestorNiveles dura 0.3s por lado,
-## más lo que tarde el celular en asentarse).
+## Invulnerabilidad al APARECER (conectarse, cambiar de nivel, reaparecer).
+## El cuerpo ya es atacable en el servidor mientras el cliente todavía carga
+## el nivel y funde desde negro; esto cubre esa ventana con margen (el fundido
+## de GestorNiveles dura 0.3 s por lado, más lo que tarde el celular).
 const TIEMPO_INVULNERABILIDAD_APARICION := 3.0
-## Invulnerabilidad al REVIVIR tras morir — más larga que la de aparición:
-## acá SÍ hay mobs reales y ya identificados alrededor (los que mataron al
-## jugador), no la incertidumbre de un cliente recién cargando. Pedido del
-## usuario: 5 segundos, sin poder ser objetivo de ningún mob mientras dura
-## (ver VisionComponente._intentar_registrar).
+## Invulnerabilidad al REVIVIR: más larga que la de aparición, porque se revive
+## donde pueden seguir los mobs que lo mataron. Mientras dura, ningún mob puede
+## tomarlo de objetivo (ver VisionComponente._intentar_registrar).
 const TIEMPO_INVULNERABILIDAD_REVIVIR := 5.0
 var _muerto := false
 ## Colisiones originales, para restaurarlas al revivir (se apagan al morir
@@ -71,123 +56,84 @@ var _capa_colision_original: int = 0
 var _mascara_colision_original: int = 0
 
 @export_group("Íconos de estado")
-## Fila de íconos (veneno, lentitud, aturdido...) ENCIMA del jugador — mismo
-## criterio visual que Enemigo._dibujar_iconos_estado_mob. Pedido del
-## usuario: a veces no se daba cuenta de estar aturdido hasta mirar
-## BarraBuffs (la fila fija de la esquina) y lo confundía con lag — esto
-## vive EN EL MUNDO, pegado al propio personaje (y visible para cualquiera
-## que lo mire, réplicas incluidas), así que se nota de un vistazo sin
-## desviar la mirada a la esquina.
+## Fila de íconos de estado (veneno, lentitud, aturdido...) ENCIMA del
+## jugador, visible para cualquiera que lo mire (réplicas incluidas): el
+## aturdimiento se nota sin tener que mirar BarraBuffs en la esquina. Mismo
+## criterio visual que Enemigo._dibujar_iconos_estado_mob.
 @export var tamano_icono_estado: float = 16.0
 @export var separacion_iconos_estado: float = 3.0
-## Separación entre el borde superior REAL del sprite (calculado, ver
-## _altura_iconos_estado) y el borde inferior de la fila de íconos — mismo
-## criterio que Enemigo.margen_iconos_estado. Antes esto era un número Y
-## fijo a ojo (altura_iconos_estado=-50.0): se quedó desactualizado la
-## primera vez que el sprite cambió de escala (perdió su scale=0.75 al
-## arreglar el pixel art) y los íconos pasaron a dibujarse ADENTRO del
-## sprite en vez de arriba — regresión real, la agarró
-## prueba_iconos_estado_jugador.
+## Separación entre el borde superior REAL del sprite y la fila de íconos. El
+## borde se calcula (ver _altura_iconos_estado) en vez de fijar un Y a ojo, que
+## queda mal apenas cambia la escala del sprite. Mismo criterio que
+## Enemigo.margen_iconos_estado; lo vigila prueba_iconos_estado_jugador.
 @export var margen_iconos_estado: float = 4.0
 const _COLOR_CONTORNO_ICONOS_ESTADO := Color(0.0, 0.0, 0.0, 0.9)
 
 var _nodo_iconos_estado: Node2D = null
-## BuffsComponente puede no existir todavía cuando el jugador arranca (recién
-## se crea con el PRIMER debuff, ver EfectoVeneno/EfectoAturdir._anotar_
-## icono) — mismo criterio de reintento que ya usan Enemigo.gd y BarraBuffs.gd
-## para el mismo problema.
+## BuffsComponente recién se crea con el PRIMER debuff (ver EfectoVeneno/
+## EfectoAturdir._anotar_icono), así que se reintenta encontrarlo (mismo
+## criterio que Enemigo.gd y BarraBuffs.gd).
 var _buffs_estado: BuffsComponente = null
 var _buffs_activos_estado: Array[String] = []
 const _INTERVALO_REINTENTO_BUFFS_ESTADO := 0.5
 var _acumulador_reintento_buffs_estado := 0.0
 
-## Fase 2 del plan de multijugador: si esto corre bajo un MultiplayerPeer de
-## red real (ENet, no el OfflineMultiplayerPeer que Godot asigna por
-## defecto — ver Utils.en_red()), el nombre del nodo ES el peer id dueño (lo
-## asigna quien lo spawnea — ver prototipos/red/Servidor.gd). Sin red real
-## (el juego de un jugador de siempre, incluidas TODAS las pruebas
-## existentes), nada de esto entra en juego — el comportamiento es
-## exactamente el de antes.
+## En red real (ENet, no el OfflineMultiplayerPeer por defecto; ver
+## Utils.en_red()) el nombre del nodo ES el peer id dueño, que asigna quien lo
+## spawnea. Sin red (un jugador, y todas las pruebas) queda en -1.
 var peer_id_dueño: int = -1
 
-## Nombre para mostrar en logs/UI (el nombre de nodo NO sirve para eso: en
-## red es el peer id, un número pelado). El dueño se lo manda al servidor al
-## aparecer (_registrar_identidad_red) y de ahí viaja a todos los peers por
-## el mismo MultiplayerSynchronizer que ya replica la posición. Leerlo
-## siempre vía Utils.nombre_visible(nodo), que cae al nombre de nodo si está
-## vacío. PUEDE repetirse entre jugadores sin problema — es solo estético.
+## Nombre para mostrar en logs/UI (en red, el nombre de nodo es el peer id). El
+## dueño lo manda al servidor al aparecer (_registrar_identidad_red) y de ahí
+## se replica por el MultiplayerSynchronizer. Leerlo con
+## Utils.nombre_visible(nodo), que cae al nombre de nodo si está vacío. Puede
+## repetirse entre jugadores: es solo estético.
 ##
-## Cartel de nombre sobre el personaje (nodo real "EtiquetaNombre", ver
-## Jugador.tscn — mismo patrón que "NombreJefe" en EnemigoGuardianQuebrado):
-## el setter lo mantiene sincronizado en cada asignación, tanto la local
-## (_ready) como la que llega por replicación del MultiplayerSynchronizer.
-## Guardado con is_instance_valid() porque la replicación puede llegar antes
-## de que el @onready de _etiqueta_nombre esté resuelto — para ese caso,
-## _ready() vuelve a copiar el valor ya recibido una vez que el Label existe.
+## El setter mantiene sincronizado el cartel "EtiquetaNombre". La replicación
+## puede llegar antes de que el @onready exista; para ese caso, _ready() vuelve
+## a copiar el valor.
 var nombre_visible: String = "":
 	set(valor):
 		nombre_visible = valor
 		if is_instance_valid(_etiqueta_nombre):
 			_etiqueta_nombre.text = valor
 
-## Fase 0 del plan de escalado a MMO: identidad ÚNICA y persistente del
-## dueño (ver Utils.id_jugador_local — un UUID guardado en su disco, NO el
-## nombre de Windows). El SERVIDOR la usa como clave real para encontrar/
-## guardar la partida de este jugador (ver GestorGuardado) — nombre_visible
-## NUNCA debe usarse para eso, dos jugadores con el mismo nombre de Windows
-## ("Usuario", "Admin"...) compartirían sin querer la misma partida.
-## No se muestra nunca en pantalla, solo viaja al servidor.
+## Identidad ÚNICA y persistente del dueño (Utils.id_jugador_local, un UUID
+## guardado en su disco, o la de su cuenta si entra con PIN). El servidor la
+## usa como clave de la partida (ver GestorGuardado); nombre_visible NUNCA
+## sirve para eso, porque dos jugadores pueden llamarse igual. No se muestra ni
+## se replica.
 var id_unico: String = ""
 
-## Fase 6 del plan de multijugador: lo que se replica NO es global_position
-## directo — es esta variable. Así el cliente puede suavizar el movimiento
-## (interpolar hacia acá cada fotograma en vez de saltar de golpe a cada
-## actualización de red, que llega más espaciada que los fotogramas de
-## render) sin pelearse con el valor recién llegado. El servidor la
-## mantiene igual a global_position en todo momento (ver _physics_process).
+## Lo que se replica no es global_position directo sino esta variable: así el
+## cliente interpola hacia acá cada fotograma sin pelearse con el valor recién
+## llegado. El servidor la mantiene igual a global_position (ver
+## _physics_process).
 var _posicion_replicada: Vector2 = Vector2.ZERO
-## Red de seguridad final contra quedar trabado en geometría del mapa
-## (esquinas del Hormiguero, ver bug-hormiguero-escalon-concavo-tunel y
-## bug-parpadeo-rayo-vs-forma-real) — reportado en juego real (20 sep
-## 2026): tras arreglar el escalón cóncavo de las salas, insistir mucho
-## con Parpadeo/Carga contra la MISMA esquina todavía podía dejar al
-## jugador incrustado (caso límite geométrico cada vez más raro, pero no
-## imposible de reproducir a propósito).
+## Red de seguridad contra quedar trabado en la geometría del mapa (p. ej.
+## insistiendo con Parpadeo o Carga contra la misma esquina). Dispara solo si
+## el CUERPO está de verdad incrustado en la pared, chequeado con una versión
+## achicada de la propia forma (ver _esta_incrustado_en_pared): "no avanza
+## aunque quiera moverse" no alcanza, porque eso también es alguien empujando
+## una pared a propósito.
 ##
-## OJO: la primera versión de esto disparaba con solo "no avanza aunque
-## quiera moverse" — eso también describe a un jugador parado a propósito
-## empujando contra una pared normal (nada raro, pasa todo el tiempo), así
-## que hubiera reubicado gente sin ningún bug de por medio. La condición
-## real tiene que ser que el CUERPO esté genuinamente INCRUSTADO en la
-## pared (solapado de verdad, no solo en contacto) — eso nunca pasa en
-## juego normal, solo en el caso límite del bug. Se chequea con una
-## versión ACHICADA de la propia forma (ver _esta_incrustado_en_pared):
-## tocar una pared de refilón no cuenta, solo un solape de verdad.
-##
-## Solo corre donde vive la posición AUTORITATIVA (servidor o un jugador
-## sin red, ver _physics_process) — el cliente dueño solo predice, así
-## que "destrabarlo" ahí se pisaría con la próxima reconciliación.
+## Solo corre donde vive la posición autoritativa (servidor o sin red): el
+## cliente dueño solo predice, y "destrabarlo" ahí lo pisaría la próxima
+## reconciliación.
 var _tiempo_incrustado_atasco: float = 0.0
 const _ATASCO_TIEMPO_UMBRAL := 0.5
 ## Cuánto se achica la forma real al chequear solape -- un contacto normal
 ## contra una pared (tocando, sin penetrar) no debe contar como atascado.
 const _ATASCO_MARGEN_ACHIQUE := 3.0
-## Segunda red, más paciente, para el caso que NO llega a ser un solape
-## real (ver _esta_incrustado_en_pared) pero igual deja al jugador sin
-## poder avanzar -- p. ej. move_and_slide() resolviendo a ~0 de
-## desplazamiento neto contra una esquina rara, sin llegar a "incrustado"
-## de verdad. Pedido explícito del usuario (20 sep 2026): si hay
-## intención real de moverse Y NO está bajo un estado alterado que lo
-## inmovilice a propósito (Cepo, aturdido, etc. -- ver componente_
-## movimiento._contador_inmovilizacion) pero la posición casi no cambia
-## durante un rato, forzar el movimiento en la dirección que está pidiendo
-## antes de recurrir a reubicarlo en cualquier lado (ver
-## _intentar_forzar_movimiento/_intentar_destrabar). Umbral más largo que
-## el de arriba (2s en vez de 0.5s) a propósito: es una señal menos
-## certera que un solape real, así que conviene ser más paciente antes de
-## actuar -- total, alguien parado a propósito contra una pared normal
-## como mucho recibe un empujoncito chico hacia el costado, no un salto
-## grande (ver _intentar_destrabar, que busca el hueco libre MÁS CERCA).
+## Segunda red, más paciente, para cuando no llega a haber solape real pero el
+## jugador igual no avanza (move_and_slide resolviendo ~0 contra una esquina
+## rara): si pide moverse, no está inmovilizado a propósito (Cepo, aturdido;
+## ver componente_movimiento._contador_inmovilizacion) y casi no se movió en
+## 2 s, se fuerza el movimiento en la dirección pedida
+## (_intentar_forzar_movimiento) y, si no hay camino, se lo reubica en el hueco
+## libre más cercano (_intentar_destrabar). Umbral más largo que el de arriba
+## porque la señal es menos certera; a alguien parado contra una pared normal
+## como mucho le toca un empujón chico.
 var _tiempo_sin_avanzar_atasco: float = 0.0
 var _posicion_referencia_sin_avanzar: Vector2 = Vector2.ZERO
 const _ATASCO_SIN_AVANZAR_TIEMPO_UMBRAL := 2.0
@@ -200,33 +146,27 @@ const _ATASCO_DISTANCIA_FORZAR := 48.0
 ## "pegado" a la red pero más notorio el salto; más bajo = más suave pero
 ## más "elástico"). 1/seg ≈ alcanza el 63% de la distancia cada segundo.
 const VELOCIDAD_INTERPOLACION_RED := 12.0
-## Por debajo de esta distancia (px) entre la posición predicha localmente y
-## el último eco del servidor, NO se corrige nada — ver el uso en
-## _physics_process. Sin este margen, corregir hasta el último píxel de
-## ruido normal de red se sentía como vibración al moverse.
+## Por debajo de esta distancia (px) entre la predicción local y el último eco
+## del servidor no se corrige nada: corregir el ruido normal de red se siente
+## como vibración al moverse.
 const _UMBRAL_RECONCILIACION := 4.0
 ## Segundos que quedan de "copiar la posición del servidor tal cual, sin
 ## suavizar" — ver el uso en _physics_process y sincronizar_posicion_dura().
 var _sincronizacion_dura := 0.0
 
-## Llegada a un nivel nuevo: segundos que el jugador queda quieto y sin poder
-## lanzar habilidades (ver bloquear_por_transicion). Acompaña a la
-## invulnerabilidad del mismo largo, así el rato en que no podés defenderte
-## es exactamente el mismo en que no te pueden pegar.
+## Llegada a un nivel nuevo: segundos que el jugador queda quieto y sin
+## habilidades (ver bloquear_por_transicion). Mismo largo que la
+## invulnerabilidad que lo acompaña.
 const TIEMPO_BLOQUEO_TRANSICION := 3.0
 var _bloqueo_transicion := 0.0
 
-## Movimiento en red como ESTADO de input, no como eventos (27 sep 2026,
-## punto 2 del refactor de red pedido por el usuario). Antes el cliente
-## mandaba "moverme" (unreliable) y "parate" (reliable) por canales
-## distintos, sin orden entre sí: un "moverme" viejo podía llegar después del
-## "parate" y dejar al cuerpo del servidor caminando solo para siempre, y cada
-## parche (ventana de bloqueo, reintentos) solo tapaba un caso más.
-## Ahora el cliente dueño manda su dirección actual con un número de
-## secuencia, al instante si arranca o frena y si no cada
-## _FOTOGRAMAS_REENVIO_INPUT: el servidor se queda con la más nueva y
-## descarta las viejas. Soltar el joystick es mandar dirección cero; si ese
-## paquete se pierde, el siguiente lo corrige.
+## Movimiento en red como ESTADO de input, no como eventos: con "moverme" y
+## "parate" por canales distintos, un "moverme" viejo podía llegar después del
+## "parate" y dejar al cuerpo del servidor caminando solo. El cliente dueño
+## manda su dirección actual con un número de secuencia (al instante si arranca
+## o frena, y si no cada _FOTOGRAMAS_REENVIO_INPUT); el servidor se queda con
+## la más nueva. Soltar el joystick es mandar dirección cero; si ese paquete se
+## pierde, el siguiente lo corrige.
 const _FOTOGRAMAS_REENVIO_INPUT := 4
 var _secuencia_input := 0
 var _ultima_direccion_input_enviada := Vector2.INF
@@ -262,26 +202,18 @@ func _exit_tree() -> void:
 func _enter_tree() -> void:
 	if not Utils.en_red():
 		return
-	# Antes de _ready() (y antes del primer intento de sync del spawn): si
-	# esto se arma más tarde a veces llega tarde y se ve un
-	# "ERR_UNCONFIGURED" benigno en el primer fotograma (mismo caso que
-	# prototipos/red/JugadorRed.gd).
+	# Antes de _ready() y del primer sync del spawn: armado más tarde, a veces llega
+	# tarde y se ve un "ERR_UNCONFIGURED" benigno en el primer fotograma.
 	var sync := get_node_or_null("Sync") as MultiplayerSynchronizer
 	if sync == null:
 		return
 	_posicion_replicada = global_position
 	var config := SceneReplicationConfig.new()
-	# _posicion_replicada NO va acá (ver _fisica_servidor/_recibir_posicion_
-	# red): Fase 1 del plan de escalado a MMO probó primero un
-	# add_visibility_filter() de distancia sobre este mismo Synchronizer,
-	# pero rompió la integración con MultiplayerSpawner en vivo ("spawner is
-	# null", "ID not found in cache", desconexión inmediata de ambos peers)
-	# — riesgo real de tocar el sistema de spawn de Godot. En vez de eso, la
-	# posición usa el MISMO patrón ya probado y funcionando de Enemigo.gd:
-	# RPC manual dirigido solo a los peers cercanos (ver InteresEspacial),
-	# con el Synchronizer reservado para lo que replica a TODOS igual
-	# (nombre_visible — pocos jugadores lo necesitan lejos, pero es un
-	# cambio raro y barato, no vale la pena filtrarlo).
+	# _posicion_replicada NO va acá: viaja por RPC solo a los peers cercanos (ver
+	# _replicar_posicion_red e InteresEspacial), igual que la de los mobs. Un
+	# add_visibility_filter() sobre este Synchronizer rompía el MultiplayerSpawner
+	# ("spawner is null" y desconexión de ambos peers). El Synchronizer queda para
+	# lo que va a todos por igual (nombre_visible).
 	config.add_property(NodePath(".:nombre_visible"))
 	config.property_set_replication_mode(
 		NodePath(".:nombre_visible"), SceneReplicationConfig.REPLICATION_MODE_ON_CHANGE
@@ -344,27 +276,17 @@ func _ready():
 	componentes_de_acciones["Movimiento"] = componente_movimiento
 	componentes_de_acciones["Vida"] = componente_vida
 	
-	# SeñalManager es un bus GLOBAL de un solo proceso: solo el jugador
-	# PROPIO debe suscribirse a la UI (joystick/botones de habilidad) — no
-	# cada réplica de OTROS jugadores que aparece en pantalla. Antes esto se
-	# suscribía en TODO Jugador.tscn instanciado en el cliente (el propio Y
-	# las réplicas), y SeñalManager nunca desconecta solo al perder el nodo:
-	# cuando ese OTRO jugador se desconectaba y su réplica se liberaba, su
-	# suscripción quedaba colgando en el diccionario de SeñalManager — la
-	# siguiente vez que CUALQUIERA (vos) usaba una habilidad, emitir()
-	# intentaba llamar has_method() sobre esa instancia ya liberada y
-	# reventaba ("intento de spawnear 2 jugadores y al desaparecer el
-	# primero, usar una habilidad da error").
-	# El servidor dedicado tampoco tiene UI que registre estas señales — del
-	# lado del servidor el input SIEMPRE llega por RPC, nunca por acá.
+	# SeñalManager es un bus GLOBAL que no desconecta solo a los nodos liberados:
+	# solo el jugador PROPIO se suscribe a la UI (joystick y botones de habilidad),
+	# nunca las réplicas de otros jugadores (al desconectarse uno, su suscripción
+	# colgada reventaba la próxima habilidad de cualquiera). El servidor dedicado
+	# no tiene UI: ahí el input llega siempre por RPC.
 	var soy_dueño_local := not Utils.en_red() or peer_id_dueño == multiplayer.get_unique_id()
 	if soy_dueño_local and not (Utils.en_red() and multiplayer.is_server()):
 		if Utils.modo_bot:
-			# Modo bot (tildado en MenuInicio, ver Utils.modo_bot): en vez de
-			# suscribirse a la UI real, cuelga el cerebro autónomo (BotIA) que
-			# llama _joystick_movimiento()/_activar_slot() por su cuenta —
-			# pedido del usuario: probar el servidor con varias instancias de
-			# Godot peleando solas contra los mobs del mapa.
+			# Modo bot (ver Utils.modo_bot): en vez de la UI real cuelga el cerebro
+			# autónomo BotIA, que llama _joystick_movimiento() y _activar_slot() por su
+			# cuenta, para probar el servidor con varias instancias peleando solas.
 			var bot = (preload("res://escenas/jugador/BotIA.gd") as GDScript).new()
 			bot.name = "BotIA"
 			add_child(bot)
@@ -383,16 +305,9 @@ func _ready():
 	# dueño (ver _crear_iconos_estado).
 	_crear_iconos_estado()
 
-	# Los bonos de atributos del equipo (armas, armaduras, anillos…) se
-	# recalculan directo desde EquipoComponente.actualizar() (su propio
-	# hermano AtributosComponente, ver ese archivo) — YA NO por acá vía
-	# BusEventos.equipo_cambiado. Ese bus es GLOBAL (una sola instancia de
-	# GestorEquipo por proceso): en el cliente recalculaba TODOS los
-	# Jugador en pantalla (incluidas réplicas de otros), y en el SERVIDOR
-	# era peor — el filtro por peer_id_dueño ahí comparaba contra
-	# multiplayer.get_unique_id() (siempre 1 en el servidor, que ningún
-	# jugador real tiene como dueño), así que NUNCA recalculaba a nadie:
-	# equipar mejor armadura no cambiaba nada en combates reales.
+	# Los bonos de atributos del equipo se recalculan en
+	# EquipoComponente.actualizar(), no acá por BusEventos.equipo_cambiado: ese
+	# bus es global y en el servidor no sabía a qué jugador recalcular.
 
 
 ## Contador de bloqueos de control (ráfaga en curso, etc.): mientras sea
@@ -495,21 +410,13 @@ func _dibujar_iconos_estado() -> void:
 		tamano_icono_estado, separacion_iconos_estado, _COLOR_CONTORNO_ICONOS_ESTADO)
 
 
-## Red de seguridad adicional (pedido explícito del usuario, 21 sep 2026:
-## "cuando hay subida de ping es cuando se queda el joystick como pegado
-## ... parece que la variable de dirección ... no se actualiza a 0"):
-## chequea el estado REAL del joystick (Joystick.esta_presionado(), no una
-## inferencia por falta de movimiento -- eso confundiría "parado a
-## propósito contra una pared" con este bug, ver _esta_incrustado_en_pared
-## para el mismo criterio aplicado al otro mecanismo de destrabe) contra
-## "direccion". Un pico de ping puede introducir un hiccup de fotograma
-## justo cuando el dedo se levanta; si ese evento de soltado se pierde en
-## el medio, esto lo corrige en el próximo fotograma físico sin esperar a
-## que el jugador vuelva a tocar la pantalla.
+## Rectificador del joystick: compara el estado REAL del joystick
+## (Joystick.esta_presionado(), no una inferencia por falta de movimiento) con
+## "direccion". Si el evento de soltar se pierde (p. ej. por un tirón de
+## fotogramas en un pico de ping), lo corrige en el próximo fotograma físico.
 ##
-## Solo tiene sentido donde el joystick EXISTE de verdad: el dueño local
-## (single player, o el cliente dueño en red) -- nunca en el servidor
-## dedicado (sin UI) ni en la réplica de OTRO jugador en mi pantalla.
+## Solo donde el joystick existe: el dueño local (sin red o cliente dueño);
+## nunca en el servidor dedicado ni en réplicas de otros jugadores.
 var _joystick_local: Node = null
 
 ## Al servidor no hace falta avisarle nada acá: el flujo de input (ver
@@ -531,8 +438,7 @@ func _verificar_joystick_soltado() -> void:
 				break
 	if _joystick_local == null or _joystick_local.esta_presionado():
 		return
-	# Rectificador de velocidad (pedido del usuario, 24 sep 2026): también
-	# velocity, no solo direccion, por si algo mueve el cuerpo antes de que
+	# También velocity, no solo direccion, por si algo mueve el cuerpo antes de que
 	# componente_movimiento corra este fotograma.
 	velocity = Vector2.ZERO
 	_joystick_movimiento(Vector2.ZERO)
@@ -541,17 +447,9 @@ func _verificar_joystick_soltado() -> void:
 func _joystick_movimiento(_direccion: Vector2):
 	if _muerto:
 		return
-	# Soltar el joystick (dirección CERO) siempre se respeta, incluso con
-	# el control bloqueado (aturdido, canal de Ráfaga/Lanzallamas en
-	# curso, etc.) -- el corte de abajo existe para no dejar ARRANCAR un
-	# movimiento nuevo mientras está bloqueado, pero de paso también
-	# tragaba la señal de "ya solté", dejando "direccion" pegada en su
-	# último valor no-cero hasta que algo más la pisara. Relacionado con
-	# el bug real de "el joystick queda moviendo solo" (ver Joystick.
-	# forzar_suelta/ControlJuego._on_modo_cambiado): ese fix ya cubre el
-	# camino de "se desactiva el subárbol", pero si el "soltado" llega
-	# justo mientras el jugador está bloqueado por OTRA razón a la vez,
-	# sin esto se perdía igual.
+	# Soltar (dirección cero) se respeta siempre, incluso con el control
+	# bloqueado: el corte es para no ARRANCAR un movimiento, y si también tragara
+	# el "ya solté", direccion quedaría pegada en su último valor.
 	if _bloqueos_control > 0 and _direccion != Vector2.ZERO:
 		return
 	# En red: el joystick es local a CADA cliente (SeñalManager es un bus
@@ -563,15 +461,10 @@ func _joystick_movimiento(_direccion: Vector2):
 	direccion = _direccion
 
 
-## El servidor recibe acá la intención de movimiento del cliente dueño de
-## este cuerpo. "any_peer" = cualquiera puede llamarlo, pero se verifica que
-## el remitente sea el dueño real antes de aceptarlo (autoridad real, no
-## solo quién puede mandar el mensaje — mismo criterio que
-## prototipos/red/JugadorRed.gd).
-## El dueño registra acá su identidad (id_unico, la clave real de guardado —
-## ver GestorGuardado) y su nombre para mostrar. Solo el servidor lo acepta
-## (y solo del dueño real). id_unico se queda acá, solo el servidor lo lee;
-## nombre_visible sí se replica por el Sync a todos (ver _enter_tree).
+## SERVIDOR: el dueño registra su identidad (id_unico, la clave de guardado;
+## ver GestorGuardado) y su nombre para mostrar. "any_peer", pero solo se
+## acepta del dueño real. id_unico se queda en el servidor; nombre_visible se
+## replica por el Sync (ver _enter_tree).
 @rpc("any_peer", "reliable")
 func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> void:
 	if not multiplayer.is_server():
@@ -595,14 +488,9 @@ func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> v
 			rpc_id(peer_id_dueño, "_rechazar_cuenta_red", "PIN incorrecto para '%s'." % nombre_limpio)
 			var peer := multiplayer.multiplayer_peer
 			if peer is ENetMultiplayerPeer:
-				# call_deferred() NO alcanza acá: solo pospone al mismo
-				# fotograma, no le da tiempo real a ENet de transmitir el
-				# RPC reliable por la red antes del corte (verificado con
-				# pruebas en vivo: el RPC nunca llegaba a destino, el
-				# cliente se quedaba sin el aviso y reintentaba con el
-				# mismo PIN malo para siempre). Con un timer real de por
-				# medio hay varios ciclos de red de por medio para que el
-				# paquete salga antes de cortar.
+				# Timer real, no call_deferred(): eso solo pospone al mismo fotograma y
+				# ENet no llega a transmitir el RPC reliable antes del corte (el cliente no
+				# recibía el aviso y reintentaba con el mismo PIN malo para siempre).
 				get_tree().create_timer(0.3).timeout.connect(
 					(peer as ENetMultiplayerPeer).disconnect_peer.bind(peer_id_dueño, false)
 				)
@@ -617,41 +505,24 @@ func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> v
 		GestorGrupos.registrar_conectado(peer_id_dueño, nombre_visible, id_unico)
 
 
-## SERVIDOR: si YA existe otro Jugador vivo con la MISMA identidad (mismo
-## id_unico, otro peer_id_dueño), esa es una conexión vieja/fantasma —
-## reportado en juego real: "una copia del jugador se crea al spawnear y
-## todos los mobs lo atacan a el mientras yo puedo moverme libremente".
-## Pasa cuando una reconexión deja dos conexiones simultáneas para la misma
-## identidad antes de que ENet detecte la vieja como muerta (confirmado:
-## ocurrió justo tras reiniciar el servidor, cuando el cliente reintenta
-## conectarse solo — ver Mundo._programar_reintento — y una de esas
-## conexiones queda sin limpiar). La IA de los mobs ya tenía al fantasma
-## como objetivo y sigue atacándolo, mientras el jugador de verdad (la
-## conexión nueva) queda libre de aggro.
+## SERVIDOR: si ya existe otro Jugador con la MISMA identidad (mismo id_unico,
+## otro peer_id_dueño), es una conexión vieja que ENet todavía no detectó como
+## muerta (p. ej. el cliente reintentó conectarse solo tras reiniciarse el
+## servidor). Los mobs seguirían atacando a ese fantasma mientras el jugador de
+## verdad queda libre de aggro.
 ##
-## Se desconecta al fantasma acá, apenas se confirma la identidad real (ANTES
-## de cargar la partida) — disconnect_peer() dispara peer_disconnected en el
-## próximo fotograma, y ServidorDedicado._al_desconectar ya hace toda la
-## limpieza correcta (memoria de los mobs, volcar progreso, liberar el nodo):
-## no hace falta duplicar nada de eso acá.
+## Se lo desconecta apenas se confirma la identidad, antes de cargar la
+## partida; ServidorDedicado._al_desconectar hace toda la limpieza.
 func _expulsar_fantasma_de_la_misma_identidad() -> void:
 	var fantasma := _buscar_fantasma_de_la_misma_identidad()
 	if fantasma == null:
 		return
 	var peer := multiplayer.multiplayer_peer
 	if peer is ENetMultiplayerPeer and fantasma.peer_id_dueño >= 0:
-		# NO cortar sincrónico acá adentro — mismo problema ya documentado en
-		# _rechazar_cuenta_red (ver ese comentario): esto corre DENTRO del
-		# procesamiento del RPC _registrar_identidad_red de OTRO peer, y
-		# cortar la conexión del fantasma en ese mismo instante deja a ENet
-		# en un estado a medio actualizar por varios fotogramas — cualquier
-		# RPC/replicación que en ese lapso le mande un paquete al fantasma
-		# (equipo, posición de mobs, energía...) revienta con "Unable to
-		# send packet... max channels: 0" (reportado en juego real: "cada
-		# vez que presiono cualquier boton se rompe el juego"). Un timer
-		# real (no call_deferred: eso solo pospone al mismo fotograma, no
-		# alcanza) le da tiempo a ENet de terminar de resolver esta llamada
-		# antes de procesar el corte.
+		# Timer real, ni corte sincrónico ni call_deferred(): esto corre dentro del
+		# RPC de OTRO peer, y cortar ya deja a ENet a medio actualizar varios
+		# fotogramas; cualquier paquete al fantasma en ese lapso revienta con "Unable
+		# to send packet... max channels: 0".
 		var id_a_expulsar: int = fantasma.peer_id_dueño
 		get_tree().create_timer(0.3).timeout.connect(
 			(peer as ENetMultiplayerPeer).disconnect_peer.bind(id_a_expulsar, false)
@@ -672,17 +543,11 @@ func _buscar_fantasma_de_la_misma_identidad() -> Node:
 	return null
 
 
-## CLIENTE (dueño): el servidor rechazó la cuenta (PIN incorrecto). Solo
-## ANOTA el motivo — no toca la escena ni el peer acá: el disconnect_peer()
-## que el servidor manda justo después de esto dispara
-## multiplayer.server_disconnected en este cliente de todos modos, y
-## Mundo._al_perder_conexion() es quien de verdad decide qué hacer al
-## desconectarse (ver ese archivo). Si esta función TAMBIÉN cambiara de
-## escena, competiría en una carrera contra ese mismo evento — normalmente
-## la pierde, porque _al_perder_conexion() ya tenía el hábito de recargar
-## Mundo.tscn y reintentar conectarse SOLO (el diseño "nunca se rinde" de
-## este juego, ver Mundo.gd), reintentando con el MISMO PIN malo para
-## siempre en vez de mostrar el error (bug encontrado en pruebas).
+## CLIENTE (dueño): el servidor rechazó la cuenta (PIN incorrecto). Solo anota
+## el motivo: el disconnect_peer() que llega justo después dispara
+## server_disconnected, y Mundo._al_perder_conexion() decide qué mostrar. Si
+## esto también cambiara de escena, correría una carrera contra ese evento y
+## normalmente la perdería (reconectando con el mismo PIN malo para siempre).
 @rpc("authority", "reliable")
 func _rechazar_cuenta_red(motivo: String) -> void:
 	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
@@ -764,9 +629,8 @@ func _physics_process(delta: float) -> void:
 		_aplicar_input_servidor(delta)
 
 	# En red, el cliente que NO es dueño de este cuerpo (la réplica de OTRO
-	# jugador en mi pantalla) no lo mueve directo — solo interpola hacia la
-	# posición replicada (Fase 6: suaviza el "salto" entre actualizaciones de
-	# red, que llegan más espaciadas que los fotogramas de render).
+	# jugador en mi pantalla) no lo mueve directo: solo interpola hacia la
+	# posición replicada.
 	if Utils.en_red() and not multiplayer.is_server():
 		if peer_id_dueño == multiplayer.get_unique_id():
 			# Predicción local del PROPIO dueño: mover YA con la misma
@@ -777,17 +641,10 @@ func _physics_process(delta: float) -> void:
 			if componente_movimiento:
 				componente_movimiento.physics_process(delta, direccion)
 			_aplicar_presentacion(velocity != Vector2.ZERO)
-			# Ventana de sincronización DURA: se copia la posición
-			# autoritativa tal cual, sin suavizar. Al cruzar un portal el
-			# servidor te teletransporta al punto de aparición y SIGUE
-			# moviendo el cuerpo con la última dirección de joystick que le
-			# mandaste, mientras este cliente todavía está cargando el mapa
-			# nuevo y fundiendo desde negro. Para cuando la pantalla se
-			# levantaba ya había varias decenas de píxeles de diferencia, y
-			# la reconciliación suave de abajo los recorría a la vista:
-			# reportado como "sale unos 70 px a la derecha y después corrige
-			# su posición". Acá la corrección ocurre con la pantalla todavía
-			# tapada, así que no se ve nada.
+			# Ventana de sincronización DURA: copia la posición autoritativa sin
+			# suavizar. Al cruzar un portal, el servidor ya movió el cuerpo mientras
+			# este cliente carga el mapa nuevo; corregir esa diferencia acá, con la
+			# pantalla todavía en negro, evita verlo deslizarse al aparecer.
 			if _sincronizacion_dura > 0.0:
 				_sincronizacion_dura -= delta
 				global_position = _posicion_replicada
@@ -806,29 +663,15 @@ func _physics_process(delta: float) -> void:
 				global_position = global_position.lerp(
 					_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
 				)
-			# Debajo del umbral: no corregir nada — reportado "el personaje
-			# tiembla" al mover con el servidor ya a 60 ticks/s (el doble de
-			# ecos de posición por segundo que antes): cada eco nuevo,
-			# aunque sea de 1-2px de diferencia con la predicción local,
-			# disparaba una corrección visible; jugando seguido, eso se lee
-			# como vibración en vez de fluidez. Un margen chico deja que la
-			# predicción local mande sola mientras la diferencia sea
-			# ruido de red normal, y sigue corrigiendo drift real por
-			# encima del umbral.
+			# Debajo del umbral no se corrige nada: con ecos de posición a 60/s,
+			# corregir cada diferencia de 1-2 px se ve como temblor. La predicción local
+			# manda mientras la diferencia sea ruido de red.
 			return
-		# Réplica de OTRO jugador en mi pantalla: no hay velocity local que
-		# consultar (nunca corre su componente_movimiento acá), así que
-		# "caminando" se infiere del desplazamiento REAL en pantalla — mismo
-		# criterio que Enemigo.gd con los mobs replicados. OJO con el ORDEN
-		# (bug encontrado y corregido: quedaba SIEMPRE en 0, nunca animaba
-		# — ver Enemigo._physics_process): el lerp que mueve global_position
-		# va PRIMERO, recién después se mide cuánto se movió comparando
-		# contra el valor de _posicion_render_anterior del fotograma
-		# anterior. Calcularlo ANTES del lerp comparaba la posición contra
-		# sí misma (nada había cambiado _posicion_render_anterior todavía
-		# este fotograma), dando avance=0 siempre — se deslizaba a la
-		# posición correcta pero JAMÁS entraba en la animación de caminar
-		# (reportado: "se mueve en la dirección que mira, pero sin animación").
+		# Réplica de OTRO jugador: no hay velocity local, así que "caminando" se
+		# infiere del desplazamiento real en pantalla (mismo criterio que Enemigo.gd).
+		# OJO con el orden: primero el lerp y recién después medir contra
+		# _posicion_render_anterior; medir antes da avance 0 siempre y nunca anima la
+		# caminata.
 		global_position = global_position.lerp(
 			_posicion_replicada, clampf(delta * VELOCIDAD_INTERPOLACION_RED, 0.0, 1.0)
 		)
@@ -851,12 +694,10 @@ func _physics_process(delta: float) -> void:
 		_replicar_posicion_red()
 
 
-## Si el cuerpo está genuinamente incrustado en geometría del mapa (ver
-## _esta_incrustado_en_pared) durante _ATASCO_TIEMPO_UMBRAL segundos
-## SEGUIDOS, se reubica solo (ver comentario grande de arriba). El
-## chequeo por tiempo sostenido (no un solo fotograma) evita reaccionar a
-## un solape transitorio de un solo fotograma (p. ej. el instante justo
-## después de un teletransporte) que igual se resolvería solo.
+## Si el cuerpo está incrustado en la geometría (ver _esta_incrustado_en_pared)
+## durante _ATASCO_TIEMPO_UMBRAL segundos SEGUIDOS, se lo reubica (ver
+## _tiempo_incrustado_atasco). Pedir tiempo sostenido evita reaccionar a un
+## solape de un solo fotograma, p. ej. justo después de un teletransporte.
 func _verificar_atasco_y_destrabar(delta: float) -> void:
 	if _esta_incrustado_en_pared():
 		_tiempo_incrustado_atasco += delta
@@ -987,15 +828,11 @@ func _aplicar_presentacion(caminando: bool) -> void:
 	componente_animacion.actualizar_blend(hacia_donde_mirar)
 
 
-## Destello AMARILLO parpadeante mientras dura la protección de aparición o
-## de revivir (ver TIEMPO_INVULNERABILIDAD_APARICION/_REVIVIR): sin señal
-## visible, "no recibo daño" es indistinguible de "los mobs no me ven
-## todavía" — y peor, al cortarse la protección el primer golpe llegaría de
-## la nada. Pisa el modulate ENTERO (color + alpha) del sprite — a
-## diferencia de antes (que solo tocaba el alpha para no pelearse con
-## parpadear()), esto es seguro porque mientras es invulnerable quitar_vida
-## corta ANTES de aplicar daño, así que cambio_valor_vida nunca dispara con
-## una baja de vida real y parpadear() nunca corre en simultáneo (ver
+## Destello AMARILLO intermitente mientras dura la protección de aparición o
+## de revivir: sin señal visible, "no recibo daño" no se distingue de "los
+## mobs no me ven todavía", y al cortarse el primer golpe llegaría de la nada.
+## Pisar el modulate entero es seguro: siendo invulnerable, quitar_vida corta
+## antes del daño, así que parpadear() nunca corre a la vez (ver
 ## _on_vida_cambiada).
 ##
 ## _muerto corta: un cadáver ya tiene su propio modulate y no debe latir.
@@ -1016,9 +853,8 @@ func _actualizar_visual_invulnerable() -> void:
 		_estaba_invulnerable = true  # para que al salir se restaure el color
 		return
 	if invulnerable:
-		# Parpadeo DURO (no un latido suave): cambia de opaco a semitransparente
-		# cada 0.25s en punto — pedido del usuario, más lento y más marcado
-		# que el pulso continuo de antes. Siempre teñido de amarillo.
+		# Parpadeo DURO (no un latido suave): opaco y semitransparente cada 0.25 s,
+		# siempre teñido de amarillo.
 		var fase := int(Time.get_ticks_msec() / 250) % 2
 		var alpha := 1.0 if fase == 0 else 0.4
 		sprite.modulate = Color(1.0, 1.0, 0.0, alpha)
@@ -1030,32 +866,23 @@ func _actualizar_visual_invulnerable() -> void:
 		_estaba_invulnerable = false
 
 
-## Fase 1 del plan de escalado a MMO (interés espacial): mismo patrón que
-## Enemigo._physics_process — antes esto viajaba por MultiplayerSynchronizer
-## en modo ALWAYS (sin throttle, a TODOS los peers, cada tick de sync); con
-## 100 jugadores dispersos por el mapa era tráfico O(jugadores²). Ahora es
-## un RPC manual, con el mismo throttle por cambio + keepalive que ya usan
-## los mobs, dirigido SOLO a los peers que tienen a este jugador cerca (ver
-## InteresEspacial) — a quien está del otro lado del mapa no le llega nada.
+## Posición por RPC manual y no por MultiplayerSynchronizer: mismo throttle por
+## cambio + keepalive que los mobs, dirigido SOLO a los peers que tienen a este
+## jugador cerca (ver InteresEspacial). Mandarla a todos era tráfico
+## O(jugadores²).
 var _ultima_pos_enviada := Vector2.INF
-## Sin esto, la réplica de un jugador en la pantalla de OTRO nunca se
-## enteraba hacia dónde miraba — solo se replicaba la posición. Se quedaba
-## siempre mirando a la derecha (el valor inicial de _ultima_direccion),
-## incluso parado justo después de caminar hacia otro lado (reportado).
-## Mismo patrón que Enemigo._recibir_estado_red, que sí manda "direccion".
+## También viaja la orientación: sin ella, la réplica en otras pantallas
+## siempre miraba a la derecha (mismo patrón que Enemigo._recibir_estado_red).
 var _ultima_dir_enviada := Vector2.INF
 var _fotogramas_sin_enviar_pos := 0
 const _FOTOGRAMAS_KEEPALIVE_POS := 30
 
 func _replicar_posicion_red() -> void:
 	_fotogramas_sin_enviar_pos += 1
-	# Se manda _ultima_direccion (no "direccion" cruda): "direccion" es SOLO
-	# la del joystick, cero en cuanto el jugador se detiene o lanza una
-	# habilidad quieto — un giro por apunte de habilidad (ver
-	# HabilidadBase.activar) nunca viajaba a los demás porque no había
-	# movimiento que lo acompañara (reportado: "la dirección solo cambia en
-	# el local"). _ultima_direccion ya tiene la prioridad correcta resuelta
-	# (apunte > movimiento > última) — ver _aplicar_presentacion.
+	# Se manda _ultima_direccion y no "direccion": esa es solo la del joystick
+	# (cero al detenerse), así que un giro por apuntar una habilidad estando quieto
+	# nunca viajaba. _ultima_direccion ya tiene resuelta la prioridad (apunte >
+	# movimiento > última; ver _aplicar_presentacion).
 	var cambio := global_position.distance_squared_to(_ultima_pos_enviada) > 0.25 \
 		or _ultima_direccion != _ultima_dir_enviada
 	if not (cambio or _fotogramas_sin_enviar_pos >= _FOTOGRAMAS_KEEPALIVE_POS):
@@ -1070,30 +897,15 @@ func _replicar_posicion_red() -> void:
 	_fotogramas_sin_enviar_pos = 0
 
 
-## unreliable_ordered: es estado continuo (~60 veces/seg) — un paquete
-## perdido no importa, el siguiente lo corrige (mismo criterio que
-## Enemigo._recibir_estado_red). "dir" viaja como _ultima_direccion del
-## emisor (ver _replicar_posicion_red) — casi siempre distinto de cero, así
-## que acá alcanza con guardarlo tal cual para que _aplicar_presentacion lo
-## use directo como "direccion" (misma prioridad, sin caer a su propio
-## _ultima_direccion local, que para una réplica nunca se actualizaría solo).
+## unreliable_ordered: estado continuo (~60/s), el próximo paquete corrige
+## cualquier pérdida (mismo criterio que Enemigo._recibir_estado_red). "dir"
+## es la _ultima_direccion del emisor, que la réplica usa como "direccion"
+## para orientarse.
 ##
-## OJO: este RPC también le llega de vuelta al propio DUEÑO (eco de su
-## posición — ver _replicar_posicion_red/InteresEspacial, a propósito, para
-## la reconciliación de _posicion_replicada). Para el dueño, "direccion" NO
-## es un dato de orientación: es el input real que la rama de predicción
-## local de _physics_process usa para mover el cuerpo. Pisarlo acá con el
-## eco de red lo corrompía: _ultima_direccion casi nunca es CERO (una vez
-## que te moviste, se queda apuntando para siempre — ver
-## _aplicar_presentacion), así que apenas soltabas el joystick, el próximo
-## eco volvía a poner "direccion" en esa dirección vieja y el cuerpo seguía
-## caminando/deslizándose solo hacia allá sin que el jugador tocara nada
-## (reportado: "en local se queda animando el caminar", y al lanzar una
-## habilidad —que además fuerza esa dirección al apuntar— "se mueve sin
-## animación hasta que sueltas el botón"). Para la réplica de OTRO jugador
-## esto no aplica: ahí "direccion" es puramente orientación (nunca mueve el
-## cuerpo, ver rama correspondiente de _physics_process), así que sigue
-## haciendo falta guardarlo.
+## OJO: este RPC también le llega al propio DUEÑO (eco para reconciliar
+## _posicion_replicada). Para él, "direccion" no es orientación sino el input
+## real que mueve la predicción local: pisarlo con el eco (que casi nunca es
+## cero) lo hacía seguir caminando solo después de soltar el joystick.
 @rpc("authority", "unreliable_ordered")
 func _recibir_posicion_red(pos: Vector2, dir: Vector2 = Vector2.ZERO) -> void:
 	_posicion_replicada = pos
@@ -1232,11 +1044,8 @@ func _activar_slot(index: int, dir: Vector2 = Vector2.ZERO, poder: float = 1.0) 
 		return
 	if h:
 		var d := dir if dir.length() > 0.1 else _ultima_direccion
-		# Girar a mirar hacia donde se lanza — reportado: "el personaje no
-		# cambia su dirección hacia donde lanzó la habilidad". Solo si esta
-		# habilidad de verdad usa una dirección (requiere_direccion): un
-		# botón sin apuntar (curación, escudo…) no debería hacer girar al
-		# personaje hacia el último rumbo que tenía el joystick.
+		# Girar hacia donde se lanza, solo si la habilidad usa dirección: un botón
+		# sin apuntar (curación, escudo…) no debe girar al personaje.
 		if h.requiere_direccion:
 			direccion_mirada = d
 		h.activar(d, poder)
@@ -1271,48 +1080,37 @@ func quitar_vida(cantidad: float, fuente: Node = null,
 		componente_vida.quitar_vida(cantidad, fuente, tipo, critico)
 
 
-## GestorNiveles llama esto tras cada cambio de nivel para que la cámara no
-## muestre el vacío fuera del mapa. rect vacío (nivel sin Terreno) = sin límite.
 ## Copia la posición autoritativa TAL CUAL (sin interpolar) durante "segundos".
 ## La usa GestorNiveles al cambiar de nivel, para que el reacomodo ocurra
-## mientras la pantalla está en negro y no se vea el personaje deslizándose.
-## Nunca acorta una ventana ya en curso más larga.
+## mientras la pantalla está en negro. Nunca acorta una ventana más larga que
+## ya esté en curso.
 func sincronizar_posicion_dura(segundos: float) -> void:
 	_sincronizacion_dura = maxf(_sincronizacion_dura, segundos)
 
 
-## Llegada a un nivel nuevo: deja al jugador QUIETO y sin poder lanzar
-## habilidades durante "segundos", y le da invulnerabilidad por el mismo rato.
+## Llegada a un nivel nuevo: deja al jugador QUIETO y sin habilidades durante
+## "segundos", con invulnerabilidad por el mismo rato (que además lo saca de la
+## mira de los mobs, ver VisionComponente._intentar_registrar).
 ##
-## El pedido fue explícito: sin movimiento durante la transición de mapa, y
-## que ese rato sin poder actuar coincida con el rato en que nadie puede
-## pegarte. La invulnerabilidad además te saca de la mira de los mobs (ver
-## VisionComponente._intentar_registrar), así que aterrizás en un mapa nuevo
-## sin que nada te esté pegando mientras la pantalla todavía funde.
-##
-## Se llama en los DOS lados (servidor y cliente dueño): el servidor es la
-## autoridad del movimiento y del daño, el cliente bloquea su propia UI. No
-## hace falta que arranquen en el mismo instante — la ventana es generosa.
+## Se llama en los DOS lados: el servidor manda el movimiento y el daño, y el
+## cliente bloquea su propia UI. No hace falta que arranquen en el mismo
+## instante; la ventana es generosa.
 func bloquear_por_transicion(segundos: float = TIEMPO_BLOQUEO_TRANSICION) -> void:
 	_bloqueo_transicion = maxf(_bloqueo_transicion, segundos)
 	if componente_vida:
 		componente_vida.activar_invulnerabilidad(segundos)
 
 
-## true mientras el jugador no puede actuar: muerto, recién llegado a un
-## nivel nuevo, o con el control tomado (aturdido, canal de Ráfaga/
-## Lanzallamas en curso...). Único lugar que decide esto — lo consultan la
-## UI de habilidades, el manejo de toques y la autoridad del servidor.
-## _bloqueos_control se sumó acá porque, sin esto, un toque NUEVO mientras
-## el jugador estaba aturdido armaba igual el joystick de apuntado
-## (UIHabilidad._dueño_muerto ya consultaba esta función) — se veía como si
-## la habilidad fuera a salir, y en el fondo HabilidadBase.activar() ya lo
-## iba a bloquear igual (mismo bug que ya se había resuelto para _muerto,
-## pedido del usuario: "bloquear las habilidades mientras siga aturdido").
+## true mientras el jugador no puede actuar: muerto, recién llegado a un nivel
+## nuevo o con el control tomado (aturdido, canal de Ráfaga/Lanzallamas...).
+## Único lugar que decide esto: lo consultan la UI de habilidades (para no
+## armar el joystick de apuntado), el manejo de toques y el servidor.
 func esta_bloqueado() -> bool:
 	return _muerto or _bloqueo_transicion > 0.0 or _bloqueos_control > 0
 
 
+## GestorNiveles la llama tras cada cambio de nivel para que la cámara no
+## muestre el vacío fuera del mapa. rect vacío (nivel sin Terreno) = sin límite.
 func aplicar_limites_camara(rect: Rect2) -> void:
 	if camara == null:
 		return
@@ -1342,13 +1140,9 @@ func resetear_camara() -> void:
 
 var _tween_parpadeo: Tween = null
 
-## Un solo parpadeo por golpe (antes eran 3 seguidos — pedido del usuario,
-## mismo cambio en Enemigo.gd). Mata cualquier tween anterior antes de
-## arrancar uno nuevo: con golpes más frecuentes que la duración del
-## parpadeo (p. ej. la araña pegando cada segundo), dos tweens vivos a la
-## vez se peleaban por el mismo modulate — el jugador quedaba parpadeando
-## sin parar (y a veces teñido de rojo permanente si un tween moría a
-## mitad de ciclo).
+## Un solo parpadeo por golpe. Mata el tween anterior antes de arrancar otro:
+## con golpes más seguidos que el parpadeo, dos tweens se peleaban el modulate
+## y el jugador quedaba parpadeando sin parar (o teñido de rojo).
 func parpadear(duracion: float = 0.1) -> void:
 	if _tween_parpadeo and _tween_parpadeo.is_valid():
 		_tween_parpadeo.kill()
@@ -1358,15 +1152,9 @@ func parpadear(duracion: float = 0.1) -> void:
 	_tween_parpadeo.tween_property(sprite, "modulate", Color.WHITE,        duracion)
 
 
-## _es_dueño_local(): "cambio_valor_vida" se emite en TODOS los peers que
-## tienen a este jugador replicado (ver VidaComponente._recibir_vida_red,
-## que la dispara al final sin importar quién la reciba) — sin este
-## chequeo, cuando un jugador recibía daño, CUALQUIERA que lo tuviera en
-## pantalla lo veía parpadear también. Pedido del usuario: que sea un
-## feedback solo para quien de verdad recibe el golpe, no algo que vean
-## los demás jugadores mirando a ese jugador. Mismo criterio que el
-## parpadeo "por mi propio golpe" en Enemigo.gd, pero del lado de quien
-## RECIBE en vez de quien pega.
+## Solo el dueño parpadea: "cambio_valor_vida" se emite en todos los peers que
+## tienen a este jugador replicado (ver VidaComponente._recibir_vida_red), y el
+## aviso del golpe es para quien lo recibe, no para quien lo mira.
 func _on_vida_cambiada(nueva_vida: float) -> void:
 	if nueva_vida < _vida_anterior and _es_dueño_local():
 		parpadear()
