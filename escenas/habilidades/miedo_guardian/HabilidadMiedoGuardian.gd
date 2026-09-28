@@ -26,18 +26,14 @@ extends HabilidadBase
 @export var icono_debuff: Texture2D = null
 
 @export_group("Combo")
-## Segundos tras el empujón/aturdimiento antes de encadenar el Combo real
-## — pedido explícito del usuario: "un combo de habilidades que congenien
-## unas con otras". Se dispara DIRECTO sobre el nodo hermano (mismo patrón
-## que EnemigoGuardianQuebrado._golpear_transicion: bypassea el selector,
-## llama activar() a mano), no por el árbol de comportamiento — no hace
-## falta: mientras esto corre, Atacar ya está en su propia ventana de
-## "recuperación" (duracion_recuperacion=0.8s en el .tscn del jefe, más
-## larga que esta espera) y no intenta elegir otra habilidad por su
-## cuenta, así que no hay riesgo de pisarse con un segundo ataque. Elegido
-## para que caiga DENTRO de duracion_aturdimiento (0.5s): el objetivo
-## sigue sin poder moverse ni actuar (salvo Corte, que ignora bloqueos a
-## propósito, ver la nota de la clase) cuando el combo lo alcanza.
+## Segundos tras el empujón o aturdimiento antes de encadenar el Combo real.
+## Se dispara DIRECTO sobre el nodo hermano (como
+## EnemigoGuardianQuebrado._golpear_transicion: llama activar() a mano), no
+## por el árbol: mientras corre, Atacar está en su propia recuperación
+## (duracion_recuperacion=0.8 s en el .tscn del jefe, más larga que esta
+## espera) y no elige otra habilidad, así que no se pisan. Cae DENTRO de
+## duracion_aturdimiento (0.5 s): el objetivo sigue sin poder moverse ni
+## actuar (salvo Corte, que ignora bloqueos) cuando llega el combo.
 @export var duracion_espera_combo: float = 0.3
 
 const MASCARA_OBJETIVOS := 0xFFFFFFFF
@@ -129,15 +125,11 @@ func _programar_combo_de_seguimiento(objetivo: Node2D) -> void:
 		_disparar_combo_de_seguimiento.bind(combo, objetivo))
 
 
-## Distancia a la que el jefe se reposiciona ANTES del combo si el
-## empujón dejó al objetivo más lejos que esto — bien por debajo del
-## alcance real de Combo (alcance_golpe+radio_golpe ~116px, ver
-## HabilidadComboGuardian), para que el combo conecte siempre, sea cual
-## sea la fuerza de empuje configurada. Sin esto, fuerza_empuje (pensado
-## para SEPARAR al objetivo) terminaba sacándolo del alcance del propio
-## combo que se suponía debía conectar después — el mismo problema de
-## "queda fuera del área del golpe" que pidió resolver el usuario, ahora
-## auto-infligido por Miedo.
+## Distancia a la que el jefe se reposiciona ANTES del combo si el empujón dejó
+## al objetivo más lejos que esto. Bien por debajo del alcance real de Combo
+## (alcance_golpe+radio_golpe ~116 px, ver HabilidadComboGuardian), para que
+## el combo conecte sea cual sea la fuerza de empuje: si no, el propio empujón
+## sacaba al objetivo del alcance del combo.
 const _DISTANCIA_SEGURA_COMBO := 70.0
 
 func _disparar_combo_de_seguimiento(combo: Node, objetivo: Node2D) -> void:

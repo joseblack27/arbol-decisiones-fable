@@ -1,20 +1,16 @@
 extends Node2D
 class_name IndicadorZonaEfecto
-## Flash visual puro — sin física, sin daño — que muestra el radio real de
-## una habilidad de área instantánea justo cuando se activa. Mismo estilo
-## que ya usa AreaEfecto._draw() (Onda de Choque, Golpe Vampírico): círculo
-## relleno translúcido + borde marcado.
+## Flash visual puro (sin física ni daño) que muestra el radio real de una
+## habilidad de área instantánea justo al activarse. Mismo estilo que
+## AreaEfecto._draw() (Onda de Choque, Golpe Vampírico): círculo relleno
+## translúcido con borde marcado.
 ##
-## Para habilidades que NO pasan por AreaEfecto porque ya hacen su propia
-## consulta de física para aplicar su efecto (Sacudida, la detonación de
-## Acumulación) — esto es solo el feedback en pantalla. Pedido del usuario:
-## "ahora mismo no tengo ningún feedback que me diga que las habilidades
-## funcionan" — antes estas dos aplicaban su efecto en silencio, sin nada
-## visible que confirmara dónde ni qué tan lejos llegaban.
+## Para las habilidades que NO pasan por AreaEfecto porque hacen su propia
+## consulta de física (Sacudida, la detonación de Acumulación): sin esto,
+## aplicaban su efecto sin nada visible que confirmara dónde ni hasta dónde.
 ##
-## Se posiciona en el punto de activación (global_position, ver quien lo
-## instancia) y NO sigue a nadie — es una foto del momento, igual que
-## OndaChoque/AreaEfecto, no un efecto pegado que se mueva con el dueño.
+## Se posiciona en el punto de activación y NO sigue a nadie: es una foto del
+## momento, como OndaChoque y AreaEfecto.
 
 @export var radio: float = 60.0
 @export var color_relleno: Color = Color(0.6, 0.7, 1.0, 0.35)

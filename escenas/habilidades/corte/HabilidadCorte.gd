@@ -1,39 +1,30 @@
 class_name HabilidadCorte
 extends HabilidadBase
-## Definitiva de counter: un tajo en un RECTÁNGULO alargado desde el
-## jugador hacia donde apunta el joystick, que además abre una ventana
-## corta en la que (a) el jugador queda inmune al daño de área que venga
-## de ese lado y (b) los ataques enemigos que hayan quedado dentro del
-## rectángulo se destruyen. Pedido explícito del usuario, pensada para
-## "hacer counter a habilidades mortales de jefes o enemigos de máxima
-## dificultad, o como habilidad de remate".
+## Definitiva de counter: un tajo en un RECTÁNGULO alargado desde el jugador
+## hacia donde apunta el joystick, que además abre una ventana corta en la que
+## (a) el jugador queda inmune al daño de área que venga de ese lado y (b) se
+## destruyen los ataques enemigos que queden dentro del rectángulo. Pensada
+## para contrarrestar habilidades mortales de jefes, o como remate.
 ##
-## TRES cosas la separan de cualquier otra habilidad del juego, y cada una
-## tiene su plomería propia (ver los archivos citados):
+## TRES cosas la separan de cualquier otra habilidad, cada una con su
+## plomería propia:
 ##
-## 1. DAÑO VERDADERO — ignora defensa, fortaleza y resistencias elementales
-##    del objetivo ("sin importar qué buffos tenga encima... debe recibir
-##    el daño completo"). Vía AtributosComponente.calcular_pipeline(...,
-##    ignora_defensa=true). La única excepción que SÍ lo para sigue siendo
-##    la inmunidad total (VidaComponente._invulnerable_restante), tal cual
-##    lo pidió el usuario ("a menos que sea inmunidad") — vive aguas abajo,
-##    en quitar_vida(), así que se respeta sola.
+## 1. DAÑO VERDADERO: ignora defensa, fortaleza y resistencias elementales
+##    (AtributosComponente.calcular_pipeline(..., ignora_defensa=true)). Solo
+##    la para la inmunidad total (VidaComponente._invulnerable_restante), que
+##    vive aguas abajo en quitar_vida() y se respeta sola.
 ##
-## 2. PARRY DIRECCIONAL — ver ParryComponente (se crea al vuelo la primera
-##    vez, mismo criterio que HabilidadPurga con InmunidadDebuffs). El
-##    lanzallamas del enemigo queda cubierto sin nada especial: su daño
-##    pasa por Combate.golpear_area() como cualquier otro golpe de área,
-##    así que la ventana lo bloquea; y como NO deja ningún nodo en el
-##    mundo (es un golpe repetido cada tick, ver HabilidadLanzallamas), no
-##    hay nada que cortar y sigue quemando apenas la ventana se cierra —
-##    exactamente el caso especial que describió el usuario.
+## 2. PARRY DIRECCIONAL: ver ParryComponente (se crea al vuelo la primera vez,
+##    como HabilidadPurga con InmunidadDebuffs). El lanzallamas enemigo queda
+##    cubierto sin nada especial: su daño pasa por Combate.golpear_area() y la
+##    ventana lo bloquea; como no deja ningún nodo en el mundo (es un golpe
+##    por tick), no hay nada que cortar y vuelve a quemar al cerrarse la
+##    ventana.
 ##
-## 3. SE LANZA AUNQUE ESTÉS ATURDIDO — "siempre debe estar disponible para
-##    lanzarse, sin importar si el jugador está en algún estado alterado".
-##    Vía la propiedad ignora_bloqueos, que HabilidadBase.activar(),
-##    Jugador._activar_slot() y UIHabilidad._dueño_muerto() consultan por
-##    duck typing. MUERTO no cuenta como estado alterado: un muerto no
-##    lanza nada (ver esos tres archivos).
+## 3. SE LANZA AUNQUE ESTÉS ATURDIDO: vía la propiedad ignora_bloqueos, que
+##    consultan por duck typing HabilidadBase.activar(),
+##    Jugador._activar_slot() y UIHabilidad._dueño_muerto(). MUERTO no cuenta
+##    como estado alterado: un muerto no lanza nada.
 
 @export_group("Corte")
 ## Largo del tajo (px). Se pisa con alcance_metros del .tres (ver
@@ -51,49 +42,35 @@ var ignora_bloqueos := true
 
 const MASCARA_OBJETIVOS := 0xFFFFFFFF
 
-## Segundos que le quedan a la ventana activa, y hacia dónde se cortó —
-## mientras corre, _process() vuelve a barrer ataques enemigos CADA
-## fotograma (ver ese método). Bug real reportado: "estoy dándole a parar
-## proyectiles de enemigos y no los detiene" — antes el barrido era una
-## foto de un solo instante (el del lanzamiento), así que un proyectil que
-## entraba al rectángulo medio segundo después pasaba de largo.
+## Segundos que le quedan a la ventana activa, y hacia dónde se cortó.
+## Mientras corre, _process() vuelve a barrer ataques enemigos CADA
+## fotograma: con un barrido de un solo instante, un proyectil que entraba al
+## rectángulo después del lanzamiento pasaba de largo.
 var _ventana_restante: float = 0.0
 var _dir_ventana: Vector2 = Vector2.RIGHT
 
 ## Visual del "haz" (ver HabilidadCorte.tscn): un Sprite2D con animación de
-## fotogramas propia (AnimationPlayer, no AnimacionComponente — esto es un
-## efecto de la HABILIDAD, no una pose del jugador; el usuario fue
-## explícito en eso). get_node_or_null porque instancias armadas a mano sin
-## pasar por el .tscn (pruebas/prueba_habilidad_corte.gd) no tienen estos
-## hijos, mismo criterio que _chorro_visual en HabilidadLanzallamas.
+## fotogramas propia (AnimationPlayer, no AnimacionComponente: es un efecto de
+## la HABILIDAD, no una pose del jugador). get_node_or_null porque las
+## instancias armadas a mano en pruebas no tienen estos hijos.
 ##
-## "Ancla" (Node2D) es la mitad que mueve EL SCRIPT (posición/rotación/
-## escala por largo-ancho, cada lanzamiento); HazVisual es la mitad que
-## anima el USUARIO en el AnimationPlayer (frame/position/scale del propio
-## sprite, para el efecto de "viaja y crece"). Están separados a propósito:
-## HabilidadCorte es un Node plano (no Node2D, no tiene transform propio),
-## así que si HazVisual colgara directo de él, la animación escribiéndole
-## "position" pisaría el (0,0) del MUNDO en vez de la posición del
-## jugador —el bug real que hizo que el haz "no saliera" al agregar esos
-## tracks— porque un Node2D sin ancestro CanvasItem no hereda ningún
-## offset. Con Ancla en el medio, el script mueve la ancla y la animación
-## mueve/escala el sprite relativo a ella; ninguno de los dos pisa al otro.
+## "Ancla" (Node2D) la mueve EL SCRIPT (posición, rotación, escala por largo
+## y ancho en cada lanzamiento); HazVisual lo anima el AnimationPlayer
+## (frame, position, scale del sprite). Separados a propósito: HabilidadCorte
+## es un Node plano, sin transform, así que si HazVisual colgara directo de él
+## la animación de "position" lo pondría en el (0,0) del MUNDO. Con Ancla en
+## el medio, ninguno pisa al otro.
 @onready var _haz_ancla: Node2D = get_node_or_null("Ancla")
 @onready var _haz_visual: Sprite2D = get_node_or_null("Ancla/HazVisual")
 @onready var _anim_haz: AnimationPlayer = get_node_or_null("AnimationPlayer")
 
-## Tamaño (px) al que el sprite placeholder de HazVisual.tscn quedaría a
-## escala 1:1 con largo/ancho por defecto (160x70) — el usuario puede
-## dejarlas así si su spritesheet respeta esa proporción, o ajustarlas acá
-## a mano una vez mida el arte real, mismo criterio que _LARGO_SPRITE_BASE
-## en HabilidadLanzallamas. Se aplica sobre Ancla, no sobre HazVisual (ver
-## comentario de arriba), así que se compone con lo que anime el usuario:
-## si Corte escala de nivel (largo/ancho más grandes), la animación de
-## "viaja y crece" escala junto con el rectángulo real de daño.
-## Convención sugerida para el spritesheet (para que combine con el resto
-## de efectos del proyecto): el haz nace en el borde IZQUIERDO del frame
-## (x=0, junto al jugador) y se extiende hacia la DERECHA (alcance),
-## centrado verticalmente en el eje de ancho.
+## Tamaño (px) al que el sprite de HazVisual.tscn queda a escala 1:1 con
+## largo/ancho por defecto (160x70), como _LARGO_SPRITE_BASE en
+## HabilidadLanzallamas. Ajustar si el arte real tiene otra proporción. Se
+## aplica sobre Ancla, así que se compone con la animación: si Corte escala
+## de nivel, el haz crece junto con el rectángulo real de daño.
+## Convención para el spritesheet: el haz nace en el borde IZQUIERDO del frame
+## (junto al jugador), se extiende hacia la DERECHA y va centrado en vertical.
 const _LARGO_SPRITE_BASE_HAZ := 160.0
 const _ALTO_SPRITE_BASE_HAZ := 70.0
 ## Duración (seg) que ya tiene programada la animación "default" en el
@@ -169,17 +146,15 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 
 
 ## Mientras la ventana está abierta, vuelve a barrer ataques enemigos cada
-## fotograma — así se corta también lo que ENTRA al rectángulo después del
-## instante del lanzamiento (pedido del usuario, ver _ventana_restante).
+## fotograma, así también se corta lo que ENTRA al rectángulo después del
+## lanzamiento (ver _ventana_restante).
 ##
-## Corre en TODOS los peers, a diferencia del daño: los proyectiles de un
-## mob existen como COPIA VISUAL LOCAL en cada cliente (ver HabilidadBase.
-## _reproducir_visual_red — el nodo del servidor no se replica, cada peer
-## crea el suyo). Si solo cortara el servidor, el cliente vería la flecha
-## atravesarlo igual (sin recibir daño, porque eso ya lo resolvió el
-## servidor) y parecería que el corte no funciona. Cortar la copia local no
-## tiene ningún efecto de juego —el daño nunca se decide en el cliente—,
-## solo hace que se VEA lo que de verdad pasó.
+## Corre en TODOS los peers, a diferencia del daño: los proyectiles de un mob
+## existen como COPIA VISUAL LOCAL en cada cliente (ver
+## HabilidadBase._reproducir_visual_red). Si solo cortara el servidor, el
+## cliente vería la flecha atravesarlo (sin daño) y parecería que el corte no
+## funciona. Cortar la copia local no tiene efecto de juego: solo hace que se
+## VEA lo que pasó.
 func _process(delta: float) -> void:
 	super._process(delta)
 	if _ventana_restante <= 0.0:
@@ -282,8 +257,8 @@ func _golpear(origen: Node2D, dir: Vector2) -> Array:
 	consulta.collide_with_areas = true
 	consulta.collide_with_bodies = true
 
-	# 30 = el mínimo del rango que pidió el usuario (30-40), usado solo si
-	# esta habilidad se armó sin DatosHabilidad (una prueba, por ejemplo).
+	# 30 = mínimo del rango de diseño (30-40), usado solo si la habilidad se
+	# armó sin DatosHabilidad (una prueba, por ejemplo).
 	var dano := float(_calcular_dano(30))
 	for resultado in origen.get_world_2d().direct_space_state.intersect_shape(consulta, 32):
 		var col = resultado.get("collider")

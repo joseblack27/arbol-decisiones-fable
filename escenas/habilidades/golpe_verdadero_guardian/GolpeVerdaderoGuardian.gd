@@ -2,19 +2,16 @@ class_name GolpeVerdaderoGuardian
 extends Area2D
 ## Hitbox de golpe único, cuerpo a cuerpo, del Guardián Quebrado.
 ##
-## A propósito NO pasa por Combate.golpear_area(): ese helper siempre marca
-## el golpe como es_area=true (ver Combate.gd, línea del quitar_vida() al
-## final de golpear_area()) — justo lo que ParryComponente necesita para
-## que HabilidadCorte lo bloquee. Este golpe existe PARA NO ser bloqueable
-## por el parry (el amague de fase 1, el castigo por cooldown de fase 3 y
-## las transiciones de fase lo usan con ese propósito explícito, ver el
-## diseño en escenas/enemigos/EnemigoGuardianQuebrado.gd) — mismo criterio
-## que ya usa HabilidadCarga._physics_process para su daño de embestida
-## (quitar_vida() directo, sin es_area).
+## A propósito NO pasa por Combate.golpear_area(): ese helper siempre marca el
+## golpe como es_area=true, que es justo lo que ParryComponente necesita para
+## que HabilidadCorte lo bloquee. Este golpe existe para NO ser bloqueable
+## (el amague de fase 1, el castigo por cooldown de fase 3 y las transiciones
+## de fase, ver EnemigoGuardianQuebrado.gd), como el daño de embestida de
+## HabilidadCarga._physics_process (quitar_vida() directo, sin es_area).
 ##
-## El resto (pooling, timer de vida, forma circular) es una copia deliberada
-## de GolpeBasico.gd — mismo motivo por el que HabilidadCorte._golpear()
-## tampoco reusa golpear_area(): necesita decidir "área o no" a mano.
+## Lo demás (piscina, timer de vida, forma circular) es una copia deliberada
+## de GolpeBasico.gd, por el mismo motivo por el que HabilidadCorte._golpear()
+## tampoco reusa golpear_area(): decide "área o no" a mano.
 
 var _daño: float = 20.0
 var _duracion: float = 0.15
@@ -22,8 +19,8 @@ var _timer: float = 0.0
 var _entidad_fuente: Node = null
 var _configurado: bool = false
 var _tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
-## true solo en la variante de fase 4 (arremetida) — mismo mecanismo de
-## "daño verdadero" que ya usa HabilidadCorte del jugador.
+## true solo en la variante de fase 4 (arremetida): daño verdadero, como el de
+## HabilidadCorte.
 var _ignora_defensa: bool = false
 ## Ver el comentario grande en GolpeBasico.gd: la consulta de física de
 ## _aplicar_daño() tiene que correr en _physics_process, no en el paso idle

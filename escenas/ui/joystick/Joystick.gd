@@ -21,35 +21,23 @@ func _ready():
 	radio = radio * scale.x
 
 
-## Red de seguridad: si la app pierde el foco (p. ej. el SO intercepta el
-## gesto — arrastrar el joystick "hasta arriba" puede entrar en la franja
-## donde Android interpreta un gesto propio, como bajar la barra de
-## notificaciones) el touch en curso puede quedar sin su evento normal de
-## "soltado", y el jugador seguía moviéndose solo para siempre con la
-## última dirección (reportado por el usuario). Sin esto, nada volvía a
-## soltar el joystick hasta el próximo toque.
+## Red de seguridad: si la app pierde el foco (p. ej. Android intercepta el
+## gesto de arrastrar el joystick hasta la franja de la barra de
+## notificaciones), el toque en curso puede quedarse sin su evento de
+## "soltado" y el jugador seguiría moviéndose solo con la última dirección.
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_WM_WINDOW_FOCUS_OUT:
 		if index != -1:
 			_on_touch_finalizado(index, palanca.global_position)
 
-## Acepta un toque nuevo tanto si no había nada sostenido (index == -1, caso
-## normal) COMO si reutiliza el MISMO índice que ya creíamos sostenido
-## (index == indice) -- reportado en juego real (26 sep 2026, confirmado SIN
-## red de por medio, descarta que sea el desface de red que ya cubre
-## Jugador._verificar_joystick_soltado): "el personaje se sigue moviendo...
-## en la última dirección hecha" incluso jugando solo. Un dedo real no puede
-## volver a BAJAR sin soltar antes -- si Godot reporta un touch_iniciado para
-## un índice que este joystick todavía considera presionado, la única
-## explicación es que el touch_finalizado real de la vez anterior se perdió
-## (Android reutiliza el id de puntero del toque anterior para el siguiente,
-## así que esto es justo lo que se ve cuando eso pasa). La versión vieja
-## exigía "index == -1" a secas, así que ese toque nuevo NUNCA se tomaba --
-## el joystick quedaba sin responder para SIEMPRE a partir de ahí, pegado en
-## la dirección de cuando se perdió el soltado, hasta que algo más (perder el
-## foco de la app, abrir un diálogo) lo forzara a soltar. Reusar el mismo
-## índice acá simplemente re-arma el joystick con la posición actual, sin
-## efecto si de verdad seguía sostenido (recalcula lo mismo).
+## Acepta un toque nuevo si no había nada sostenido (index == -1) O si reusa
+## el MISMO índice que creíamos sostenido (index == indice). Un dedo real no
+## puede volver a BAJAR sin soltar antes: un touch_iniciado para un índice
+## todavía presionado significa que el touch_finalizado anterior se perdió
+## (Android reutiliza el id de puntero). Exigiendo solo index == -1, ese toque
+## nunca se tomaba y el joystick quedaba pegado en la última dirección para
+## siempre, aun sin red. Re-armarlo con la posición actual no tiene efecto si
+## de verdad seguía sostenido.
 func _on_touch_iniciado(indice, posicion):
 	if habilitado == true and (index == -1 or index == indice):
 		distancia = global_position.distance_to(posicion)

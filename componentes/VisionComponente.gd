@@ -4,13 +4,10 @@ class_name VisionComponente
 ## Opcionalmente verifica línea de visión directa con raycast.
 
 # --- Señales ---
-## Un candidato NUEVO entró en "con línea de visión confirmada" — se emite
-## por CADA UNO, no solo el primero (antes solo emitía en la transición
-## vacío→no-vacío, así que un segundo jugador que entraba en rango mientras
-## ya había uno detectado no generaba ningún aviso: Enemigo._on_objetivo_
-## detectado nunca se enteraba de que había otro candidato para comparar
-## distancias — pedido del usuario: "una pequeña capacidad de decisión de a
-## quién atacar" con varios jugadores cerca).
+## Un candidato NUEVO entró en "con línea de visión confirmada". Se emite por
+## CADA UNO, no solo por el primero: con varios jugadores cerca,
+## Enemigo._on_objetivo_detectado necesita enterarse de cada candidato para
+## elegir a quién atacar.
 signal objetivo_detectado(area: Area2D)
 ## Simétrico: se emite por CADA candidato que se pierde, no solo cuando ya
 ## no queda ninguno.
@@ -103,12 +100,11 @@ func _on_area_entered(area: Area2D) -> void:
 	_intentar_registrar(area)
 
 
-## Filtro + alta compartidos por _on_area_entered (evento real de físicas) y
-## _detectar_pendientes (reconciliación periódica, ver ese comentario). Un
-## área invulnerable (ver VidaComponente.es_invulnerable) NUNCA se registra
-## acá — pedido del usuario: mientras un jugador es inmune (al revivir), no
-## puede ser objetivo de ningún mob. Queda pendiente para _detectar_pendientes
-## en cuanto termine su inmunidad, si sigue solapado.
+## Filtro y alta compartidos por _on_area_entered (evento de física) y
+## _detectar_pendientes (reconciliación periódica). Un área invulnerable (ver
+## VidaComponente.es_invulnerable) NUNCA se registra: mientras un jugador es
+## inmune (al revivir) ningún mob puede tomarlo de objetivo. Queda para
+## _detectar_pendientes cuando termine la inmunidad, si sigue solapado.
 func _intentar_registrar(area: Area2D) -> void:
 	if not _es_objetivo_valido(area):
 		return
@@ -168,17 +164,12 @@ func _on_area_exited(area: Area2D) -> void:
 	_desregistrar_con_los(area)
 
 
-## Poda objetivos que dejaron de ser "detectables" sin que el motor de
-## física llegara a avisar con area_exited — pasa cuando un VidaComponente
-## se pone monitorable=false MIENTRAS sigue físicamente solapado (p. ej. un
-## jugador que muere pegado al mob que lo mató: se queda quieto ahí hasta
-## reaparecer, y Godot no dispara area_exited solo por apagar monitorable
-## sin mover el cuerpo — confirmado con una prueba puntual). Sin esto, la
-## entrada quedaba pegada en _areas_en_rango para siempre, y el "si ya está
-## registrada, salir" de _on_area_entered bloqueaba cualquier redetección
-## futura aunque el jugador reapareciera y volviera a acercarse de verdad
-## (reportado: "los mobs que me matan, cuando me acerco de nuevo no me
-## detectan").
+## Poda objetivos que dejaron de ser detectables sin que el motor avisara con
+## area_exited: pasa cuando un VidaComponente se pone monitorable=false
+## mientras sigue solapado (p. ej. un jugador que muere pegado al mob; Godot
+## no dispara area_exited solo por apagar monitorable). Sin esto la entrada
+## quedaba en _areas_en_rango para siempre, y el "si ya está registrada,
+## salir" de _on_area_entered impedía volver a detectarlo.
 func _podar_invalidos() -> void:
 	for key in _areas_en_rango.keys():
 		var area := _areas_en_rango.get(key) as Area2D
@@ -191,16 +182,12 @@ func _podar_invalidos() -> void:
 			_areas_con_los.erase(key)
 
 
-## Contraparte de _podar_invalidos: agrega objetivos que YA están física-
-## mente solapados (get_overlapping_areas) pero que _intentar_registrar se
-## saltó en su momento por ser inválidos (invulnerable, no monitorable
-## todavía). Caso real: un jugador muere pegado a un mob (se poda de acá
-## arriba), revive invulnerable EN EL MISMO LUGAR — el cuerpo nunca sale
-## físicamente del área, así que Godot no vuelve a disparar area_entered, y
-## sin este re-chequeo el mob nunca lo detectaría de nuevo aunque termine su
-## inmunidad y se quede parado ahí (reportado por el usuario). No hace falta
-## reaccionar en el mismo fotograma en que termina la inmunidad — corre cada
-## _INTERVALO_PODA, igual que la poda.
+## Contraparte de _podar_invalidos: agrega objetivos YA solapados
+## (get_overlapping_areas) que _intentar_registrar se saltó por inválidos
+## (invulnerable, todavía no monitorable). Caso real: un jugador muere pegado a
+## un mob y revive invulnerable EN EL MISMO LUGAR; como nunca sale del área,
+## Godot no vuelve a disparar area_entered. Corre cada _INTERVALO_PODA, igual
+## que la poda.
 func _detectar_pendientes() -> void:
 	for area in get_overlapping_areas():
 		_intentar_registrar(area)

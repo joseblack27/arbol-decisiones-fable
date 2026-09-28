@@ -1,29 +1,22 @@
 class_name HabilidadArremetidaGuardian
 extends HabilidadCarga
-## Arremetida de fase "Quiebre": la MISMA embestida de HabilidadCarga
-## (preparación → dash, daño por overlap físico cada fotograma durante el
-## dash — ver esa clase para el detalle completo), con el bloque de daño
-## reemplazado para usar AtributosComponente.calcular_pipeline(...,
-## ignora_defensa=true) — mismo mecanismo de "daño verdadero" que ya usa
-## HabilidadCorte del jugador.
+## Arremetida de la fase "Quiebre": la MISMA embestida de HabilidadCarga
+## (preparación y dash, daño por solape físico cada fotograma del dash), con
+## el daño pasado por AtributosComponente.calcular_pipeline(...,
+## ignora_defensa=true): daño verdadero, como el de HabilidadCorte.
 ##
-## A propósito NO es es_area (el quitar_vida() de abajo no pasa ese
-## parámetro, igual que la base): ni el parry de Corte la salva, hay que
-## esquivarla moviéndose de verdad — pedido explícito del diseño ("ni el
-## parry de Corte la salva").
+## A propósito NO es es_area (el quitar_vida() de abajo no lo pasa): ni el
+## parry de Corte la salva, hay que esquivarla moviéndose.
 ##
-## Todo el resto (fases PREPARACION/DASH, timers, contener_dentro_del_mapa,
-## la corrección de dirección al iniciar el dash) es HERENCIA pura de
-## HabilidadCarga — _physics_process() se sobreescribe completo acá porque
-## el bloque de daño está inline en el original, sin ningún punto de
-## extensión propio.
+## Lo demás (fases, timers, contener_dentro_del_mapa, la corrección de
+## dirección al iniciar el dash) se hereda de HabilidadCarga. _physics_process()
+## se sobreescribe entero porque el bloque de daño está inline en el original.
 ##
-## OJO: distancia_maxima_dash (heredada de HabilidadCarga, configurada en
-## el .tscn del jefe) es el alcance físico real — HabilidadBT.rango_maximo
-## en ArremetidaGuardian.tres tiene que quedar <= ese valor, mismo criterio
-## documentado en HabilidadComboGuardian.alcance_golpe (si no, la IA puede
-## elegir arremeter contra alguien más lejos de lo que el dash llega a
-## recorrer).
+## OJO: distancia_maxima_dash (heredada, configurada en el .tscn del jefe) es
+## el alcance físico real: HabilidadBT.rango_maximo en ArremetidaGuardian.tres
+## tiene que quedar <= ese valor (mismo criterio que
+## HabilidadComboGuardian.alcance_golpe), o la IA arremete contra alguien más
+## lejos de lo que el dash llega.
 
 @export var ignora_defensa: bool = true
 

@@ -18,11 +18,9 @@ extends HabilidadBase
 
 @export_group("Barrido")
 ## OJO al tocar esto: el alcance real hacia adelante del rectángulo ES
-## "largo" — HabilidadBT.rango_maximo en BarridoGuardian.tres tiene que
-## quedar <= este valor, o la IA elige atacar desde una distancia que el
-## rectángulo después no llega a cubrir (bug real reportado: golpes que no
-## conectaban con el jugador quieto — no era de apuntado, era este
-## desajuste entre "en rango" y "alcance físico real").
+## "largo". HabilidadBT.rango_maximo en BarridoGuardian.tres tiene que quedar
+## <= este valor, o la IA ataca desde una distancia que el rectángulo no
+## cubre (golpes que no conectan con el jugador quieto).
 @export var largo: float = 150.0
 @export var ancho: float = 90.0
 @export var dano: float = 18.0
@@ -37,14 +35,11 @@ var _id_ataque := 0
 ## true mientras dura la pose — gatilla el reapuntado continuo en
 ## _process(), mismo campo/idea que HabilidadFrancotiradorGuardian.
 var _en_pose := false
-## Franja de advertencia (IndicadorZonaEfecto con polígono rotado, mismo
-## mecanismo que el retículo de HabilidadFrancotiradorGuardian) que marca
-## el rectángulo real donde va a pegar el barrido mientras dura la pose —
-## bug real reportado: "el barrido del boss no muestra el área donde
-## pega", solo se veía la pose CARGANDO sin ninguna pista de hacia dónde
-## ni hasta dónde llega. Sigue la reapuntado continuo (ver _process), así
-## que queda sincronizada con el rectángulo real que golpea() termina
-## trazando.
+## Franja de advertencia (IndicadorZonaEfecto con polígono rotado, como el
+## retículo de HabilidadFrancotiradorGuardian) que marca el rectángulo real
+## donde va a pegar el barrido mientras dura la pose. Sigue el reapuntado
+## continuo (ver _process), así coincide con el rectángulo que golpear()
+## termina trazando.
 var _indicador_area: IndicadorZonaEfecto = null
 
 
@@ -79,16 +74,12 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 		_al_terminar_pose.bind(id_este, dir, animacion))
 
 
-## Reapuntado continuo mientras dura la pose — bug real reportado: "el jefe
-## no apunta las habilidades encima del jugador, algunas las tira antes y
-## otras después". La dirección que llega a _ejecutar() se capturaba UNA
-## sola vez al arrancar (0.6s antes de golpear de verdad); si el jugador se
-## movía en ese rato, el rectángulo salía apuntando a donde estaba, no a
-## donde está. Mismo mecanismo que ya usa HabilidadFrancotiradorGuardian
-## (y HabilidadFlechaArquero del Esqueleto Arquero): mientras ataque_en_
-## curso=true, AccionAtacar deja de reapuntar por su cuenta (ver el
-## comentario de esa función) — la propia habilidad tiene que hacerse cargo
-## durante su ventana.
+## Reapuntado continuo mientras dura la pose: la dirección que llega a
+## _ejecutar() se captura una vez al arrancar (0.6 s antes de golpear), y si
+## el jugador se movía el rectángulo salía hacia donde estaba. Mientras
+## ataque_en_curso=true AccionAtacar no reapunta, así que la habilidad se hace
+## cargo en su ventana (como HabilidadFrancotiradorGuardian y
+## HabilidadFlechaArquero).
 func _process(delta: float) -> void:
 	super._process(delta)
 	if not _en_pose or not is_instance_valid(entidad_dueña) or not ("memoria" in entidad_dueña):

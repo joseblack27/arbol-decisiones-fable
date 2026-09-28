@@ -1,18 +1,14 @@
 extends Node
-## Log de conexión visible EN PANTALLA (celular) — un botón en el HUD
-## muestra/oculta un panel con este registro (ver PanelLogRed), para poder
-## diagnosticar problemas de conexión sin necesitar cable USB + logcat.
+## Log de conexión visible EN PANTALLA (celular): un botón en el HUD muestra u
+## oculta un panel con este registro (ver PanelLogRed), para diagnosticar la
+## conexión sin cable USB ni logcat.
 ##
-## Autoload (no vive dentro de Mundo.tscn): sobrevive el change_scene_to_file
-## de MenuInicio -> Mundo, así que el registro ya tiene la primera línea
-## ("intentando conectar a...") lista para cuando el panel se abre, en vez
-## de perderse por haber ocurrido antes de que el panel existiera.
+## Autoload (no vive en Mundo.tscn): sobrevive el cambio de escena de
+## MenuInicio a Mundo, así la primera línea ("intentando conectar a...") ya
+## está cuando se abre el panel.
 ##
-## También junta acá el log de daño recibido (antes vivía aparte, en
-## PanelTablero "Actividad Reciente") — pedido del usuario para tener un
-## solo registro de diagnóstico (red + combate) en vez de repartido entre
-## dos paneles distintos. Ese espacio en PanelTablero ahora muestra los
-## buffs/debuffs activos (ver PanelTablero.gd).
+## También junta el log de daño recibido, para tener un solo registro de
+## diagnóstico (red + combate).
 
 signal linea_agregada(linea: String)
 
@@ -69,10 +65,9 @@ func _on_dano_replicado(objetivo: Node, cantidad: float, nombre_fuente: String) 
 func _registrar_dano(objetivo: Node, cantidad: float, nombre_fuente: String) -> void:
 	if objetivo == null or not is_instance_valid(objetivo) or not objetivo.is_in_group("jugadores"):
 		return
-	# Mismo criterio que ya usa el panel para mostrarse/ocultarse (ver
-	# Mundo._aplicar_visibilidad_depuracion): si "datos de desarrollo" está
-	# apagado, la línea igual queda en el historial del panel, pero no se
-	# imprime — pedido del usuario para no llenar los logs del contenedor
-	# con un "X hizo N daño a Y" por cada golpe que recibe cada jugador.
+	# Mismo criterio que la visibilidad del panel (ver
+	# Mundo._aplicar_visibilidad_depuracion): con los datos de desarrollo
+	# apagados, la línea queda en el historial pero no se imprime, para no
+	# llenar los logs del contenedor con un "X hizo N daño a Y" por golpe.
 	registrar("%s hizo %d daño a %s" % [nombre_fuente, int(cantidad), Utils.nombre_visible(objetivo)],
 		Utils.mostrar_depuracion)

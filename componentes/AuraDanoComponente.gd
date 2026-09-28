@@ -1,41 +1,31 @@
 extends Node2D
 class_name AuraDanoComponente
-## Aura de daño continuo alrededor de quien la activó — a diferencia de
-## una trampa (espera fija) o un veneno (pegado a UN objetivo), esto vive
-## pegado al DUEÑO: cualquier enemigo dentro de "radio" recibe daño cada
-## "intervalo_tick" segundos mientras dure, sin importar cuántas veces
-## entren o salgan del radio (se recalcula de cero en cada tick con
-## Combate.golpear_area — no hace falta rastrear quién está "adentro").
+## Aura de daño continuo alrededor de quien la activó. A diferencia de una
+## trampa (fija) o un veneno (pegado a UN objetivo), vive pegada al DUEÑO:
+## cualquier enemigo dentro de "radio" recibe daño cada "intervalo_tick"
+## segundos mientras dure. Se recalcula de cero en cada tick con
+## Combate.golpear_area, sin rastrear quién está adentro.
 ##
-## El efecto en sí (_aplicar_tick) queda separado a propósito del
-## temporizador (pedido del usuario: "el efecto me gustaría que sea
-## modificable") — cambiar QUÉ le hace el aura a cada objetivo más
-## adelante (otro tipo de daño, un debuff, etc.) no debería tocar nada
-## del resto de este archivo.
+## El efecto (_aplicar_tick) queda separado del temporizador a propósito, para
+## poder cambiar QUÉ hace el aura (otro tipo de daño, un debuff...) sin tocar
+## el resto.
 ##
-## Mismo patrón que CuracionComponente/EscudoComponente: componente
-## genérico, activado por una habilidad (ver HabilidadAura), reusable por
-## cualquier entidad futura que quiera este mismo efecto.
+## Mismo patrón que CuracionComponente y EscudoComponente: componente genérico
+## que activa una habilidad (ver HabilidadAura).
 ##
-## Node2D (no Node): así se dibuja el círculo del área SOLO (ver _draw)
-## sin necesitar un nodo visual aparte — al ser hijo del dueño, ya sigue
-## su posición solo con la herencia de transform normal, sin tocar nada
-## en _process. Visible para TODOS los jugadores (pedido del usuario):
-## este componente se crea igual en cada peer que corre _ejecutar() (el
-## dueño en predicción, el servidor, y cada espectador cercano vía
-## HabilidadBase._reproducir_visual_red), así que no hace falta ningún
-## filtro "solo local" — ya se replica solo.
+## Node2D (no Node): dibuja el círculo del área él mismo (ver _draw) y, como
+## hijo del dueño, sigue su posición con la herencia de transform. Se crea en
+## cada peer que corre _ejecutar() (dueño, servidor y espectadores vía
+## HabilidadBase._reproducir_visual_red), así que todos lo ven sin filtros.
 
 @export var radio: float = 25.0
 @export var dano_por_tick: float = 6.0
 @export var intervalo_tick: float = 1.0
 @export var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
-## Fracción del daño YA calculado (dano_base + atributos del jugador) que
-## de verdad se aplica por tick — mismo criterio que HabilidadLanzallamas
-## .multiplicador_dano_tick (pedido del usuario: "que el daño sea el 50%
-## del calculado"). Con el MISMO nombre de propiedad, PanelDetalleHabilidad
-## ya sabe leerlo solo para mostrar el "Daño Calculado" correcto, sin
-## tocar ese panel para nada — ver el comentario ahí.
+## Fracción del daño YA calculado (dano_base + atributos del jugador) que se
+## aplica por tick, como HabilidadLanzallamas.multiplicador_dano_tick. Con el
+## MISMO nombre de propiedad, PanelDetalleHabilidad lo lee solo para mostrar
+## el "Daño Calculado" correcto.
 @export var multiplicador_dano_tick: float = 1.0
 
 var _dueño: Node2D = null
@@ -91,10 +81,9 @@ func _aplicar_tick() -> void:
 	Combate.golpear_area(_dueño, forma, dano_base, _dueño, tipo_dano, "aura", true, multiplicador_dano_tick)
 
 
-## Círculo del área real, visible para todos mientras el aura está activa
-## (pedido del usuario) — se dibuja en espacio LOCAL (0,0 = la posición
-## del dueño, ver comentario de clase), así que sigue solo su movimiento
-## sin tener que redibujarse cada fotograma.
+## Círculo del área real, visible para todos mientras el aura está activa. Se
+## dibuja en espacio LOCAL (0,0 = el dueño), así que sigue su movimiento sin
+## redibujarse cada fotograma.
 func _draw() -> void:
 	if not _activa:
 		return

@@ -58,8 +58,8 @@ func _drop_data(_at_position, data):
 		return
 	item_slot.item_data = null
 	item_slot.update_item()
-	# silencioso=true: vuelve al inventario general, no es botín nuevo — no
-	# debe disparar la notificación de "recibiste" (bug reportado).
+	# silencioso=true: vuelve al inventario general, no es botín nuevo (sin
+	# notificación de "recibiste").
 	GestorInventario.agregar_item(item, -1, true)
 	if owner.has_method("refrescar"):
 		owner.refrescar()

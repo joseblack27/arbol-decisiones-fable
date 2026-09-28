@@ -1,8 +1,7 @@
 extends Control
-## Popup de invitación de grupo — Feature C del plan MMO. Oculto por
-## defecto, aparece al recibir GestorGrupos.invitacion_recibida y se cierra
-## solo (sin avisar nada especial) si nadie responde antes de que el
-## servidor la deje vencer (GestorGrupos.TTL_INVITACION_SEGUNDOS).
+## Popup de invitación de grupo. Oculto por defecto; aparece al recibir
+## GestorGrupos.invitacion_recibida y se cierra solo si nadie responde antes
+## de que el servidor la deje vencer (GestorGrupos.TTL_INVITACION_SEGUNDOS).
 
 @onready var _texto: Label = $Fondo/MarginContainer/VBox/Texto
 @onready var _boton_aceptar: Button = $Fondo/MarginContainer/VBox/Botones/BotonAceptar

@@ -1,18 +1,16 @@
 extends Node
 class_name EfectoTemporalPegado
-## Base común para efectos NEGATIVOS "pegados" al objetivo — viven colgados
-## de él con su propia duración y lo siguen a donde vaya (ver EfectoVeneno,
-## EfectoLentitud). Distinto de los efectos de ZONA (ver EfectoAreaBase:
+## Base común para efectos NEGATIVOS "pegados" al objetivo: viven colgados de
+## él con su propia duración y lo siguen a donde vaya (ver EfectoVeneno,
+## EfectoLentitud). Distintos de los efectos de ZONA (ver EfectoAreaBase:
 ## Inmovilizar, DoT, Marca), que solo aplican mientras el objetivo está
-## físicamente parado dentro de un área.
+## parado dentro de un área.
 ##
-## Sirve para que HabilidadPurga pueda encontrar y cancelar TODOS los
-## debuffs temporales que lleve encima una entidad sin conocer cada tipo por
-## separado: cualquier debuff nuevo que extienda esto queda cubierto solo.
-## Los efectos de zona/mapa se dejan afuera A PROPÓSITO (no extienden esto):
-## purgarlos no tendría sentido — el objetivo los vuelve a sufrir apenas
-## siga parado ahí — y el usuario pidió explícitamente que un futuro debuff
-## de zona/mapa NO sea afectado por Purga.
+## Sirve para que HabilidadPurga encuentre y cancele TODOS los debuffs
+## temporales de una entidad sin conocer cada tipo: cualquier debuff nuevo que
+## extienda esto queda cubierto solo. Los efectos de zona quedan afuera A
+## PROPÓSITO: purgarlos no tendría sentido, porque el objetivo los vuelve a
+## sufrir apenas sigue ahí.
 
 ## Purga solo cancela esto si es true — deja la puerta abierta a un efecto
 ## "pegado" que sea beneficioso en vez de un debuff (hoy no hay ninguno:

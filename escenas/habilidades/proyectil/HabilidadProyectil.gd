@@ -24,13 +24,12 @@ func _ready() -> void:
 	nombre_habilidad = "Proyectil"
 	tipo_habilidad   = "proyectil"
 
-## Ícono de la habilidad — sprite PROVISIONAL del proyectil mientras no haya
-## arte dedicado (ver Proyectil.poner_textura_icono). Para una habilidad de
-## catálogo, aplicar_datos() lo pisa con DatosHabilidad.icono; para una
-## armada A MANO en su propia escena (sin DatosHabilidad — los ataques de
-## jefe, como los de EnemigoArañaReina) se fija DIRECTO acá, en el
-## Inspector de esa instancia, en vez de quedar en null (que hace caer a
-## los círculos de debug de Proyectil._draw() — reportado por el usuario).
+## Ícono de la habilidad: sprite PROVISIONAL del proyectil mientras no haya
+## arte dedicado (ver Proyectil.poner_textura_icono). En una habilidad de
+## catálogo, aplicar_datos() lo pisa con DatosHabilidad.icono; en una armada A
+## MANO en su escena (sin DatosHabilidad, como los ataques de EnemigoArañaReina)
+## se fija acá en el Inspector. En null, Proyectil._draw() cae a los círculos
+## de depuración.
 @export var icono_provisional: Texture2D = null
 
 func aplicar_datos(d: DatosHabilidad) -> void:
@@ -55,27 +54,19 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 	proy.alcance_base = alcance_maximo
 	var poder_efectivo := poder if alcance_segun_poder else 1.0
 	proy.configurar(direccion, poder_efectivo, _calcular_dano(int(daño_proyectil)), entidad_dueña, tipo_dano)
-	# Si esta habilidad tiene daño REAL configurado (DatosHabilidad.dano_
-	# base_min/max > 0, ver aplicar_datos en HabilidadBase), que el DoT que
-	# deje el efecto de impacto (ej. EfectoVeneno) escale IGUAL que el
-	# golpe inicial — sin esto, subir de nivel una habilidad como Veneno
-	# cambiaba el golpe inicial pero el veneno seguía haciendo el mismo
-	# daño de tick fijo de siempre (reportado por el usuario). Acotado a
-	# _dano_min/_dano_max > 0 para NO afectar habilidades de jefe armadas a
-	# mano en su propia escena (sin DatosHabilidad, esos campos se quedan
-	# en 0) — esas conservan su propio dano_por_tick tal cual.
+	# Con daño REAL configurado (DatosHabilidad.dano_base_min/max > 0), el
+	# DoT del efecto de impacto (ej. EfectoVeneno) escala IGUAL que el golpe
+	# inicial; si no, subir de nivel la habilidad solo cambiaba el golpe. Las
+	# habilidades de jefe armadas a mano (sin DatosHabilidad, esos campos en
+	# 0) conservan su dano_por_tick.
 	if _dano_min > 0 or _dano_max > 0:
 		proy.dano_para_efecto_tick = proy.daño
 	# El ícono de buff/debuff que deje el efecto de impacto (veneno, lentitud...)
 	# tiene que ser el de la HABILIDAD, no uno aparte hardcodeado en el .tscn
 	# del efecto — ver Proyectil._spawnear_efecto_impacto().
 	proy.icono_habilidad = icono_provisional
-	# SIEMPRE llamar (nunca "if usar_icono_como_sprite: ..."): con null,
-	# poner_textura_icono() APAGA cualquier sprite-ícono que hubiera quedado
-	# puesto en este mismo nodo reciclado del pool por una activación
-	# ANTERIOR (de esta misma habilidad antes de desmarcar la casilla, o de
-	# otra habilidad que comparte la misma escena_proyectil base) — omitir
-	# la llamada dejaba ese sprite viejo colgado para siempre (reportado:
-	# "lanza un proyectil de uno y los otros de otro sprite").
+	# SIEMPRE llamar, también con null: así se APAGA el sprite-ícono que haya
+	# quedado de una activación anterior en este nodo reciclado de la piscina
+	# (de esta habilidad o de otra con la misma escena_proyectil base).
 	proy.poner_textura_icono(icono_provisional if usar_icono_como_sprite else null)
 	_reproducir_sonido()

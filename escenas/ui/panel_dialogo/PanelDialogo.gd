@@ -85,19 +85,15 @@ func _mostrar_linea() -> void:
 			_opciones_vbox.add_child(boton)
 
 
-## Filtro de OpcionDialogo.condicion/mision_condicion — una opción puede
-## depender del estado de una misión sin ser ella misma quien la acepta/
-## entrega (ver el export de condicion en OpcionDialogo.gd). Pedido
-## explícito del usuario: "ya me encargué de los lobos" no debería
-## ofrecerse antes de aceptar la misión ni mientras sigue en curso, solo
-## cuando los objetivos ya están cumplidos.
+## Filtro de OpcionDialogo.condicion/mision_condicion: una opción puede
+## depender del estado de una misión sin ser la que la acepta o entrega (ver
+## condicion en OpcionDialogo.gd). P. ej. "ya me encargué de los lobos" solo
+## aparece con los objetivos ya cumplidos.
 ##
-## NO_ACEPTADA además exige MisionesComponente.cumple_requisitos() — pedido
-## explícito del usuario: "las misiones que el jugador no pueda aceptar por
-## nivel o alguna otra condición no deben mostrarse en los diálogos, pero
-## sí en el panel de misiones" (1 sep 2026). PanelMisiones sigue listando
-## TODO el catálogo sin este filtro a propósito — ahí el jugador tiene que
-## poder ver qué le falta para desbloquearla.
+## NO_ACEPTADA además exige MisionesComponente.cumple_requisitos(): una misión
+## que el jugador todavía no puede aceptar (por nivel u otra condición) no se
+## ofrece en el diálogo. PanelMisiones sí lista todo el catálogo, para que se
+## vea qué falta para desbloquearla.
 func _opcion_visible(opcion: OpcionDialogo) -> bool:
 	if opcion.condicion == Enums.Dialogo.CondicionMision.SIEMPRE or opcion.mision_condicion == null:
 		return true

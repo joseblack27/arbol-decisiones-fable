@@ -40,9 +40,9 @@ const MITAD_Y := ALTO / 2
 ## encierra el mapa por los cuatro lados.
 const BORDE_TRANSITABLE := 105
 const GROSOR_MALEZA := 4
-## Semiancho base del empedrado: queda entre 18 y 26 tiles (576-832 px) de
-## camino con la ondulación. El mapa creció a 220x220 pero el camino conserva
-## este ancho a pedido del usuario — cruza el centro y el resto es campo.
+## Semiancho base del empedrado: con la ondulación quedan entre 18 y 26 tiles
+## (576-832 px) de camino. Cruza el centro del mapa (220x220) y el resto es
+## campo.
 const SEMIANCHO_CAMINO := 11
 
 ## Máscara de la capa de navegación que usan los agentes de los mobs (ver

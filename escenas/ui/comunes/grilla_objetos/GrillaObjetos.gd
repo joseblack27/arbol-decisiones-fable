@@ -1,31 +1,23 @@
 extends Panel
 class_name GrillaObjetos
-## Grilla reusable de 4 columnas: puebla una CasillaObjeto por ítem
-## EXISTENTE de una lista (sin huecos, sin casillas vacías precreadas —
-## pedido del usuario: "no quiero slots precreados") y se reconstruye
-## entera cuando el ScrollContainerObjetos avisa un cambio (ver ese
-## archivo — es quien recibe el drop, no las casillas). No sabe nada de
-## "cofre" ni "inventario": quien la usa (PanelCofre) le pasa CÓMO
-## conseguir la lista actual y la FuenteObjetos compartida por toda la
-## grilla. Reemplaza las 2 implementaciones casi idénticas que había
-## repetidas en PanelCofre antes de este refactor.
+## Grilla reusable de 4 columnas: una CasillaObjeto por ítem EXISTENTE de una
+## lista (sin huecos ni casillas vacías precreadas), reconstruida entera
+## cuando ScrollContainerObjetos avisa un cambio (es quien recibe el drop, no
+## las casillas). No sabe nada de "cofre" ni "inventario": quien la usa
+## (PanelCofre) le pasa CÓMO conseguir la lista actual y la FuenteObjetos
+## compartida por toda la grilla.
 
 const _CASILLA_SCENE := preload("res://escenas/ui/comunes/casilla_objeto/CasillaObjeto.tscn")
 
 signal item_tocado(item: DatosItem)
-## Botón de cerrar propio (ver mostrar_boton_cerrar) — pedido del usuario:
-## "quiero un botón de cerrar desde esta vista, que haga lo mismo que el
-## que ya está de salir". Genérica a propósito: esta grilla no sabe qué
-## significa "cerrar" para quien la usa (PanelCofre la conecta a su propio
-## _cerrar()), solo avisa que lo pidieron.
+## Botón de cerrar propio (ver mostrar_boton_cerrar). La grilla no sabe qué
+## significa "cerrar" para quien la usa (PanelCofre lo conecta a su
+## _cerrar()): solo avisa que lo pidieron.
 signal cerrar_solicitado
 
-## Botón "Tomar todo" (ver mostrar_boton_tomar_todo) — pedido del usuario:
-## "un botón que solo se muestre en el inventario del cofre, y pase todo al
-## inventario". Misma idea que cerrar_solicitado: esta grilla no sabe qué
-## significa "tomar todo" (no conoce ninguna otra grilla), solo avisa que
-## lo pidieron — PanelCofre es quien de verdad mueve los ítems, usando el
-## fuente_grilla de ESTA grilla y el de GrillaJugador.
+## Botón "Tomar todo" (ver mostrar_boton_tomar_todo). Como cerrar_solicitado:
+## la grilla no conoce ninguna otra grilla, solo avisa; PanelCofre mueve los
+## ítems con el fuente_grilla de ESTA grilla y el de GrillaJugador.
 signal tomar_todo_solicitado
 
 @export var titulo: String = "":
@@ -42,8 +34,7 @@ signal tomar_todo_solicitado
 		if is_node_ready():
 			_boton_cerrar.visible = value
 
-## Oculto por defecto — pedido del usuario: "solo se muestre en el
-## inventario del cofre" (PanelCofre lo activa nada más en GrillaCofre).
+## Oculto por defecto: PanelCofre lo activa solo en GrillaCofre.
 @export var mostrar_boton_tomar_todo: bool = false:
 	set(value):
 		mostrar_boton_tomar_todo = value
@@ -65,31 +56,26 @@ signal tomar_todo_solicitado
 		if is_node_ready():
 			_aplicar_orden_scroll()
 
-## Oculto por defecto — pedido del usuario: "filtros como lo del
-## inventario por categoría de objetos... pero parametrizable por un
-## booleano para quitarlo o ponerlo". Mismas 4 categorías/orden que ya usan
-## PanelInventario (FlujoItems.gd) y PanelTienda (_TIPOS_FILTRO): Todos,
-## Equipables, Consumibles, Recursos — ver _TIPOS_FILTRO.
+## Filtro por categoría, oculto por defecto. Mismas 4 categorías y orden que
+## PanelInventario (FlujoItems.gd) y PanelTienda: Todos, Equipables,
+## Consumibles, Recursos (ver _TIPOS_FILTRO).
 @export var mostrar_filtro_categorias: bool = false:
 	set(value):
 		mostrar_filtro_categorias = value
 		if is_node_ready():
 			_tabs_filtro.visible = value
 
-## Texto del estado vacío (ver notificar_cambio) — pedido del usuario:
-## "agrega el estado vacío". Un campo por instancia, no un texto fijo, para
-## que cada grilla pueda decir "Cofre vacío" / "No tenés objetos" en vez de
-## un genérico "Vacío" — esta grilla no sabe si es cofre o inventario.
+## Texto del estado vacío (ver notificar_cambio). Un campo por instancia para
+## que cada grilla diga "Cofre vacío" o "No tenés objetos" en vez de un
+## genérico "Vacío": la grilla no sabe si es cofre o inventario.
 @export var texto_vacio: String = "Vacío":
 	set(value):
 		texto_vacio = value
 		if is_node_ready():
 			_etiqueta_vacia.text = value
 
-## Oculto por defecto — pedido del usuario: "poder organizar los ítems por
-## orden alfabético de las categorías ascendente y descendente, orden
-## alfabético ascendente y descendente [por nombre]". Mismo criterio que
-## mostrar_filtro_categorias: parametrizable por booleano.
+## Orden por categoría o por nombre, ascendente o descendente. Oculto por
+## defecto, como mostrar_filtro_categorias.
 @export var mostrar_ordenar: bool = false:
 	set(value):
 		mostrar_ordenar = value
@@ -98,9 +84,8 @@ signal tomar_todo_solicitado
 
 enum OrdenItems { SIN_ORDENAR, CATEGORIA_ASC, CATEGORIA_DESC, NOMBRE_ASC, NOMBRE_DESC }
 
-## Oculto por defecto — pedido del usuario: "la búsqueda por texto". Mismo
-## criterio parametrizable que el resto. Filtra por nombre, sin importar
-## mayúsculas/minúsculas, en cualquier parte del texto (no solo el inicio).
+## Búsqueda por texto, oculta por defecto. Filtra por nombre, sin importar
+## mayúsculas, en cualquier parte del texto.
 @export var mostrar_busqueda: bool = false:
 	set(value):
 		mostrar_busqueda = value
@@ -147,13 +132,11 @@ var _obtener_items: Callable = Callable()
 ## de verdad al recibir un drop).
 var fuente_grilla: FuenteObjetos = null
 
-## A qué grilla manda un doble-tap sobre una casilla de ESTA grilla (ver
-## CasillaObjeto._transferencia_rapida) — pedido del usuario: "el
-## doble-tap para transferencia rápida". null = sin configurar (grilla
-## suelta, sin contraparte armada). No es @export: como fuente_grilla, se
-## arma en tiempo de ejecución — quien usa dos GrillaObjetos como par (ej.
-## PanelCofre) las conecta entre sí después de poblarlas, esta grilla no
-## sabe nada de la otra por sí sola.
+## A qué grilla manda un doble toque sobre una casilla de ESTA grilla
+## (transferencia rápida, ver CasillaObjeto._transferencia_rapida). null = sin
+## contraparte. No es @export: como fuente_grilla, se arma en tiempo de
+## ejecución; quien usa dos grillas como par (PanelCofre) las conecta después
+## de poblarlas.
 var grilla_destino_rapida: GrillaObjetos = null
 
 ## Transferencia esperando que PopupCantidad confirme una cantidad (ver
@@ -241,23 +224,14 @@ func notificar_cambio() -> void:
 	_etiqueta_vacia.visible = items.is_empty()
 
 
-## Punto único de entrada para un drop aceptado en ESTA grilla — lo llaman
-## tanto CasillaObjeto._drop_data (soltar sobre una casilla puntual, el
-## caso más común: cubre casi toda el área visible) como ScrollContainer
-## Objetos._drop_data (soltar en el hueco vacío alrededor/debajo de las
-## casillas). Soltar dentro de la MISMA grilla (agarrar y soltar ahí
-## mismo, o en otra casilla de la propia colección) no hace nada — pedido
-## del usuario: "no permite que si agarras un item y lo sueltas ahí mismo,
-## se añada de nuevo al final... aunque lo sueltes encima de otro
-## CasillaObjeto, sea agregado siempre y cuando la escena padre [grilla]
-## sea diferente". No hay "posición" que reordenar en una lista densa, así
-## que un movimiento dentro de la misma colección no tiene ningún efecto
-## que mostrar.
-## Si el stack tiene más de 1 unidad, no mueve nada todavía: abre
-## PopupCantidad (pedido del usuario: "que me deje elegir cuantos quiero
-## pasar") y guarda los datos del drop en _pendiente_* hasta que el
-## usuario confirme o cancele (ver _on_popup_cantidad_confirmada). Un
-## stack de 1 (o un ítem no apilable) se mueve directo, sin preguntar.
+## Punto único de entrada para un drop aceptado en ESTA grilla: lo llaman
+## CasillaObjeto._drop_data (soltar sobre una casilla) y
+## ScrollContainerObjetos._drop_data (soltar en el hueco alrededor). Soltar
+## dentro de la MISMA grilla no hace nada: en una lista densa no hay posición
+## que reordenar, y no debe volver a agregarse al final.
+## Si el stack tiene más de 1 unidad, abre PopupCantidad para elegir cuántas
+## pasar y guarda el drop en _pendiente_* hasta que se confirme o cancele (ver
+## _on_popup_cantidad_confirmada). Un stack de 1 se mueve directo.
 func recibir_desde(origen_fuente: FuenteObjetos, origen_grilla: GrillaObjetos, item: DatosItem) -> void:
 	if self == origen_grilla:
 		return
@@ -300,15 +274,12 @@ func _on_busqueda_cambiada(texto: String) -> void:
 	notificar_cambio()
 
 
-## sort_custom() en el lugar — [items] ya es una copia propia de
-## notificar_cambio(), nunca la lista real de la fuente. Categoría ordena
-## por type_equippable_descripcion (el SLOT real — casco, anillo, arma...
-## pedido explícito del usuario: "la categoria no es que sea equipable, la
-## categoria es el Enums.Inventario.TipoItemEquipable"), no por el TipoItem
-## genérico. Los ítems sin slot (NINGUNO — consumibles, recursos, misión)
-## van SIEMPRE al final, pedido del usuario: "los recursos van al final",
-## sin importar la dirección asc/desc; dentro de cada grupo (con o sin
-## slot), empate por nombre para no dejar el orden interno al azar.
+## sort_custom() en el lugar: [items] ya es una copia de notificar_cambio().
+## "Categoría" ordena por el SLOT real (type_equippable_descripcion: casco,
+## anillo, arma...), no por el TipoItem genérico. Los ítems sin slot
+## (consumibles, recursos, misión) van SIEMPRE al final, sin importar la
+## dirección; dentro de cada grupo, empate por nombre para no dejar el orden
+## al azar.
 func _ordenar(items: Array) -> void:
 	match _orden_actual:
 		OrdenItems.CATEGORIA_ASC:

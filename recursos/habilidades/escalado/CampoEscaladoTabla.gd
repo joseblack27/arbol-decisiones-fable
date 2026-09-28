@@ -1,10 +1,9 @@
 extends CampoEscalado
 class_name CampoEscaladoTabla
-## Valores EXACTOS por nivel, sin fórmula — pensado para daño: el usuario
-## define directo cuánto pega cada nivel (10-12 / 14-17 / 18-22...), sin
-## tener que reversear un porcentaje compuesto para rebalancear más
-## adelante. Para daño, se usan DOS instancias (una campo=DANO_MIN, otra
-## campo=DANO_MAX) dentro del mismo EscaladoHabilidad.campos.
+## Valores EXACTOS por nivel, sin fórmula. Pensado para daño: se define
+## directo cuánto pega cada nivel (10-12 / 14-17 / 18-22...), sin reversear un
+## porcentaje compuesto para rebalancear. Para daño se usan DOS instancias
+## (campo=DANO_MIN y campo=DANO_MAX) dentro del mismo EscaladoHabilidad.campos.
 
 ## valores_por_nivel[i] = valor exacto para el nivel (i+1) — índice 0 es
 ## nivel 1 (aunque nivel 1 normalmente ya sea el valor de fábrica, se

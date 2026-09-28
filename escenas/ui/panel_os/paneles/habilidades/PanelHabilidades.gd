@@ -27,10 +27,9 @@ func _ready():
 	BusEventos.mejora_comprada.connect(func(_e, _t, _n): _actualizar_puntos())
 	_on_btn_activas()
 
-## Pedido del usuario: "un botón al lado de los puntos de habilidad
-## disponibles para reiniciarlos" — respec completo (ver MejorasComponente.
-## reiniciar_puntos). El propio reinicio ya emite mejora_comprada, así que
-## _actualizar_puntos() y el resto de los paneles/filas se refrescan solos.
+## Botón junto a los puntos disponibles para reiniciarlos (respec completo, ver
+## MejorasComponente.reiniciar_puntos). El reinicio emite mejora_comprada, así
+## que _actualizar_puntos() y el resto de los paneles se refrescan solos.
 func _on_reiniciar_puntos_pressed() -> void:
 	var mejoras := Utils.mejoras_componente_local()
 	if mejoras:
@@ -99,12 +98,10 @@ func _actualizar_puntos() -> void:
 	# botones de este sistema, ver PanelDetalleHabilidad._uplevel_btn).
 	_boton_reiniciar_puntos.disabled = mejoras == null or mejoras.puntos_gastados <= 0
 
-## Pestaña de PASIVAS, de solo lectura — pedido del usuario: nada de
-## equipar, solo ver cuáles ya se tienen. Antes de tener su propia pestaña
-## vivían pegadas al final de la lista de habilidades activas con la
-## descripción en un tooltip; en mobile eso no sirve (no hay hover), así
-## que ahora tocar una fila muestra su descripción en pasivas_detail_panel
-## (ver ItemPasiva.pasiva_selected / PanelDetallePasiva).
+## Pestaña de PASIVAS, de solo lectura: nada que equipar, solo ver las que se
+## tienen. Tocar una fila muestra su descripción en pasivas_detail_panel (ver
+## ItemPasiva.pasiva_selected y PanelDetallePasiva); un tooltip no sirve en el
+## celular.
 func _poblar_pasivas() -> void:
 	for child in pasivas_list_panel.get_children():
 		child.queue_free()

@@ -1,36 +1,23 @@
 class_name HabilidadCadenciaRapidaArquero
 extends HabilidadBase
-## Auto-buff del Esqueleto Arquero: mientras esté activo, dispara más
-## seguido — divide entre multiplicador_cadencia TANTO la duracion_
-## recuperacion de su AccionAtacar COMO la duracion_pose_ataque de su
-## HabilidadFlecha (ver ambas más abajo). Hace falta tocar las dos: desde
-## que HabilidadFlechaArquero pasó a tener su propia pose telegrafiada
-## (quieto durante duracion_pose_ataque antes de que salga la flecha, ver
-## esa clase), esa pose pasó a ser la porción más larga y más VISIBLE de
-## cada ciclo de disparo — apurar solo la recuperación (como hacía la
-## versión original, de antes de la pose) dejaba el efecto casi
-## imperceptible: "siento que no se le nota el disparo más rápido"
-## (reportado por el usuario, justo por esto).
+## Auto-buff del Esqueleto Arquero: mientras está activo dispara más seguido.
+## Divide entre multiplicador_cadencia TANTO la duracion_recuperacion de su
+## AccionAtacar COMO la duracion_pose_ataque de su HabilidadFlecha: la pose
+## telegrafiada (ver HabilidadFlechaArquero) es la parte más larga y visible de
+## cada ciclo, y apurar solo la recuperación casi no se notaba.
 ##
-## Pedido explícito del usuario: que la cadencia rápida sea una habilidad
-## de verdad (no una mutación directa de un campo, como antes) y que
-## muestre su propio ícono sobre el mob mientras dure — mismo mecanismo
-## que ya usan las habilidades de auto-buff del jugador (ver HabilidadFervor:
-## reevaluación continua contra un timestamp de fin, así reactivarla ANTES
-## de que venza extiende la ventana en vez de que un temporizador viejo la
-## corte) y el mismo BuffsComponente que ya usan los debuffs (veneno,
-## lentitud...) y el escudo de EnemigoArañaReina para el ícono flotante —
-## Enemigo.gd ya escucha BuffsComponente.buff_agregado/quitado solo, no
-## hace falta tocar nada ahí.
+## Es una habilidad de verdad (no la mutación directa de un campo) y muestra
+## su ícono sobre el mob mientras dura. Mismo mecanismo que los auto-buffs del
+## jugador (ver HabilidadFervor: reevaluación contra un timestamp de fin, así
+## reactivarla antes de que venza extiende la ventana) y el mismo
+## BuffsComponente de los debuffs para el ícono (Enemigo.gd ya lo escucha).
 ##
-## Activada DIRECTO desde la IA del arquero (ver EnemigoEsqueletoArquero.
-## _decidir_reaccion), no por SelectorHabilidades: es una reacción propia
-## del mob (como la retirada), no una habilidad elegida por rango/
-## prioridad entre varias. Aun así se dispara vía activar() (no _ejecutar()
-## directo) para que el aviso llegue replicado a todos los clientes por el
-## mismo canal que ya usa cualquier otra habilidad (ver HabilidadBase.
-## _disparar/_reproducir_visual_red) — el ícono tiene que verse igual en
-## todas las pantallas, no solo en la del servidor.
+## La activa DIRECTO la IA del arquero (ver
+## EnemigoEsqueletoArquero._decidir_reaccion), no el SelectorHabilidades: es
+## una reacción propia del mob, como la retirada. Aun así pasa por activar()
+## (no _ejecutar() directo) para que llegue a todos los clientes por el canal
+## normal (HabilidadBase._disparar/_reproducir_visual_red): el ícono tiene que
+## verse en todas las pantallas.
 
 @export var duracion: float = 5.0
 @export var multiplicador_cadencia: float = 1.5
@@ -50,15 +37,10 @@ extends HabilidadBase
 @export var accion_atacar: AccionAtacar
 @export var habilidad_flecha: HabilidadFlechaArquero
 
-## duracion_recarga (heredado de HabilidadBase) tiene que quedar en 0.0 en
-## la instancia de la escena — el único gate real de "cada cuánto se puede
-## reactivar" es el intervalo de decisión de la IA (_INTERVALO_DECISION =
-## 5.0s en EnemigoEsqueletoArquero), bien por encima del default de
-## HabilidadBase (1.0s). Dejarlo en 1.0s no rompe nada en juego real (5s >>
-## 1s, nunca llega a chocar), pero SÍ bloquea en silencio una reactivación
-## que llegue más rápido que eso por cualquier otro motivo (reportado por
-## una prueba que reactivaba la habilidad dos veces en menos de un
-## segundo: activar() no hacía nada la segunda vez, sin ningún aviso).
+## duracion_recarga (heredado de HabilidadBase) debe quedar en 0.0 en la
+## escena: el único límite real de reactivación es el intervalo de decisión de
+## la IA (_INTERVALO_DECISION = 5 s en EnemigoEsqueletoArquero). Con el 1.0 por
+## defecto, una reactivación más rápida que eso se bloquearía en silencio.
 
 var _duracion_recuperacion_normal: float = -1.0
 var _duracion_pose_normal: float = -1.0

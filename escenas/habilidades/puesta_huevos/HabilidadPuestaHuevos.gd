@@ -25,10 +25,9 @@ const _TEXTURA_ICONOS := "res://assets/iconos/iconos habilidades.png"
 ## se recalcula (o se apaga del todo) cada vez que cambia la cantidad, así
 ## que nunca hace falta que este número realista importe de verdad.
 const _DURACION_EFECTO_PERMANENTE := 999999.0
-## Tope de resistencia real (60%, ver comentario de clase) — reportado en
-## juego real (19 sep 2026): si por solapar dos puestas seguidas quedaban
-## más de 3 guardianas vivas a la vez, el clamp usaba 1.0 (100%) en vez de
-## este valor y la Reina llegaba a recibir 0 de daño.
+## Tope de resistencia real (60%, ver comentario de clase): con dos puestas
+## solapadas puede haber más de 3 guardianas vivas, y sin este tope la Reina
+## llegaría a no recibir daño.
 const _REDUCCION_MAXIMA := 0.6
 
 @export_group("Puesta de Huevos")
@@ -75,11 +74,9 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 	_huevos_activos.clear()
 	for i in cantidad_huevos:
 		var huevo := escena_huevo.instantiate()
-		# Nace EN la posición de la Reina y de ahí vuela hasta su lugar --
-		# pedido explícito del usuario: "que la hormiga los lance como
-		# proyectiles hasta la ubicación donde desea invocarlos" (ver
-		# HuevoHormiga.lanzar_hacia). En los clientes el vuelo se ve solo, con
-		# la réplica de posición de cualquier mob en movimiento.
+		# Nace EN la posición de la Reina y de ahí vuela hasta su lugar (ver
+		# HuevoHormiga.lanzar_hacia), como un proyectil. En los clientes el
+		# vuelo se ve solo, con la réplica de posición de cualquier mob.
 		contenedor.add_child(huevo, true)
 		# Después de add_child: antes, global_position se toma como local y en
 		# un nivel desplazado (el Hormiguero) quedaría al doble de distancia.
@@ -126,10 +123,9 @@ func _eclosionar(huevo: Node2D, contenedor: Node) -> void:
 		return
 	var guardian := escena_guardian.instantiate()
 	contenedor.add_child(guardian, true)
-	# Pedido explícito del usuario: "quiero que las hormigas que eclosionan de
-	# las larvas aparezcan en las mismas posiciones de las larvas". Después de
-	# add_child: antes, en el Hormiguero (desplazado 700.000 px) la guardiana
-	# aparecía al doble de distancia, fuera del mapa.
+	# La guardiana aparece donde estaba la larva. Después de add_child: antes
+	# de estar en el árbol, global_position se toma como local, y en un nivel
+	# desplazado (el Hormiguero, a 700.000 px) quedaría al doble de distancia.
 	guardian.global_position = pos
 	_guardianes_vivos.append(guardian)
 	var vida := guardian.get_node_or_null("VidaComponente") as VidaComponente

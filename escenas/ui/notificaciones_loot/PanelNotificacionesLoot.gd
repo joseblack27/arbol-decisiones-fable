@@ -12,14 +12,12 @@ class_name PanelNotificacionesLoot
 ## se sentía como un tirón notable en Android cada vez que moría un enemigo.
 
 @export var escena_notificacion: PackedScene = preload("res://escenas/ui/notificaciones_loot/NotificacionLoot.tscn")
-## Pedido explícito del usuario: "que no se vean 5 a la vez sino uno a la
-## vez" — ocupaban demasiado espacio y a veces era información irrelevante,
-## como los números flotantes de daño que muestran un valor a la vez.
+## Una notificación a la vez (como los números flotantes de daño): varias
+## juntas ocupaban demasiado espacio.
 @export var max_filas_visibles: int = 1
 
-## Pedido explícito del usuario: si es la única notificación (o la última
-## que queda en cola), se queda leíble 3s; si hay más detrás esperando,
-## pasa rápido (0.5s) para no atrasar al resto — ver _mostrar().
+## Si es la única notificación (o la última en cola) se queda 3 s para
+## leerla; si hay más esperando, pasa rápido (0.5 s). Ver _mostrar().
 const DURACION_UNICA: float = 3.0
 const DURACION_ENCOLADA: float = 0.5
 

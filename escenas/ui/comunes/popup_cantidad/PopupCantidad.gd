@@ -53,10 +53,9 @@ func _fijar(valor: int) -> void:
 	_valor_input.text = str(_cantidad)
 
 
-## Pedido del usuario: "que sea un cuadro de texto donde si se desea se
-## coloque el numero manualmente" — se llama al confirmar con Enter
-## (text_submitted) o al tocar afuera del campo (focus_exited). to_int()
-## devuelve 0 para texto vacío o no numérico, que _fijar() ya recorta a 1.
+## Permite escribir el número a mano: se llama al confirmar con Enter
+## (text_submitted) o al tocar afuera del campo (focus_exited). to_int() da 0
+## para texto vacío o no numérico, que _fijar() recorta a 1.
 func _fijar_desde_texto() -> void:
 	_fijar(_valor_input.text.to_int())
 

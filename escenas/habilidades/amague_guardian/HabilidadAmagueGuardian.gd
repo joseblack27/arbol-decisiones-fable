@@ -1,23 +1,20 @@
 class_name HabilidadAmagueGuardian
 extends HabilidadBase
-## Arranca la MISMA pose visual que HabilidadBarridoGuardian (estado
-## "BARRIDO" del AnimationTree, indistinguible a simple vista) y, recién al
-## terminar la pose, decide — por probabilidad, sesgada hacia el golpe único
-## si Corte del jugador objetivo está en cooldown — si termina siendo un
-## barrido de ÁREA real (parriable) o un GolpeVerdaderoGuardian de un solo
-## golpe (NO parriable). Pedido explícito del usuario: "un amague que
-## cancela a un golpe único que Corte no bloquea — enseña que Corte no es
-## invencibilidad total".
+## Arranca la MISMA pose visual que HabilidadBarridoGuardian (estado "BARRIDO"
+## del AnimationTree, indistinguible a simple vista) y, al terminar la pose,
+## decide por probabilidad (sesgada al golpe único si el Corte del jugador
+## objetivo está en cooldown) si termina en un barrido de ÁREA real
+## (bloqueable con Corte) o en un GolpeVerdaderoGuardian de un solo golpe (NO
+## bloqueable). Enseña que Corte no es invencibilidad total.
 ##
-## No repite el timer de pose ni telegrafía dos veces: HabilidadBarridoGuardian
-## .golpear() es estático justo para que este script pueda entregar el golpe
-## YA resuelto al final de SU PROPIA pose, sin instanciar otra HabilidadBase.
-## El golpe único usa GolpeVerdaderoGuardian directo (la hitbox pooled), sin
-## pasar por el wrapper HabilidadGolpeVerdaderoGuardian — por el mismo motivo:
-## ese wrapper telegrafiaría una pose propia si se llamara a su _ejecutar().
+## No repite el timer de pose ni telegrafía dos veces:
+## HabilidadBarridoGuardian.golpear() es estático justo para entregar el golpe
+## al final de ESTA pose sin instanciar otra HabilidadBase. El golpe único usa
+## GolpeVerdaderoGuardian directo (la hitbox de la piscina), sin el wrapper
+## HabilidadGolpeVerdaderoGuardian, que telegrafiaría una pose propia.
 ##
-## Sin .tscn propio — habilidad de MOB, se agrega como script node directo
-## dentro de EnemigoGuardianQuebrado.tscn (ver HabilidadComboGuardian).
+## Sin .tscn propio: habilidad de MOB, va como nodo con script dentro de
+## EnemigoGuardianQuebrado.tscn (como HabilidadComboGuardian).
 
 @export_group("Amague")
 ## OJO al tocar esto: mismo criterio que HabilidadBarridoGuardian.largo —
@@ -41,14 +38,10 @@ var _id_ataque := 0
 ## _process(), mismo mecanismo que HabilidadBarridoGuardian/
 ## HabilidadFrancotiradorGuardian.
 var _en_pose := false
-## Mismo indicador que HabilidadBarridoGuardian (rectángulo largo/ancho) —
-## bug real reportado: "los amagues tampoco muestran el area de golpe".
-## A propósito se usa SIEMPRE la forma del rectángulo (nunca el círculo
-## más chico del golpe único), sea cual sea la rama que termine saliendo:
-## el golpe único cae dentro de esa misma franja frontal (radio_golpe_
-## verdadero < largo), así que mostrarla no delata por adelantado cuál de
-## las dos ramas va a resolver — solo avisa POR DÓNDE, que es lo que pidió
-## el usuario, sin arruinar el bluff del amague.
+## Mismo indicador que HabilidadBarridoGuardian (rectángulo largo/ancho),
+## SIEMPRE con la forma del rectángulo, salga la rama que salga: el golpe único
+## cae dentro de esa misma franja (radio_golpe_verdadero < largo), así que
+## avisa POR DÓNDE viene sin delatar cuál de las dos ramas va a resolver.
 var _indicador_area: IndicadorZonaEfecto = null
 
 
@@ -83,9 +76,8 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 		_al_terminar_pose.bind(id_este, dir, animacion))
 
 
-## Reapuntado continuo mientras dura la pose — ver el mismo comentario en
-## HabilidadBarridoGuardian._process() (bug real: "el jefe no apunta las
-## habilidades encima del jugador").
+## Reapuntado continuo mientras dura la pose (ver
+## HabilidadBarridoGuardian._process()).
 func _process(delta: float) -> void:
 	super._process(delta)
 	if not _en_pose or not is_instance_valid(entidad_dueña) or not ("memoria" in entidad_dueña):
@@ -147,15 +139,11 @@ func _al_terminar_pose(id_este: int, dir: Vector2, animacion: AnimacionComponent
 		var mirada: Vector2 = entidad_dueña.direccion_mirada
 		if mirada != Vector2.ZERO:
 			dir = mirada
-	# Ninguna de las dos ramas pasa por activar() (golpear() es estático,
-	# _golpear_unico() usa la hitbox pooled directo — ver la cabecera de la
-	# clase para el porqué) — habilidad_activada, ya emitida cuando ARRANCÓ
-	# la pose, quedó apuntando solo a "Amague" sin decir en qué terminó.
-	# Bug real reportado: "no todas las habilidades escriben su nombre" —
-	# cualquier barrido/golpe verdadero que salió de un amague nunca
-	# aparecía como tal en la etiqueta. Se reemite acá a mano, con el
-	# nombre que de verdad describe lo que pasó, mismo mecanismo que ya
-	# escucha EnemigoGuardianQuebrado._on_habilidad_activada_para_etiqueta.
+	# Ninguna de las dos ramas pasa por activar() (golpear() es estático y
+	# _golpear_unico() usa la hitbox directo), y habilidad_activada, emitida
+	# al ARRANCAR la pose, solo dijo "Amague". Se reemite acá con el nombre
+	# de lo que de verdad salió, para la etiqueta del jefe (ver
+	# EnemigoGuardianQuebrado._on_habilidad_activada_para_etiqueta).
 	if randf() < _probabilidad_golpe_unico():
 		_golpear_unico(origen, dir)
 		nombre_habilidad = "Amague (golpe verdadero)"

@@ -307,11 +307,9 @@ func _draw_carga() -> void:
 	_dibujar_area_golpe_poligono(esq)
 
 
-## A diferencia de _draw_carga: el parpadeo no golpea nada en el camino, así
-## que en vez de un corredor relleno se traza una LÍNEA fina hasta el punto
-## de destino — mostraba solo el círculo de rango (grande, fijo) más el
-## puntito de destino, y sin una línea que los conecte no queda claro que
-## uno depende del otro (reportado: "no se entiende bien solo el círculo").
+## A diferencia de _draw_carga (el parpadeo no golpea nada en el camino), no
+## hay corredor relleno: una LÍNEA fina une el jugador con el punto de
+## destino, para que se entienda que el destino depende del círculo de rango.
 func _draw_parpadeo() -> void:
 	var h         := _hab as HabilidadParpadeo
 	var distancia := h.distancia_parpadeo if h else 200.0

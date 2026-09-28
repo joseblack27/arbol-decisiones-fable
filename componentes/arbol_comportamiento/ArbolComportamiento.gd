@@ -84,16 +84,13 @@ var _tiempo_para_revisar_sueño: float = 0.0
 ## a la otra.
 var _dormido_por_distancia: bool = false
 
-## INSTRUMENTACIÓN TEMPORAL — microsegundos acumulados evaluando árboles de
-## comportamiento (actualizar(), de TODOS los mobs) desde el último reporte
-## de ServidorDedicado._reportar_capacidad(), que lo lee y lo resetea cada
-## _INTERVALO_REPORTE. Objetivo: separar cuánto del costo idle sostenido
-## medido en producción (Performance.TIME_PROCESS, "proceso=" en el log
-## [CARGA]) es evaluar el árbol de cada mob en combate, contra el resto
-## (el aviso RPC de cada habilidad usada, ver HabilidadBase._disparar).
-## static: un contador ÚNICO compartido por todas las instancias (cada mob
-## tiene la suya de ArbolComportamiento), no uno por mob — sumar todos a
-## mano en cada reporte sería más caro que la propia medición.
+## INSTRUMENTACIÓN TEMPORAL: microsegundos acumulados evaluando árboles de
+## comportamiento (actualizar() de TODOS los mobs) desde el último reporte de
+## ServidorDedicado._reportar_capacidad(), que lo lee y lo resetea cada
+## _INTERVALO_REPORTE. Separa cuánto del costo sostenido en combate es evaluar
+## árboles, contra el resto (p. ej. el aviso RPC de cada habilidad, ver
+## HabilidadBase._disparar). static: un contador ÚNICO para todas las
+## instancias; sumarlos a mano en cada reporte costaría más que la medición.
 static var us_acumulados_todos_los_arboles: int = 0
 
 ## Emitida al final de cada tick con el estado resultante del árbol.
@@ -114,11 +111,9 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if not activo:
 		return
-	# Fase 5 del plan de multijugador: en red, la IA solo decide en el
-	# SERVIDOR — el cliente ve al mob moverse por la posición replicada
-	# (ver Enemigo._enter_tree), nunca corriendo su propia copia del árbol
-	# (que divergiría del resultado real). Sin multiplayer activo (un solo
-	# jugador, de siempre) esto no cambia nada.
+	# En red, la IA solo decide en el SERVIDOR: el cliente ve al mob moverse
+	# por la posición replicada (ver Enemigo._enter_tree), nunca con su propia
+	# copia del árbol, que divergiría del resultado real.
 	if Utils.en_red() and not multiplayer.is_server():
 		return
 	if radio_actividad > 0.0:

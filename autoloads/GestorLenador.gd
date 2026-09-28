@@ -1,21 +1,15 @@
 extends Node
-## Instancia (una sola vez) el Lenador.tscn del leñador — ver Lenador.gd — y
-## guarda el almacén compartido donde deposita la madera: un pozo REAL,
-## validado por el servidor, la misma cantidad para todos los jugadores en
-## todo momento (a diferencia de los cofres normales del juego, que son por
-## jugador — ver Cofre.gd/CofresComponente). Pedido explícito del usuario
-## tras preguntarle.
+## Instancia una sola vez el Lenador.tscn (ver Lenador.gd) y guarda el almacén
+## compartido donde deposita la madera: un pozo REAL, validado por el
+## servidor, con la misma cantidad para todos los jugadores (a diferencia de
+## los cofres normales, que son por jugador; ver Cofre.gd/CofresComponente).
 ##
-## El leñador es UNA sola instancia (no dos, ver el comentario de
-## GestorNiveles.registrar_errantes para el porqué del rediseño: reparentar
-## entre los NPCs de cada nivel rompía la réplica en cualquier cliente que
-## no tuviera ese nivel cargado — bug real reportado "el leñador no se
-## mueve"). Vive colgada de GestorNiveles.contenedor_errantes(), fuera de
-## cualquier nivel, y solo cambia de global_position al "cruzar" — igual que
-## un jugador cruzando un portal.
+## El leñador es UNA sola instancia (ver GestorNiveles.registrar_errantes),
+## colgada de GestorNiveles.contenedor_errantes(), fuera de cualquier nivel:
+## al "cruzar" solo cambia global_position, como un jugador en un portal.
 ##
-## Autoload de .gd puro (no de escena): no guarda ningún recurso editable
-## en Inspector, mismo criterio que GestorInventario/GestorEquipo.
+## Autoload de .gd puro (no de escena): no guarda recursos editables en el
+## Inspector, como GestorInventario y GestorEquipo.
 
 const _RUTA_GUARDADO := "user://almacen_lenador.save"
 const _RUTA_CIUDAD := "res://escenas/niveles/NivelCiudad.tscn"
@@ -65,11 +59,9 @@ func _al_nivel_cargado(_nivel: NivelBase) -> void:
 
 	var nivel_ciudad := GestorNiveles.asegurar_nivel_cargado_servidor(_RUTA_CIUDAD)
 	GestorNiveles.asegurar_nivel_cargado_servidor(_RUTA_PRADERA)
-	# Pedido explícito del usuario: "dejar activo ambos mapa a la vez" — sin
-	# esto, GestorNiveles._actualizar_actividad_niveles() apagaba el nivel
-	# donde NO había ningún jugador conectado (ahorro de CPU, ver ese
-	# comentario), y el que quedaba apagado se llevaba puesto al leñador si
-	# estaba ahí en ese momento.
+	# Ciudad y Pradera siempre activas: GestorNiveles apaga los niveles sin
+	# jugadores (ahorro de CPU, ver _actualizar_actividad_niveles), y el
+	# leñador se congelaría si estuviera en el que se apaga.
 	GestorNiveles.mantener_siempre_activo(_RUTA_CIUDAD)
 	GestorNiveles.mantener_siempre_activo(_RUTA_PRADERA)
 	GestorNiveles.peer_listo.connect(_al_peer_listo)

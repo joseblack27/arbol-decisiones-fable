@@ -1,27 +1,23 @@
 extends Node
 class_name ParryComponente
-## Ventana de inmunidad DIRECCIONAL a daño de ÁREA — el efecto único de
-## HabilidadCorte (ver ese archivo). Pedido del usuario: "el jugador se
-## vuelve inmune al daño de habilidades de tipo área mientras realiza el
-## ataque y siempre y cuando el jugador se encuentre encima de un ataque
-## como este o lo vaya a recibir desde el ángulo en que lanzó Corte".
+## Ventana de inmunidad DIRECCIONAL a daño de ÁREA: el efecto único de
+## HabilidadCorte. Mientras dura, el jugador no recibe daño de área que venga
+## desde el ángulo en que lanzó Corte (o que le caiga encima).
 ##
-## Componente SIBLING (no hijo de VidaComponente), consultado desde
-## VidaComponente.quitar_vida() — mismo patrón que EscudoComponente
-## (reducción de daño) e InmunidadDebuffsComponente (efectos pegados): el
-## chequeo vive en el ÚNICO punto por el que pasa todo el daño real, así
-## cubre cualquier fuente (proyectil, arañazo, AoE, DoT, muro, aura) sin
-## tocar cada habilidad por separado.
+## Componente hermano (no hijo de VidaComponente), consultado desde
+## VidaComponente.quitar_vida(), como EscudoComponente e
+## InmunidadDebuffsComponente: el chequeo vive en el ÚNICO punto por el que
+## pasa todo el daño real, así cubre cualquier fuente sin tocar cada
+## habilidad.
 ##
-## A propósito NO reusa VidaComponente.activar_invulnerabilidad(): esa es
-## todo-o-nada y arrastra dos efectos colaterales que acá estorban — el
-## destello amarillo de "recién aparecido" (Jugador._actualizar_visual_
-## invulnerable) y, peor, que VisionComponente deja de registrarte como
-## objetivo (los mobs te sueltan de la mira). Un parry de 1 segundo no
-## debería hacer que el jefe se olvide de vos.
+## A propósito NO reusa VidaComponente.activar_invulnerabilidad(): es todo o
+## nada y trae dos efectos que acá estorban, el destello amarillo
+## (Jugador._actualizar_visual_invulnerable) y, peor, que VisionComponente te
+## suelte como objetivo. Un parry de 1 segundo no debería hacer que el jefe se
+## olvide de vos.
 ##
-## Se crea al vuelo si no existe (ver HabilidadCorte._componente_parry),
-## mismo criterio que HabilidadPurga con InmunidadDebuffsComponente.
+## Se crea al vuelo si no existe (ver HabilidadCorte._componente_parry), como
+## HabilidadPurga con InmunidadDebuffsComponente.
 
 ## Semiángulo (grados) de la "guardia": un golpe de área cuyo origen caiga
 ## dentro de este cono, centrado en la dirección del corte, se bloquea.
@@ -63,14 +59,12 @@ func tiempo_restante() -> float:
 
 
 ## ¿Este golpe puntual queda bloqueado por el parry en curso?
-## es_area — solo el daño de ÁREA se para con Corte (pedido del usuario).
-##   Un proyectil NO se bloquea acá: Corte lo destruye en el aire cuando
-##   cae dentro del rectángulo (ver HabilidadCorte._cortar_ataques), que es
-##   la forma correcta de "contrarrestarlo" — si igual te llega, entra.
-## origen — de DÓNDE salió el golpe (la posición del atacante para un AoE,
-##   la del charco para un DoT). Vector2.INF = desconocido; ahí se bloquea
-##   igual (es daño de área durante la ventana activa, y no poder ubicarlo
-##   no debería castigar al jugador que acertó el timing).
+## es_area: solo el daño de ÁREA se para. Un proyectil NO se bloquea acá: Corte
+##   lo destruye en el aire si cae dentro del rectángulo (ver
+##   HabilidadCorte._cortar_ataques); si igual llega, entra.
+## origen: de DÓNDE salió el golpe (el atacante en un área, el charco en un
+##   DoT). Vector2.INF = desconocido; ahí se bloquea igual, para no castigar a
+##   quien acertó el timing.
 func bloquea(es_area: bool, origen: Vector2) -> bool:
 	if not esta_activo() or not es_area:
 		return false

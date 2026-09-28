@@ -74,14 +74,10 @@ func _pedir_aceptar_mision_red(id_mision: String) -> void:
 			confirmaciones.rpc_id(jugador.peer_id_dueño, "_recibir_mision_aceptada_red", id_mision)
 
 
-## true si ESTE jugador cumple los requisitos para aceptar "datos" ahora
-## mismo (hoy, solo nivel_requerido — el único requisito que existe en
-## DatosMision). Público porque PanelDialogo lo necesita para decidir si
-## ofrecer "aceptar misión X" como opción (pedido del usuario: una misión
-## que el jugador no puede aceptar todavía no debe aparecer en el diálogo
-## del NPC, aunque sí siga listada en PanelMisiones) — sin este método el
-## chequeo quedaba enterrado adentro de _aceptar_mision_local, solo
-## consultable intentando aceptar de verdad.
+## true si ESTE jugador cumple los requisitos para aceptar "datos" ahora (hoy
+## solo nivel_requerido). Público porque PanelDialogo decide con esto si el
+## NPC ofrece la misión: una que todavía no se puede aceptar no aparece en el
+## diálogo, aunque siga listada en PanelMisiones.
 func cumple_requisitos(datos: DatosMision) -> bool:
 	if datos == null:
 		return false
@@ -163,10 +159,9 @@ func _completar_mision_local(datos: DatosMision) -> bool:
 		_otorgar_recompensas(padre, datos.recompensas)
 		BusEventos.mision_completada.emit(padre, datos.id)
 	if datos.repetible:
-		# Vuelve a "nunca aceptada" — GestorMisiones sigue teniendo la
-		# DEFINICIÓN, así que el NPC puede volver a ofrecerla como si
-		# fuera la primera vez (pedido del usuario: "que se resetee cada
-		# vez que la termine y pueda volverla a hacer").
+		# Vuelve a "nunca aceptada": GestorMisiones sigue teniendo la
+		# DEFINICIÓN, así el NPC la ofrece de nuevo como la primera vez (las
+		# misiones repetibles se reinician al terminarlas).
 		progreso.erase(datos.id)
 	else:
 		entrada["estado"] = Enums.Mision.Estado.COMPLETADA
@@ -224,24 +219,17 @@ func abandonar_mision(id_mision: String) -> void:
 	_abandonar_mision_local(id_mision)
 
 
-## Bug real reportado: "después de abandonar una misión y volverla a
-## aceptar, no se deja aceptar de nuevo". Antes esto NO pasaba por RPC —
-## se creía (comentario viejo) que no hacía falta "copia autoritativa
-## distinta que validar", pero SÍ la hay: _aceptar_mision_local() rechaza
-## si progreso.has(id) es true, y ESE chequeo corre sobre la copia del
-## SERVIDOR. En un cliente real, abandonar sin RPC solo borraba la copia
-## LOCAL del cliente — el servidor seguía teniendo la entrada vieja, así
-## que el siguiente intento de aceptar (que sí pasa por RPC) se rechazaba
-## en silencio contra una misión que el cliente ya creía abandonada.
-## Mismo patrón que aceptar/completar: pedir-al-servidor + confirmar-de-
-## vuelta (ver ComponenteConfirmacionesRed._recibir_mision_abandonada_red).
+## Abandonar pasa por el servidor igual que aceptar y completar (pedir al
+## servidor + confirmar de vuelta, ver
+## ComponenteConfirmacionesRed._recibir_mision_abandonada_red):
+## _aceptar_mision_local() rechaza si progreso.has(id), y ese chequeo corre
+## sobre la copia del SERVIDOR. Borrando solo la copia local, el servidor
+## conservaba la entrada vieja y el siguiente intento de aceptar se rechazaba
+## en silencio.
 ##
-## Emite mision_abandonada — antes esta función no avisaba nada porque
-## abandonar_mision() aplicaba sincrónico y quien llamaba (PanelMisiones)
-## refrescaba a mano enseguida. Ahora, en un cliente real, el borrado de
-## verdad llega recién con la confirmación del servidor (una vuelta de
-## red después) — sin esta señal, PanelMisiones refrescaría ANTES de que
-## la copia local se actualizara y seguiría mostrando la misión vieja.
+## Emite mision_abandonada porque en un cliente el borrado real llega recién
+## con la confirmación (una vuelta de red después): sin la señal,
+## PanelMisiones refrescaría antes y seguiría mostrando la misión.
 func _abandonar_mision_local(id_mision: String) -> void:
 	progreso.erase(id_mision)
 	var padre := get_parent()
@@ -354,19 +342,14 @@ func _avisar_progreso_al_dueño(id_mision: String, id_objetivo: String, actual: 
 		confirmaciones.rpc_id(jugador.peer_id_dueño, "_recibir_progreso_mision_red", id_mision, id_objetivo, actual)
 
 
-## Usado por ComponenteConfirmacionesRed._recibir_progreso_mision_red — el
-## cliente dueño fija el mismo progreso que ya calculó el servidor (SET
-## absoluto, no incremento — así se autocorrige aunque el cliente ya se
-## hubiera adelantado prediciendo de más).
+## Lo usa ComponenteConfirmacionesRed._recibir_progreso_mision_red: el cliente
+## dueño fija el progreso que ya calculó el servidor (valor absoluto, no
+## incremento, así se autocorrige si el cliente predijo de más).
 ##
 ## Emite mision_progreso_actualizado ACÁ TAMBIÉN (no solo en
-## _avanzar_objetivos): ese emit corre del lado SERVIDOR, en su copia
-## espejo del jugador — nadie mira un panel ahí. La única forma de que
-## PanelMisiones (que vive en el CLIENTE) se entere y se refresque solo
-## es que este método, el que corre en la copia del cliente al recibir la
-## confirmación, también avise. Sin esto el progreso quedaba bien
-## guardado pero la UI nunca se enteraba (reportado: "al matar lobos no
-## se actualiza la mision").
+## _avanzar_objetivos): aquel emit corre en la copia del SERVIDOR, donde nadie
+## mira un panel. Sin esto el progreso se guardaba bien pero PanelMisiones, en
+## el cliente, nunca se refrescaba.
 func _aplicar_progreso_local(id_mision: String, id_objetivo: String, actual: int) -> void:
 	if not progreso.has(id_mision):
 		return

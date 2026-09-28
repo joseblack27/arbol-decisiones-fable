@@ -40,16 +40,13 @@ func _ready() -> void:
 	remove_from_group("enemigos")
 	add_to_group("jugadores")
 	queue_redraw()
-	# Pedido del usuario: el aliado no debe sobrevivir a que el dueño cambie
-	# de zona (portal a otro nivel). Un chequeo dentro de _physics_process no
-	# alcanza: en cuanto el nivel viejo se queda sin jugadores,
-	# GestorNiveles._actualizar_actividad_niveles() le pone
-	# PROCESS_MODE_DISABLED a TODO su subárbol (este aliado incluido) para
-	# ahorrar CPU en el servidor — su propio _physics_process deja de correr
-	# antes de poder notar el cambio. Por eso esto reacciona a la señal en el
-	# momento exacto en que el servidor mueve al peer, todavía con el nivel
-	# viejo despierto. Inofensivo en el cliente/un jugador: esa señal nunca
-	# se emite fuera del servidor (ver GestorNiveles.mover_peer_a_nivel).
+	# El aliado no sobrevive a que el dueño cambie de nivel. Un chequeo en
+	# _physics_process no alcanza: cuando el nivel viejo queda sin jugadores,
+	# GestorNiveles._actualizar_actividad_niveles() desactiva todo su
+	# subárbol (este aliado incluido) antes de que lo note. Por eso reacciona
+	# a la señal en el momento en que el servidor mueve al peer, con el nivel
+	# viejo todavía despierto. La señal solo se emite en el servidor (ver
+	# GestorNiveles.mover_peer_a_nivel).
 	GestorNiveles.jugador_cambio_de_nivel.connect(_al_dueño_cambiar_de_nivel)
 
 
@@ -127,15 +124,11 @@ func _atacar(objetivo: Node) -> void:
 		return
 	var dano_final := AtributosComponente.calcular_pipeline(self, objetivo, dano_ataque, tipo_dano_ataque)
 	var fue_critico := AtributosComponente.ultimo_pipeline_critico
-	# "fuente" acá es el DUEÑO, no self: GestorNumerosDano._al_aplicar_daño
-	# solo pinta el número flotante si fuente u objetivo es Utils.jugador_
-	# local() (pedido del usuario: "que al menos el invocador pudiera ver el
-	# daño" + luego "quiero que se vean con números flotantes") — con
-	# self (el aliado, sin peer_id_dueño) el filtro nunca reconocía el golpe
-	# como "mío" y lo descartaba en silencio. Mismo motivo por el que
+	# "fuente" es el DUEÑO, no self: GestorNumerosDano._al_aplicar_daño solo
+	# pinta el número si fuente u objetivo es Utils.jugador_local(), y
 	# Enemigo._peer_dueño_del_atacante()/_es_mi_propio_golpe() necesitan que
-	# "fuente" resuelva a un Jugador real: con self, ni el botín/xp ni el
-	# parpadeo de "mi golpe conectó" funcionaban tampoco.
+	# "fuente" sea un Jugador real. Con self (sin peer_id_dueño) no había
+	# número flotante, ni botín, ni XP, ni el parpadeo de "mi golpe conectó".
 	if vida is VidaComponente:
 		(vida as VidaComponente).quitar_vida(dano_final, dueño, tipo_dano_ataque, fue_critico)
 	else:

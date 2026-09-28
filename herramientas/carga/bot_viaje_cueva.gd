@@ -1,16 +1,13 @@
 # =============================================================================
 # bot_viaje_cueva.gd — reproduce contra el SERVIDOR REAL el viaje Pradera →
-# Cueva → Pradera, que es lo que el usuario reportó roto ("al salir de la
-# cueva se buguea, se pierde la conexión con el servidor y no me puedo
-# mover").
+# Cueva → Pradera (volver de la Cueva llegó a colgar el servidor y dejar al
+# jugador sin poder moverse).
 #
 # Igual que bot_carga.gd, reutiliza Mundo.tscn TAL CUAL: mismo camino de
-# conexión, spawn, réplica y joystick que un cliente real — un simulador
-# aparte podría no reproducir el bug.
+# conexión, spawn, réplica y joystick que un cliente real.
 #
 # Va informando el estado de la conexión, el nivel que tiene cargado ESTE
-# cliente y la posición del jugador, para poder cruzar el relato del cliente
-# con el log del servidor (que es donde faltaba la mitad de la película).
+# cliente y la posición del jugador, para cruzarlo con el log del servidor.
 #
 #   godot --headless --path . --script res://herramientas/carga/bot_viaje_cueva.gd -- --ip=127.0.0.1
 # =============================================================================
@@ -173,9 +170,8 @@ func _hacia_portal(nombre: String, respaldo: Vector2) -> Vector2:
 	return delta.normalized()
 
 
-## ¿Los mobs de este nivel se mueven en la pantalla del cliente? Reportado:
-## "los mobs de la cueva se quedaron quietos". Imprime nombre + posición para
-## poder comparar entre censos consecutivos.
+## ¿Los mobs de este nivel se mueven en la pantalla del cliente? Imprime nombre
+## y posición para comparar entre censos consecutivos.
 var _ultimo_censo := 0.0
 
 func _censar_mobs() -> void:

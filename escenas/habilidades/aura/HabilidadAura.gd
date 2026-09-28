@@ -57,13 +57,10 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 			nombre_habilidad, _descripcion_buff())
 
 
-## Mismo número que muestra "Daño Calculado" en el detalle de la habilidad
-## — mismo helper compartido (AtributosComponente.calcular_rango_con_
-## factor), así los dos números nunca pueden desincronizarse entre sí (la
-## primera versión de esto calculaba el rango a mano y se saltaba los
-## atributos del jugador, reportado: "el daño que se muestra... no es el
-## calculado para el aura"). Sin rango cargado (DatosHabilidad no
-## aplicado), cae al dano_por_tick de fábrica de la escena.
+## El mismo número que "Daño Calculado" en el detalle de la habilidad, con el
+## mismo helper (AtributosComponente.calcular_rango_con_factor), así no se
+## pueden desincronizar. Sin rango cargado (DatosHabilidad no aplicado), cae
+## al dano_por_tick de fábrica de la escena.
 func _descripcion_buff() -> String:
 	var base_min: float = _dano_min if _dano_min > 0 else dano_por_tick
 	var base_max: float = _dano_max if _dano_max > 0 else dano_por_tick

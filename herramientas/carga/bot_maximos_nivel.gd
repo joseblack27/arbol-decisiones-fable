@@ -1,22 +1,19 @@
 # =============================================================================
 # bot_maximos_nivel.gd — comprueba contra el SERVIDOR REAL que al reconectar
-# el jugador recupera los máximos de vida/energía de su nivel, en vez de nacer
-# de nuevo como nivel 1 (vida tope 100, energía tope 100).
-#
-# Reportado: "no recalcula la nueva vida cuando se loguea y siempre tiene 100,
-# y la energía sigue bugueada, no crece más de 105".
+# el jugador recupera los máximos de vida y energía de su nivel, en vez de
+# volver a los de nivel 1 (vida y energía tope 100).
 #
 # Se corre en dos pasadas contra el mismo servidor, con la MISMA cuenta:
 #
 #   godot --headless --path . --script res://herramientas/carga/bot_maximos_nivel.gd -- --sembrar
-#       Se conecta, se pone XP de nivel 6 y guarda. Es exactamente lo que
-#       hace un jugador que subió de nivel jugando: el cliente manda su
-#       xp_total en la partida y el servidor la escribe en SQLite.
+#       Se conecta, se pone XP de nivel 6 y guarda, como un jugador que subió
+#       de nivel: el cliente manda su xp_total y el servidor lo escribe en
+#       SQLite.
 #
 #   godot --headless --path . --script res://herramientas/carga/bot_maximos_nivel.gd
 #       Reconecta con la misma cuenta e informa qué máximos tiene el jugador
-#       AUTORITATIVO (llegan replicados del servidor, no se calculan acá) y
-#       si una jeringa de adrenalina sube la energía por encima de 100.
+#       AUTORITATIVO (llegan replicados del servidor) y si una jeringa de
+#       adrenalina sube la energía por encima de 100.
 #
 # Usa Mundo.tscn tal cual, como los demás bots: mismo camino de conexión,
 # identidad, spawn y réplica que un cliente real.

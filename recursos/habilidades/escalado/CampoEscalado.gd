@@ -11,14 +11,11 @@ class_name CampoEscalado
 ## traduce esto al nombre real de la propiedad en cada habilidad.
 @export var campo: Enums.Habilidad.CampoEscalable = Enums.Habilidad.CampoEscalable.DANO_MIN
 
-## Alternativa a "campo" de arriba, para bonos de combate — ver
-## Enums.Atributos.Campo, espejo de los campos reales de AtributosBase. Si
-## esto NO es NINGUNO, HabilidadBase lo usa en vez de "campo" — sin
-## traducción a mano ni override por habilidad (a diferencia de "campo":
-## el nombre real sale por reflexión del propio enum, ver
-## HabilidadBase._nombre_campo_de). Pedido del usuario: que quede
-## centralizado en Enums y que agregar un atributo nuevo el día de mañana
-## no obligue a tocar ni un script de habilidad.
+## Alternativa a "campo" para bonos de combate (ver Enums.Atributos.Campo,
+## espejo de los campos de AtributosBase). Si NO es NINGUNO, HabilidadBase lo
+## usa en vez de "campo", sin traducción a mano ni override por habilidad: el
+## nombre real sale por reflexión del enum (ver
+## HabilidadBase._nombre_campo_de). Así un atributo nuevo solo toca Enums.
 @export var campo_atributo: Enums.Atributos.Campo = Enums.Atributos.Campo.NINGUNO
 
 

@@ -1,12 +1,8 @@
 extends Control
-## Pantalla de Game Over — antes morir solo mostraba un Label armado por
-## código (Jugador._mostrar_aviso_muerte, eliminado); ahora es una escena
-## real con sus propios nodos (pedido explícito del usuario: "crea todos
-## los nodos, no quiero que generes nodos por código"). Reacciona a
-## BusEventos.jugador_murio/jugador_reaparecio — ambas señales ya estaban
-## declaradas pero nunca se emitían (código muerto), quedaron enganchadas
-## acá. Las dos están gateadas del lado de Jugador.gd a _es_dueño_local(),
-## así que este panel nunca se muestra por la muerte de OTRO jugador.
+## Pantalla de Game Over: una escena con sus propios nodos. Reacciona a
+## BusEventos.jugador_murio/jugador_reaparecio, que Jugador.gd solo emite para
+## el dueño local (_es_dueño_local()), así que nunca se muestra por la muerte
+## de OTRO jugador.
 
 @onready var _subtitulo: Label = $CenterContainer/VBox/Subtitulo
 @onready var _temporizador: Timer = $Temporizador

@@ -48,11 +48,10 @@ var _dano_base_detonacion: float = 0.0
 ## comportamiento de siempre.
 var _incluye_al_marcado: bool = false
 
-## Sello que se dibuja SOBRE el marcado mientras dura la marca. Sin esto la
-## habilidad era invisible: el impacto se veía 0,4 s y después no había forma
-## de saber a quién marcaste ni cuánto le quedaba (reportado: "la marca no se
-## ve"). Lo maneja este componente y no la zona de impacto porque la marca es
-## un estado del ENEMIGO, con su propia cuenta atrás.
+## Sello que se dibuja SOBRE el marcado mientras dura la marca: sin él, el
+## impacto se veía 0,4 s y después no había forma de saber a quién marcaste ni
+## cuánto le quedaba. Lo maneja este componente y no la zona de impacto porque
+## la marca es un estado del ENEMIGO, con su propia cuenta atrás.
 const _TEXTURA_SELLO := "res://assets/sello_marca_48x48.png"
 var _sello: Sprite2D = null
 var _duracion_total: float = 0.0

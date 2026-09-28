@@ -3,10 +3,8 @@ class_name EfectoInmovilizar
 ## Efecto de área que impide moverse al objetivo mientras esté dentro.
 ## Usa un contador en MovimientoComponente para soportar efectos apilados.
 
-## Ícono que muestra BarraBuffs/el panel "Buffs Activos" mientras el
-## objetivo está inmovilizado. Null = sin indicador visual (antes esto no
-## se anotaba en BuffsComponente para nada — reportado: "si te inmoviliza
-## un enemigo no aparece ningún ícono").
+## Ícono que muestran BarraBuffs y el panel "Buffs Activos" mientras el
+## objetivo está inmovilizado. Null = sin indicador visual.
 @export var icono_debuff: Texture2D = null
 
 

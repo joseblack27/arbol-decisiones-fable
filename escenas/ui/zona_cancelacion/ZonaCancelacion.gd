@@ -15,13 +15,11 @@ const COLOR_BG := Color(0.80, 0.10, 0.10, 0.75)
 const COLOR_X  := Color(1.00, 1.00, 1.00, 0.95)
 
 
-## Debe cubrir TODOS los slots equipables (ver SlotHabilidades.total_slots)
-## — cuando esto era una lista fija de 0-3, las habilidades de los slots
-## 4-9 (agregados con la paginación) apuntaban SIN círculo de cancelar
-## ("a veces no aparece el botón", reportado: dependía del slot, no del
-## lugar del mapa). OJO con el orden en Mundo.tscn: este nodo debe ir
-## DESPUÉS de PaginadorHabilidades, que es quien registra las señales de
-## los slots de páginas futuras (SeñalManager.conectar no reintenta).
+## Debe cubrir TODOS los slots equipables (ver SlotHabilidades.total_slots):
+## con una lista fija de 0-3, las habilidades de los slots 4-9 (paginación)
+## apuntaban sin círculo de cancelar. OJO con el orden en Mundo.tscn: este
+## nodo va DESPUÉS de PaginadorHabilidades, que registra las señales de los
+## slots de las otras páginas.
 const TOTAL_SLOTS := 10
 
 
@@ -35,11 +33,10 @@ func _ready() -> void:
 
 
 func _on_apunte(_dir: Vector2, _poder: float) -> void:
-	# Habilidades de canal continuo (lanzallamas): soltar YA es parar — no
-	# existe "cancelar", así que la zona no debe aparecer (reportado: "al
-	# activar el lanzallamas sale el botón de cancelar"). Se identifica por
-	# la propiedad es_canal_continuo en la habilidad del slot que apunta
-	# (ver UIHabilidad.slot_apuntando).
+	# Habilidades de canal continuo (lanzallamas): soltar YA es parar, no
+	# existe "cancelar", así que la zona no aparece. Se reconoce por la
+	# propiedad es_canal_continuo de la habilidad del slot que apunta (ver
+	# UIHabilidad.slot_apuntando).
 	var slots := Utils.slot_habilidades_local()
 	if slots and UIHabilidad.slot_apuntando >= 0:
 		var hab := slots.obtener(UIHabilidad.slot_apuntando)

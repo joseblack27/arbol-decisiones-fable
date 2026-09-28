@@ -1,27 +1,18 @@
 extends Control
 class_name MenuInicio
-## Pantalla previa a Mundo.tscn (ver run/main_scene en project.godot):
-## define IP, puerto y nombre a usar para la conexión. Guarda la elección en
-## Utils.ip_conexion/puerto_conexion/nombre_conexion — que sobreviven el
-## cambio de escena porque viven en un autoload — y recién ahí carga
-## Mundo.tscn, que los lee en _conectar_como_cliente()/nombre_jugador_local().
+## Pantalla previa a Mundo.tscn (ver run/main_scene en project.godot): define
+## IP, puerto y nombre para la conexión. Los guarda en
+## Utils.ip_conexion/puerto_conexion/nombre_conexion (sobreviven el cambio de
+## escena porque viven en un autoload) y recién ahí carga Mundo.tscn, que los
+## lee en _conectar_como_cliente() y nombre_jugador_local().
 ##
-## No hace falta "botón de un jugador" aparte: dejar la IP en blanco (o que
-## no haya nadie escuchando ahí) hace que Mundo.gd caiga solo al modo local
-## de siempre, ver su propio _arrancar_modo_local().
-##
-## Persistencia (user://config_conexion.cfg): Utils.ip_conexion/puerto_
-## conexion/nombre_conexion son variables de autoload — sobreviven el
-## change_scene_to_file hacia Mundo.tscn, pero NO sobreviven cerrar la app
-## (memoria del proceso). Sin esto, cada apertura tocaba reescribir IP/
-## puerto/nombre desde cero (reportado: "cada vez que conecto me toca
-## configurar todo"). Se guarda solo al confirmar "Jugar" — nunca mientras
-## el usuario todavía está escribiendo.
+## Además los persiste en user://config_conexion.cfg (ver
+## Utils.guardar_config), así no hay que reescribirlos cada vez que se abre la
+## app. Se guarda solo al confirmar "Jugar", nunca mientras se escribe.
 
-## Atajos del desplegable de IP (ver _boton_lista_ip): CampoIp sigue siendo
-## un LineEdit normal, así que esto NUNCA reemplaza poder escribir una IP a
-## mano — solo evita tener que borrar/reescribir a mano al alternar entre
-## la local y la del servidor. Pedido explícito del usuario.
+## Atajos del desplegable de IP (ver _boton_lista_ip). CampoIp sigue siendo un
+## LineEdit normal: esto nunca reemplaza escribir una IP a mano, solo evita
+## reescribirla al alternar entre la local y la del servidor.
 const _IPS_RAPIDAS: Array[Dictionary] = [
 	{"etiqueta": "Local (192.168.40.27)", "ip": "192.168.40.27"},
 	{"etiqueta": "Servidor (34.148.236.58)", "ip": "34.148.236.58"},
@@ -98,9 +89,9 @@ func _on_jugar() -> void:
 	Utils.puerto_conexion = int(puerto_texto)
 	Utils.nombre_conexion = _campo_nombre.text.strip_edges().substr(0, 24)
 	Utils.pin_conexion = _campo_pin.text.strip_edges()
-	# No se persiste (a propósito): sirve para probar el servidor con varias
-	# instancias peleando solas, no es una preferencia que deba sobrevivir
-	# entre sesiones — arranca destildado siempre, pedido del usuario.
+	# No se persiste a propósito: sirve para probar el servidor con varias
+	# instancias peleando solas, no es una preferencia. Arranca siempre
+	# destildado.
 	Utils.modo_bot = _casilla_bot.button_pressed
 	if Utils.pin_conexion != "" and Utils.nombre_conexion == "":
 		_etiqueta_error.text = "Para usar PIN, escribí también un nombre."

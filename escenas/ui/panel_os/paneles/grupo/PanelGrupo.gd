@@ -1,10 +1,9 @@
 extends Control
-## Pestaña "Grupo" del OS — Feature C del plan MMO. Sin grupo: lista de
-## jugadores conectados con botón "Invitar" por fila (decisión del usuario:
-## panel dedicado, no comando de chat). En grupo: lista de miembros con
-## nombre + mini barra de vida, botón "Salir", y "Expulsar" por fila solo
-## si sos el líder (única restricción de "rol" — administración del grupo,
-## no ventaja de combate, ver GestorGrupos.gd).
+## Pestaña "Grupo" del OS. Sin grupo: lista de jugadores conectados con un
+## botón "Invitar" por fila. En grupo: lista de miembros con nombre y mini
+## barra de vida, botón "Salir", y "Expulsar" por fila solo si sos el líder
+## (la única diferencia de rol es administrar el grupo, sin ventaja de
+## combate; ver GestorGrupos.gd).
 
 @onready var _etiqueta_estado: Label = $VBox/EtiquetaEstado
 @onready var _lista_roster: VBoxContainer = $VBox/Scroll/Contenido/ListaRoster

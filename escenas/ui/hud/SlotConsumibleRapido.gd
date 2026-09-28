@@ -34,9 +34,8 @@ func _ready() -> void:
 
 ## Segundo dedo (index > 0) con toque crudo: el "mouse emulado" de Android
 ## solo sigue al PRIMER dedo, así que con el joystick sostenido las casillas
-## nunca recibían el tap (reportado: "cuando te mueves no puedes interactuar
-## con los consumibles"). Solo en la barra flotante (usar_al_tocar): el
-## primer dedo conserva el flujo normal de SlotItem (clic y arrastre).
+## no recibían el toque. Solo en la barra flotante (usar_al_tocar); el primer
+## dedo conserva el flujo normal de SlotItem (clic y arrastre).
 func _input(event: InputEvent) -> void:
 	if not usar_al_tocar or not visible or not is_visible_in_tree():
 		return
@@ -105,13 +104,10 @@ func _drop_data(_position, data) -> void:
 		GestorBarraRapida.asignar(data.slot_index, item_anterior)
 		GestorBarraRapida.asignar(slot_index, item)
 	else:
-		# Viene de la grilla general del inventario: SOLO se guarda la
-		# referencia acá, el ítem sigue estando en GestorInventario.items —
-		# la casilla es un atajo, no un contenedor que lo saca de ahí.
-		# Si ese mismo ítem ya estaba puesto en OTRA casilla rápida, la
-		# referencia vieja se limpia — sin esto quedaba duplicado en dos
-		# casillas a la vez (reportado: soltarlo en una casilla vacía no
-		# quitaba la copia que ya tenía en otra).
+		# Viene de la grilla del inventario: SOLO se guarda la referencia; el
+		# ítem sigue en GestorInventario.items (la casilla es un atajo, no un
+		# contenedor). Si el mismo ítem ya estaba en OTRA casilla rápida, esa
+		# referencia se limpia para no dejarlo duplicado.
 		var indice_anterior := GestorBarraRapida.casillas.find(item)
 		if indice_anterior != -1 and indice_anterior != slot_index:
 			GestorBarraRapida.limpiar(indice_anterior)

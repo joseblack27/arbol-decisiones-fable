@@ -1,25 +1,21 @@
 extends Enemigo
 class_name EnemigoReinaHormigas
-## Reina de las Hormigas — jefa final del Hormiguero (ver el plan
-## "Hormiguero" en C:\Users\USER\.claude\plans\cheeky-mixing-melody.md).
-## Mirror del esqueleto de fases de EnemigoHeraldoCorrupcion.gd/
-## EnemigoNucleoForja.gd/EnemigoCorazonCristal.gd (umbrales 0.75/0.50/0.25,
-## golpe de transición telegrafiado, SelectorHabilidades que crece por fase
-## en vez de reconstruirse, furia final) — solo cambian los nombres de
-## campos/habilidades por el tema de la colonia. Kit propio, en vez de
-## reusar el de un jefe existente (a diferencia de Corrupción, que sí reusa
-## tal cual el kit de EnemigoGuardianQuebrado): Mordida (golpe básico) +
-## Pisotón Sísmico (área telegrafiada centrada en ella, castiga quedarse en
-## melee) desde el arranque; Escupitajo Ácido (área) + Marca de la Colonia
-## (marca a un jugador al azar cercano, detona sobre él y quien esté al
-## lado, ver HabilidadMarcaColonia.gd) en fase 2; Llamada de Auxilio (firma
-## propia, ver HabilidadLlamadaAuxilio.gd) + Puesta de Huevos (huevos que,
-## si sobreviven, eclosionan en hormigas guardianas que le dan resistencia
-## mientras vivan, ver HabilidadPuestaHuevos.gd) en fase 3; Embestida
-## (carga, hereda la animación MORDIDA_PREPARACION/MORDIDA_DASH ya armada
-## en el esqueleto de Lobo Feroz del que se reskineó esta escena — el
-## nombre de esos estados es herencia del lobo, no tiene relación con la
-## habilidad "Mordida") + refuerzos + furia en fase 4.
+## Reina de las Hormigas: jefa final del Hormiguero. Mismo esqueleto de fases
+## que EnemigoHeraldoCorrupcion.gd, EnemigoNucleoForja.gd y
+## EnemigoCorazonCristal.gd (umbrales 0.75/0.50/0.25, golpe de transición
+## telegrafiado, SelectorHabilidades que crece por fase, furia final), con kit
+## propio:
+##   Desde el arranque: Mordida (golpe básico) + Pisotón Sísmico (área
+##     telegrafiada centrada en ella, castiga quedarse en melee).
+##   Fase 2: Escupitajo Ácido (área) + Marca de la Colonia (marca a un jugador
+##     cercano al azar y detona sobre él y quien esté al lado, ver
+##     HabilidadMarcaColonia.gd).
+##   Fase 3: Llamada de Auxilio (ver HabilidadLlamadaAuxilio.gd) + Puesta de
+##     Huevos (huevos que, si sobreviven, eclosionan en hormigas guardianas que
+##     le dan resistencia mientras vivan, ver HabilidadPuestaHuevos.gd).
+##   Fase 4: Embestida (carga, con la animación MORDIDA_PREPARACION/
+##     MORDIDA_DASH heredada del esqueleto del Lobo Feroz; el nombre viene del
+##     lobo, no de la habilidad Mordida) + refuerzos + furia.
 
 const _UMBRAL_FASE_2 := 0.75
 const _UMBRAL_FASE_3 := 0.50
@@ -41,14 +37,10 @@ const _UMBRAL_FASE_4 := 0.25
 @export var habilidad_embestida_bt: HabilidadBT
 @export var multiplicador_furia_final: float = 1.4
 
-## Pedido explícito del usuario (20 sep 2026): "quiero que cuando la
-## reina detecte un jugador, el area de detección se doble, para que sea
-## un poco mas dificil perder al jugador" -- probando el Hormiguero de
-## punta a punta, la Reina perdía el agro seguido (alejarse un poco del
-## radio de VisionComponente, ver ese script, ya alcanza para que
-## objetivo_perdido se dispare). Mientras tenga a alguien detectado, su
-## radio de visión se duplica; en cuanto se queda sin nadie detectado,
-## vuelve al radio original -- ver _ajustar_radio_deteccion().
+## Mientras tenga a alguien detectado, su radio de visión se duplica; al
+## quedarse sin nadie vuelve al original (ver _ajustar_radio_deteccion()). Si
+## no, con alejarse un poco del radio de VisionComponente ya perdía al
+## jugador.
 const MULTIPLICADOR_RADIO_DETECCION_CON_OBJETIVO := 2.0
 var _radio_deteccion_base: float = 0.0
 

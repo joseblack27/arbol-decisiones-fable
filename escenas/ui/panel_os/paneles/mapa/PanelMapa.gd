@@ -1,55 +1,34 @@
 extends Control
-## Pestaña "Mapa" del OS — mapa VISUAL de verdad del nivel ACTUAL (terreno,
-## decoración, otros jugadores/mobs — lo que sea que haya ahí), no un radar
-## esquemático de puntos. No es un mapa del mundo entero: los niveles son
-## mapas discretos conectados por portales (ver GestorNiveles), no un
-## mundo continuo, así que no hay "un" mapa único que mostrar — este panel
-## siempre muestra el nivel donde estás parado ahora.
+## Pestaña "Mapa" del OS: mapa VISUAL del nivel ACTUAL (terreno y decoración),
+## no un radar de puntos ni un mapa del mundo entero: los niveles son mapas
+## discretos conectados por portales (ver GestorNiveles), así que siempre
+## muestra el nivel donde estás parado.
 ##
-## Cómo se renderiza de verdad: un SubViewport propio (Viewport, hijo de
-## AreaMapa) con su PROPIO World2D aislado — NO comparte el del viewport
-## principal (versión anterior; se abandonó tras romper el mapa en la
-## primera prueba real, ver abajo). Al cambiar de nivel, _actualizar_fondo()
-## DUPLICA los TileMapLayer de terreno/decoración del nivel real (Terreno,
-## Decoracion) y los reubica en el mismo World2D aislado, dentro de Fondo —
-## eso es lo único que CamaraMapa puede llegar a ver. Los jugadores, mobs,
-## barras de vida, VFX de habilidades, etc. viven en el World2D REAL, nunca
-## en el aislado, así que es IMPOSIBLE que aparezcan en el mapa sin
-## necesidad de ningún filtro de capas de renderizado.
+## Cómo se renderiza: un SubViewport propio (Viewport, hijo de AreaMapa) con
+## su PROPIO World2D aislado. Al cambiar de nivel, _actualizar_fondo() DUPLICA
+## los TileMapLayer del nivel real (Terreno, Decoracion) dentro de Fondo, en
+## ese World2D: es lo único que CamaraMapa puede ver. Jugadores, mobs, barras
+## de vida y efectos viven en el World2D REAL, así que es imposible que
+## aparezcan en el mapa sin ningún filtro de capas. (Compartir world_2d y
+## filtrar con visibility_layer/canvas_cull_mask dejó el mapa en blanco en el
+## juego real, y eso no se puede verificar en --headless.)
 ##
-## Versión anterior (compartir world_2d + visibility_layer/canvas_cull_mask
-## para filtrar qué se ve): pedido explícito del usuario "no quiero que se
-## vea nada que no sea el cuadrado que marca la posición del jugador y los
-## mobs" (31 ago 2026) — se implementó así primero, pero en el juego real
-## dejó el mapa completamente en blanco ("lo dañaste, ahora no veo el
-## mapa"), sin poder confirmarlo antes en --headless (no renderiza pixels).
-## Se revirtió esa versión y se reemplazó por esta (World2D aislado +
-## duplicado), que no depende de ningún mecanismo de filtrado de Godot que
-## no se pueda verificar sin abrir el juego real.
+## El Viewport se muestra en un TextureRect (Textura), y los marcadores de
+## jugador, portales y mobs se dibujan ENCIMA: a la escala del mapa, la ronda
+## real de un portal no se lee.
 ##
-## Ese Viewport se muestra en un TextureRect (Textura). Los marcadores de
-## jugador/portales/mobs se dibujan ENCIMA de esa textura, en vez de
-## reemplazarla — a la escala de zoom del mapa, la ronda/etiqueta real de un
-## portal queda demasiado chica para leerse, así que el marcador sigue
-## haciendo falta para saber "hacia dónde queda cada uno" de un vistazo.
+## Reusa NivelBase.limites_camara() (el rectángulo que ya usa la cámara del
+## jugador) para encuadrar CamaraMapa y para proyectar los marcadores: la
+## MISMA escala en los dos, así el marcador de un portal cae sobre el portal
+## real de la textura.
 ##
-## Reusa NivelBase.limites_camara() (el mismo rectángulo que ya usa la
-## cámara del jugador para no mostrar el vacío fuera del mapa) tanto para
-## encuadrar CamaraMapa como para proyectar los marcadores — la MISMA
-## fórmula de escala para las dos cosas, así el marcador de un portal cae
-## exactamente sobre el portal real que se ve en la textura de abajo.
-##
-## Pedido explícito del usuario (30 ago 2026): panel dedicado dentro del
-## menú OS, no una tira siempre visible en el HUD. Marcadores por color
-## (31 ago 2026): jugador propio celeste, otros jugadores verde, mobs
-## comunes rojo, jefes amarillo — ver _actualizar_entidades().
+## Marcadores por color: jugador propio celeste, otros jugadores verde, mobs
+## comunes rojo, jefes amarillo (ver _actualizar_entidades()).
 
 const _COLOR_BORDE := Color(0.45, 0.45, 0.45, 0.9)
 const _COLOR_PORTAL := Color(1.0, 0.85, 0.2, 1.0)
-## Pedido explícito del usuario (31 ago 2026): otros jugadores en verde,
-## mobs comunes en rojo, jefes en amarillo — el jugador PROPIO sigue con su
-## color celeste de siempre (_marcador_jugador), para distinguirse del
-## resto de un vistazo.
+## Otros jugadores en verde, mobs comunes en rojo y jefes en amarillo; el
+## jugador PROPIO sigue celeste (_marcador_jugador) para distinguirse.
 const _COLOR_JUGADOR_OTRO := Color(0.3, 1.0, 0.3, 1.0)
 const _COLOR_MOB := Color(1.0, 0.25, 0.25, 1.0)
 const _COLOR_JEFE := Color(1.0, 0.9, 0.1, 1.0)
@@ -74,16 +53,11 @@ const _DIAMETRO_MARCADOR_ENTIDAD := 6.0
 ## necesidad para un mapa que solo se mira.
 const _CAPAS_TERRENO_A_DUPLICAR := ["Terreno", "Decoracion"]
 
-## Mientras la pestaña está abierta, la cámara secundaria vuelve a dibujar
-## TODO el nivel una segunda vez, cada fotograma que se le permita — a
-## 60fps eso es el doble de trabajo de render del nivel actual, solo para
-## el minimapa. Un minimapa no necesita esa frecuencia: 5 refrescos por
-## segundo (los marcadores de jugador/portales SÍ se siguen moviendo cada
-## fotograma, ver _process — es solo la "foto" de fondo la que se
-## refresca menos) recorta ese costo más del 90% sin que se note a simple
-## vista. Pedido del usuario: "ese subviewport no consume demasiado
-## computo?" — esto es puramente del lado del CLIENTE (cada jugador en su
-## propia PC/celular); el servidor dedicado no tiene HUD ni corre esto.
+## Con la pestaña abierta, la cámara secundaria vuelve a dibujar TODO el nivel:
+## a 60 fps sería el doble de render solo para el minimapa. 5 refrescos por
+## segundo de la "foto" de fondo recortan más del 90% sin que se note (los
+## marcadores sí se mueven cada fotograma, ver _process). Es solo del lado del
+## cliente; el servidor dedicado no tiene HUD.
 const _INTERVALO_ACTUALIZACION_MAPA := 0.2
 
 var _limites := Rect2()
@@ -277,15 +251,11 @@ func _actualizar_posiciones() -> void:
 	else:
 		_marcador_jugador.visible = false
 
-	# Bug real reportado: "muere un mob con el minimapa abierto y da error" —
-	# NO tipar la variable como Node2D en la MISMA línea que get_meta(): si
-	# el nodo original ya se liberó de verdad (no solo queue_free() en
-	# camino, sino ya destruido), Godot revienta ahí mismo al forzar el
-	# cast, ANTES de llegar siquiera a is_instance_valid() — ese chequeo
-	# quedaba inútil porque el crash pasaba una línea antes de alcanzarlo.
-	# Sin anotar el tipo, get_meta() da un Variant plano que is_instance_
-	# valid() sabe manejar aunque apunte a algo ya destruido; el cast a
-	# Node2D se hace RECIÉN después de confirmar que sigue vivo.
+	# NO tipar la variable como Node2D en la misma línea que get_meta(): si el
+	# nodo original ya fue destruido, el cast revienta ANTES de llegar a
+	# is_instance_valid(). Sin tipo, get_meta() da un Variant que
+	# is_instance_valid() sabe manejar; el cast va después de confirmar que
+	# sigue vivo.
 	for marcador in _marcadores_portal:
 		var portal = marcador.get_meta("portal")
 		if is_instance_valid(portal):

@@ -1,18 +1,15 @@
 class_name HabilidadGancho
 extends HabilidadProyectil
-## Gancho: dispara un proyectil que, si engancha a un enemigo, lo arrastra
-## en un tirón rápido hasta quedar justo enfrente del jugador.
+## Gancho: dispara un proyectil que, si engancha a un enemigo, lo arrastra en
+## un tirón rápido hasta quedar justo enfrente del jugador.
 ##
-## A diferencia del resto de las habilidades (que solo congelan al dueño
-## un margen breve ANTES de disparar, ver HabilidadBase.activar()/
-## _MARGEN_CONGELAMIENTO_RED), acá el bloqueo dura TODO lo que el gancho
-## tarda en resolverse: desde que sale el proyectil hasta que se sabe si
-## enganchó a alguien (y, si enganchó, hasta que termina el tirón) —
-## pedido explícito del usuario: "desde que lance el proyectil el jugador
-## no se podra mover ni hacer ninguna otra accion". El mismo bloqueo
-## (movimiento Y otras habilidades, ver el chequeo agregado en
-## HabilidadBase.activar()) se aplica también al ENGANCHADO mientras dura
-## el tirón — ver _iniciar_tiron().
+## A diferencia del resto de las habilidades (que congelan al dueño solo un
+## margen breve antes de disparar, ver HabilidadBase.margen_congelamiento_red),
+## acá el bloqueo dura TODO lo que tarda en resolverse: desde que sale el
+## proyectil hasta saber si enganchó y, si enganchó, hasta que termina el
+## tirón. Mientras tanto el jugador no se mueve ni usa otras habilidades (ver
+## el chequeo en HabilidadBase.activar()). El ENGANCHADO recibe el mismo
+## bloqueo mientras dura el tirón (ver _iniciar_tiron()).
 
 ## Cuánto dura el tirón una vez que el gancho enganchó a alguien.
 @export var duracion_tiron: float = 0.5
@@ -27,11 +24,10 @@ extends HabilidadProyectil
 ## del usuario, para que salga desde donde está el sprite (ej. la mano),
 ## no desde los pies. (0, -16) sube el origen 16px.
 @export var offset_origen_hilo: Vector2 = Vector2(0, -16)
-## Mismo criterio que offset_origen_hilo, pero para la PUNTA del hilo —
-## pedido del usuario, para que quede atada al sprite del gancho (ver
-## GanchoProyectil.tscn) en vez de a su origen físico (el Area2D). Se
-## aplica igual mientras vuela (sigue al proyectil) y mientras dura el
-## tirón (sigue al enganchado), para que no "salte" al cambiar de fase.
+## Mismo criterio que offset_origen_hilo, pero para la PUNTA del hilo: atada
+## al sprite del gancho (ver GanchoProyectil.tscn) y no a su Area2D. Se aplica
+## mientras vuela (sigue al proyectil) y durante el tirón (sigue al
+## enganchado), para que no salte al cambiar de fase.
 @export var offset_punta_hilo: Vector2 = Vector2(0, -8)
 
 var _direccion_lanzada := Vector2.RIGHT

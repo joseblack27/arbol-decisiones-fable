@@ -1,19 +1,13 @@
 extends HBoxContainer
 class_name IndicadorNivelMejora
-## Puntos de progreso para el nivel de mejora (ver MejorasComponente) — un
-## cuadrito relleno por tier ya comprado, uno apagado por el resto.
-## Reemplaza el texto plano "2/5" por algo que se lee de un vistazo
-## (pedido del usuario: "se ve muy simple, quiero que la persona pueda
-## entender todo sin tutorial").
+## Puntos de progreso del nivel de mejora (ver MejorasComponente): un cuadrito
+## relleno por tier comprado y uno apagado por cada uno que falta, para que se
+## lea de un vistazo en vez de un texto "2/5".
 ##
-## Cuadrados con ColorRect en vez de círculos dibujados a mano con
-## _draw() (pedido del usuario, para no mezclar dos técnicas — el resto
-## del panel ya usa ColorRect para los cuadritos de cada estadística, ver
-## PanelDetalleHabilidad/PanelDetallePasiva). Colores REUSADOS del tema ya
-## definido (recursos/temas/tema.tres) — el dorado es el mismo que ya usa
-## BarraXP para el progreso de nivel de personaje, y el gris apagado es
-## el mismo que ya usa el texto secundario/no-seleccionado — nada de
-## acentos nuevos.
+## Cuadrados con ColorRect, como los cuadritos de cada estadística en
+## PanelDetalleHabilidad/PanelDetallePasiva (no círculos con _draw(), para no
+## mezclar técnicas). Colores del tema (recursos/temas/tema.tres): el dorado
+## de la BarraXP y el gris del texto secundario.
 
 const _TAMAÑO := 8.0
 const _SEPARACION := 3

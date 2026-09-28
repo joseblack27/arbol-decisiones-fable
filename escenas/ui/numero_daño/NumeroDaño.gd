@@ -5,10 +5,9 @@ class_name NumeroDaño
 
 @export var duracion: float          = 0.75
 @export var flotacion: float         = 45.0
-## Variación horizontal aleatoria. En 0 (pedido del usuario: el número
-## siempre centrado horizontalmente con la entidad) — el costo asumido es
-## que dos golpes muy seguidos al mismo objetivo caen en el punto exacto y
-## se tapan un instante; subir este valor los dispersa si algún día molesta.
+## Variación horizontal aleatoria. En 0 el número queda siempre centrado con
+## la entidad; a cambio, dos golpes muy seguidos al mismo objetivo se tapan un
+## instante. Subir este valor los dispersa.
 @export var dispersión: float        = 0.0
 @export var tamano_fuente: int       = 20
 @export var tamano_fuente_critico: int = 26
@@ -25,27 +24,21 @@ func configurar(cantidad: float, posicion_global: Vector2,
 		tipo: int = Enums.Habilidad.TipoDano.FISICO,
 		es_debilidad: bool = false,
 		es_critico: bool = false) -> void:
-	# Centrado HORIZONTAL exacto con la entidad (dispersión=0 por defecto,
-	# pedido del usuario); en vertical conserva el pequeño realce de -12px
-	# de siempre (arranca apenas sobre el centro y flota hacia arriba).
+	# Centrado HORIZONTAL exacto con la entidad (dispersión=0 por defecto); en
+	# vertical arranca 12 px sobre el centro y flota hacia arriba.
 	global_position = posicion_global + Vector2(randf_range(-dispersión, dispersión), -12.0)
-	# Golpe a una debilidad elemental: "N!" (solo el signo al final, pedido
-	# del usuario) — el daño ya viene amplificado desde el pipeline, esto
-	# solo lo hace VISIBLE (reportado: "pega más por la debilidad pero el
-	# número se ve igual que uno normal").
+	# Golpe a una debilidad elemental: "N!". El daño ya viene amplificado
+	# desde el pipeline; esto solo lo hace VISIBLE.
 	etiqueta.text = ("%d!" % int(cantidad)) if es_debilidad else str(int(cantidad))
 	# Reinicio para reutilización desde la piscina (ver GestorPiscinas): el
 	# uso anterior pudo dejar la etiqueta desvanecida o con tamaño de crítico.
 	etiqueta.modulate.a = 1.0
 
-	# Color por elemento (misma tabla que la descripción de habilidades, ver
-	# Enums.Habilidad.valor_color_dano — imposible que se desincronicen),
-	# salvo crítico REAL: amarillo por encima del elemento. "es_critico" es
-	# la bandera del roll auténtico del servidor, propagada por el pipeline
-	# igual que "tipo" — no confundir con la vieja heurística por cantidad
-	# (todo golpe ≥ 30 se pintaba "crítico" sin serlo), eliminada cuando el
-	# daño corregido hizo que casi todos los golpes la cruzaran (reportado:
-	# "¿por qué saco tantos críticos ahora?").
+	# Color por elemento (la misma tabla que la descripción de habilidades,
+	# Enums.Habilidad.valor_color_dano), salvo crítico REAL: amarillo por
+	# encima del elemento. "es_critico" es la bandera del roll del servidor,
+	# propagada por el pipeline igual que "tipo" (no una heurística por
+	# cantidad).
 	var color_elemento := Color.from_string(
 		str(Enums.Habilidad.valor_color_dano.get(tipo, "")), color_daño)
 	etiqueta.add_theme_color_override("font_color",

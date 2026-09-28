@@ -1,36 +1,25 @@
 extends Control
 class_name CasillaObjeto
-## Casilla genérica para una GrillaObjetos — visual idéntico a SlotItem,
-## pero SIN su lógica de equipar/reemplazar por tipo: acá el arrastre es
-## un movimiento simple entre dos colecciones, sin más reglas. Pedido del
-## usuario: "el inventario que se mostraria aqui no debe tener la misma
-## funcionalidad que el inventario del OS... si se arrastra de un lado a
-## otro lo quita de uno y lo agrega en el otro".
+## Casilla genérica para una GrillaObjetos: el mismo visual que SlotItem pero
+## SIN su lógica de equipar o reemplazar por tipo. Acá el arrastre es solo
+## sacar de una colección y agregar en la otra.
 ##
-## Acepta drops de OTRAS casillas (con o sin la misma grilla dueña) además
-## de ser origen de arrastre — el ScrollContainerObjetos de la grilla (ver
-## ese archivo) acepta el hueco vacío alrededor/debajo de las casillas,
-## pero una casilla individual cubre casi toda el área visible, así que
-## TAMBIÉN necesita aceptar el drop ella misma: Control.mouse_filter (STOP
-## por defecto) no burbujea hacia el padre cuando el control bajo el
-## cursor no implementa _can_drop_data (equivale a un rechazo silencioso)
-## — sin este override, soltar sobre CUALQUIER casilla nunca llegaría al
-## ScrollContainer de abajo. La lógica real de "hacer algo o no" vive en
+## Acepta drops de otras casillas además de ser origen de arrastre. El
+## ScrollContainerObjetos de la grilla acepta el hueco alrededor de las
+## casillas, pero una casilla cubre casi toda el área visible y un Control que
+## no implementa _can_drop_data rechaza en silencio (no burbujea al padre), así
+## que también tiene que aceptar el drop ella misma. La decisión real vive en
 ## GrillaObjetos.recibir_desde() (compartida con ScrollContainerObjetos):
-## soltar dentro de la MISMA grilla no hace nada — pedido del usuario:
-## "que se pueda soltar encima de los mismos objetos, pero... si el padre
-## o la escena que lo contiene es diferente a donde se suelta, mande la
-## señal para que lo agregue, así no permite que si agarras un item y lo
-## sueltas ahí mismo, se añada de nuevo al final".
+## soltar dentro de la MISMA grilla no hace nada, así el ítem no se vuelve a
+## agregar al final.
 ##
-## "fuente" (ver FuenteObjetos) es quien de verdad persiste el cambio —
-## GrillaObjetos.recibir_desde() llama agregar()/quitar() sobre la fuente
-## de CADA lado, nunca muta ninguna colección directo. "grilla_dueña" es a
-## quién avisarle que se reconstruya (ver GrillaObjetos.notificar_cambio):
-## NUNCA se busca ningún panel por nombre en el árbol — ese patrón
-## (get_tree().get_root().find_child(...)) fue la causa real de dos bugs
-## de "self" destruido a mitad de un método, encontrados y corregidos en
-## SlotItem.gd esta misma sesión.
+## "fuente" (ver FuenteObjetos) es quien persiste el cambio:
+## GrillaObjetos.recibir_desde() llama agregar()/quitar() sobre la fuente de
+## CADA lado, nunca muta una colección directo. "grilla_dueña" es a quién
+## avisarle que se reconstruya (ver GrillaObjetos.notificar_cambio). NUNCA se
+## busca un panel por nombre en el árbol (get_tree().get_root().find_child):
+## ese patrón causó en SlotItem.gd dos bugs de "self" destruido a mitad de un
+## método.
 
 signal tocada(item: DatosItem)
 
@@ -68,13 +57,12 @@ func _on_gui_input(event: InputEvent) -> void:
 				_procesar_tap()
 
 
-## Pedido del usuario: "el doble-tap para transferencia rápida" — el
-## primer toque sigue mostrando el detalle como siempre (tocada.emit); si
-## llega un segundo toque dentro de _VENTANA_DOBLE_TAP_MS, además dispara
-## la transferencia. _transferencia_rapida() va AL FINAL: puede terminar
-## reconstruyendo grilla_dueña entera (remove_child+queue_free, ver
-## GrillaObjetos.notificar_cambio) y destruir este "self" en el camino —
-## mismo cuidado que _drop_data, nada de self después de esa llamada.
+## Doble toque = transferencia rápida: el primer toque muestra el detalle como
+## siempre (tocada.emit); si llega un segundo dentro de _VENTANA_DOBLE_TAP_MS,
+## además transfiere. _transferencia_rapida() va AL FINAL: puede reconstruir
+## grilla_dueña entera (remove_child + queue_free, ver
+## GrillaObjetos.notificar_cambio) y destruir este "self"; mismo cuidado que
+## _drop_data, nada de self después de esa llamada.
 func _procesar_tap() -> void:
 	tocada.emit(item_data)
 	var ahora := Time.get_ticks_msec()

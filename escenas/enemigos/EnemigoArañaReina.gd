@@ -1,15 +1,13 @@
 extends Enemigo
 class_name EnemigoArañaReina
-## Segundo boss del juego, pensado para ser más difícil que el Jefe Esqueleto:
-## mantiene distancia y dispara (reusa el kiting de EnemigoAraña) en vez de
-## caminar derecho, tiene 3 fases con invocación de refuerzos + escudo de
-## daño mientras vivan (ver EscudoComponente), y una rama de "Castigo" que
-## penaliza quedarse pegado sin ninguna habilidad disponible (ver
-## CondicionObjetivoSinHabilidades, cableada en la escena).
+## Segundo jefe del juego, más difícil que el Jefe Esqueleto: mantiene
+## distancia y dispara (reusa el kiting de EnemigoAraña), tiene 3 fases con
+## invocación de refuerzos y escudo de daño mientras vivan (ver
+## EscudoComponente), y una rama de "Castigo" que penaliza quedarse pegado sin
+## ninguna habilidad disponible (ver CondicionObjetivoSinHabilidades, cableada
+## en la escena).
 ##
-## Fase 1 (100%-70% vida): Arañazo + Bola de Telaraña, igual que una Araña
-## normal — la mecánica de fases/adds/escudo se agrega en los pasos
-## siguientes del plan.
+## Fase 1 (100%-70% de vida): Arañazo + Bola de Telaraña, como una Araña normal.
 
 ## Mismo ícono que ya usa la Habilidad Escudo del jugador — reduce trabajo
 ## de arte y es reconocible para quien ya la vio ahí.
@@ -33,10 +31,10 @@ const _UMBRAL_FASE_3 := 0.35
 @export var habilidad_marca_bt: HabilidadBT
 @export var habilidad_charco_bt: HabilidadBT
 @export var habilidad_disparo_linea_bt: HabilidadBT
-## "Furia final": cuánto más rápido recarga TODA su habilidades tras limpiar
-## los refuerzos de fase 3 (permanente el resto del combate) — mismo
-## mecanismo que ya usa HabilidadFervor (multiplicador_recarga en
-## HabilidadBase), aplicado acá por código en vez de por una habilidad.
+## "Furia final": cuánto más rápido recarga TODAS sus habilidades tras limpiar
+## los refuerzos de fase 3 (el resto del combate). Mismo mecanismo que
+## HabilidadFervor (multiplicador_recarga de HabilidadBase), aplicado por
+## código.
 @export var multiplicador_furia_final: float = 1.4
 
 var _fase: int = 1
@@ -67,18 +65,13 @@ func _ready() -> void:
 	await _esperar_malla_antes_de_actuar()
 
 
-## Único enemigo del juego "colocado a mano" en su nivel (ver
-## NivelNidoArañaReina.gd) en vez de generado por SpawnerMobs — arranca viva
-## desde el primer fotograma del nivel, sin la espera a que la malla de
-## navegación termine de sincronizar que SpawnerMobs sí les da a todos los
-## demás mobs (ver Utils.esperar_malla_de_nivel_lista). Si detecta al
-## jugador y decide moverse/atacar en esa ventana (recién cargado el nivel,
-## la malla puede tardar unos physics_frame), queda "no se mueve, no ataca"
-## (reportado en juego real). Se pausa su propio árbol mientras se espera —
-## a propósito NO en Enemigo.gd (afectaría a TODOS los enemigos): varias
-## pruebas apagan el árbol de un mob a mano para conducirlo manualmente
-## (ver prueba_navegacion.gd), y esta reactivación tardía les pisaba ese
-## apagado si corría para cualquier enemigo.
+## Colocada a mano en su nivel (ver NivelNidoArañaReina.gd), no generada por
+## SpawnerMobs: arranca viva desde el primer fotograma, sin la espera a que la
+## malla de navegación sincronice que SpawnerMobs les da a los demás (ver
+## Utils.esperar_malla_de_nivel_lista). Si decide moverse o atacar en esa
+## ventana, no se mueve ni ataca. Por eso pausa su árbol mientras espera. No va
+## en Enemigo.gd: varias pruebas apagan el árbol de un mob a mano (ver
+## prueba_navegacion.gd), y esta reactivación tardía les pisaría ese apagado.
 func _esperar_malla_antes_de_actuar() -> void:
 	var arbol := get_node_or_null("ArbolComportamiento") as ArbolComportamiento
 	if arbol:
@@ -150,13 +143,10 @@ func _physics_process(delta: float) -> void:
 ## replica igual que a cualquier otro mob.
 func _invocar_refuerzos(escenas: Array[PackedScene]) -> void:
 	# _on_vida_cambiada (quien dispara esto, vía _entrar_fase/_reanudar_fase)
-	# corre A PROPÓSITO en TODOS los peers para que el respiro visual de
-	# cambio de fase se vea igual en todos lados — sin este corte, la
-	# RÉPLICA de la reina en cada cliente invocaba SU PROPIA copia local de
-	# los refuerzos (nunca replicada, sin IA real porque Enemigo._physics_
-	# process solo corre del lado del servidor) además de la real que sí
-	# manda el servidor — reportado: "salieron 6 mobs y solo 3 se movían"
-	# (los 3 reales, replicados; los otros 3, fantasmas locales del cliente).
+	# corre en TODOS los peers para que el respiro de cambio de fase se vea en
+	# todos lados. Sin este corte, la réplica de la reina en cada cliente
+	# invocaba su propia copia local de los refuerzos (sin IA, que solo corre
+	# en el servidor), además de los reales que manda el servidor.
 	if Utils.en_red() and not multiplayer.is_server():
 		return
 	var contenedor := get_parent()

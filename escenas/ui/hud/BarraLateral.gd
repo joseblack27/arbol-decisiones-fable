@@ -1,20 +1,14 @@
 extends Control
 class_name BarraLateral
-## Tira de HUD con pestañas laterales — combina Grupo (vida de compañeros,
-## antes en BarraGrupo.gd, fusionado acá) y Misiones (progreso de las
-## misiones activas) en un único panel colapsable, en la MISMA posición que
-## ocupaba BarraGrupo (ver Mundo.tscn). Pedido explícito del usuario
-## (1 sep 2026): "si esta oculto y presionas cualquiera de los dos botones
-## del tab, se muestra el tab con la opcion seleccionada; si se presiona un
-## tab distinto con el tab abierto, debe cambiar al tab seleccionado; pero
-## si se presiona el boton del mismo tab que esta abierto, debe ocultarse
-## el panel" — ver _alternar_tab(), que unifica los 3 casos en una regla.
+## Tira de HUD con pestañas laterales: Grupo (vida de los compañeros) y
+## Misiones (progreso de las activas) en un único panel colapsable (ver
+## Mundo.tscn). Tocar una pestaña con el panel cerrado lo abre en esa pestaña;
+## tocar otra con el panel abierto cambia de pestaña; tocar la que ya está
+## abierta lo cierra (ver _alternar_tab()).
 ##
-## A diferencia de BarraGrupo (que se ocultaba ENTERO sin grupo), este
-## widget queda SIEMPRE visible — las pestañas tienen sentido incluso sin
-## grupo (para mirar misiones) o sin misiones activas (para mirar el
-## grupo), así que cada pestaña muestra su propio estado vacío en vez de
-## esconder todo el widget.
+## El widget queda SIEMPRE visible: las pestañas sirven aun sin grupo (para
+## mirar misiones) o sin misiones (para mirar el grupo), así que cada una
+## muestra su propio estado vacío.
 
 enum Tab { GRUPO, MISIONES }
 
@@ -38,23 +32,18 @@ func _ready() -> void:
 	BusEventos.mision_completada.connect(_al_cambiar_mision)
 	BusEventos.mision_abandonada.connect(_al_cambiar_mision)
 	BusEventos.mision_progreso_actualizado.connect(_al_progreso_mision)
-	# Bug real reportado: "la barra lateral no muestra las misiones que
-	# tengo" — misiones ya EN_PROGRESO de una partida guardada no pasan por
+	# Las misiones EN_PROGRESO de una partida guardada no pasan por
 	# aceptar_mision() al restaurarse (GestorGuardado las carga directo en
-	# MisionesComponente.progreso), así que ninguna de las señales de
-	# arriba se dispara para avisar. PanelMisiones.gd ya se conecta a esto
-	# mismo (GestorGuardado.partida_cargada) — a este widget se le había
-	# olvidado.
+	# MisionesComponente.progreso), así que ninguna señal de arriba avisa.
+	# Mismo criterio que PanelMisiones.gd.
 	GestorGuardado.partida_cargada.connect(_actualizar_misiones)
 	_actualizar_grupo()
 	_actualizar_misiones()
 	_actualizar_visual()
 
 
-## Pedido explícito del usuario (ver comentario de arriba): cerrado -> abre
-## en el tab que tocaste; abierto en OTRO tab -> cambia a ese tab; abierto
-## en el MISMO tab que tocaste -> cierra. Una sola regla para los 3 casos,
-## sin duplicar la lógica entre los dos botones.
+## Cerrado -> abre en la pestaña tocada; abierto en OTRA -> cambia a esa;
+## abierto en la MISMA -> cierra. Una sola regla para los 3 casos.
 func _alternar_tab(tab: Tab) -> void:
 	if _abierto and _tab_activo == tab:
 		_abierto = false
@@ -166,11 +155,9 @@ func _fila_mision(datos: DatosMision, misiones: MisionesComponente) -> Control:
 		var texto := objetivo.descripcion
 		if objetivo.cantidad_meta > 1:
 			texto += " (%d/%d)" % [actual, objetivo.cantidad_meta]
-		# Pedido explícito del usuario: "los objetivos de la misión se
-		# muestren pegados a la izquierda" — sin espacios sueltos al
-		# principio del texto (mismo criterio que ya se corrigió en las
-		# filas de conjunto del inventario, ver Utils._agregar_fila_
-		# indentada).
+		# Objetivos pegados a la izquierda, sin espacios al principio del texto
+		# (mismo criterio que las filas de conjunto del inventario, ver
+		# Utils._agregar_fila_indentada).
 		var linea := Label.new()
 		linea.text = ("✔ " if completo else "• ") + texto
 		linea.add_theme_font_size_override("font_size", 9)

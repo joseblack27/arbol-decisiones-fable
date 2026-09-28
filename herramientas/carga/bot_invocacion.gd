@@ -111,7 +111,7 @@ func _process(delta: float) -> bool:
 
 		"vigilando":
 			# Censo de posición cada segundo: si nunca cambia, el aliado está
-			# congelado (reportado en Camino).
+			# congelado.
 			if int(_tiempo_fase) > _posiciones_aliado.size():
 				var aliado := _buscar_aliado()
 				if aliado != null:

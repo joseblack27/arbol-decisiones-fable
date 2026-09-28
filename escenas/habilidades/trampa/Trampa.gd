@@ -144,12 +144,10 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, radio_dano, Color(0.9, 0.6, 0.1, 0.35))
 		draw_arc(Vector2.ZERO, radio_dano, 0.0, TAU, 32, Color(0.9, 0.6, 0.1, 0.9), 2.0)
 		return
-	# Marca del radio de detección — SOLO en la pantalla de quien la colocó
-	# (ver comentario de clase). Un jugador ajeno o un mob nunca deberían
-	# poder "verla venir" mirando la pantalla de otro. Círculo exterior
-	# relleno negro + centro rojo, se dejan ver el suelo/objetos de abajo
-	# (pedido del usuario: "que se vean más transparente" ambos) sin dejar
-	# de notarse.
+	# Marca del radio de detección, SOLO en la pantalla de quien la colocó
+	# (ver comentario de clase): nadie más debería poder verla venir.
+	# Círculo exterior negro y centro rojo, translúcidos para dejar ver el
+	# suelo sin dejar de notarse.
 	if _configurada and is_instance_valid(entidad_fuente) and entidad_fuente == Utils.jugador_local():
 		draw_circle(Vector2.ZERO, _forma_deteccion.radius, Color(0.0, 0.0, 0.0, 0.35))
 		draw_circle(Vector2.ZERO, 6.0, Color(0.85, 0.1, 0.1, 0.4))

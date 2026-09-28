@@ -1,11 +1,9 @@
 extends Button
 class_name ItemPasiva
 ## Fila SELECCIONABLE de una pasiva ya desbloqueada (de estadística o de
-## gatillo, ver PanelHabilidades._poblar_pasivas) — mismo patrón visual y
-## táctil que ItemHabilidad (lista de la izquierda), pero sin nada que
-## equipar: tocarla solo muestra su descripción en PanelDetallePasiva. Sin
-## tooltip a propósito — pedido del usuario: "como el juego es móvil no me
-## sirve la descripción como tooltip".
+## gatillo, ver PanelHabilidades._poblar_pasivas): el mismo patrón visual y
+## táctil que ItemHabilidad, pero sin nada que equipar; tocarla muestra su
+## descripción en PanelDetallePasiva. Sin tooltip: en el celular no sirve.
 
 ## pasiva_stat != null SOLO para pasivas de ESTADÍSTICA (ver
 ## PanelHabilidades._poblar_pasivas) — le dice a PanelDetallePasiva si
@@ -75,14 +73,12 @@ func _actualizar_nivel() -> void:
 		_contenedor_puntos.add_child(_indicador_puntos)
 	var mejoras := Utils.mejoras_componente_local()
 	var tier: int = mejoras.nivel_pasiva(_pasiva_stat.resource_path) if mejoras else 0
-	# 1 + tier, igual que ItemHabilidad._actualizar_nivel: el desbloqueo YA
-	# aplicó un tier gratis (ver MejorasComponente._gastar_en_pasiva_local/
+	# 1 + tier, como ItemHabilidad._actualizar_nivel: el desbloqueo ya
+	# aplicó un tier gratis (ver MejorasComponente._gastar_en_pasiva_local y
 	# PanelDetallePasiva._actualizar_descripcion), así que la pasiva arranca
-	# en nivel 1, no en 0 — pedido del usuario ("que cuando se desbloqueen,
-	# comiencen con nivel 1"). max_niveles sigue siendo el tope de TIERS
-	# COMPRADOS nada más (ver _gastar_en_pasiva_local, que compara
-	# tier_actual >= max_niveles directo, sin el +1); acá se le suma 1 para
-	# que el indicador muestre el tope TOTAL (gratis + comprables).
+	# en nivel 1. max_niveles es el tope de tiers COMPRADOS
+	# (_gastar_en_pasiva_local compara tier_actual >= max_niveles); acá se le
+	# suma 1 para mostrar el tope TOTAL (gratis + comprables).
 	_indicador_puntos.max_tier = 1 + _pasiva_stat.max_niveles
 	_indicador_puntos.tier = 1 + tier
 

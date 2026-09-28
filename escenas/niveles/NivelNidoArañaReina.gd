@@ -1,28 +1,20 @@
 extends NivelBase
-## Nido de la Araña Reina — el único nivel con un jefe colocado A MANO en la
+## Nido de la Araña Reina: el único nivel con un jefe colocado A MANO en la
 ## escena (Enemigos/EnemigoArañaReina), no generado por SpawnerMobs.
 ##
-## El servidor NUNCA libera un nivel ya cargado (ver GestorNiveles.
-## _asegurar_nivel_cargado), así que si la reina se dejara morir sin más, el
-## nivel se quedaría sin ella hasta que el servidor reinicie de cero. Mientras
-## el juego sigue en pruebas, pedido del usuario: "quiero que respawnee cada
-## vez que entre a la cueva" — apenas el primer peer que confirma haber
-## cargado el nivel (ver GestorNiveles.peer_listo) llega y la encuentra
-## muerta, el SERVIDOR le repone una reina fresca.
+## El servidor NUNCA libera un nivel ya cargado (ver
+## GestorNiveles._asegurar_nivel_cargado), así que una reina muerta no
+## volvería hasta reiniciar el servidor. Por eso, cuando el primer peer que
+## confirma haber cargado el nivel (GestorNiveles.peer_listo) la encuentra
+## muerta, el SERVIDOR repone una reina fresca.
 ##
-## Por qué en la MISMA RUTA (Enemigos/EnemigoArañaReina): el CLIENTE libera y
-## reinstancia la escena ENTERA cada vez que (re)carga un nivel (ver
-## GestorNiveles._cargar) — como la reina está horneada en el .tscn, cada
-## entrada ya crea sola una copia LOCAL en esa ruta exacta. Si el servidor
-## repone la suya con el mismo nombre, ReplicadorEnemigos la reconoce como la
-## misma (no crea una segunda), y si está muerta del lado del servidor, su
-## reconciliación despacha la copia local.
-##
-## Reportes anteriores que este mecanismo también evita: "aparece bugueada,
-## no se mueve, no ataca y no recibe daño" (la copia fantasma sin servidor
-## real detrás) y "vuelvo a entrar y se muere sola, instantáneamente" (un
-## intento anterior que la ocultaba en vez de reponerla, reusando encima el
-## desvanecido de "murió peleando" sin que hubiera pelea).
+## En la MISMA RUTA (Enemigos/EnemigoArañaReina): el cliente reinstancia la
+## escena ENTERA en cada carga, y como la reina está en el .tscn, cada entrada
+## crea sola una copia local en esa ruta. Con el mismo nombre,
+## ReplicadorEnemigos la reconoce como la misma (no crea una segunda) y, si
+## está muerta en el servidor, su reconciliación despacha la copia local.
+## Ocultarla en vez de reponerla no sirve: queda una copia sin servidor
+## detrás, que no se mueve ni recibe daño.
 
 const _RUTA_REINA := "Enemigos/EnemigoArañaReina"
 const _ESCENA_REINA := preload("res://escenas/enemigos/EnemigoArañaReina.tscn")

@@ -4,28 +4,20 @@
 # pathfinding: los NavigationAgent2D (ver MovimientoComponente) solo leen la
 # malla de esta capa (máscara de navegación 2), no la de Terreno.
 #
-# Se rellena por defecto con la ficha "Libre" (transparente, caminable) en
-# toda celda donde Terreno sea transitable (misma regla que agua/muros:
-# tiles con colisión física quedan fuera). Sobre esa base, PINTA A MANO en
-# el editor las fichas de colisiones.png donde quieras un obstáculo (p. ej.
-# bajo un árbol): eso abre un agujero en la malla Y añade colisión física,
-# sin tocar el TileMapLayer de Terreno.
+# Se rellena por defecto con la ficha "Libre" (caminable) en toda celda donde
+# Terreno sea transitable (los tiles con colisión física quedan fuera). Sobre
+# esa base, PINTA A MANO en el editor las fichas de colisiones.png donde
+# quieras un obstáculo (p. ej. bajo un árbol): eso abre un agujero en la malla
+# sin tocar el Terreno.
 #
 # Idempotente para la parte "Libre": puedes re-ejecutarla tras redibujar el
-# Terreno; NO toca fichas ya pintadas a mano en Navegacion (solo añade
-# "Libre" donde la celda está vacía).
+# Terreno; NO toca fichas ya pintadas a mano (solo añade "Libre" donde la
+# celda está vacía).
 #
-# TAMBIÉN recorta: cualquier celda de Navegacion sin celda correspondiente
-# en Terreno se borra — bug real reportado ("una araña está fuera del
-# mapa"): Navegacion nació sobredimensionada en varios niveles (Pradera,
-# Cueva, NidoArañaReina — hasta ~3.4x más ancha/3.2x más alta que el mapa
-# real, probablemente copiada entre escenas alguna vez sin recortar), así
-# que SpawnerMobs/MovimientoComponente daban por válida una franja
-# "caminable" bien afuera del mapa visible. Este recorte corre SIEMPRE
-# (no solo la primera vez que se crea la capa): a diferencia de agregar
-# "Libre" (aditivo, seguro re-ejecutar), acá si Terreno se redibuja más
-# chico después, las celdas viejas de Navegacion que quedaron huérfanas
-# también deben desaparecer.
+# TAMBIÉN recorta, SIEMPRE: toda celda de Navegacion sin celda de Terreno
+# debajo se borra. Una Navegacion más grande que el mapa hace que SpawnerMobs
+# y MovimientoComponente den por válida una franja fuera del mapa visible; y
+# si Terreno se redibuja más chico, las celdas huérfanas tienen que irse.
 #   godot --headless --path . --script res://herramientas/generar_capa_navegacion.gd
 # =============================================================================
 extends SceneTree

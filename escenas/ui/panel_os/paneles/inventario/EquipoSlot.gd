@@ -32,11 +32,10 @@ func _drop_data(_position, data):
 		return
 	var item_anterior := item_data
 	item_data = item
-	# El setter de item_data (heredado de SlotItem) copia can_equip desde el
-	# DatosItem — que para un equipable es SIEMPRE true. Sin esto, un ítem
-	# equipado por arrastre queda con el botón "Equipar" habilitado si volvés
-	# a abrir su detalle; presionarlo entonces lo "reequipa consigo mismo" y
-	# lo duplica en GestorInventario sin sacarlo del slot (ver bug reportado).
+	# El setter de item_data (heredado de SlotItem) copia can_equip del
+	# DatosItem, que para un equipable es SIEMPRE true. Sin esto, al reabrir
+	# el detalle de un ítem equipado por arrastre, "Equipar" seguía
+	# habilitado y lo duplicaba en el inventario sin sacarlo del slot.
 	can_equip = false
 
 	if data is EquipoSlot:
@@ -55,8 +54,7 @@ func _drop_data(_position, data):
 		GestorInventario.quitar_item(item)
 		if item_anterior != null:
 			# silencioso=true: el ítem que traías puesto vuelve al
-			# inventario, no es botín nuevo — bug reportado: al desequipar
-			# aparecía la notificación como si hubiera llegado equipo nuevo.
+			# inventario, no es botín nuevo (sin notificación).
 			GestorInventario.agregar_item(item_anterior, -1, true)
 		if panel:
 			panel.refrescar()
@@ -74,23 +72,15 @@ func _notificar_equipo_cambiado() -> void:
 		panel.notificar_equipo_cambiado()
 
 
-## Red de seguridad final: soltar un ítem equipado en cualquier lugar que
-## NINGÚN _can_drop_data haya aceptado (otro EquipoSlot de otro tipo — el
-## anillo reportado —, un ítem de otro tipo en la grilla general, el fondo
-## del panel, fuera de la ventana...) debe desequiparlo igual, sin importar
-## dónde. Depender de que el rechazo "burbujee" hacia un padre que sí lo
-## acepte NO es confiable acá: mouse_filter por defecto es STOP en todo
-## Control, así que un hijo que rechaza el drop corta la cadena ahí mismo
-## en vez de dejar que el padre lo intente — confirmado, no es solo lectura
-## de código (ver https://github.com/godotengine/godot/issues/104609 y la
-## documentación de mouse_filter). NOTIFICATION_DRAG_END sí llega siempre,
-## pero a TODOS los controles del árbol (no solo al que arrancó el
-## arrastre) — arrastrando_ahora (ver SlotItem._get_drag_data) es lo que
-## permite confirmar que ESTE fue el slot que se estaba arrastrando antes
-## de reaccionar. Reportado dos veces: "trate de mover el sombrero al
-## inventario sobre un anillo y no se desequipó" / "arrastro desde un
-## equiposlot hacia el flowItems... sin importar donde caiga... y no se
-## desequipó".
+## Red de seguridad: soltar un ítem equipado donde NINGÚN _can_drop_data lo
+## acepte (un EquipoSlot de otro tipo, un ítem de otro tipo en la grilla, el
+## fondo del panel, fuera de la ventana...) tiene que desequiparlo igual.
+## Depender de que el rechazo "burbujee" a un padre no sirve: mouse_filter es
+## STOP por defecto en todo Control, y un hijo que rechaza corta la cadena
+## (ver https://github.com/godotengine/godot/issues/104609).
+## NOTIFICATION_DRAG_END sí llega siempre, pero a TODOS los controles del
+## árbol: arrastrando_ahora (ver SlotItem._get_drag_data) confirma que ESTE
+## fue el slot que se arrastraba.
 func _notification(what):
 	if what != NOTIFICATION_DRAG_END:
 		return

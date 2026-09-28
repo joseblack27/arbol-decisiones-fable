@@ -4,19 +4,15 @@ class_name EnemigoCaballeroEsqueleto
 # =============================================================================
 # 💀 ENEMIGO CABALLERO ESQUELETO
 # Mismo combo de ataque que el Lobo (arañazo cuerpo a cuerpo + carga/dash),
-# pero persigue un 20% más rápido — ver EstadoPersigue.multiplicador_velocidad
-# en la escena.
+# pero persigue un 20% más rápido (ver EstadoPersigue.multiplicador_velocidad
+# en la escena).
 #
 # Furia: mientras tenga un objetivo, cada _INTERVALO_CHEQUEO_FURIA segundos
-# tira una moneda con _PROBABILIDAD_FURIA de activarla — HabilidadFuria
-# Guerrero (ver esa clase) es quien sabe QUÉ hace la furia (más veloz, más
-# daño, recarga más rápido) y CUÁNTO dura; acá solo se decide CUÁNDO
-# intentar activarla. Mientras la furia esté activa no se vuelve a tirar
-# la moneda (_habilidad_furia.esta_activa() corta la ventana entera, ni
-# siquiera descuenta el temporizador), y recién se reinicia la ventana de
-# _INTERVALO_CHEQUEO_FURIA segundos cuando la habilidad avisa que terminó
-# (furia_terminada) — pedido explícito del usuario con estas reglas de
-# timing exactas.
+# tira una moneda con _PROBABILIDAD_FURIA de activarla. HabilidadFuriaGuerrero
+# sabe QUÉ hace la furia y CUÁNTO dura; acá solo se decide CUÁNDO intentarla.
+# Con la furia activa no se tira la moneda (ni se descuenta el temporizador),
+# y la ventana de _INTERVALO_CHEQUEO_FURIA se reinicia cuando la habilidad
+# avisa que terminó (furia_terminada).
 # =============================================================================
 
 const _INTERVALO_CHEQUEO_FURIA := 10.0

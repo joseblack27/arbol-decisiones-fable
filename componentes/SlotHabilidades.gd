@@ -136,13 +136,11 @@ func equipar_escena(slot_index: int, escena: PackedScene) -> void:
 	BusEventos.habilidad_equipada.emit(jugador, slot_index, _instancias[slot_index])
 
 
-## Fase 7 del plan de multijugador: equipar desde el menú normal del juego
-## solo tocaba el lado del CLIENTE — el servidor (autoritativo de verdad)
-## nunca se enteraba, así que HabilidadBase._activar_red() no encontraba el
-## nodo del lado del servidor y la habilidad no hacía nada (ver bug
-## reportado: "las habilidades no se equipan"). Evita el eco infinito con
-## _procesando_rpc_red (el servidor llama equipar() de nuevo al recibir el
-## RPC, lo que dispararía otro intento de sincronizar si no se cortara acá).
+## Equipar desde el menú ocurre en el CLIENTE, pero la habilidad la ejecuta el
+## servidor: se sincroniza por RPC para que HabilidadBase._activar_red()
+## encuentre el nodo del lado del servidor. _procesando_rpc_red evita el eco
+## (el servidor llama equipar() al recibir el RPC, y eso dispararía otro
+## intento de sincronizar).
 var _procesando_rpc_red := false
 
 func _sincronizar_equipo_red(slot_index: int, datos: DatosHabilidad) -> void:

@@ -1,25 +1,17 @@
 extends Node
-## InteresEspacial (autoload) — Fase 1 del plan de escalado a MMO.
+## InteresEspacial (autoload): a quién le importa qué. La posición de
+## jugadores y mobs, la vida y los avisos de cada nivel se mandan solo a los
+## peers que tienen esa entidad cerca (RADIO_INTERES) o que están en su nivel
+## (peers_del_nivel), no a todos: sin filtro, el tráfico y el costo por
+## jugador crecían como jugadores × entidades.
 ##
-## Hasta acá, TODO se replicaba a TODOS los peers conectados sin importar la
-## distancia: la posición del jugador viaja por MultiplayerSynchronizer en
-## modo ALWAYS (sin throttle, cada tick de sync, a TODOS); los mobs mandan su
-## estado por RPC de broadcast (con throttle por cambio, pero también a
-## TODOS). Con eso, el tráfico y el costo de simulación por jugador crecen
-## más rápido que la cantidad de jugadores — confirmado en la prueba de
-## carga (Fase 4): ~0.25ms/jugador a 14 conectados, ~0.55ms/jugador a 42.
-## Es la firma clásica de O(jugadores × entidades) sin ningún filtro.
+## No es una grilla espacial: a la escala objetivo (100 jugadores), un filtro
+## de distancia lineal es sub-milisegundo frente al costo que ahorra (los
+## ENVÍOS de red). Si algún día el chequeo en sí pesara, ahí sí conviene una
+## grilla de celdas.
 ##
-## Esto NO es una grilla espacial (innecesario a la escala objetivo — 100
-## jugadores × 100 chequeos de distancia por evaluación es sub-milisegundo,
-## trivial comparado con el costo real que se está eliminando: los ENVÍOS
-## de red de más). Un filtro de distancia lineal, recalculado solo cuando
-## hace falta (ver _actualizar_visibilidad en Jugador.gd), alcanza y sobra
-## para esta fase — si en el futuro el CHEQUEO en sí se vuelve el cuello de
-## botella (escala mucho mayor), ahí sí vale la pena una grilla de celdas.
-##
-## SOLO tiene sentido del lado del SERVIDOR: es el único que conoce la
-## posición real de todos los jugadores a la vez.
+## SOLO tiene sentido en el SERVIDOR: es el único que conoce la posición real
+## de todos los jugadores a la vez.
 
 ## Radio (px) dentro del cual un jugador/mob es relevante para otro peer.
 ## Generoso respecto al área visible en pantalla, con margen para que
@@ -46,16 +38,11 @@ const RADIO_INTERES_CUADRADO := RADIO_INTERES * RADIO_INTERES
 var _jugador_por_peer_cache: Dictionary = {}
 var _fotograma_cache_jugadores: int = -1
 
-## SOLO para pruebas: varias (prueba_objeto_recolectable, prueba_almacen_
-## lenador_compartido, prueba_almacen_minero_compartido, prueba_gestor_
-## grupos_ciclo_completo) simulan "el pedido vino de otro peer" renombrando
-## el mismo nodo Jugador de prueba (jugador.name = "999" / "0") DENTRO del
-## mismo fotograma físico, sin transporte de red real de por medio — la
-## caché de arriba no tiene forma de enterarse de ese renombrado (no cambia
-## la cantidad de fotogramas físicos transcurridos), así que sin este
-## escape hatch quedaban leyendo el valor viejo. En juego real esto nunca
-## hace falta: el nombre de un Jugador se fija una sola vez al spawnear
-## (ver ServidorDedicado._spawnear_jugador) y no cambia en su vida.
+## SOLO para pruebas: varias simulan "el pedido vino de otro peer" renombrando
+## el mismo nodo Jugador (jugador.name = "999") dentro del mismo fotograma, y
+## la caché de arriba no se entera del renombrado. En el juego real el nombre
+## de un Jugador se fija una sola vez al spawnear (ver
+## ServidorDedicado._spawnear_jugador).
 func invalidar_cache_jugadores() -> void:
 	_fotograma_cache_jugadores = -1
 

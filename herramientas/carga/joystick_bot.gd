@@ -2,11 +2,10 @@
 # joystick_bot.gd — cómo un bot mueve a su jugador: TOCANDO el joystick real
 # del HUD, el mismo camino que un dedo.
 #
-# Emitir "joystick_movimiento" directo por SeñalManager ya no alcanza: el
+# Emitir "joystick_movimiento" directo por SeñalManager no alcanza: el
 # rectificador de Jugador (_verificar_joystick_soltado) anula cualquier
-# dirección mientras el joystick real no esté presionado. Los bots que hacían
-# eso quedaron quietos desde el 21 sep 2026 (las mediciones de
-# prueba_carga.sh de esas fechas son con bots parados).
+# dirección mientras el joystick real no esté presionado, y el bot quedaría
+# quieto.
 #
 #   const JoystickBot := preload("res://herramientas/carga/joystick_bot.gd")
 #   JoystickBot.mover(root, Vector2.RIGHT)   # aprieta / cambia de rumbo

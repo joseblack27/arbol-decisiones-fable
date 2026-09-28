@@ -1,25 +1,18 @@
 extends PanelContainer
-## Reemplaza al botón fijo de interacción de antes (mismo lugar en pantalla,
-## junto al paginador de habilidades) — ahora puede mostrar UN botón (caso
-## de siempre: un solo interactuable con una sola acción, tocarlo ejecuta
-## directo, cero pasos nuevos) o una LISTA chica en el mismo lugar cuando
-## hace falta elegir: pedido real del usuario, con dos cofres uno al lado
-## del otro no había forma de elegir cuál abrir.
+## Botón de interacción, en el mismo lugar que el paginador de habilidades.
+## Muestra UN botón en el caso simple (un solo interactuable con una sola
+## acción: tocarlo ejecuta directo) o una LISTA chica cuando hay que elegir
+## (p. ej. dos cofres uno al lado del otro).
 ##
-## A propósito NUNCA pasa por GestorUI ni cambia ningún modo — el jugador
-## sigue moviéndose, usando habilidades y abriendo cualquier otro panel con
-## esta lista en pantalla, igual que puede hacerlo hoy con el botón simple
-## (pedido explícito del usuario: "no quiero que esto detenga el
-## funcionamiento de las demás interfaces").
+## NUNCA pasa por GestorUI ni cambia ningún modo: con la lista en pantalla el
+## jugador sigue moviéndose, usando habilidades y abriendo otros paneles.
 ##
-## No sabe nada de NPCs/cofres/árboles: solo consume lo que
-## GestorInteraccion.cambio(items) transmite (nombre + acciones() de cada
-## interactuable en rango). Raíz PanelContainer (en vez de VBoxContainer a
-## secas, como al principio) — pedido del usuario: "no tiene fondo y solo se
-## ve las letras y los bordes de los botones" — el estilo de fondo/borde ya
-## viene del tema compartido (ver Mundo.tscn, PanelContainer/styles/panel en
-## recursos/temas/tema.tres), la lista de botones de verdad vive en
-## %Lista, adentro de un MarginContainer para el margen contra el borde.
+## No sabe nada de NPCs, cofres ni árboles: solo consume lo que
+## GestorInteraccion.cambio(items) transmite (nombre y acciones() de cada
+## interactuable en rango). La raíz es un PanelContainer para tener el fondo y
+## borde del tema compartido (PanelContainer/styles/panel en
+## recursos/temas/tema.tres); los botones viven en %Lista, dentro de un
+## MarginContainer.
 
 ## Un poco más chico que el tamaño por defecto del tema (12, ver
 ## recursos/temas/tema.tres) — acá el espacio es angosto y fijo (ver
@@ -59,32 +52,24 @@ func _reconstruir() -> void:
 		_etiqueta_nombre.visible = false
 		_mostrar_objetos()
 	else:
-		# Pedido del usuario: mostrar el nombre del objeto arriba SOLO
-		# cuando ya se sabe cuál es — eligiéndolo de la lista, o directo si
-		# era el único en rango. Mientras se ve la lista de objetos (elegir
-		# entre varios) el label queda invisible: ahí el nombre de cada uno
-		# ya está en su propio botón.
+		# El nombre del objeto arriba se muestra SOLO cuando ya se sabe cuál es
+		# (elegido de la lista, o el único en rango). Mientras se ve la lista de
+		# objetos el label queda oculto: cada botón ya tiene su nombre.
 		_etiqueta_nombre.text = _items[_objeto_elegido]["nombre"]
 		_etiqueta_nombre.visible = true
 		_mostrar_acciones(_objeto_elegido)
 	_ajustar_alto()
 
 
-## El ancho de todo el panel queda FIJO a propósito (ver Mundo.tscn — pedido
-## del usuario, para que no cambie de tamaño según el texto de turno), pero
-## el alto sí tiene que acompañar cuántos botones hay en pantalla ahora
-## mismo — sin esto, el fondo quedaría siempre con el alto de un solo botón
-## y el resto de la lista se vería sin fondo por debajo/arriba.
+## El ancho del panel queda FIJO (ver Mundo.tscn) para que no cambie según el
+## texto, pero el alto acompaña la cantidad de botones: si no, el fondo
+## quedaría con el alto de un solo botón.
 ##
-## Pedido del usuario: que crezca hacia ARRIBA, no hacia abajo (el botón de
-## paginador de habilidades queda justo debajo, no hay lugar ahí). "size.y =
-## 0" (probado primero) no sirve para eso: Control.set_size() mantiene fija
-## la posición actual (la esquina superior) y estira el alto nuevo hacia
-## abajo desde ahí — exactamente al revés de lo que hace falta. En cambio,
-## acá se fija directo offset_top a partir de offset_bottom (que sí queda
-## fijo siempre, anclado a la esquina inferior derecha, ver Mundo.tscn) menos
-## el alto real que necesita el contenido actual — así el borde de ABAJO
-## nunca se mueve y el que sube/baja es el de ARRIBA.
+## Crece hacia ARRIBA (justo debajo está el paginador de habilidades).
+## "size.y = 0" no sirve: set_size() mantiene la esquina superior y estira
+## hacia abajo. Por eso se fija offset_top a partir de offset_bottom (anclado
+## a la esquina inferior derecha, ver Mundo.tscn) menos el alto real del
+## contenido: el borde de ABAJO nunca se mueve.
 func _ajustar_alto() -> void:
 	offset_top = offset_bottom - get_combined_minimum_size().y
 
@@ -117,13 +102,10 @@ func _mostrar_objetos() -> void:
 		_lista.add_child(boton)
 
 
-## Acciones del objeto elegido — un botón por acción (su texto). Con un
-## solo objeto en rango esto ES la lista completa (sin "Volver": no hay a
-## dónde volver) y, si ese objeto tiene una sola acción, se ve y se
-## comporta EXACTAMENTE como el botón único de siempre — el caso simple no
-## quedó forzado a pasar por ningún paso nuevo, solo es una lista de UN
-## botón. Sin ícono en "Volver" (pedido del usuario: satura el poco espacio
-## disponible) — solo el texto, como cualquier otro botón de la lista.
+## Acciones del objeto elegido, un botón por acción. Con un solo objeto en
+## rango esto ES la lista completa (sin "Volver") y, si tiene una sola acción,
+## se comporta exactamente como un botón único. "Volver" va sin ícono, solo
+## texto, para no saturar el poco espacio.
 func _mostrar_acciones(indice: int) -> void:
 	var acciones: Array = _items[indice]["acciones"]
 	for accion in acciones:

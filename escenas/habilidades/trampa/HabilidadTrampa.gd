@@ -20,13 +20,11 @@ var alcance_maximo: float = 150.0
 @export var dano_trampa: float     = 45.0
 @export var duracion_maxima: float = 20.0
 
-## TODAS las trampas vigentes de ESTE peer que todavía no explotaron — la
-## copia REAL (con detección) en el servidor, o la copia solo-visual en
-## cualquier cliente (ver _mostrar_trampa_red). Mismo bug real ya
-## encontrado y arreglado en HabilidadCepo.gd (ver ese comentario): con una
-## sola referencia, colocar una segunda trampa mientras la primera seguía
-## viva pisaba la referencia, y _activar_trampa_visual_red() (sin forma de
-## saber CUÁL activó el servidor) siempre actuaba sobre la última colocada.
+## TODAS las trampas vigentes de ESTE peer que todavía no explotaron: la copia
+## REAL (con detección) en el servidor, o la solo visual en un cliente (ver
+## _mostrar_trampa_red). Una lista y no una referencia, como en
+## HabilidadCepo.gd: con una sola, la segunda trampa pisaba la primera y
+## _activar_trampa_visual_red() actuaba siempre sobre la última.
 var _trampas_activas: Array[Trampa] = []
 
 
@@ -36,10 +34,9 @@ func _ready() -> void:
 	tipo_habilidad   = "trampa"
 	requiere_direccion = true
 	congela_movimiento_en_red = true
-	# Pedido explícito del usuario: reducir la velocidad al apuntar (no solo
-	# congelar al soltar) para forzar a pensar mejor dónde colocarla, Y de
-	# paso reducir el margen real de drift — ver factor_velocidad_apuntando
-	# en HabilidadBase, mismo criterio que HabilidadCepo.
+	# Más lenta al apuntar, como HabilidadCepo: obliga a pensar dónde
+	# colocarla y achica lo que se corre la posición (ver
+	# factor_velocidad_apuntando en HabilidadBase).
 	factor_velocidad_apuntando = 0.2
 
 

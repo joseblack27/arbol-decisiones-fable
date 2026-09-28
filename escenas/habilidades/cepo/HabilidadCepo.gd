@@ -29,16 +29,12 @@ var alcance_maximo: float = 150.0
 ## que en el botón — mismo criterio que HabilidadSacudida._icono_debuff.
 var _icono_debuff: Texture2D = null
 
-## TODOS los cepos vigentes de ESTE peer que todavía no se activaron — la
-## copia REAL (con detección) en el servidor, o la copia solo-visual en
-## cualquier cliente (ver _mostrar_cepo_red). Antes era una sola referencia
-## (_cepo_actual): con DOS cepos vivos a la vez, colocar el segundo la
-## pisaba, así que _activar_cepo_visual_red() (sin ninguna forma de saber
-## CUÁL de los dos activó el servidor) siempre terminaba actuando sobre el
-## último colocado — el otro se quedaba mostrando "puesto" para siempre en
-## los clientes hasta que se le acababa el tiempo solo, aunque su copia
-## real ya se hubiera activado. Reportado por el usuario: "coloco 2 cepos,
-## uno encima del otro, el enemigo los pisa y solo se cierra el primero".
+## TODOS los cepos vigentes de ESTE peer que todavía no se activaron: la copia
+## REAL (con detección) en el servidor, o la solo visual en un cliente (ver
+## _mostrar_cepo_red). Una lista y no una sola referencia: con dos cepos vivos,
+## el segundo pisaba al primero y _activar_cepo_visual_red() actuaba siempre
+## sobre el último, así que el otro seguía viéndose "puesto" aunque su copia
+## real ya se hubiera cerrado.
 var _cepos_activos: Array[Cepo] = []
 
 
@@ -47,19 +43,15 @@ func _ready() -> void:
 	nombre_habilidad = "Cepo"
 	tipo_habilidad   = "cepo"
 	requiere_direccion = true
-	# Congela brevemente al colocarlo — sin esto, si el jugador seguía
-	# moviéndose después de soltar el touch, el servidor calculaba la
-	# posición desde SU posición más nueva (la ida y vuelta de red de por
-	# medio), y el cepo terminaba corrido de donde se apuntó ("se sigue
-	# moviendo la posición de lanzamiento", reportado). Un margen de 0.2s
-	# no alcanzó en juego real (seguía corriéndose) — mismo margen que el
-	# resto (0.5s, default de HabilidadBase), sin override propio.
+	# Congela brevemente al colocarlo: si el jugador seguía moviéndose
+	# después de soltar, el servidor calculaba la posición desde la suya más
+	# nueva (con la ida y vuelta de red de por medio) y el cepo quedaba
+	# corrido. Usa el margen por defecto de HabilidadBase (0.5 s); 0.2 s no
+	# alcanzaba.
 	congela_movimiento_en_red = true
-	# Pedido explícito del usuario: reducir la velocidad al apuntar (no solo
-	# congelar al soltar) para forzar a pensar mejor dónde colocarlo, Y de
-	# paso reducir el margen real de drift — a un quinto de la velocidad,
-	# cualquier resto de movimiento que se cuele durante la ida y vuelta de
-	# red pesa mucho menos (ver factor_velocidad_apuntando en HabilidadBase).
+	# Más lento al apuntar (no solo congelar al soltar): obliga a pensar dónde
+	# colocarlo y achica lo que se corre la posición durante la ida y vuelta
+	# de red (ver factor_velocidad_apuntando en HabilidadBase).
 	factor_velocidad_apuntando = 0.2
 
 
@@ -151,14 +143,11 @@ func _activar_cepo_visual_red(posicion: Vector2, ruta_objetivo: NodePath) -> voi
 	_anotar_icono_en_red(ruta_objetivo)
 
 
-## CLIENTE: le pone al mob atrapado el mismo ícono de "inmovilizado" que ya
-## le pone EfectoCepo._anotar_icono() en el servidor — reportado en juego
-## real (19 sep 2026): "hay debuffos que no se muestran correctamente,
-## como el cepo cuando un mob la pisa". Causa: EfectoCepo (quien de verdad
-## pone el ícono) solo existe en la copia REAL del cepo (monitoring=true
-## exclusivo del servidor, ver Cepo.mostrar_solo_visual) — ningún cliente
-## lo aplicaba nunca sobre el mob, solo veía cambiar el sprite del cepo en
-## sí. Mismo criterio que HabilidadPuestaHuevos._anotar_icono_guardian.
+## CLIENTE: le pone al mob atrapado el mismo ícono de "inmovilizado" que le
+## pone EfectoCepo._anotar_icono() en el servidor. EfectoCepo solo existe en
+## la copia REAL del cepo (monitoring=true solo en el servidor, ver
+## Cepo.mostrar_solo_visual), así que ningún cliente veía el ícono. Mismo
+## criterio que HabilidadPuestaHuevos._anotar_icono_guardian.
 func _anotar_icono_en_red(ruta_objetivo: NodePath) -> void:
 	var objetivo := get_node_or_null(ruta_objetivo)
 	if not is_instance_valid(objetivo) or _icono_debuff == null:

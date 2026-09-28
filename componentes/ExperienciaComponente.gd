@@ -1,8 +1,7 @@
 extends Node
 class_name ExperienciaComponente
-## ExperienciaComponente — la XP de ESTE jugador (Fase 1 del plan de
-## migración a multijugador). Antes vivía en el autoload GestorExperiencia;
-## ver ese archivo, que ahora es una fachada de compatibilidad.
+## ExperienciaComponente: la XP de ESTE jugador. GestorExperiencia (autoload)
+## es una fachada que delega acá.
 
 ## Emitida cada vez que xp_total cruza el umbral de un nivel nuevo (ver
 ## TablaNiveles) — nivel_nuevo, no cuánto subió, así un salto de varios
@@ -49,15 +48,12 @@ func _ready() -> void:
 	_capturar_baseline()
 
 
-## Sin esto, cada reconexión del jugador volvía a sumar +10 vida_maxima /
-## +5 energia_maxima / +1 daños POR CADA NIVEL YA ALCANZADO encima de las
-## estadísticas que ya tenía — restaurar_xp() nunca partía de cero, así que
-## el crecimiento se acumulaba sin límite con cada reconexión (bug grave
-## reportado: una Bola de Fuego con daño base 10-12 llegó a hacer 400 de
-## daño tras varias reconexiones). Este componente vive en el mismo nodo
-## Jugador que persiste en el servidor entre reconexiones — _ready() solo
-## corre una vez en la vida de ese nodo, así que esto captura el nivel 1
-## real una sola vez, antes de que cualquier crecimiento se haya aplicado.
+## Captura las estadísticas de nivel 1 una sola vez. restaurar_xp() parte
+## siempre de esta base: si no, cada reconexión volvía a sumar el crecimiento
+## de CADA nivel ya alcanzado encima de lo que ya tenía, sin límite. El
+## componente vive en el nodo Jugador que persiste en el servidor entre
+## reconexiones, y _ready() corre una sola vez en su vida, antes de cualquier
+## crecimiento.
 func _capturar_baseline() -> void:
 	if _base_capturada:
 		return
@@ -92,14 +88,10 @@ func _resetear_a_baseline() -> void:
 		energia.energia_maxima = _energia_maxima_base
 	var atributos := padre.get_node_or_null("AtributosComponente") as AtributosComponente
 	if atributos and _atributos_linea_base:
-		# "base" NO se pisa a pelo con la fábrica: se reconstruye como
-		# fábrica + bonos del equipo ACTUAL. Al reconectar, el equipo suele
-		# aplicarse ANTES de que llegue la restauración de XP — pisar base
-		# directo borraba el bono de daños de la espada (la potencia
-		# sobrevivía porque este reseteo solo tocaba daños), y el servidor
-		# quedaba pegando más flojo de lo que el panel del cliente mostraba
-		# (reportado: "parece que tuviera +10 de resistencia en vez de -10"
-		# — la debilidad sí multiplicaba, pero sobre una base ya recortada).
+		# "base" NO se pisa con la fábrica a secas: se reconstruye como fábrica
+		# + bonos del equipo ACTUAL. Al reconectar, el equipo suele aplicarse
+		# ANTES de que llegue la XP, y pisar base borraba el bono del arma: el
+		# servidor pegaba más flojo de lo que el panel del cliente mostraba.
 		var equipo := padre.get_node_or_null("EquipoComponente")
 		if equipo:
 			atributos.restablecer_linea_base(_atributos_linea_base, equipo.equipados)
@@ -112,11 +104,9 @@ func agregar_xp(cantidad: int) -> void:
 		return
 	xp_total += cantidad
 
-	# Subir de nivel ANTES de avisar la ganancia de XP: xp_agregada dispara
-	# a la UI (barra de progreso "X / Y dentro del nivel", ver PanelTablero/
-	# HudJugador) — si emitiera con el xp_total nuevo pero "nivel" viejo
-	# (sin procesar todavía), la barra mostraba cosas como "105 / 100" justo
-	# al cruzar el umbral (bug reportado).
+	# Subir de nivel ANTES de avisar la ganancia de XP: xp_agregada actualiza
+	# la barra "X / Y dentro del nivel" (ver PanelTablero/HudJugador), y con
+	# xp_total nuevo pero "nivel" viejo mostraría cosas como "105 / 100".
 	var nivel_nuevo := TablaNiveles.nivel_desde_xp(xp_total)
 	while nivel_nuevo > nivel:
 		nivel += 1
@@ -162,10 +152,9 @@ func _aplicar_crecimiento_nivel(notificar: bool = true) -> void:
 	var vida := padre.get_node_or_null("VidaComponente") as VidaComponente
 	if vida:
 		vida.salud_maxima += CRECIMIENTO_VIDA
-		# Vida y energía a TOPE al subir de nivel (pedido del usuario) — no
-		# solo el incremento de +10: agregar_vida() ya clampea al máximo
-		# nuevo, así que pedir "todo el máximo" garantiza el 100% sin
-		# importar cuánta vida tenía antes.
+		# Vida y energía a TOPE al subir de nivel, no solo el incremento:
+		# agregar_vida() ya limita al máximo nuevo, así que pedir todo el
+		# máximo garantiza el 100%.
 		vida.agregar_vida(vida.salud_maxima)
 	var energia := padre.get_node_or_null("EnergiaComponente") as EnergiaComponente
 	if energia:

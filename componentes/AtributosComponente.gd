@@ -47,17 +47,11 @@ var _base_sin_equipo: AtributosBase
 
 
 ## Bonos TEMPORALES (buffs de tiempo limitado, p. ej. HabilidadBuffEquipo o
-## HabilidadSacrificio) — a propósito NO viven en "base": recalcular_con_
-## equipo() sobreescribe "base" entero desde _base_sin_equipo cada vez que
-## cambia el equipo (ver ese método), así que cualquier bono temporal
-## sumado ahí se perdía apenas alguien reequipaba algo mientras el buff
-## seguía activo. Viven aparte, se evalúan al calcular daño (ver
-## calcular_dano_saliente) y se quitan solos al vencer — nunca hace falta
-## "restar" nada a mano.
-## Generalizado desde la versión original (solo "danos", para Grito de
-## Guerra) — pedido del usuario para Sacrificio, que además de daño
-## temporal necesita potencia/crítico temporales, y por el mismo motivo de
-## arriba NINGUNO de los tres puede vivir en "base".
+## HabilidadSacrificio). NO viven en "base": recalcular_con_equipo()
+## sobreescribe "base" entero desde _base_sin_equipo cada vez que cambia el
+## equipo, y un bono temporal sumado ahí se perdería al reequipar. Viven
+## aparte, se evalúan al calcular daño (ver calcular_dano_saliente) y se
+## quitan solos al vencer. Cubren daño, potencia y crítico.
 class BonoTemporal:
 	var danos: float = 0.0
 	var potencia: float = 0.0
@@ -105,10 +99,8 @@ func agregar_bono_temporal(id: String, danos: float = 0.0, potencia: float = 0.0
 	bono_dano_cambiado.emit(obtener_bono_dano_temporal())
 
 
-## Público (no solo uso interno de calcular_dano_saliente): PanelTablero lo
-## necesita para sumar el bono al Daño mostrado en las estadísticas del
-## jugador, así en pleno combate se ve el número YA efectivo, sin que el
-## jugador tenga que sumar a mano un buff aparte (pedido del usuario).
+## Público: PanelTablero lo suma al Daño mostrado en las estadísticas, así en
+## pleno combate se ve el número ya efectivo.
 func obtener_bono_dano_temporal() -> float:
 	var total := 0.0
 	for bono in _bonos_temporales.values():
@@ -174,19 +166,15 @@ func _sumar_bonos_de_conjuntos(items_equipados: Array[DatosItem]) -> void:
 				_sumar_bonos(base, tramo.bonos)
 
 
-## Aplica un crecimiento PERMANENTE (p. ej. al subir de nivel, o al
-## desbloquear una pasiva de estadística — ver ExperienciaComponente
-## ._aplicar_crecimiento_nivel) a la línea de base "de fábrica" — NO
-## alcanza con tocar "base" directo: recalcular_con_equipo() SOBREESCRIBE
-## base entero desde _base_sin_equipo cada vez que el equipo cambia, así
-## que un bono aplicado solo a "base" desaparecía en cuanto se
-## equipaba/desequipaba algo — incluido el propio flujo de carga de
-## partida, que restaura el equipo justo después de la XP (bug reportado:
-## "al cargar la partida las estadísticas no se reflejan en el daño").
-## Tocar ambos a la vez da efecto inmediato Y sobrevive al próximo recálculo.
-## Recibe un AtributosBase completo (no solo daños) para que las pasivas de
-## estadística puedan sumar cualquier campo — reusa _sumar_bonos, que ya
-## itera los 17 campos, en vez de repetir esa lista acá.
+## Aplica un crecimiento PERMANENTE (al subir de nivel o desbloquear una
+## pasiva de estadística, ver ExperienciaComponente._aplicar_crecimiento_nivel)
+## a la base "de fábrica" Y a "base": recalcular_con_equipo() sobreescribe
+## "base" desde _base_sin_equipo cada vez que cambia el equipo (incluida la
+## carga de partida, que restaura el equipo después de la XP), así que tocar
+## solo "base" se perdería. Tocar ambos da efecto inmediato y sobrevive al
+## próximo recálculo.
+## Recibe un AtributosBase completo para que las pasivas puedan sumar
+## cualquier campo (reusa _sumar_bonos, que ya itera todos).
 func agregar_crecimiento_permanente(bono: AtributosBase) -> void:
 	if not bono:
 		return
@@ -319,15 +307,12 @@ func calcular_dano_saliente_vista_previa(dano_base: float) -> float:
 	return maxf(0.0, total)
 
 
-## Rango de "Daño Calculado": dano_min/max pasados por calcular_dano_
-## saliente_vista_previa (o tal cual si no hay atributos disponibles) y
-## RECIÉN ahí escalados por "factor" — el multiplicador_dano_tick propio
-## de habilidades que reparten el golpe en varios ticks (Lanzallamas,
-## Aura). Compartido por PanelDetalleHabilidad ("Daño Calculado" del
-## detalle) y HabilidadAura (descripción del buff activo) para que los
-## dos muestren siempre el mismo número sin duplicar la fórmula en cada
-## lugar que la necesite — antes vivía escrita dos veces y se desincronizó
-## (reportado: "el daño que se muestra no es el calculado para el aura").
+## Rango de "Daño Calculado": dano_min/max pasados por
+## calcular_dano_saliente_vista_previa (o tal cual si no hay atributos) y
+## RECIÉN ahí escalados por "factor" (el multiplicador_dano_tick de las
+## habilidades que reparten el golpe en ticks: Lanzallamas, Aura). Lo
+## comparten PanelDetalleHabilidad y HabilidadAura para mostrar siempre el
+## mismo número con una sola fórmula.
 static func calcular_rango_con_factor(
 		atributos: AtributosComponente, dano_min: float, dano_max: float, factor: float = 1.0) -> Vector2i:
 	var final_min := dano_min
@@ -381,16 +366,12 @@ func calcular_dano_entrante(
 ## Llámalo desde launchers (Proyectil, AreaEfecto, etc.) antes de quitar_vida().
 ## Si alguno de los dos nodos no tiene AtributosComponente, el daño pasa sin cambios.
 ##
-## ignora_defensa (opcional) — saltea ENTERO el lado defensivo (defensa
-## plana, fortaleza y resistencias elementales), dejando pasar el daño del
-## atacante tal cual. Hoy solo lo usa HabilidadCorte (pedido del usuario:
-## "sin importar qué buffos tenga encima, debe recibir el daño completo
-## ignorando defensa y resistencias"). El lado OFENSIVO sí se sigue
-## aplicando: potencia y crítico del atacante son suyos, no del defensor.
-## OJO: esto no es "ignora todo" — la invulnerabilidad total y el escudo
-## viven aguas abajo, en VidaComponente.quitar_vida(), así que un objetivo
-## invulnerable sigue sin recibir nada (que es justo la excepción que pidió
-## el usuario: "a menos que sea inmunidad").
+## ignora_defensa (opcional): saltea ENTERO el lado defensivo (defensa plana,
+## fortaleza y resistencias elementales). Hoy solo lo usa HabilidadCorte. El
+## lado OFENSIVO sí se aplica: potencia y crítico son del atacante.
+## OJO: no es "ignora todo": la invulnerabilidad total y el escudo viven aguas
+## abajo, en VidaComponente.quitar_vida(), así que un objetivo invulnerable
+## sigue sin recibir nada.
 static func calcular_pipeline(
 		fuente: Node,
 		defensor: Node,

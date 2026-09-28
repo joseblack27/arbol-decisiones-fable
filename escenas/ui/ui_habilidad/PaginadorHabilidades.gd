@@ -42,14 +42,12 @@ func _ready() -> void:
 
 
 ## Toque crudo en vez de la señal pressed del Button: pressed depende del
-## "mouse emulado desde touch", que en Android SOLO sigue al PRIMER dedo —
-## con el joystick de movimiento sostenido, un segundo dedo sobre este botón
-## no hacía nada (reportado). Manejando InputEventScreenTouch directo,
-## cualquier dedo funciona (mismo enfoque que UIHabilidad/Joystick). En
-## escritorio sigue andando igual: emulate_touch_from_mouse=true (ver
-## project.godot) convierte el clic en un toque sintético que entra por acá.
-## set_input_as_handled() evita que el Button además dispare pressed con el
-## primer dedo (doble cambio de página).
+## "mouse emulado desde touch", que en Android SOLO sigue al PRIMER dedo, y
+## con el joystick sostenido un segundo dedo no hacía nada. Con
+## InputEventScreenTouch directo sirve cualquier dedo (como UIHabilidad y
+## Joystick). En escritorio anda igual: emulate_touch_from_mouse=true (ver
+## project.godot) convierte el clic en un toque. set_input_as_handled() evita
+## que el Button además dispare pressed (doble cambio de página).
 func _input(event: InputEvent) -> void:
 	if not (event is InputEventScreenTouch) or not event.pressed:
 		return
@@ -68,5 +66,5 @@ func _siguiente_pagina() -> void:
 
 
 func _actualizar_texto() -> void:
-	# Solo el número de la página actual (antes "1/2") — pedido del usuario.
+	# Solo el número de la página actual.
 	text = str(_pagina_actual + 1)

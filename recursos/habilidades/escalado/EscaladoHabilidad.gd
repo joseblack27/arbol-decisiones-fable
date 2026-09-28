@@ -1,14 +1,12 @@
 extends Resource
 class_name EscaladoHabilidad
 ## Configuración de "nivel de mejora" de UNA habilidad activa (ver
-## DatosHabilidad.escalado / HabilidadBase.aplicar_nivel_mejora /
-## MejorasComponente) — reusable a propósito: varias habilidades pueden
-## apuntar al MISMO EscaladoHabilidad si quieren la misma curva, en vez de
-## repetir los mismos números en cada .tres ("tener centralizado el
-## escalado", pedido del usuario).
+## DatosHabilidad.escalado, HabilidadBase.aplicar_nivel_mejora y
+## MejorasComponente). Reusable: varias habilidades pueden apuntar al MISMO
+## EscaladoHabilidad para compartir la curva, en vez de repetir los números en
+## cada .tres.
 ##
-## null en DatosHabilidad.escalado = esta habilidad todavía no tiene
-## mejora configurada (opt-in explícito, no rompe nada de lo existente).
+## null en DatosHabilidad.escalado = la habilidad no tiene mejora configurada.
 
 @export var campos: Array[CampoEscalado] = []
 @export var nivel_maximo: int = 5

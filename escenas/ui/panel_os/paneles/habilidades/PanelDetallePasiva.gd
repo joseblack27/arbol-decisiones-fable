@@ -130,13 +130,11 @@ func _actualizar_fila_mejorar() -> void:
 	Utils.actualizar_boton_mejorar(_boton_mejorar, al_tope, sin_puntos, costo)
 
 
-## Pasiva de ESTADÍSTICA: reemplaza la descripción de texto por los
-## efectos posta, en números — pedido del usuario: "no quiero descripcion,
-## solo ver los efectos", con "Efectos actuales" arriba y "Efectos en el
-## siguiente nivel" abajo (oculto al tope, no hay nada más que mostrar).
-## Pasiva de GATILLO (Instinto Vengador, Cosecha de Vida...): no tiene
-## bono numérico ni niveles — ahí sí hace falta su descripción de texto,
-## queda tal cual.
+## Pasiva de ESTADÍSTICA: en vez de un texto, muestra los efectos en números,
+## con "Efectos actuales" arriba y "Efectos en el siguiente nivel" abajo
+## (oculto en el tope). Pasiva de GATILLO (Instinto Vengador, Cosecha de
+## Vida...): sin bono numérico ni niveles, así que queda su descripción de
+## texto.
 func _actualizar_descripcion() -> void:
 	var es_stat := _pasiva_actual != null and _pasiva_actual.bono != null
 	description_label.visible = not es_stat
@@ -164,9 +162,8 @@ func _actualizar_descripcion() -> void:
 		_llenar_lista_efectos(_lista_proximo, _describir_bono(_pasiva_actual.bono, 2 + tier))
 
 
-## Un ícono (cuadrito de color) por línea de efecto — pedido del usuario
-## (mismo criterio que las estadísticas de PanelDetalleHabilidad): antes
-## era un bloque de texto plano sin nada que ayude a escanearlo rápido.
+## Un ícono (cuadrito de color) por línea de efecto, como las estadísticas de
+## PanelDetalleHabilidad, para escanearlo rápido.
 func _llenar_lista_efectos(contenedor: VBoxContainer, efectos: Array[String]) -> void:
 	# free() INMEDIATO, no queue_free(): _on_mejorar_pressed() y el aviso
 	# BusEventos.mejora_comprada (que MejorasComponente.gastar_en_pasiva

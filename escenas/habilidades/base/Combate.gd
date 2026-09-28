@@ -37,17 +37,13 @@ static func mismo_equipo(fuente: Node, objetivo: Node) -> bool:
 ## entidad_dueña (un CharacterBody2D) sin necesitar un Area2D dedicado, como
 ## hace HabilidadLanzallamas (cono de daño anclado al propio jugador).
 ##
-## multiplicador_final escala el resultado YA calculado por el pipeline de
-## atributos (bono plano + potencia + crítico + resistencias del defensor),
-## NO el "dano" de entrada — a propósito: habilidades que reparten el golpe
-## completo en varios ticks (el lanzallamas, con multiplicador_dano_tick)
-## necesitan que el bono plano de "danos" se sume al golpe COMPLETO antes de
-## repartirlo, igual que muestra el panel de detalle (PanelDetalleHabilidad
-## calcula con los atributos primero, la fracción del tick al final). Escalar
-## el "dano" de ENTRADA en cambio hacía que el bono plano del atacante se
-## sumara DESPUÉS sobre un número ya achicado, dominando el resultado y
-## desalineando lo que en verdad pegaba del número que mostraba la
-## descripción ("dice 2-3 pero pega 10-12", reportado).
+## multiplicador_final escala el resultado YA calculado por el pipeline
+## (bono plano + potencia + crítico + resistencias), NO el "dano" de entrada:
+## las habilidades que reparten el golpe en ticks (el lanzallamas, con
+## multiplicador_dano_tick) necesitan que el bono plano se sume al golpe
+## COMPLETO antes de repartirlo, igual que calcula PanelDetalleHabilidad.
+## Escalando la entrada, el bono plano se sumaría sobre un número ya achicado
+## y lo que pega no coincidiría con lo que dice la descripción.
 static func golpear_area(
 		area: Node2D,
 		forma: Shape2D,

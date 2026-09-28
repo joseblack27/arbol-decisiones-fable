@@ -48,16 +48,13 @@ func aplicar_datos(d: DatosHabilidad) -> void:
 		alcance_maximo = float(d.alcance_metros) * ESCALA_METROS_PIXEL
 
 
-## Identidad de red de cada muro invocado por ESTA habilidad — hace falta
-## porque el propio Muro es un objeto efímero de una piscina LOCAL (sin
-## nombre/ruta estable entre peers, a diferencia de Jugador/Enemigo): no
-## se le puede avisar "este nodo murió" por RPC apuntándole directo. Se
-## identifica por un contador propio de la habilidad — como las
-## activaciones viajan por el mismo canal reliable y en el mismo orden en
-## todos los peers (ver HabilidadBase._disparar/_activar_red/_reproducir_
-## visual_red), el número de muro coincide en todos lados para la MISMA
-## invocación real. Puede haber más de un muro vivo a la vez (confirmado
-## por el usuario), por eso un Dictionary y no una sola referencia.
+## Identidad de red de cada muro invocado por ESTA habilidad. El Muro es un
+## objeto efímero de una piscina LOCAL, sin nombre ni ruta estable entre peers,
+## así que no se le puede apuntar un RPC. Se identifica con un contador de la
+## habilidad: las activaciones viajan por el mismo canal reliable y en el
+## mismo orden en todos los peers (ver HabilidadBase._disparar/_activar_red/
+## _reproducir_visual_red), así el número coincide para la misma invocación.
+## Puede haber más de un muro vivo, por eso un Dictionary.
 var _contador_muros := 0
 var _muros_activos: Dictionary = {}  # id (int) -> Muro
 
@@ -101,13 +98,10 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 	muro.muerte.connect(_on_muro_muerte.bind(id_muro), CONNECT_ONE_SHOT)
 
 
-## El muro murió DE VERDAD (Muro.quitar_vida()/recibir_impacto() ya están
-## gateados a solo servidor/un jugador solo — ver esos comentarios): esta
-## señal nunca dispara ya por la predicción de un cliente puro. Acá es
-## donde el servidor avisa a los demás peers cercanos para que destruyan
-## su propia copia local — antes cada uno decidía esto por su cuenta con
-## su propia simulación, y terminaban en desacuerdo (bug reportado: el
-## muro vivía para un jugador y no para otro).
+## El muro murió DE VERDAD (Muro.quitar_vida()/recibir_impacto() solo deciden
+## en el servidor o sin red): acá el servidor avisa a los peers cercanos para
+## que destruyan su copia local. Si cada peer lo decidiera con su propia
+## simulación, terminarían en desacuerdo.
 func _on_muro_muerte(_valor: float, id_muro: int) -> void:
 	var posicion := Vector2.ZERO
 	if _muros_activos.has(id_muro) and is_instance_valid(_muros_activos[id_muro]):

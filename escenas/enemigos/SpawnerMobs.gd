@@ -43,20 +43,15 @@ const _TOLERANCIA_NAVEGACION := 6.0
 ## atacaban antes de que pudiera reaccionar ("el golpe al iniciar").
 const _DISTANCIA_MINIMA_JUGADOR := 350.0
 ## Segundos entre barridos de "¿algún mob vivo quedó fuera del mapa?" (ver
-## _revisar_mobs_fuera_de_limites) — bug real reportado: "los respawn de
-## los mobs a veces quedan fuera del mapa". El punto de generación en sí
-## ya se valida (ver _punto_de_generacion_valido), pero deambular/huida
-## puede seguir empujando a un mob más allá del borde CON EL TIEMPO, ya
-## generado — esto es una red de seguridad aparte, más espaciada que
-## intervalo_spawn a propósito (no necesita reaccionar al instante).
+## _revisar_mobs_fuera_de_limites). El punto de generación ya se valida (ver
+## _punto_de_generacion_valido), pero deambular o huir puede empujar a un mob
+## fuera del borde con el tiempo. Más espaciado que intervalo_spawn a
+## propósito: no necesita reaccionar al instante.
 const _INTERVALO_REVISION_LIMITES := 5.0
 
-## Reactivada (24 sep 2026) tras el diagnóstico A/B -- ver investigacion-
-## abierta-hormigas-fantasma-en-combate.md: el usuario ajustó la malla de
-## navegación del Hormiguero y pidió reencender esto para volver a probar
-## con esa corrección de por medio. Sigue con el arreglo de "dos
-## revisiones seguidas" (ver _revisar_mobs_fuera_de_limites) como red de
-## seguridad adicional contra falsos positivos transitorios.
+## Activa la limpieza de mobs fuera del mapa (ver
+## _revisar_mobs_fuera_de_limites), que pide dos revisiones seguidas antes de
+## borrar para no llevarse falsos positivos pasajeros.
 var limpieza_fuera_de_limites_activa := true
 
 var _vivos: Array[Node] = []
@@ -122,17 +117,12 @@ func _process(delta: float) -> void:
 
 func activar() -> void:
 	activo = true
-	# Reportado en juego real (23 sep 2026): "las hormigas siguen
-	# generándose después de pasar por la sala, no antes". Causa real:
-	# _tiempo_restante empieza a correr desde _ready() SIN importar
-	# "activo" (ver _process, que resta delta primero y recién DESPUÉS
-	# corta por "not activo") -- para cuando ActivadorSalaSpawners activa
-	# esta sala (spawner arrancado con activo=false a propósito, ver
-	# generar_nivel_hormiguero.gd), ese temporizador puede estar recién
-	# reiniciado, sin ninguna relación con el momento real de activación.
-	# Sin esto, la primera hormiga de una sala podía tardar un
-	# intervalo_spawn ENTERO (varios segundos) en aparecer -- de sobra para
-	# que el jugador ya hubiera cruzado la sala antes de ver la primera.
+	# _tiempo_restante corre desde _ready() sin importar "activo" (ver
+	# _process, que resta delta antes de cortar por "not activo"). Cuando
+	# ActivadorSalaSpawners activa una sala (spawner arrancado con
+	# activo=false, ver generar_nivel_hormiguero.gd), ese temporizador puede
+	# estar recién reiniciado, y la primera hormiga tardaría un
+	# intervalo_spawn entero: el jugador ya habría cruzado la sala.
 	_tiempo_restante = 0.0
 
 

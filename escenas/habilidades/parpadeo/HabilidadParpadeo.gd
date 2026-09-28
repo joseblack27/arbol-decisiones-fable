@@ -13,15 +13,11 @@ extends HabilidadBase
 @export var distancia_parpadeo: float = 200.0
 ## Si está activo, estirar menos el joystick acorta la distancia (poder 0..1).
 @export var distancia_segun_poder := false
-## Capas de física que bloquean el parpadeo (paredes/obstáculos sólidos) —
-## sin esto atravesaría un muro de un salto. 0 = sin chequeo, siempre llega
-## entero. SOLO la capa 1 (mundo): los enemigos ya no cuentan como obstáculo
-## del parpadeo. Antes incluía la 2 (mobs) para no aterrizar ENCIMA de uno —
-## en esa época jugador y mob colisionaban físicamente y el solapamiento
-## producía un empujón brusco; hoy los personajes no chocan entre sí (ver
-## Jugador.tscn capa 8 / Enemigo.gd capa 2), así que caer solapado es
-## inofensivo y frenar el teletransporte en un enemigo era puro estorbo
-## ("la habilidad parpadeo choca con los enemigos", reportado).
+## Capas de física que bloquean el parpadeo (paredes y obstáculos sólidos):
+## sin esto atravesaría un muro de un salto. 0 = sin chequeo. SOLO la capa 1
+## (mundo): los personajes no chocan entre sí (ver Jugador.tscn capa 8 y
+## Enemigo.gd capa 2), así que aterrizar solapado con un mob es inofensivo, y
+## frenar el teletransporte en un enemigo solo estorbaba.
 @export_flags_2d_physics var capa_obstaculos: int = 1
 
 
@@ -59,16 +55,11 @@ func _ejecutar(direccion: Vector2, poder: float) -> void:
 	entidad.global_position = destino
 
 
-## Reportado en juego real (20 sep 2026), sobre todo cerca de esquinas del
-## Hormiguero: "cuando me acerco y uso parpadeo contra la pared, no me deja
-## moverme después, se queda fijo". Causa real: el chequeo de obstáculos
-## usaba un RAYO (ancho cero) desde el CENTRO de la entidad — un rayo puede
-## pasar limpio justo al lado de una esquina que el cuerpo real (con su
-## radio real, ver _forma_colision_de) sí toca, así que el teletransporte
-## terminaba en un punto que el rayo veía libre pero que en los hechos se
-## solapaba con la pared, dejando al jugador "adentro" de la geometría —
-## desde ahí move_and_slide() ya no puede resolver ningún movimiento.
-## Arreglo: barrer la FORMA real de la entidad (cast_motion), no un rayo.
+## Recorta el destino barriendo la FORMA real de la entidad (cast_motion), no
+## un rayo desde el centro: un rayo de ancho cero pasa limpio junto a una
+## esquina que el cuerpo real (ver _forma_colision_de) sí toca, y el jugador
+## terminaba adentro de la pared, donde move_and_slide() ya no puede
+## resolver nada.
 func _recortar_por_obstaculos(entidad: Node2D, destino: Vector2, dir: Vector2) -> Vector2:
 	var espacio := entidad.get_world_2d().direct_space_state
 	var forma := _forma_colision_de(entidad)

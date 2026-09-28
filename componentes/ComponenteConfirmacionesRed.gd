@@ -14,11 +14,10 @@ class_name ComponenteConfirmacionesRed
 ## este nodo siempre cuelga directo de Jugador (ver Jugador.tscn).
 
 
-## Fase 4 del plan de multijugador: el SERVIDOR ya le dio este botín de
-## verdad a la copia autoritativa (ver Enemigo._otorgar_item_al_atacante) —
-## esto es el aviso al cliente dueño para que su copia espejo (inventario
-## que ve en su propia UI) se entere. "authority" = solo el servidor puede
-## llamarlo.
+## El SERVIDOR ya le dio este botín a la copia autoritativa (ver
+## Enemigo._otorgar_item_al_atacante); esto avisa al cliente dueño para que su
+## copia espejo (el inventario que ve en su UI) se entere. "authority" = solo
+## el servidor puede llamarlo.
 @rpc("authority", "reliable")
 func _recibir_botin_red(ruta_item: String, cantidad: int) -> void:
 	var item := load(ruta_item) as DatosItem

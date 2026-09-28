@@ -1,25 +1,18 @@
 extends Enemigo
 class_name EnemigoGuardianQuebrado
-## Jefe de 4 fases pensado explícitamente para poner a prueba la habilidad
-## "Corte" del jugador (parry direccional de área, corta ataques enemigos,
-## daño verdadero, se lanza aunque esté aturdido) sin que sea un botón de
-## "gano automático" — ver el plan de diseño para el detalle completo de
-## cada fase. Máquina de fases calcada de EnemigoArañaReina.gd (mismo
-## _telegrafiar_pausa_de_fase heredado de Enemigo, mismo patrón de agregar
-## habilidades al SelectorHabilidades en runtime), extendida a un tercer
-## umbral para las 4 fases.
-##
-## ESTADO DE ESTA VERSIÓN: las 4 fases tienen contenido real, implementado y
-## probado por separado (pruebas/prueba_guardian_*.gd) — Fase 1 "Guardia"
-## (combo/barrido/amague), Fase 2 "Cazador" (lluvia de lanzas,
-## francotirador, charco en golpes de área), Fase 3 "Corrupción" (golpe
-## corrupto, muro, escudo reflectante, castigo por cooldown de Corte) y
-## Fase 4 "Quiebre" (arremetida de daño verdadero, miedo/empujón, refuerzos).
-## Las 4 fases seguidas y las transiciones de punta a punta ya están
-## probadas (prueba_guardian_4_fases_completas.gd) — esa misma prueba
-## encontró y corrigió un bug real: dano_golpe_transicion nunca llegaba a
-## aplicarse de verdad (el golpe de transición pegaba 20 fijo, la mitad de
-## lo diseñado), ver el comentario en _ready() de más abajo.
+## Jefe de 4 fases pensado para poner a prueba la habilidad "Corte" del
+## jugador (parry direccional de área, corta ataques, daño verdadero, se lanza
+## aturdido) sin que sea un botón de "gano automático". Máquina de fases
+## calcada de EnemigoArañaReina.gd (mismo _telegrafiar_pausa_de_fase de
+## Enemigo, habilidades que se suman al SelectorHabilidades por fase),
+## extendida a un tercer umbral:
+##   Fase 1 "Guardia": combo, barrido, amague.
+##   Fase 2 "Cazador": lluvia de lanzas, francotirador, charco en golpes de área.
+##   Fase 3 "Corrupción": golpe corrupto, muro, escudo reflectante, castigo por
+##     cooldown de Corte.
+##   Fase 4 "Quiebre": arremetida de daño verdadero, miedo/empujón, refuerzos.
+## Cada fase tiene su prueba (pruebas/prueba_guardian_*.gd), y
+## prueba_guardian_4_fases_completas.gd las recorre de punta a punta.
 
 ## Umbrales de vida (fracción de la máxima) que disparan cada transición.
 const _UMBRAL_FASE_2 := 0.75
@@ -58,12 +51,10 @@ const _UMBRAL_FASE_4 := 0.25
 @export_group("Fase 4 - Quiebre")
 @export var habilidad_arremetida_bt: HabilidadBT
 @export var habilidad_miedo_bt: HabilidadBT
-## Recarga sus habilidades esto veces más rápido al entrar en Quiebre —
-## mismo mecanismo que EnemigoArañaReina._activar_furia_final
-## (multiplicador_recarga en HabilidadBase), permanente por el resto del
-## combate. Pedido del usuario: "una IA un poco más inteligente" — sin
-## esto, el ritmo de ataque no cambiaba nada entre la fase 1 y la 4 más
-## allá de sumar habilidades nuevas al repertorio.
+## Recarga sus habilidades esto veces más rápido al entrar en Quiebre (mismo
+## mecanismo que EnemigoArañaReina._activar_furia_final: multiplicador_recarga
+## de HabilidadBase), por el resto del combate. Sin esto, el ritmo de ataque
+## no cambiaba entre la fase 1 y la 4, más allá de las habilidades nuevas.
 @export var multiplicador_furia_final: float = 1.4
 
 var _fase: int = 1
@@ -74,28 +65,18 @@ var _refuerzos_fase4: Array[PackedScene] = [
 	preload("res://escenas/enemigos/EnemigoAraña.tscn"),
 ]
 
-## Ayuda visual TEMPORAL de balanceo — pedido del usuario para ver de un
-## vistazo qué habilidad acaba de lanzar mientras se prueban los números;
-## posiblemente se saque más adelante (ver EtiquetaHabilidad en el .tscn).
-## Se engancha a habilidad_activada (HabilidadBase, emitida DENTRO de
-## activar() en la entidad que de verdad decide el lanzamiento — el mismo
-## SelectorHabilidades server-only que ya usa el resto del árbol, no la
-## réplica visual pura _reproducir_visual_red de cada cliente), así que en
-## una sesión sin red (edición/pruebas locales) queda perfecta; en un
-## servidor dedicado real, la etiqueta se actualiza del lado del servidor
-## pero no se replica sola a los clientes — aceptable para una ayuda de
-## balanceo de corta vida.
+## Ayuda visual de balanceo: muestra sobre el jefe qué habilidad acaba de
+## lanzar (ver EtiquetaHabilidad en el .tscn). Se engancha a
+## habilidad_activada, que solo se emite en quien decide el lanzamiento (el
+## servidor); a los clientes llega por _mostrar_etiqueta_habilidad_red.
 const _DURACION_ETIQUETA_HABILIDAD := 3.0
 @onready var _etiqueta_habilidad: Label = get_node_or_null("EtiquetaHabilidad")
 var _tiempo_restante_etiqueta: float = 0.0
 
-## Label REAL puesto a mano en la escena (ver NombreJefe en el .tscn), no
-## dibujado por código como el resto de los mobs (Enemigo._crear_nombre_
-## mob/_dibujar_nombre_mob) — pedido explícito del usuario: "coloca ese
-## label como nodo, no lo crees por código", para poder acomodarlo a ojo
-## en el editor. mostrar_nombre=false en el .tscn apaga el nameplate de
-## la base (evita mostrar el nombre DOS veces); el texto se sigue
-## llenando acá desde "datos" para que no se desincronice si algún día
+## Label REAL puesto en la escena (NombreJefe en el .tscn), no dibujado por
+## código como el de los mobs (Enemigo._dibujar_nombre_mob), para poder
+## acomodarlo en el editor. mostrar_nombre=false en el .tscn apaga el de la
+## base; el texto se llena acá desde "datos" para que no se desincronice si
 ## cambia GuardianQuebrado.tres.
 @onready var _nombre_jefe: Label = get_node_or_null("NombreJefe")
 
@@ -118,12 +99,9 @@ func _ready() -> void:
 	var lluvia_lanzas := get_node_or_null("Habilidades/HabilidadLluviaLanzasGuardian")
 	if lluvia_lanzas:
 		lluvia_lanzas.nombre_habilidad = "Lluvia de Lanzas"
-	# Bug real encontrado por la prueba de integración de las 4 fases
-	# (prueba_guardian_4_fases_completas.gd): dano_golpe_transicion nunca se
-	# conectaba con el nodo real — HabilidadGolpeVerdaderoTransicion no
-	# tiene override de "daño" en el .tscn, así que siempre pegaba el
-	# default del script (20.0) sin importar lo que dijera este export. El
-	# golpe de transición terminaba pegando la mitad de lo diseñado.
+	# HabilidadGolpeVerdaderoTransicion no tiene override de "daño" en el
+	# .tscn: sin esto pegaría el default del script (20) y no
+	# dano_golpe_transicion.
 	var golpe_transicion := get_node_or_null("Habilidades/HabilidadGolpeVerdaderoTransicion")
 	if golpe_transicion:
 		golpe_transicion.daño = dano_golpe_transicion
@@ -150,17 +128,14 @@ func _conectar_etiqueta_habilidad() -> void:
 			hijo.habilidad_activada.connect(_on_habilidad_activada_para_etiqueta)
 
 
-## Si ya había una etiqueta mostrándose, el texto se reemplaza y el
-## contador de 3s arranca de nuevo desde cero — pedido explícito.
+## Si ya había una etiqueta a la vista, el texto se reemplaza y el contador de
+## 3 s arranca de nuevo.
 ##
 ## habilidad_activada solo se emite DENTRO de activar() (ver HabilidadBase),
-## que en un servidor dedicado real corre SOLO en el servidor — un cliente
-## conectado nunca ve este método, solo la réplica visual pura
-## (_reproducir_visual_red, que llama _ejecutar() directo sin pasar por
-## activar()). Sin el rpc_id de abajo, la etiqueta se actualizaba en el
-## servidor pero JAMÁS en la pantalla de ningún jugador real — bug real
-## reportado: "el label no actualiza si lanza una habilidad nuevamente o
-## una diferente" (en realidad nunca actualizaba del todo para un cliente).
+## que en red corre SOLO en el servidor: los clientes solo ven la réplica
+## visual (_reproducir_visual_red, que llama _ejecutar() sin pasar por
+## activar()). Sin el rpc_id de abajo, la etiqueta nunca cambiaría en la
+## pantalla de un jugador.
 func _on_habilidad_activada_para_etiqueta(habilidad: HabilidadBase) -> void:
 	_mostrar_etiqueta_habilidad_red(habilidad.nombre_habilidad)
 	if Utils.en_red() and multiplayer.is_server():
@@ -178,16 +153,12 @@ func _mostrar_etiqueta_habilidad_red(nombre: String) -> void:
 
 
 ## HabilidadArremetidaGuardian hereda las 3 señales de HabilidadCarga
-## (preparacion_iniciada/carga_iniciada/carga_terminada) tal cual, pero
-## HabilidadCarga.gd NO toca el AnimationTree por su cuenta — eso lo hace
-## SIEMPRE el mob dueño, conectado a esas señales (mismo patrón que
-## EnemigoLobo._on_carga_terminada). Sin esta conexión, "carga_terminada"
-## nunca llegaba a nadie y memoria["ataque_en_curso"] (puesto en true por
-## HabilidadCarga._ejecutar()) se quedaba en true PARA SIEMPRE tras la
-## primera embestida — bug real reportado: "al hacer la embestida se queda
-## pegado al final". AccionAtacar/el resto de la IA leen esa clave para
-## saber si hay un ataque largo en curso; con ella atascada en true, el
-## jefe queda congelado ahí de por vida.
+## (preparacion_iniciada/carga_iniciada/carga_terminada), y HabilidadCarga no
+## toca el AnimationTree: eso lo hace SIEMPRE el mob dueño conectado a esas
+## señales (como EnemigoLobo._on_carga_terminada). Sin esta conexión,
+## memoria["ataque_en_curso"] (lo pone en true HabilidadCarga._ejecutar())
+## quedaba en true para siempre tras la primera embestida, y AccionAtacar
+## dejaba al jefe congelado esperando que termine.
 func _conectar_arremetida() -> void:
 	var arremetida := get_node_or_null("Habilidades/HabilidadArremetidaGuardian")
 	if arremetida == null:
@@ -245,12 +216,10 @@ func _entrar_fase(nueva: int) -> void:
 	_telegrafiar_pausa_de_fase(pausa_cambio_fase, _reanudar_fase.bind(nueva))
 
 
-## Golpe grande NO-área (GolpeVerdaderoGuardian, ver esa clase) que marca el
-## cruce de fase — pedido del diseño: "un golpe grande telegrafiado no-área
-## al cruzar cada umbral". Usa el mismo nodo que castiga el cooldown de
-## Corte en fase 3 (HabilidadGolpeVerdaderoTransicion en Habilidades), con
-## ignora_defensa=true para que se sienta como un golpe de verdad incluso
-## contra un jugador bien defendido.
+## Golpe grande NO de área (GolpeVerdaderoGuardian) que marca el cruce de
+## fase. Usa el mismo nodo que castiga el cooldown de Corte en fase 3
+## (HabilidadGolpeVerdaderoTransicion), con ignora_defensa=true para que se
+## sienta aun contra un jugador bien defendido.
 func _golpear_transicion() -> void:
 	var golpe := get_node_or_null("Habilidades/HabilidadGolpeVerdaderoTransicion")
 	if golpe == null or not golpe.has_method("activar"):

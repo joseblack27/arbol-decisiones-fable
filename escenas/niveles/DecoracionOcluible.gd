@@ -51,16 +51,12 @@ func _ready() -> void:
 	area_oclusion.body_exited.connect(_al_salir_cuerpo)
 
 
-## Pedido del usuario: la oclusión es para que VOS te veas a vos mismo
-## detrás del objeto — no un rayo X que revela a los DEMÁS jugadores que
-## pasan por ahí. Antes miraba a cualquier cuerpo del grupo "jugadores"
-## (get_overlapping_bodies()), así que el mismo sprite (compartido, se ve
-## igual en todas las pantallas) se transparentaba para todo el que
-## pudiera ver este árbol apenas OTRO jugador quedaba detrás — mostrándole
-## su posición a cualquiera con línea de vista al árbol, sin que ese
-## jugador lo pidiera. Ahora solo reacciona a Utils.jugador_local(): cada
-## cliente decide el desvanecido mirando nada más que a su propio jugador,
-## exactamente igual que el parpadeo/números de daño ya arreglados antes.
+## La oclusión es para que CADA jugador se vea a sí mismo detrás del objeto,
+## no un rayo X que revele a los DEMÁS: el sprite es el mismo en todas las
+## pantallas, así que reaccionar a cualquier cuerpo del grupo "jugadores" lo
+## transparentaba para todos apenas OTRO quedaba detrás, delatando su
+## posición. Solo reacciona a Utils.jugador_local(): cada cliente decide
+## mirando a su propio jugador (como el parpadeo y los números de daño).
 func _physics_process(delta: float) -> void:
 	var objetivo := 1.0
 	var jugador := Utils.jugador_local()

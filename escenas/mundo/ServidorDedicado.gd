@@ -25,17 +25,11 @@ var _peers_pendientes: Dictionary = {}
 ## a medio cargar que un jugador que no aparece nunca.
 const _ESPERA_MAXIMA_PEER_LISTO := 5.0
 
-## Cola de spawn (Fase 4 del plan de escalado a MMO — hallazgo de la prueba
-## de carga): instanciar Jugador.tscn agrega Area2D/CollisionShape2D al
-## servidor de física de Godot; con 40+ peers confirmando "nivel cargado"
-## dentro de la misma ráfaga (típico justo tras reiniciar el servidor, o
-## una hora pico de conexiones), spawnearlos TODOS en el mismo puñado de
-## frames saturaba la física real: hasta 137ms por frame, fps=2, medido en
-## vivo. En juego YA en marcha (sin ráfaga de conexión) el costo es bajo —
-## esto es específico al momento de crear muchos cuerpos físicos de golpe.
-## _procesar_cola_spawn() saca uno por frame físico en vez de todos a la
-## vez — repartir 50 conexiones a 60/seg tarda menos de 1 segundo, un costo
-## de latencia insignificante frente al freeze que evita.
+## Cola de spawn: instanciar Jugador.tscn agrega cuerpos al servidor de
+## física, y con 40+ peers confirmando "nivel cargado" en la misma ráfaga
+## (justo tras reiniciar el servidor, u hora pico) spawnearlos en el mismo
+## puñado de frames llegó a 137 ms por frame (fps 2). _procesar_cola_spawn()
+## saca uno por frame físico: 50 conexiones tardan menos de 1 s.
 var _cola_spawn: Array[int] = []
 
 
@@ -55,14 +49,10 @@ func _ready() -> void:
 	GestorNiveles.registrar($ContenedorNivel, null)
 	GestorNiveles.registrar_errantes($NPCsErrantes)
 
-	# Tope de conexiones ENet simultáneas — encontrado DEMASIADO bajo (16,
-	# por debajo incluso del default de Godot de 32) durante la prueba de
-	# carga de la Fase 4 del plan de escalado: con 30 bots, los primeros 16
-	# entraban bien y los 14 restantes quedaban atascados para siempre
-	# (Mundo._esperar_jugador_propio se rinde a los ~10s pero nunca informa
-	# el error — el cliente queda "conectado" sin jugador, en silencio).
-	# 150 deja margen sobre el objetivo de 100 concurrentes sin costo real
-	# (ENet solo reserva la estructura, no trae aparejado tráfico extra).
+	# Tope de conexiones ENet simultáneas. Con 16 (menos que el default de
+	# Godot, 32), en una prueba de carga con 30 bots los 14 restantes
+	# quedaban conectados sin jugador, en silencio. 150 deja margen sobre el
+	# objetivo de 100 concurrentes; ENet solo reserva la estructura.
 	const MAX_CLIENTES := 150
 	var peer := ENetMultiplayerPeer.new()
 	var error := peer.create_server(Utils.PUERTO_JUEGO, MAX_CLIENTES)
@@ -89,17 +79,13 @@ func _ready() -> void:
 
 
 # =============================================================================
-# INSTRUMENTACIÓN — capacidad del servidor bajo carga (Fase 4 del plan de
-# escalado a MMO: antes de invertir en interés espacial/sharding, hay que
-# MEDIR dónde está el límite real). Imprime cada _INTERVALO_REPORTE segundos
-# una línea "[CARGA] ..." fácil de grepear desde el arnés de bots
-# (herramientas/prueba_carga.sh) o desde logs de Docker en producción.
+# INSTRUMENTACIÓN: capacidad del servidor bajo carga. Imprime cada
+# _INTERVALO_REPORTE segundos una línea "[CARGA] ..." fácil de filtrar desde
+# el arnés de bots (herramientas/prueba_carga.sh) o desde los logs de Docker.
 #
-# Apagada por defecto: no depende de nada que haga un jugador real, corre
-# sola cada 5s las 24 horas y solo sirve durante una corrida de carga —
-# dejarla prendida en producción normal es puro ruido en los logs del
-# contenedor. Para una sesión de medición: poner esta constante en true,
-# reconstruir la imagen, y volver a false al terminar.
+# Solo sirve durante una medición: en producción normal, una línea cada 5 s
+# las 24 horas es ruido en los logs del contenedor. Para apagarla, poner esta
+# constante en false y reconstruir la imagen.
 # =============================================================================
 const _INSTRUMENTACION_ACTIVA := true
 const _INTERVALO_REPORTE := 5.0

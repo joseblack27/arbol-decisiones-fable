@@ -1,41 +1,29 @@
 extends StaticBody2D
 class_name ObjetoRecolectable
-## Objeto de mundo recolectable — GENÉRICO a propósito (pedido del usuario:
-## "me gustaría que fuera genérico, un script tanto para madera como piedra
-## o hierbas... así sería más fácil crear nuevas fuentes de recursos"): no
-## sabe nada de árboles/rocas/hierbas en particular, todo lo que lo hace
-## "un árbol" o "una roca" son sus @export (item, texturas, texto del
-## botón) — crear una fuente de recurso nueva es armar una escena chica
-## nueva con este MISMO script (ver ArbolTalable.tscn como plantilla), sin
-## tocar código. Ni siquiera valida ningún equipo del jugador (sin hacha,
-## sin pico) — pedido explícito del usuario, cualquiera que se acerque y
-## toque el botón de interacción recibe [item_recurso].
+## Objeto de mundo recolectable, GENÉRICO a propósito: no sabe nada de
+## árboles, rocas ni hierbas; lo que lo hace "un árbol" o "una roca" son sus
+## @export (item, texturas, texto del botón). Una fuente de recurso nueva es
+## una escena chica con este MISMO script (ver ArbolTalable.tscn como
+## plantilla), sin tocar código. No valida equipo del jugador (sin hacha ni
+## pico): cualquiera que toque el botón de interacción recibe [item_recurso].
 ##
-## Combina el patrón visual de DecoracionOcluible (sprite + área de
-## oclusión que se desvanece si tapa al jugador local) con el de
-## proximidad/interacción de Cofre.gd (área de interacción +
-## GestorInteraccion + botón táctil fijo).
+## Combina el patrón visual de DecoracionOcluible (sprite + área de oclusión
+## que se desvanece si tapa al jugador local) con el de interacción de
+## Cofre.gd (área de interacción + GestorInteraccion + botón táctil).
 ##
-## A diferencia de un Cofre (contenido POR JUGADOR, sin RPC — cada uno
-## tiene su propia copia, ver ese archivo), el estado "agotado" es
-## COMPARTIDO: todos los jugadores conectados deben verlo con el mismo
-## sprite al mismo tiempo. Por eso, a diferencia de Cofre.gd, este SÍ
-## necesita validación server-autoritativa (RPC de 4 pasos, mismo patrón
-## que MejorasComponente._pedir_gastar_pasiva_red) y un broadcast reliable
-## cuando cambia — más el resync a
-## un peer que se conecta DESPUÉS de que ya quedó agotado (GestorNiveles.
-## peer_listo, mismo patrón que NivelNidoArañaReina._al_peer_listo).
-## Pedido del usuario: "que cambie de sprite, no permita recoger más y
-## cambie de sprite más adelante como en 2 minutos dejando recoger de
-## nuevo".
+## A diferencia de un Cofre (contenido POR JUGADOR, sin RPC), el estado
+## "agotado" es COMPARTIDO: todos ven el mismo sprite a la vez. Por eso lleva
+## validación en el servidor (RPC de 4 pasos, como
+## MejorasComponente._pedir_gastar_pasiva_red), un aviso reliable cuando
+## cambia y el resync a quien se conecta después (GestorNiveles.peer_listo,
+## como NivelNidoArañaReina._al_peer_listo). Agotado cambia de sprite, no deja
+## recolectar, y a los ~2 minutos vuelve a estar disponible.
 
 const CAPA_CUERPO_JUGADOR := 8
-## Nombres fijos de las 2 animaciones que CADA flavor debe definir (ver
-## ArbolTalable.tscn) — pedido del usuario: "quisiera que las animaciones
-## se llamen 'completo' y 'cortado'". Cada animación es un solo frame que
-## fija texture/position/scale del sprite juntos (el árbol entero y el
-## tocón tienen tamaños distintos, no alcanza con cambiar solo la textura
-## — por eso AnimationPlayer en vez de asignar sprite.texture a mano).
+## Nombres fijos de las 2 animaciones que CADA variante debe definir (ver
+## ArbolTalable.tscn). Cada animación es un solo frame que fija texture,
+## position y scale del sprite juntos: el árbol entero y el tocón tienen
+## tamaños distintos, y no alcanza con cambiar solo la textura.
 const _ANIM_COMPLETO := "completo"
 const _ANIM_CORTADO := "cortado"
 
@@ -78,17 +66,11 @@ func _ready() -> void:
 		area_interaccion.collision_mask = CAPA_CUERPO_JUGADOR
 		area_interaccion.body_entered.connect(_al_entrar_interaccion)
 		area_interaccion.body_exited.connect(_al_salir_interaccion)
-		# Bug real reportado: "la interacción de talar no sirve, no veo que
-		# haga nada" — el botón (gatillado por área_interaccion, que SÍ
-		# respeta su offset local y la escala de la instancia) aparecía,
-		# pero el servidor comparaba contra self.global_position (el
-		# origen del StaticBody2D, sin el offset -16/-72 típico ni la
-		# escala 2x que usan las instancias en el nivel) con un radio fijo
-		# sin escalar — un área totalmente distinta a la que el jugador
-		# veía, así que el RPC se rechazaba en silencio casi siempre.
-		# Deriva el radio real (escalado) del propio CircleShape2D de
-		# area_interaccion en vez de un número aparte que hay que
-		# mantener sincronizado a mano por cada instancia/escala.
+		# El servidor valida contra el área REAL de interacción: el radio (ya
+		# escalado) sale del CircleShape2D de area_interaccion y no de un
+		# número aparte. Comparar contra self.global_position con un radio fijo
+		# ignoraba el offset y la escala de cada instancia en el nivel, y el
+		# RPC se rechazaba en silencio casi siempre.
 		for hijo in area_interaccion.get_children():
 			if hijo is CollisionShape2D and hijo.shape is CircleShape2D:
 				radio_interaccion_servidor = hijo.shape.radius * area_interaccion.global_scale.x
@@ -148,13 +130,10 @@ func _al_salir_interaccion(cuerpo: Node2D) -> void:
 		GestorInteraccion.quitar(self)
 
 
-## Una sola acción por ahora ("Recolectar"/"Talar", según texto_interaccion)
-## — lista de un elemento para calzar con el contrato genérico de
-## GestorInteraccion (ver ese archivo). El día que este mismo script sirva
-## para un árbol con fruta (recolectar fruta O talar, dos acciones
-## distintas sobre el mismo objeto — mencionado por el usuario como caso
-## futuro), esto es lo único que hay que ampliar: agregar una entrada más
-## a este array.
+## Una sola acción por ahora ("Recolectar"/"Talar", según texto_interaccion),
+## en una lista de un elemento para calzar con el contrato de
+## GestorInteraccion. Para un objeto con dos acciones (p. ej. un árbol con
+## fruta: recolectar o talar), alcanza con sumar una entrada al array.
 func acciones_interaccion() -> Array[Dictionary]:
 	return [{"texto": texto_interaccion, "callback": interactuar}]
 
@@ -210,7 +189,7 @@ func _recolectar_local(jugador: Node) -> void:
 	_dar_recurso(jugador)
 
 
-## Sin ningún chequeo de equipo — pedido explícito del usuario.
+## Sin ningún chequeo de equipo, a propósito.
 func _dar_recurso(jugador: Node) -> void:
 	if item_recurso == null:
 		return

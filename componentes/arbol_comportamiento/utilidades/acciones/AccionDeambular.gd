@@ -25,12 +25,9 @@ extends Accion
 @export var velocidad: float = 60.0
 ## Radio máximo alrededor del origen donde elegir destinos.
 @export var radio_deambulacion: float = 260.0
-## Segundos de pausa al llegar a cada destino — antes 1.5s, que en los
-## destinos más cercanos (hasta 0.3x radio_deambulacion, ~1s de caminata)
-## superaba el propio tiempo caminando: el mob pasaba más tiempo plantado
-## que moviéndose entre destinos, y se sentía "muerto" (reportado por el
-## usuario). Sigue siendo una pausa real (mira alrededor, no un tropezón),
-## solo que ya no domina el ciclo.
+## Segundos de pausa al llegar a cada destino. Corta a propósito: en los
+## destinos cercanos (~1 s de caminata), una pausa más larga hacía que el mob
+## pasara más tiempo plantado que caminando.
 @export var espera_en_destino: float = 0.6
 ## Distancia a la que un destino se considera alcanzado.
 @export var radio_llegada: float = 10.0
@@ -68,12 +65,10 @@ func _on_ejecutar() -> Estado:
 	if "direccion_mirada" in agente and agente.get("direccion_mirada") != Vector2.ZERO:
 		agente.set("direccion_mirada", Vector2.ZERO)
 
-	# Un aviso de ruido nuevo INTERRUMPE el paseo en curso (destino actual o
-	# pausa entre destinos) — sin esto, un golpe podía quedar esperando en
-	# memoria varios segundos hasta que el mob terminara solo de caminar
-	# hacia un destino viejo sin relación, y la reacción se sentía como si
-	# no pasara nada (reportado: "le pego desde fuera de su visión y no
-	# deambula hacia mi dirección"). Con esto, el próximo tick ya recalcula.
+	# Un aviso de ruido nuevo INTERRUMPE el paseo en curso (destino o pausa):
+	# si no, el golpe quedaba esperando en memoria hasta que el mob terminara
+	# de caminar hacia un destino viejo, y parecía no reaccionar. Con esto,
+	# el próximo tick ya recalcula.
 	if _memoria.existe("ruido_posicion"):
 		_tiene_destino = false
 		_fin_espera = 0.0
@@ -113,24 +108,17 @@ func _on_reiniciar() -> void:
 	_fin_espera = 0.0
 
 
-## "ruido_posicion" la escribe Enemigo._priorizar_atacante cuando golpea al
-## mob alguien que NO tiene detectado (fuera de su visión): en vez de
-## perseguirlo a ciegas (eso sería detectarlo a cualquier distancia con solo
-## golpearlo), el próximo destino se sesga hacia esa dirección — pero sigue
-## acotado al radio_deambulacion normal, nunca más lejos que cualquier otro
-## paseo. Se consume una sola vez: el siguiente destino después de este
-## vuelve a ser al azar, salvo que llegue otro golpe.
+## "ruido_posicion" lo escribe Enemigo._priorizar_atacante cuando golpea al
+## mob alguien que NO tiene detectado: en vez de perseguirlo a ciegas (sería
+## detectarlo a cualquier distancia con un solo golpe), el próximo destino se
+## sesga hacia esa dirección, acotado al radio_deambulacion normal. Se consume
+## una sola vez.
 ##
-## Cada candidato se valida contra la malla de Navegacion real (mismo
-## criterio que SpawnerMobs._punto_de_generacion_valido) antes de aceptarlo
-## -- en un campo abierto (Pradera, Camino) casi cualquier punto en el
-## radio es válido y esto no cambia nada, pero en topología de túneles
-## angostos (Hormiguero, Mina) un radio_deambulacion normal puede caer
-## fácil FUERA de la malla (dentro de una pared). Sin esta validación, el
-## mob quedaba comandado para siempre hacia un punto inalcanzable —
-## reportado como "las hormigas siempre tratan de volver a un mismo sitio
-## que está fuera del mapa" (el propio destino nunca cambiaba porque la
-## condición de "llegué" original nunca se cumplía contra un punto así).
+## Cada candidato se valida contra la malla de Navegacion (como
+## SpawnerMobs._punto_de_generacion_valido). En campo abierto casi cualquier
+## punto sirve, pero en túneles angostos (Hormiguero, Mina) un punto del radio
+## cae fácil dentro de una pared, y el mob quedaba comandado para siempre hacia
+## un destino inalcanzable.
 func _elegir_destino(agente: Node2D) -> void:
 	var origen: Vector2 = _memoria.obtener("posicion_origen", Vector2.ZERO)
 	var punto_ruido: Variant = null

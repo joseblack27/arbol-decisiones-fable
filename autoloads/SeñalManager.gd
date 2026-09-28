@@ -21,32 +21,22 @@ extends Node
 #endregion
 
 var registros = {}
-## Pedidos de conectar() que llegaron ANTES de que su señal existiera
-## todavía — nombre -> Array[{suscriptor, metodo}]. Se resuelven solos en
-## cuanto llega el registrar() correspondiente (ver ese método). Sin esto,
-## el ORDEN en que corre _ready() de cada nodo importaba: un suscriptor
-## que intentaba conectarse antes de que alguien más registrara esa señal
-## fallaba EN SILENCIO para siempre (printerr nada más) — bug real
-## reportado (19 sep 2026, probado en celular): "la segunda página de
-## habilidades detectaba el toque pero no lanzaba la habilidad". Jugador/
-## IndicadorApunte se conectan a slot_5.._9_lanzar/apunte desde su propio
-## _ready() esperando que ALGÚN UIHabilidad ya los haya registrado (ver
-## PaginadorHabilidades.registrar_indices_adicionales) — si el Jugador
-## corría primero, esa conexión se perdía para siempre y ningún cambio de
-## página futuro la reparaba.
+## Pedidos de conectar() que llegaron ANTES de que su señal existiera:
+## nombre -> Array[{suscriptor, metodo}]. Se resuelven solos cuando llega el
+## registrar() correspondiente. Sin esto importaba el ORDEN de los _ready():
+## Jugador e IndicadorApunte se conectan a slot_5.._9_lanzar/apunte esperando
+## que algún UIHabilidad ya los haya registrado (ver
+## PaginadorHabilidades.registrar_indices_adicionales), y si corrían primero
+## la conexión se perdía en silencio (la segunda página de habilidades
+## detectaba el toque pero no lanzaba nada).
 var _pendientes: Dictionary = {}
 
-## Sobrescribe en vez de rechazar una segunda registración del mismo
-## nombre: cada nombre pertenece a un solo jugador/UI LOCAL a la vez, así
-## que si ya había una registración previa, quien la puso ya no existe de
-## verdad — es la UI de una partida ANTERIOR liberada al perder la conexión
-## (ver Mundo._al_perder_conexion -> reload_current_scene, que crea un
-## Joystick/UIHabilidad totalmente nuevo con su propio signal_id). Antes
-## esto rechazaba la registración nueva con "ya esta registrada" y dejaba
-## el id VIEJO para siempre: emitir() comparaba contra ese id viejo ("no
-## coincide con la señal registrada") y silenciaba el joystick y las
-## habilidades enteras después de cualquier reconexión (reportado en juego
-## real, justo tras varias reconexiones seguidas al servidor).
+## Sobrescribe en vez de rechazar una segunda registración del mismo nombre:
+## cada nombre pertenece a un solo jugador o UI LOCAL a la vez, así que si ya
+## había una, quien la puso ya no existe (la UI de una partida ANTERIOR,
+## liberada al perder la conexión; ver Mundo._al_perder_conexion ->
+## reload_current_scene). Rechazarla dejaba el id viejo y emitir() silenciaba
+## el joystick y las habilidades después de cualquier reconexión.
 func registrar(nombre: String, id: String, args: Dictionary = {}):
 	registros[nombre] = {
 		"args": args,

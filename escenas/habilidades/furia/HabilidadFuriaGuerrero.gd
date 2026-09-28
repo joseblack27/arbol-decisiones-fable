@@ -1,29 +1,24 @@
 class_name HabilidadFuriaGuerrero
 extends HabilidadBase
-## Auto-buff del Esqueleto Caballero: mientras esté activa, se vuelve más
-## agresivo — más rápido (multiplicador_velocidad sobre MovimientoComponente
-## .velocidad_base), pega más fuerte (bono_dano sumado al daño del Arañazo)
-## y recarga TODAS sus otras habilidades más rápido (multiplicador_recarga
-## en cada HabilidadBase hermana bajo Habilidades/, mismo mecanismo que ya
-## usa EnemigoArañaReina._activar_furia_final y HabilidadFervor del jugador
-## — la diferencia acá es que esta Furia es TEMPORAL, se revierte sola al
-## terminar, no permanente).
+## Auto-buff del Esqueleto Caballero: mientras esté activa se vuelve más
+## agresivo: más rápido (multiplicador_velocidad sobre
+## MovimientoComponente.velocidad_base), pega más fuerte (bono_dano sumado al
+## Arañazo) y recarga TODAS sus otras habilidades más rápido
+## (multiplicador_recarga en cada HabilidadBase hermana, como
+## EnemigoArañaReina._activar_furia_final y HabilidadFervor). A diferencia de
+## aquellas, esta furia es TEMPORAL y se revierte sola.
 ##
-## Pedido explícito del usuario, con las reglas de activación EXACTAS:
-## 10% de probabilidad, evaluada cada 10s mientras tenga un objetivo, dura
-## 15s, NO se evalúa la probabilidad mientras la furia esté activa, y
-## recién se vuelve a evaluar 10s después de que la furia termine. Esa
-## lógica de "cuándo tirar la moneda" vive en EnemigoCaballeroEsqueleto
-## (dueño de la decisión de IA, igual que la cadencia rápida del arquero),
-## no acá — esta clase solo sabe aplicar/revertir el efecto y avisar
-## cuándo termina (furia_terminada) para que el que decide pueda reiniciar
-## su propia ventana de 10s en el momento justo.
+## Reglas de activación: 10% de probabilidad, evaluada cada 10 s mientras
+## tenga un objetivo; dura 15 s; no se evalúa mientras está activa, y se
+## vuelve a evaluar 10 s después de que termina. Esa lógica vive en
+## EnemigoCaballeroEsqueleto (dueño de la decisión, como la cadencia rápida
+## del arquero); esta clase solo aplica y revierte el efecto y avisa cuándo
+## termina (furia_terminada), para que reinicie su ventana de 10 s.
 ##
-## Activada vía activar() (no _ejecutar() directo) para que el aviso
-## llegue replicado a todos los clientes por el mismo canal que cualquier
-## otra habilidad (ver HabilidadBase._disparar/_reproducir_visual_red) —
-## el ícono y el efecto visual tienen que verse igual en todas las
-## pantallas, no solo en la del servidor.
+## Se activa vía activar() (no _ejecutar() directo) para que llegue a todos
+## los clientes por el canal normal (HabilidadBase._disparar/
+## _reproducir_visual_red): el ícono y el efecto se tienen que ver en todas
+## las pantallas.
 
 @export var duracion: float = 15.0
 @export var multiplicador_velocidad: float = 1.3
@@ -32,9 +27,8 @@ extends HabilidadBase
 ## velocidad (multiplicador_recarga en HabilidadBase divide el tiempo de
 ## recarga restante, no lo multiplica — ver HabilidadBase._process).
 @export var multiplicador_recarga_habilidades: float = 2.0
-## Asignado en la escena (ver EnemigoCaballeroEsqueleto.tscn): recorte de
-## iconos habilidades.png, el mismo que ya usa Purga (región Rect2(160, 0,
-## 32, 32) — pedido explícito del usuario, reusar ese ícono acá también).
+## Asignado en la escena (ver EnemigoCaballeroEsqueleto.tscn): el mismo
+## recorte de iconos habilidades.png que usa Purga, Rect2(160, 0, 32, 32).
 @export var icono_buff: Texture2D = null
 
 ## Referencia inyectada (ver EnemigoCaballeroEsqueleto.tscn) — no se

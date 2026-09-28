@@ -1,24 +1,19 @@
 # =============================================================================
 # generar_nivel_ciudad.gd — construye escenas/niveles/NivelCiudad.tscn.
 #
-# Ciudad medieval amurallada, mismo tamaño de área jugable que NivelCueva
-# (65x43 tiles). Edificios SIN TECHO a pedido del usuario: son solo el
-# contorno de paredes visto desde arriba (piso de calle a la vista adentro,
-# nada cubre el interior) — con puerta (hueco de 1 tile en la pared).
+# Ciudad medieval amurallada, con la misma área jugable que NivelCueva (65x43
+# tiles). Edificios SIN TECHO: solo el contorno de paredes visto desde arriba
+# (el piso de calle se ve adentro), con puerta (hueco de 1 tile).
 #
-# Usa ÚNICAMENTE coordenadas de tileset_01.png YA VERIFICADAS como opacas
-# por construir_niveles.gd (MURO_OSCURO/TIERRA/PIEDRA/HIERBA) — a propósito
-# NINGUNA coordenada nueva sin verificar: el propio historial de este
-# proyecto dejó agujeros negros por transparencia la primera vez que se
-# usó una tile de borde como relleno (ver comentario de
-# generar_nivel_camino.gd). El muro de piedra/ladrillo más "de ciudad" que
-# se ve en el atlas queda para una pasada futura, cuando alguien pueda
-# verificarlo a ojo en el editor.
+# Usa ÚNICAMENTE coordenadas de tileset_01.png ya verificadas como opacas por
+# construir_niveles.gd (MURO_OSCURO/TIERRA/PIEDRA/HIERBA): una tile de borde
+# usada como relleno deja agujeros negros por transparencia (ver
+# generar_nivel_camino.gd). Un muro más "de ciudad" del atlas queda para
+# cuando se pueda verificar en el editor.
 #
 # Decoración suelta (puesto de mercado + barril) recortada de
-# assets/packs/pack items medievales reducido.png — pack sin usar en el
-# resto del proyecto, con márgenes generosos porque el recorte es a ojo,
-# no hay forma de verificar el pixel exacto sin abrir el editor.
+# assets/packs/pack items medievales reducido.png, con márgenes generosos
+# porque el recorte es a ojo.
 #
 #   godot --headless --path . --script res://herramientas/generar_nivel_ciudad.gd
 # =============================================================================

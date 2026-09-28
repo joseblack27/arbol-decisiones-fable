@@ -1,8 +1,7 @@
 extends Button
-## Pedido explícito del usuario: en vez de abrir el panel OS directo (en su
-## pestaña por defecto), este botón ahora alterna una cuadrícula de accesos
-## rápidos (ver MenuAccesosOS.gd) anclada justo debajo — cada ícono ahí
-## abre el panel OS directo en una sección puntual (inventario, mapa...).
+## En vez de abrir el panel OS directo, alterna una cuadrícula de accesos
+## rápidos (ver MenuAccesosOS.gd) anclada justo debajo; cada ícono abre el
+## panel OS en una sección puntual (inventario, mapa...).
 
 func _ready():
 	pressed.connect(_on_pressed)

@@ -1,25 +1,17 @@
 class_name HabilidadSacrificio
 extends HabilidadBase
-## Self-buff de alto riesgo/alto beneficio: paga una porción de tu vida
-## ACTUAL (no la máxima) a cambio de pegar mucho más fuerte por un rato —
-## potencia, probabilidad de crítico y daño crítico, todos temporales (ver
-## AtributosComponente.agregar_bono_temporal, generalizado para esta
-## habilidad — antes solo cubría daño plano, para Grito de Guerra).
-## Pedido explícito del usuario, con estos números exactos: 20% de la vida
-## actual, +100 de potencia, +20% de probabilidad de crítico, +10% de daño
-## crítico, 30 segundos de duración.
+## Auto-buff de alto riesgo y alto beneficio: paga el 20% de tu vida ACTUAL
+## (no la máxima) a cambio de +100 de potencia, +20% de probabilidad de
+## crítico y +10% de daño crítico durante 30 s, todos temporales (ver
+## AtributosComponente.agregar_bono_temporal).
 ##
 ## Nunca puede matar de un solo uso: el costo es un PORCENTAJE de la vida
-## ACTUAL (80% siempre queda, nunca llega a 0 por sí solo), no un valor
-## fijo — a diferencia de la energía, no hace falta chequear "alcanza"
-## antes de aplicar.
+## actual, así que siempre queda el 80%; no hace falta chequear si "alcanza".
 ##
-## A diferencia de Furia/Fervor (que SÍ necesitan un _process() propio para
-## revertir algo que ellas mismas pisaron cada frame — velocidad, daño de
-## un ataque, multiplicador_recarga de otras habilidades), acá no hace
-## falta: tanto el bono de AtributosComponente como el ícono de
-## BuffsComponente ya vencen y se quitan solos — un solo disparo en
-## _ejecutar() alcanza, como HabilidadBuffEquipo.
+## A diferencia de Furia y Fervor, que necesitan un _process() para revertir
+## algo que pisan cada frame, acá no hace falta: el bono de
+## AtributosComponente y el ícono de BuffsComponente vencen solos, así que
+## alcanza con un disparo en _ejecutar(), como HabilidadBuffEquipo.
 
 @export_group("Sacrificio")
 ## Fracción (0-1) de la vida ACTUAL que cuesta activarla. 0.2 = 20%.
@@ -34,14 +26,11 @@ extends HabilidadBase
 const _ID_BUFF := "sacrificio"
 
 
-## Escalado por nivel de mejora (ver DatosHabilidad.escalado / recursos/
-## habilidades/sacrificio.tres): usa CampoEscalado.campo_atributo (POTENCIA/
-## PROBABILIDAD_CRITICO/DANO_CRITICO, ver Enums.Habilidad.AtributoEscalable)
-## — esos tres YA resuelven a bono_potencia/bono_probabilidad_critico/
-## bono_dano_critico de forma fija en HabilidadBase, sin hacer falta ningún
-## override acá (antes reutilizaba RADIO/DURACION_EFECTO/PORCENTAJE_EFECTO
-## a mano, que obligaba a "descifrar" el override para saber a qué campo
-## real correspondía cada uno — pedido del usuario).
+## Escalado por nivel de mejora (ver DatosHabilidad.escalado y
+## recursos/habilidades/sacrificio.tres): usa CampoEscalado.campo_atributo
+## (POTENCIA, PROBABILIDAD_CRITICO, DANO_CRITICO), que HabilidadBase ya
+## resuelve a bono_potencia/bono_probabilidad_critico/bono_dano_critico sin
+## ningún override acá.
 
 
 func _ready() -> void:

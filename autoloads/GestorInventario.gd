@@ -1,24 +1,17 @@
 extends Node
-## GestorInventario (autoload) — FACADE de compatibilidad, Fase 1 del plan
-## de migración a multijugador. El dato real ya NO vive acá: vive en
-## InventarioComponente, colgado de cada Jugador (ver Jugador.tscn) — así,
-## más adelante, cada jugador conectado puede tener el suyo propio en vez de
-## uno global compartido. Este autoload solo delega al componente del
-## jugador que encuentre en escena, para no tener que tocar todo el código
-## que ya lo usaba directo (PanelInventario, Enemigo, GestorGuardado...).
+## GestorInventario (autoload): fachada de compatibilidad. El dato real vive en
+## InventarioComponente, colgado de cada Jugador (ver Jugador.tscn); este
+## autoload delega al del jugador local, para el código que ya lo usaba directo
+## (PanelInventario, Enemigo, GestorGuardado...).
 ##
-## Si no hay ningún jugador en escena con InventarioComponente (pruebas
-## que arman un "jugador" a mano sin componentes, herramientas sueltas),
-## cae a una instancia propia de respaldo — mismo comportamiento de
-## siempre, sin duplicar la lógica (reutiliza el propio InventarioComponente,
-## solo que nunca colgado del árbol).
+## Si no hay ningún jugador con InventarioComponente (pruebas que arman un
+## "jugador" a mano, herramientas sueltas), cae a una instancia propia de
+## respaldo (el mismo InventarioComponente, nunca colgado del árbol).
 ##
-## Sin tipar (ni precargar en el cuerpo de la clase) InventarioComponente en
-## ningún lado: ese script referencia BusEventos en sus métodos, y resolverlo
-## durante el arranque de este autoload (antes de que todos los autoloads
-## existan) revienta la compilación — se carga recién en tiempo de
-## ejecución, adentro de una función (mismo artefacto que las pruebas
-## --script; ver otras notas del proyecto).
+## InventarioComponente no se tipa ni se precarga en el cuerpo de la clase: ese
+## script usa BusEventos, y resolverlo durante el arranque de este autoload
+## (antes de que existan todos) rompe la compilación. Se carga en tiempo de
+## ejecución, dentro de una función.
 
 ## null hasta el primer uso — ver _obtener_componente().
 var _respaldo = null

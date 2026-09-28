@@ -91,9 +91,8 @@ func _detonar() -> void:
 		acumulacion_detonada.emit(0.0, 0)
 		return
 
-	# Feedback visual del radio real, SIEMPRE que detona (aunque no hubiera
-	# nada acumulado) — pedido del usuario: sin esto, la detonación pasaba
-	# en silencio y no había forma de saber si de verdad hizo algo.
+	# Feedback visual del radio real SIEMPRE que detona, aunque no hubiera
+	# nada acumulado: si no, no había forma de saber si hizo algo.
 	var indicador := IndicadorZonaEfecto.new()
 	indicador.radio = _radio
 	indicador.color_relleno = Color(1.0, 0.5, 0.2, 0.35)

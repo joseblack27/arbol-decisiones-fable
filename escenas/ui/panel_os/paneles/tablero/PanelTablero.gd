@@ -45,11 +45,7 @@ const _DEFENS := _P_PANEL  + "/Container/VBoxContainer/MarginContainer/VBoxConta
 const _P_BUFFS := "VBoxContainer/MarginContainer/HBoxContainer/PanelBuffsActivos/MarginContainer/VBoxContainer"
 const ESCENA_FILA_BUFF := preload("res://escenas/ui/panel_os/paneles/tablero/FilaBuff.tscn")
 @onready var _lista_buffs: VBoxContainer = get_node(_P_BUFFS + "/Scroll/ListaBuffs")
-## Título + separadores: ocultos cuando no hay ningún buff/debuff activo
-## (pedido del usuario: "quítame el título y ese mensaje de ahí cuando no
-## haya nada") — antes se mostraba un cartel "Ninguno activo" en su lugar;
-## ahora directamente no se muestra nada hasta que aparezca el primero.
-#@onready var _encabezado_buffs: Control = get_node(_P_BUFFS + "/Encabezado")
+# Título y separadores de buffs: ocultos mientras no hay ningún buff activo.
 var _buffs_comp: BuffsComponente = null
 # Sin tipar como FilaBuff (clase recién creada): referenciarla por tipo
 # estático desde otro script recién editado falla al cargar ("Could not
@@ -103,13 +99,9 @@ func _process(delta: float) -> void:
 # =============================================================================
 
 func _conectar_jugador() -> void:
-	# Utils.jugador_local(), NO get_nodes_in_group("jugadores")[0]: con más
-	# de un jugador en escena (multijugador real), "el primero" del grupo
-	# podía ser el de OTRO jugador — este panel entonces mostraba y
-	# cacheaba (_atributos = atrib_comp.base) los atributos de alguien más,
-	# así que equipar/desequipar tu propio equipo nunca se reflejaba acá
-	# (bug reportado: "al desequipar un equipo no se actualizan los
-	# atributos").
+	# Utils.jugador_local() y no get_nodes_in_group("jugadores")[0]: con
+	# varios jugadores en escena, "el primero" podía ser OTRO, y el panel
+	# mostraba y cacheaba sus atributos en vez de los propios.
 	var jugador := Utils.jugador_local()
 	if jugador == null:
 		return
@@ -125,14 +117,10 @@ func _conectar_jugador() -> void:
 
 	if "datos_jugador" in jugador:
 		_datos_jugador = jugador.get("datos_jugador") as DatosJugador
-	# Bug real reportado: "el nombre que aparece en atributos debería ser
-	# el mismo nombre de la cuenta" — "datos_jugador" arriba NUNCA existe
-	# de verdad en Jugador.gd (ese if nunca corre), así que este Label se
-	# quedaba con el placeholder hardcodeado del .tscn ("Rikapolo") para
-	# siempre. Utils.nombre_visible() es el mismo helper que ya usa
-	# HudJugador.gd para mostrar el nombre de cuenta real (replicado en
-	# Jugador.nombre_visible, ver ese archivo) — se fija una sola vez acá
-	# (no cambia durante la partida), no en _actualizar_principales().
+	# El nombre de la cuenta (Jugador.nombre_visible, replicado), con el
+	# mismo helper que HudJugador.gd. El "datos_jugador" de arriba no existe
+	# en Jugador.gd, así que sin esto quedaba el placeholder del .tscn. Se
+	# fija una sola vez: no cambia durante la partida.
 	_lbl_nombre.text = Utils.nombre_visible(jugador)
 
 	if _vida_comp:
@@ -263,10 +251,8 @@ func _actualizar_regeneracion() -> void:
 func _actualizar_ofensivas() -> void:
 	if not _atributos:
 		return
-	# Suma los bonos temporales (buffs como Grito de Guerra o Sacrificio) a
-	# cada estadística de base — el jugador ve el número YA efectivo
-	# mientras duren, sin tener que sumarlos a mano en pleno combate
-	# (pedido del usuario, antes solo cubría Daño).
+	# Suma los bonos temporales (Grito de Guerra, Sacrificio...) a cada
+	# estadística de base, así se ve el número YA efectivo mientras duren.
 	var bono_danos: float                = _atrib_comp.obtener_bono_dano_temporal() if _atrib_comp else 0.0
 	var bono_potencia: float             = _atrib_comp.obtener_bono_potencia_temporal() if _atrib_comp else 0.0
 	var bono_prob_critico: float         = _atrib_comp.obtener_bono_probabilidad_critico_temporal() if _atrib_comp else 0.0

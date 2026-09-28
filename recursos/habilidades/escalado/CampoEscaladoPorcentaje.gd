@@ -1,8 +1,8 @@
 extends CampoEscalado
 class_name CampoEscaladoPorcentaje
-## Crecimiento por FÓRMULA — pensado para campos donde una curva simple
-## alcanza (rango, recarga, radio...). Para daño, donde el usuario quiere
-## control exacto para rebalancear a futuro, ver CampoEscaladoTabla.
+## Crecimiento por FÓRMULA, para campos donde una curva simple alcanza (rango,
+## recarga, radio...). Para daño, con control exacto por nivel, ver
+## CampoEscaladoTabla.
 
 ## +10%/nivel adicional por defecto. NEGATIVO para que el campo BAJE con
 ## el nivel (ej. -0.05 en RECARGA: cada nivel recarga un 5% más rápido).

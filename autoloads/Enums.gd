@@ -74,10 +74,9 @@ class Habilidad:
 		AIRE
 	}
 
-	## Rol de la habilidad — usado por PanelDetalleHabilidad.gd para mostrar
-	## solo la información relevante (daño/tipo/rango no significan nada en
-	## una habilidad que no ataca, p. ej. un buff o un muro que solo bloquea:
-	## mostraban "Daño: 0-0" sin sentido, reportado por el usuario).
+	## Rol de la habilidad. PanelDetalleHabilidad.gd lo usa para mostrar solo
+	## lo relevante: daño, tipo y rango no significan nada en una habilidad que
+	## no ataca (un buff, un muro que solo bloquea).
 	enum Categoria {
 		ATAQUE,       ## Inflige daño real — muestra daño/tipo/rango.
 		DEFENSA,      ## Protege (escudo, parpadeo para escapar...).
@@ -197,13 +196,12 @@ class Dialogo:
 		COMPLETADA,            ## Ya se completó (no repetible, o repetible recién terminada).
 	}
 
-	## Ícono que acompaña el texto de una opción (ver OpcionDialogo.
-	## categoria y PanelDialogo._ICONOS_CATEGORIA) — puramente visual, no
-	## afecta a condicion/accion. Pedido explícito del usuario para poder
-	## reconocer de un vistazo qué tipo de opción es cada botón. Agregar
-	## SIEMPRE al final: el valor numérico ya está guardado en los .tres
-	## de contenido (ver ejemplo_comerciante.tres), insertar en el medio
-	## correría esos índices y cambiaría el ícono de opciones existentes.
+	## Ícono que acompaña el texto de una opción (ver
+	## OpcionDialogo.categoria y PanelDialogo._ICONOS_CATEGORIA), para
+	## reconocer de un vistazo qué tipo de opción es. Puramente visual.
+	## Agregar SIEMPRE al final: el valor numérico ya está guardado en los
+	## .tres (ver ejemplo_comerciante.tres), e insertar en el medio cambiaría
+	## el ícono de opciones existentes.
 	enum CategoriaOpcion {
 		NINGUNA,        ## Sin ícono.
 		MISION,         ## "!" — ofrece una misión nueva.

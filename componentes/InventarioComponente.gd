@@ -1,13 +1,9 @@
 extends Node
 class_name InventarioComponente
-## InventarioComponente — el inventario de ESTE jugador (Fase 1 del plan de
-## migración a multijugador: cada jugador tiene el suyo propio, en vez de
-## un único inventario global compartido).
-##
-## Misma lógica que tenía GestorInventario (autoload) — se movió acá tal
-## cual, dato incluido. GestorInventario.gd sigue existiendo como fachada de
-## compatibilidad (ver ese archivo) para no tener que tocar todo el código
-## que ya lo usa (PanelInventario, Enemigo, GestorGuardado...).
+## InventarioComponente: el inventario de ESTE jugador (cada jugador tiene el
+## suyo, no uno global compartido). GestorInventario.gd sigue existiendo como
+## fachada (ver ese archivo) para el código que ya lo usa (PanelInventario,
+## Enemigo, GestorGuardado...).
 
 ## DatosItem.type == 3 ("equipable"): estos nunca se apilan, cada uno es
 ## una entrada propia (a futuro podrían llevar stats distintos por copia).
@@ -23,11 +19,9 @@ var items: Array[DatosItem] = []
 ## puede estar referenciado en varias tablas de botín a la vez, y mutar su
 ## "quantity" directamente corrompería ese recurso compartido.
 ##
-## silencioso=true omite BusEventos.item_agregado (no dispara el popup de
-## "obtuviste X" en PanelNotificacionesLoot): lo usa GestorGuardado al
-## restaurar una partida — esos ítems ya eran tuyos, no son botín nuevo, y
-## sin este flag el jugador veía una ráfaga de notificaciones de TODO su
-## inventario guardado apenas cargaba (reportado por el usuario).
+## silencioso=true omite BusEventos.item_agregado (sin el popup de "obtuviste
+## X"): lo usa GestorGuardado al restaurar una partida, porque esos ítems no
+## son botín nuevo.
 func agregar_item(item: DatosItem, cantidad: int = -1, silencioso: bool = false) -> void:
 	if item == null:
 		return
@@ -283,21 +277,14 @@ func _pedir_desbloqueo_pasiva_red(ruta_escena: String) -> void:
 		confirmaciones.rpc_id(jugador.peer_id_dueño, "_recibir_pasiva_red", ruta_escena)
 
 
-## Bug real reportado: "el botón de vender no hace nada". Causa: cargar
-## partida (o reconectarse) solo llena el ESPEJO del cliente (ver
-## GestorGuardado._recibir_partida_red) — a diferencia del equipo (ver
-## EquipoComponente._sincronizar_equipo_red) y las habilidades, el
-## inventario SUELTO nunca tenía un canal de vuelta al servidor. El
-## servidor AUTORITATIVO (el que de verdad valida "¿tenés esto?", ver
-## TiendaComponente.vender_item/_vender_local) se quedaba con "items"
-## VACÍO tras reconectar, aunque el cliente mostrara el inventario
-## completo — vender pedía el RPC bien, pero _buscar_por_recurso nunca
-## encontraba nada porque del lado del servidor no había nada que buscar.
-## Mismo patrón de "cliente manda su espejo, servidor lo toma como
-## verdadero" que ya usa el equipo — solo tiene sentido pedirlo UNA VEZ,
-## justo después de que GestorGuardado termina de llenar el espejo local
-## (no en cada agregar_item(): eso mandaría el inventario ENTERO por cada
-## ítem sumado, carísimo con inventarios grandes).
+## Manda el inventario completo al servidor. Cargar partida o reconectarse
+## solo llena el ESPEJO del cliente (ver GestorGuardado._recibir_partida_red),
+## y a diferencia del equipo (EquipoComponente._sincronizar_equipo_red) y las
+## habilidades, el inventario suelto no tenía canal de vuelta: el servidor,
+## que valida "¿tenés esto?" (ver TiendaComponente.vender_item), quedaba con
+## "items" VACÍO y vender no hacía nada. Se pide UNA VEZ, justo después de
+## llenar el espejo; no en cada agregar_item(), que mandaría el inventario
+## entero por cada ítem sumado.
 func sincronizar_con_servidor() -> void:
 	if not Utils.en_red() or multiplayer.is_server():
 		return

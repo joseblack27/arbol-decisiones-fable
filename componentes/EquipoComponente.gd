@@ -1,8 +1,7 @@
 extends Node
 class_name EquipoComponente
-## EquipoComponente — lo que ESTE jugador tiene puesto ahora mismo (Fase 1
-## del plan de migración a multijugador). Antes vivía en el autoload
-## GestorEquipo; ver ese archivo, que ahora es una fachada de compatibilidad.
+## EquipoComponente: lo que ESTE jugador tiene puesto ahora. GestorEquipo
+## (autoload) es una fachada que delega acá.
 
 var equipados: Array[DatosItem] = []
 
@@ -27,14 +26,12 @@ func actualizar(items: Array[DatosItem]) -> void:
 	_sincronizar_equipo_red(items)
 
 
-## Fase 7 del plan de multijugador: equipar algo desde el menú (PanelInventario
-## → GestorEquipo → acá) solo tocaba el lado del CLIENTE — el servidor, que
-## es quien de verdad calcula daño/defensa en combate (ver
-## AtributosComponente.calcular_pipeline, leído del AtributosComponente del
-## nodo del SERVIDOR, nunca del cliente), nunca se enteraba del equipo real.
-## Resultado: equipar mejor armadura/arma no cambiaba nada en combates de
-## verdad, solo en la vista previa local de quien lo equipó (mismo patrón y
-## mismo bug ya resuelto para las habilidades, ver SlotHabilidades.gd).
+## Equipar desde el menú (PanelInventario → GestorEquipo → acá) ocurre en el
+## CLIENTE, pero el daño y la defensa los calcula el SERVIDOR con su propio
+## AtributosComponente (ver AtributosComponente.calcular_pipeline). Por eso el
+## cambio se sincroniza por RPC (ver _sincronizar_equipo_red), como las
+## habilidades en SlotHabilidades.gd; _procesando_rpc_red evita reenviar
+## mientras se aplica lo que llegó del otro lado.
 var _procesando_rpc_red := false
 
 func _sincronizar_equipo_red(items: Array[DatosItem]) -> void:
@@ -45,16 +42,11 @@ func _sincronizar_equipo_red(items: Array[DatosItem]) -> void:
 		return
 	if jugador.peer_id_dueño != multiplayer.get_unique_id():
 		return
-	# id_recurso: la ruta del .tres original (ver DatosItem.gd). Respaldo a
-	# resource_path si id_recurso vino vacío (mismo criterio que
-	# InventarioComponente.agregar_item()) — sin esto, un ítem cuyo campo
-	# id_recurso nunca se estampó (p. ej. un .tres de fábrica al que se le
-	# olvidó ponerlo, ver recursos/items/equipables/*.tres) mandaba una ruta
-	# vacía al servidor, que la descartaba en silencio: el equipo cambiaba
-	# de verdad solo en la vista previa del cliente, nunca en el servidor
-	# (bug reportado: "al desequipar un item no se actualizan los atributos"
-	# — pasaba igual al EQUIPAR, pero se notaba menos porque la vista previa
-	# local ya mostraba el bono aplicado).
+	# id_recurso: la ruta del .tres original (ver DatosItem.gd), con
+	# resource_path de respaldo si vino vacío (como
+	# InventarioComponente.agregar_item()). Una ruta vacía la descarta el
+	# servidor en silencio, y el equipo cambiaría solo en la vista previa
+	# del cliente.
 	var rutas: PackedStringArray = []
 	for item in items:
 		if item == null:

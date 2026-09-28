@@ -1,14 +1,11 @@
 extends Button
 ## Botón sin texto en la esquina superior derecha del menú de inicio para
-## silenciar TODO el audio (efectos + música) de un toque — pedido
-## explícito del usuario. Mismo estilo que el resto de los slots de ícono
-## del juego (theme_type_variation "RanuraHud", ver BarraConsumibles.tscn):
-## fondo oscuro con borde, no un botón plano invisible.
+## silenciar TODO el audio (efectos y música) de un toque. Mismo estilo que los
+## slots de ícono del juego (theme_type_variation "RanuraHud", ver
+## BarraConsumibles.tscn): fondo oscuro con borde.
 ##
-## Ícono real (icono_sonido/icono_silenciado, asignados en el .tscn desde
-## el mismo spritesheet iconos_ui.png que ya usa BotonListaIp) — antes se
-## dibujaba un altavoz propio en _draw(), pedido explícito del usuario:
-## "no quiero que se dibuje, quiero usar el icono de una hoja de sprite".
+## Íconos del spritesheet iconos_ui.png (icono_sonido/icono_silenciado,
+## asignados en el .tscn, como BotonListaIp), no dibujados con _draw().
 
 ## Ícono cuando el sonido está activo (altavoz con ondas).
 @export var icono_sonido: Texture2D
@@ -16,9 +13,8 @@ extends Button
 @export var icono_silenciado: Texture2D
 
 var _silenciado := false
-## Volumen de SFX/música justo ANTES de silenciar, para restaurarlo tal
-## cual al volver a activar (no a un valor fijo) — si el usuario ya tenía
-## el suyo propio ajustado en Configuración, vuelve exactamente a ese.
+## Volumen de SFX y música justo ANTES de silenciar, para restaurar
+## exactamente el que el jugador tenía ajustado en Configuración.
 var _volumen_sfx_previo := Utils.volumen_sfx
 var _volumen_musica_previo := Utils.volumen_musica
 

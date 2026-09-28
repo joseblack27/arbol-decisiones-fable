@@ -63,14 +63,11 @@ class_name DatosItem
 ## tocarlo a mano en los .tres.
 @export var id_recurso: String = ""
 
-## Calculada (no cacheada en set()): el orden en que un .tres asigna sus
-## propiedades no está garantizado (type podría llegar antes que
-## type_equippable), así que cachear en el setter de "type" podía quedarse
-## con type_equippable todavía en NINGUNO. Pedido del usuario: "cuando el
-## tipo es equipable, mostrar el TipoItemEquipable en lugar de 'equipable'"
-## — item.type_descripcion (usado por PanelCofre/PanelInventario en la
-## fila "Tipo:") ahora resuelve el slot real (casco, anillo, arma...) para
-## los ítems equipables, y el texto genérico para el resto.
+## Para equipables devuelve el slot real (casco, anillo, arma...) y para el
+## resto el texto genérico; lo muestran PanelCofre y PanelInventario en la
+## fila "Tipo:". Calculada y no cacheada en un setter: el orden en que un .tres
+## asigna sus propiedades no está garantizado, y "type" podría llegar antes
+## que type_equippable.
 var type_descripcion: String:
 	get:
 		if type == Enums.Inventario.TipoItem.EQUIPABLE:
@@ -90,10 +87,9 @@ const item_description := {
 	Enums.Inventario.TipoItem.PASIVA: "pasiva"
 }
 
-## Pedido del usuario para GrillaObjetos.ordenar por categoría: "la
-## categoria no es que sea equipable, la categoria es el Enums.Inventario
-## .TipoItemEquipable" — el slot real (casco, anillo, arma...), no el
-## TipoItem genérico (que solo distingue equipable/consumible/recurso).
+## Nombre del slot real (casco, anillo, arma...) por TipoItemEquipable, no el
+## TipoItem genérico (equipable/consumible/recurso). Lo usa
+## GrillaObjetos para ordenar por categoría.
 const type_equippable_description := {
 	Enums.Inventario.TipoItemEquipable.NINGUNO: "ninguno",
 	Enums.Inventario.TipoItemEquipable.CASCO: "casco",

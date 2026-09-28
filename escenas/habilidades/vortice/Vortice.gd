@@ -74,14 +74,11 @@ func _atraer_una_vez() -> void:
 			var mov := (objetivo as Node2D).get_node_or_null("MovimientoComponente") as MovimientoComponente
 			if mov:
 				var distancia := (objetivo as Node2D).global_position.distance_to(global_position)
-				# Reportado: "los jala a mucha velocidad que se pasan del
-				# centro" — aplicar_empuje() es velocidad CONSTANTE durante
-				# duracion_empuje_por_tiron, así que a fuerza_atraccion fija
-				# un objetivo ya cerca del centro viajaba más de lo que le
-				# faltaba y se pasaba de largo (para volver a pasarse en el
-				# tirón siguiente, oscilando). Limitar la velocidad a "lo que
-				# falta / el tiempo del tirón" hace que llegue justo al
-				# centro y se quede ahí, en vez de rebotar.
+				# aplicar_empuje() es velocidad CONSTANTE durante
+				# duracion_empuje_por_tiron, así que con fuerza_atraccion fija un
+				# objetivo cerca del centro viajaba más de lo que le faltaba y
+				# oscilaba de lado a lado. Limitar la velocidad a "lo que falta / el
+				# tiempo del tirón" lo deja justo en el centro.
 				if distancia > 2.0:
 					var direccion_atraccion := (objetivo as Node2D).global_position.direction_to(global_position)
 					var velocidad_atraccion := minf(fuerza_atraccion, distancia / duracion_empuje_por_tiron)

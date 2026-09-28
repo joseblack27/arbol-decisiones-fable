@@ -26,21 +26,14 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 	if not is_instance_valid(entidad_dueña) or not (entidad_dueña is Node2D):
 		return
 
-	# El aliado es una IA persistente (~15s tomando sus propias decisiones de
-	# a quién perseguir/golpear), no un efecto instantáneo como Proyectil/
-	# OndaChoque — con el patrón normal de HabilidadBase (cada peer corre su
-	# propia _ejecutar(), "predicción" + réplica visual) cada cliente creaba
-	# su PROPIA copia independiente. Como AliadoInvocado apaga su IA fuera del
-	# servidor (ver _physics_process), esas copias quedaban congeladas
-	# adornando la pantalla de cada jugador mientras la única que de verdad
-	# peleaba vivía invisible en el servidor — el reportado "no se ve el daño
-	# de la invocación... quiero números flotantes" salía de ahí:
-	# GestorNumerosDano solo pinta el número si fuente/objetivo es TU jugador
-	# local, y esa copia real nunca estaba replicada para poder serlo.
-	# Arreglo: solo el servidor (o un solo jugador sin red) crea al aliado de
-	# verdad, dentro del contenedor "Enemigos" del nivel — ReplicadorEnemigos
-	# lo replica a los clientes igual que a un mob, y la posición/animación
-	# viaja por el RPC que Enemigo._physics_process ya tiene para todo mob.
+	# El aliado es una IA persistente (~15 s tomando sus propias decisiones),
+	# no un efecto instantáneo como Proyectil. Con el patrón normal de
+	# HabilidadBase (cada peer corre su _ejecutar()), cada cliente creaba su
+	# propia copia, congelada porque AliadoInvocado solo piensa en el
+	# servidor, mientras el aliado real peleaba invisible. Solo el servidor
+	# (o sin red) crea al aliado, dentro del contenedor "Enemigos" del
+	# nivel: ReplicadorEnemigos lo replica como a un mob, y la posición y
+	# animación viajan por el RPC de Enemigo._physics_process.
 	if not (Utils.en_red() and not multiplayer.is_server()):
 		var aliado = escena_aliado.instantiate()
 		aliado.dueño                  = entidad_dueña
@@ -49,14 +42,10 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 		aliado.intervalo_ataque       = intervalo_ataque
 		aliado.velocidad_persecucion  = velocidad_persecucion
 		aliado.activar(duracion_invocacion)
-		# nivel_de_jugador(), NO nivel_actual(): en el servidor conviven varios
-		# niveles a la vez (uno por cada grupo de jugadores), y nivel_actual()
-		# siempre devuelve el PRIMERO cargado (Pradera) sin importar dónde esté
-		# parado este jugador — invocar en cualquier otro nivel (reportado en
-		# Camino) colgaba al aliado de la malla de navegación de Pradera: se
-		# veía (la posición se fija aparte, más abajo) pero no encontraba
-		# rutas válidas ni enemigos de su propio nivel, así que se quedaba
-		# plantado sin moverse ni atacar.
+		# nivel_de_jugador() y no nivel_actual(): en el servidor conviven varios
+		# niveles y nivel_actual() devuelve el primero cargado (Pradera). Con él,
+		# un aliado invocado en otro nivel quedaba colgado de la malla de la
+		# Pradera y se plantaba sin moverse ni atacar.
 		var nivel := GestorNiveles.nivel_de_jugador(entidad_dueña)
 		var contenedor: Node = (nivel.get_node_or_null("Enemigos") if nivel else null)
 		if contenedor == null:
@@ -72,14 +61,10 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 			buffs = BuffsComponente.new()
 			buffs.name = "BuffsComponente"
 			entidad_dueña.add_child(buffs)
-		# El daño acá es dano_ataque TAL CUAL (no pasa por AtributosComponente:
-		# el aliado no tiene uno propio, ver AliadoInvocado._atacar) — a
-		# diferencia de Aura/Veneno, mostrar el valor crudo es exacto, no una
-		# aproximación. Pedido del usuario: "que al menos el invocador
-		# pudiera ver el daño de la invocación" — la descripción de
-		# invocacion.tres (pantalla de equipar) ya lo mostraba, pero esta
-		# OTRA descripción (la del buff activo, la que ve el invocador
-		# mientras el aliado sigue vivo) es un texto aparte que no se
-		# actualizaba con el número real.
+		# El daño es dano_ataque TAL CUAL (el aliado no tiene
+		# AtributosComponente, ver AliadoInvocado._atacar), así que mostrar el
+		# valor crudo es exacto. Esta es la descripción del buff activo (la que
+		# ve el invocador mientras vive el aliado), aparte de la de
+		# invocacion.tres.
 		buffs.agregar("invocacion", icono_buff, duracion_invocacion, false,
 			nombre_habilidad, "Tu aliado pelea a tu lado, golpeando por %d" % int(dano_ataque))

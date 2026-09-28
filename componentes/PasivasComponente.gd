@@ -1,15 +1,14 @@
 extends Node
 class_name PasivasComponente
-## Pasivas de GATILLO de ESTE jugador — desbloqueadas al usar un ítem
-## especial (ver DatosItem.escena_pasiva, InventarioComponente.usar_item).
-## A diferencia de las pasivas de ESTADÍSTICA (ver ExperienciaComponente
-## .pasivas_stat, que se re-derivan solas del nivel), estas SÍ necesitan
-## persistencia propia — no hay ningún otro dato guardado del que puedan
-## reconstruirse (ver GestorGuardado, clave "pasivas").
+## Pasivas de GATILLO de ESTE jugador, desbloqueadas al usar un ítem especial
+## (ver DatosItem.escena_pasiva, InventarioComponente.usar_item). A diferencia
+## de las de ESTADÍSTICA (ExperienciaComponente.pasivas_stat, que se re-derivan
+## del nivel), estas necesitan persistencia propia: no hay otro dato del que
+## reconstruirlas (ver GestorGuardado, clave "pasivas").
 ##
-## Siempre activas una vez desbloqueadas: no hay equipar/desequipar ni
-## límite de cantidad (pedido del usuario), así que esto es solo una lista
-## de "cuáles tengo" + la instancia real de cada una colgando como hijo.
+## Siempre activas una vez desbloqueadas, sin equipar ni límite de cantidad:
+## esto es solo la lista de "cuáles tengo" + la instancia real de cada una
+## colgando como hijo.
 
 ## Rutas (resource_path de la ESCENA, no del ítem) de las pasivas de
 ## gatillo ya desbloqueadas — nunca se duplican, sirve tanto para no

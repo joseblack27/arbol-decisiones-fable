@@ -2,24 +2,22 @@ extends Enemigo
 class_name EnemigoJefeEsqueleto
 
 # =============================================================================
-# 👑 JEFE ESQUELETO — primer boss del juego, pensado para ser FÁCIL.
+# 👑 JEFE ESQUELETO — primer jefe del juego, pensado para ser FÁCIL.
 #
 # FASE 1 (100%-50% vida): solo la embestida lenta (HabilidadCarga, ya
-# telegrafiada por su duracion_preparacion — se ve venir el golpe) — nada de
-# ataques a distancia todavía. Extiende Enemigo directo (no EnemigoCaballero
-# Esqueleto): esa clase espera un HabilidadArañazo que este jefe no tiene a
-# propósito (fase 1 = solo embestida), así que solo se copia el cableado de
-# HabilidadCarga que sí comparte.
+# telegrafiada por su duracion_preparacion), sin ataques a distancia. Extiende
+# Enemigo directo y no EnemigoCaballeroEsqueleto: esa clase espera un
+# HabilidadArañazo que este jefe no tiene, así que solo copia el cableado de
+# HabilidadCarga.
 #
-# FASE 2 (<=50% vida): al cruzar el umbral, se PARA en seco un momento (un
-# respiro telegrafiado — ventana clara para que el jugador reaccione, se
-# cure o se reposicione) y agrega el abanico de proyectiles a su
-# repertorio. A partir de ahí, SelectorHabilidades alterna solo entre
-# embestida y abanico según rango/cooldown — sin código de estado nuevo.
+# FASE 2 (<=50% vida): al cruzar el umbral se PARA un momento (un respiro
+# telegrafiado para reaccionar, curarse o reposicionarse) y suma el abanico
+# de proyectiles. Desde ahí SelectorHabilidades alterna entre embestida y
+# abanico según rango y cooldown, sin código de estado nuevo.
 #
-# Mucha vida, poco daño por golpe: la pelea dura, pero un error del jugador
-# no lo mata de un tirón. Camina derecho hacia el jugador entre ataques —
-# sin kiting ni huida — para que el patrón sea predecible.
+# Mucha vida y poco daño por golpe: la pelea dura, pero un error no lo mata de
+# un tirón. Camina derecho hacia el jugador entre ataques (sin kiting ni
+# huida), para que el patrón sea predecible.
 # =============================================================================
 
 ## Habilidad de abanico que se agrega al repertorio al entrar en fase 2 — el

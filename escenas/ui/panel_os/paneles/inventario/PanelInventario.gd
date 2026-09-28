@@ -9,22 +9,18 @@ class_name PanelInventario
 @onready var flow: FlujoItems = $Margin/HBox/PanelItems/MarginContainer/VBoxItems/MarginContainer/ScrollContainer/FlujoItems
 
 @onready var item_name         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/HeaderNombre/NombreItem
-## A partir de IconoItem, todo vive dentro de ScrollBody (ver PanelInventario
-## .tscn) — pedido explícito del usuario: con el nombre en 2 líneas MÁS un
-## conjunto con varios tramos, el contenido podía necesitar más alto que el
-## espacio fijo de la columna de detalle, y nada de eso tenía cómo
-## desplazarse (la descripción, con fit_content=true, tampoco se desplaza
-## sola — depende de que algo de afuera le haga lugar). HeaderNombre se
-## queda AFUERA del scroll a propósito (título + botón cerrar siempre
-## visibles arriba).
+## A partir de IconoItem, todo vive dentro de ScrollBody (ver
+## PanelInventario.tscn): con un nombre en 2 líneas y un conjunto con varios
+## tramos, el contenido puede necesitar más alto que la columna de detalle (y
+## la descripción, con fit_content=true, no se desplaza sola). HeaderNombre
+## queda AFUERA del scroll a propósito: título y botón cerrar siempre visibles.
 @onready var item_icon         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/IconoItem
 @onready var type_value        := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo/ValorTipo
 @onready var qty_value         := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo/ValorCantidad
-## Fila "Conjunto:" en la misma grilla que Tipo/Cantidad — pedido explícito
-## del usuario: si la pieza pertenece a un conjunto, su nombre aparece ACÁ
-## arriba (no solo mezclado con los tramos de bono más abajo). Oculta por
-## defecto en el .tscn; _update_details()/_clear_details() la muestran solo
-## cuando item.conjunto != null.
+## Fila "Conjunto:" en la misma grilla que Tipo/Cantidad: si la pieza es de un
+## conjunto, su nombre aparece acá arriba, no solo mezclado con los tramos de
+## bono. Oculta por defecto en el .tscn; _update_details()/_clear_details()
+## la muestran solo cuando item.conjunto != null.
 @onready var conjunto_label    := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo/ConjuntoLabel
 @onready var conjunto_value    := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer/RejillaInfo/ValorConjunto
 @onready var description_text  := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/ScrollBody/VBoxScrollBody/MarginContainer2/VBoxContainer/TextoDescripcion
@@ -49,9 +45,8 @@ class_name PanelInventario
 @onready var _label_creditos: Label = $Margin/HBox/PanelDetalle/MarginCreditos/Creditos
 var _creditos: CreditosComponente = null
 
-## Pedido explícito del usuario: el botón de acción se queda FIJO abajo (no
-## adentro de ScrollBody) — solo el contenido de arriba (ícono, descripción,
-## características/conjunto) se desplaza.
+## El botón de acción queda FIJO abajo (fuera de ScrollBody): solo se
+## desplaza el contenido de arriba (ícono, descripción, características).
 @onready var action_button     := $Margin/HBox/PanelDetalle/MarginContainer/VBoxDetalle/ContenidoDetalle/BotonAccion
 @onready var main_action_panel: PanelContainer = $Margin/HBox/PanelDetalle/PanelAccionPrincipal
 @onready var use_action_button   := $Margin/HBox/PanelDetalle/PanelAccionPrincipal/MarginContainer/VBoxContainer/BotonUsar
@@ -115,26 +110,18 @@ func _ready():
 	for slot in quick_slots_inventario:
 		slot.slot_clicked.connect(_on_slot_clicked)
 	BusEventos.item_agregado.connect(_on_item_agregado)
-	# Bug real reportado: "cuando paso objetos del cofre al inventario...
-	# lo que haya hecho no se sincroniza acá" — FuenteInventario.agregar()
-	# (ver ese archivo) siempre pasa silencioso=true, así que item_agregado
-	# de arriba nunca se dispara para ese flujo (ni para sacar algo del
-	# inventario hacia el cofre). inventario_cambiado SÍ se emite siempre
-	# (ver InventarioComponente), sin importar la vía — refrescar_diferido()
-	# es el mismo patrón ya usado por SlotConsumibleRapido para "algo
-	# cambió el inventario desde afuera, quizás con el panel cerrado".
+	# FuenteInventario.agregar() siempre pasa silencioso=true, así que al
+	# mover ítems entre el cofre y el inventario item_agregado nunca se
+	# dispara. inventario_cambiado SÍ se emite siempre (ver
+	# InventarioComponente); refrescar_diferido() es el mismo patrón que usa
+	# SlotConsumibleRapido para "algo cambió el inventario desde afuera".
 	BusEventos.inventario_cambiado.connect(refrescar_diferido)
 	visibility_changed.connect(_on_visibility_changed)
 	_conectar_creditos()
-	# GestorInventario.agregar_item(..., silencioso=true) — el modo que usa
-	# GestorGuardado para restaurar una partida guardada — a propósito NO
-	# emite item_agregado (esos ítems ya eran tuyos, no son botín nuevo; ver
-	# el comentario de agregar_item). Pero eso significa que este panel
-	# nunca se enteraba de que el inventario se acababa de llenar: si ya
-	# estaba en escena antes de que llegara la partida (o el jugador la
-	# abría antes de matar el primer mob), se quedaba mostrando la grilla
-	# vacía con la que arrancó, hasta el primer item_agregado real (matar
-	# un mob) — reportado como "el inventario no carga al inicio".
+	# Restaurar una partida usa agregar_item(..., silencioso=true), que a
+	# propósito NO emite item_agregado (no es botín nuevo). Sin esto, un
+	# panel ya en escena antes de que llegue la partida seguiría mostrando la
+	# grilla vacía hasta el primer botín real.
 	GestorGuardado.partida_cargada.connect(refrescar)
 
 	var main_os = get_tree().get_root().find_child("OsPrincipal", true, false)
@@ -185,17 +172,12 @@ func refrescar() -> void:
 	# (equipar, lootear, desequipar).
 	flow.filter_items(flow.last_filter_type)
 
-## Como refrescar(), pero para quien cambia el inventario desde AFUERA del
-## panel mientras puede estar CERRADO (ver SlotConsumibleRapido._on_click) —
-## mismo criterio que _on_item_agregado: si nadie lo está mirando ahora
-## mismo, alcanza con marcarlo desactualizado y reconstruir la grilla recién
-## cuando se abra (ver _on_visibility_changed), en vez de reconstruirla
-## entera a ciegas. _load_items_flow() destruye/reinstancia un nodo por
-## CADA ítem del inventario completo (no solo el usado) — reportado como un
-## tirón notable ("se traba el juego y el jugador hace tp") al usar un
-## consumible de la barra rápida mientras caminaba, con el panel cerrado:
-## el freeze pausaba toda la física por un instante y el motor "recuperaba"
-## de golpe el movimiento acumulado del joystick al descongelarse.
+## Como refrescar(), pero para quien cambia el inventario desde AFUERA con el
+## panel posiblemente CERRADO (ver SlotConsumibleRapido._on_click): si nadie
+## lo está mirando, alcanza con marcarlo desactualizado y reconstruir al
+## abrirse (ver _on_visibility_changed). _load_items_flow() reinstancia un
+## nodo por CADA ítem del inventario, y hacerlo a ciegas al usar un consumible
+## mientras se camina daba un tirón que se sentía como un teletransporte.
 func refrescar_diferido() -> void:
 	if is_visible_in_tree():
 		refrescar()
@@ -363,12 +345,9 @@ func _update_details(item: SlotItem):
 	barra_rapida_button.visible = item.can_use
 	equip_action_button.visible = item.can_equip
 	drop_action_button.visible  = item.can_drop
-	# El botón ya desequipaba de verdad para un ítem puesto (ver
-	# _on_drop_button: item_data_details is EquipoSlot) pero decía "Soltar"
-	# para cualquier ítem — para uno YA EQUIPADO eso no deja claro qué hace
-	# (reportado: "necesito que agregues la accion de desequipar en los
-	# objetos que ya estan equipados", sin saber que ya existía bajo ese
-	# nombre confuso).
+	# El botón ya desequipa un ítem puesto (ver _on_drop_button:
+	# item_data_details is EquipoSlot), pero "Soltar" no dejaba claro qué hace
+	# con uno equipado.
 	drop_action_button.text = "Desequipar" if item is EquipoSlot else "Soltar"
 
 
@@ -447,18 +426,13 @@ func _equip_item(item_equip: SlotItem):
 	notificar_equipo_cambiado()  # también cierra el detalle — ver su comentario.
 
 
-## Único punto de entrada de "el equipo cambió" — lo llaman TODOS los
-## caminos que pueden cambiarlo: botón Equipar/Soltar, arrastre directo a
-## un EquipoSlot (EquipoSlot._drop_data), desequipar arrastrando fuera
-## (EquipoSlot._desequipar), soltarlo en la grilla general (FlujoItems) y
-## restaurar_equipo() al cargar partida. Cerrar el detalle ACÁ (no en cada
-## caller por separado) es a propósito: antes solo el botón Equipar lo
-## cerraba (pedido del usuario), y el arrastre directo se quedó afuera sin
-## que nadie lo notara — item_data_details seguía apuntando a la
-## referencia VIEJA, así que un ítem de CONJUNTO mostraba la cuenta de
-## "X/N piezas equipadas" congelada de ANTES de este cambio. Centralizarlo
-## acá cubre cualquier camino nuevo que aparezca después sin tener que
-## acordarse de repetir la llamada.
+## Único punto de entrada de "el equipo cambió": lo llaman TODOS los caminos
+## que pueden cambiarlo (botón Equipar/Soltar, arrastre a un EquipoSlot,
+## desequipar arrastrando afuera, soltar en la grilla general y
+## restaurar_equipo() al cargar partida). Cerrar el detalle ACÁ y no en cada
+## llamador es a propósito: si un camino se olvida, item_data_details queda
+## apuntando a la referencia vieja y un ítem de CONJUNTO muestra "X/N piezas"
+## congelado.
 func notificar_equipo_cambiado() -> void:
 	var equipados: Array[DatosItem] = []
 	for slot: EquipoSlot in slots_equippable:

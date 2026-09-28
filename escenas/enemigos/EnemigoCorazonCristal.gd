@@ -1,26 +1,21 @@
 extends Enemigo
 class_name EnemigoCorazonCristal
-## Jefe de 4 fases al fondo de la Mina de Cristal — ver el plan
-## "C:\Users\USER\.claude\plans\cheeky-mixing-melody.md". Misma máquina de
-## fases que EnemigoGuardianQuebrado.gd/EnemigoArañaReina.gd (mismo
-## _telegrafiar_pausa_de_fase heredado de Enemigo, mismo patrón de agregar
-## habilidades al SelectorHabilidades en runtime), pero el KIT DE ATAQUES
-## reusa habilidades genéricas YA EXISTENTES (Golpe Básico, Arañazo,
-## Proyectil, Área de Efecto, Muro, Sacudida, Carga) con nombre/tema de
-## cristal en vez de escribir una habilidad bespoke por fase — mismo
-## criterio que EnemigoArañaReina ya usa para su propio Arañazo/Sacudida
-## (ver Habilidades/HabilidadArañazo, Habilidades/HabilidadVenenoParalizante
-## en EnemigoArañaReina.tscn). Nada de esto es nuevo ni improvisado: cada
-## pieza ya está probada por los mobs/jefes que la usan hoy.
+## Jefe de 4 fases al fondo de la Mina de Cristal. Misma máquina de fases que
+## EnemigoGuardianQuebrado.gd y EnemigoArañaReina.gd (_telegrafiar_pausa_de_fase
+## de Enemigo, habilidades que se suman al SelectorHabilidades por fase), pero
+## el KIT reusa habilidades genéricas que ya existen (Golpe Básico, Arañazo,
+## Proyectil, Área de Efecto, Muro, Sacudida, Carga) con tema de cristal, en
+## vez de una habilidad a medida por fase; cada pieza ya está probada por los
+## mobs y jefes que la usan.
 ##
 ## Fase 1 "Cristalización" (Golpe + Zarpazo, cuerpo a cuerpo).
 ## Fase 2 "Fractura" (<75%): suma Lluvia de Esquirlas (proyectil a
 ## distancia) y Erupción de Cristal (área).
 ## Fase 3 "Resonancia" (<50%): suma Muro de Cristal (bloquea la sala) y
-## Pulso de Cristal (aturde en área corta — mismo Sacudida.gd que ya usa
-## Araña Reina).
+## Pulso de Cristal (aturde en área corta; el mismo Sacudida.gd de la Araña
+## Reina).
 ## Fase 4 "Quiebre Final" (<25%): suma Embestida de Cristal (carga de daño
-## verdadero, misma HabilidadCarga.gd base que ArremetidaGuardian), invoca
+## verdadero, la misma HabilidadCarga.gd base que ArremetidaGuardian), invoca
 ## refuerzos y aplica furia final (recarga más rápida, permanente).
 
 const _UMBRAL_FASE_2 := 0.75

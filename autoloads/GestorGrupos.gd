@@ -1,27 +1,21 @@
 extends Node
-## Grupos/parties — Feature C del plan de escalado a MMO. Autoload de
-## script plano: puro estado de runtime en memoria del SERVIDOR (los grupos
-## son sesiones, no progreso persistente — no sobreviven un reinicio del
-## servidor, mismo criterio que otras cosas de sesión como InteresEspacial).
-## Indexado por id_unico (NUNCA peer_id, que cambia en cada reconexión) —
-## la resolución a un peer_id/nodo Jugador vivo siempre se hace EN EL
-## MOMENTO (ver jugador_de_id_unico), nunca se guarda en caché, así que un
-## miembro que se reconecta con un peer_id nuevo sigue siendo encontrable
-## sin ningún paso extra de "reenganche".
+## Grupos (parties). Autoload de script plano: estado de runtime en la memoria
+## del SERVIDOR (los grupos son sesiones, no progreso persistente: no
+## sobreviven un reinicio). Indexado por id_unico, NUNCA por peer_id (cambia
+## en cada reconexión); el peer_id o el nodo Jugador se resuelven EN EL
+## MOMENTO (ver jugador_de_id_unico), así un miembro que se reconecta sigue
+## siendo encontrable sin ningún paso extra.
 ##
-## Principio de diseño del proyecto (sin roles, ver memoria
-## sin-roles-supervivencia-solo): nada acá crea dependencia funcional entre
-## miembros. El líder solo administra el grupo en sí (expulsar) — no tiene
-## ninguna ventaja de combate ni bloquea a los demás de nada.
+## Principio de diseño (sin roles, ver memoria sin-roles-supervivencia-solo):
+## nada acá crea dependencia funcional entre miembros. El líder solo
+## administra el grupo (expulsar), sin ventaja de combate.
 ##
-## Flujo (decisión del usuario: panel dedicado, no comando de chat):
-## PanelGrupo pide invitar a alguien del roster de conectados -> servidor
-## crea una invitación pendiente con TTL -> el destino ve un popup
-## (PanelInvitacionGrupo) -> acepta/rechaza -> el servidor arma/suma al
-## grupo y difunde la vista actualizada a cada miembro (nombre + vida de
-## todos, para BarraLateral/PanelGrupo). Rechazar avisa al invitante por el
-## mismo canal de GestorChat (mensaje de sistema), sin inventar otro tipo
-## de notificación aparte.
+## Flujo: PanelGrupo pide invitar a alguien del roster de conectados -> el
+## servidor crea una invitación pendiente con TTL -> el destino ve un popup
+## (PanelInvitacionGrupo) -> acepta o rechaza -> el servidor arma o suma al
+## grupo y difunde la vista actualizada a cada miembro (nombre y vida de
+## todos, para BarraLateral y PanelGrupo). Un rechazo se le avisa al
+## invitante por GestorChat, como mensaje de sistema.
 
 signal roster_actualizado
 signal grupo_actualizado
@@ -73,17 +67,13 @@ func _difundir_roster() -> void:
 	for peer_id in _conectados:
 		var entrada: Dictionary = _conectados[peer_id]
 		lista.append({"peer_id": peer_id, "nombre": entrada.get("nombre", "")})
-	# quitar_conectado() llama acá SINCRÓNICAMENTE desde ServidorDedicado.
-	# _al_desconectar (la respuesta directa a peer_disconnected), que puede
-	# disparar a mitad de un fotograma físico — antes de que el próximo
-	# fotograma invalide el caché de InteresEspacial._peers_enviables().
-	# Ese caché (uno por fotograma, reusado por TODOS los mobs) puede
-	# devolver todavía al peer que se acaba de caer, y rpc_id() a un peer ya
-	# desconectado revienta con "Attempt to call RPC with unknown peer ID"
-	# (reportado en el log real del servidor). Se revalida acá el estado
-	# REAL de ENet (sin caché, sólo para este broadcast puntual) — mismo
-	# chequeo que ya hace InteresEspacial internamente, ver el comentario
-	# grande en _peers_enviables().
+	# quitar_conectado() llama acá SINCRÓNICAMENTE desde
+	# ServidorDedicado._al_desconectar, que puede disparar a mitad de un
+	# fotograma físico: el caché de InteresEspacial._peers_enviables() (uno
+	# por fotograma) todavía puede incluir al peer que se acaba de caer, y
+	# rpc_id() a un peer desconectado revienta con "Attempt to call RPC with
+	# unknown peer ID". Se revalida el estado REAL de ENet, sin caché, solo
+	# para este aviso (ver _peers_enviables()).
 	var enet := multiplayer.multiplayer_peer as ENetMultiplayerPeer
 	for destino in InteresEspacial.peers_conectados_listos():
 		if enet != null:

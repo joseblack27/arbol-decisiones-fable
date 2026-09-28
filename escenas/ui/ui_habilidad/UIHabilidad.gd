@@ -161,13 +161,10 @@ func _actualizar_desde_habilidad() -> void:
 		# empiece a representarla). Duck-typed: cualquier habilidad de dos
 		# etapas puede sumarse solo con implementar este método.
 		_fase_activa = hab.has_method(&"esta_en_fase_activa") and hab.esta_en_fase_activa()
-		# Mismo criterio que la fase, mismo reporte: el pastel/etiqueta de
-		# recarga tiene que reflejar el estado REAL de la habilidad que le
-		# toca mostrar ahora — antes se reseteaba a cero a ciegas en cada
-		# cambio de página, así que una habilidad que seguía en recarga de
-		# verdad se veía lista para usar hasta que llegara la próxima señal
-		# de recarga (que podía tardar segundos, o nunca si ya estaba a
-		# mitad de camino cuando se cambió de página).
+		# Mismo criterio que la fase: el pastel y la etiqueta de recarga tienen
+		# que reflejar el estado REAL de la habilidad que se muestra ahora.
+		# Resetearlos a cero en cada cambio de página hacía ver lista una
+		# habilidad que seguía en recarga, hasta la próxima señal de recarga.
 		_cd_duracion = hab.duracion_recarga
 		_cd_restante = hab.obtener_recarga_restante()
 		_cd_ratio    = hab.obtener_ratio_recarga()
@@ -199,34 +196,24 @@ func _get_habilidad() -> HabilidadBase:
 	return null
 
 
-## En cooldown, ni siquiera se ARMA el apunte (ni el tap del modo botón) —
-## para TODAS las habilidades, no solo las de canal continuo: apuntar algo
-## que no puede dispararse solo confunde (parecía que la habilidad
-## respondía y el disparo nunca salía). Empezó siendo exclusivo del
-## lanzallamas (donde además rearrancaba el chorro solo al vencer el
-## cooldown) y el usuario pidió extenderlo a todas.
+## En cooldown ni siquiera se ARMA el apunte (ni el toque en modo botón), para
+## TODAS las habilidades: apuntar algo que no puede dispararse confunde
+## (parece que responde y el disparo nunca sale).
 func _apunte_bloqueado_por_cooldown() -> bool:
 	return _cd_restante > 0.0
 
 
-## Muerto no lanza habilidades — HabilidadBase.activar()/_activar_red() ya
-## lo bloquean del lado del EFECTO real (client-side y server-side), pero
-## este botón seguía respondiendo igual al toque mientras tanto: el
-## joystick se armaba, el indicador de apunte se mostraba... como si la
-## habilidad fuera a salir, y en el fondo nunca hacía nada (pedido del
-## usuario: bloquearlas de verdad hasta reaparecer, no solo que no tengan
-## efecto). _slot_habilidades.jugador es la MISMA referencia que ya usa
-## SlotHabilidades (asignada en el Inspector), no hace falta buscarla de
-## nuevo por grupo.
+## Muerto no lanza habilidades: HabilidadBase.activar()/_activar_red() ya lo
+## bloquean del lado del efecto real, pero sin esto el botón seguía armando el
+## joystick y el indicador de apunte como si la habilidad fuera a salir.
+## _slot_habilidades.jugador es la misma referencia que ya usa
+## SlotHabilidades (asignada en el Inspector).
 ## También cubre la llegada a un nivel nuevo (ver
-## Jugador.bloquear_por_transicion): durante esos segundos el botón no
-## responde, igual que estando muerto.
-## La habilidad de ESTE slot puede declarar ignora_bloqueos (ver
-## HabilidadBase.activar/HabilidadCorte): en ese caso el toque solo se
-## bloquea estando MUERTO, no por aturdimiento ni por el margen de red —
-## si no, el botón ni siquiera armaría el joystick y la habilidad "siempre
-## disponible" que pidió el usuario sería inalcanzable justo cuando más
-## hace falta (aturdido por el jefe).
+## Jugador.bloquear_por_transicion): esos segundos el botón no responde.
+## Si la habilidad de ESTE slot declara ignora_bloqueos (ver
+## HabilidadBase.activar/HabilidadCorte), el toque solo se bloquea estando
+## MUERTO: si no, una habilidad "siempre disponible" sería inalcanzable justo
+## cuando más hace falta (aturdido por un jefe).
 func _dueño_muerto() -> bool:
 	if not _slot_habilidades or not is_instance_valid(_slot_habilidades.jugador):
 		return false
@@ -239,16 +226,12 @@ func _dueño_muerto() -> bool:
 	return ("_muerto" in jugador) and jugador.get("_muerto")
 
 
-## true mientras el dueño tiene el control bloqueado por el margen de red
-## de otra habilidad recién lanzada (ver HabilidadBase._MARGEN_CONGELAMIENTO_
-## RED/activar() — 0.5s tras cualquier cast con congela_movimiento_en_red=
-## true, que es la inmensa mayoría). El TOQUE ya estaba bloqueado sin esto
-## (Jugador.esta_bloqueado(), que _dueño_muerto() ya consulta, incluye
-## _bloqueos_control > 0) — lo único que faltaba era que se VIERA: tocar
-## otro slot en esa ventana no hacía nada, sin ningún indicio de por qué,
-## se sentía como lag/mala señal (reportado). Por eso esto vive aparte de
-## _dueño_muerto() y solo se usa para oscurecer (ver _refrescar_visual),
-## no para bloquear el toque de nuevo.
+## true mientras el dueño tiene el control bloqueado por el margen de red de
+## otra habilidad recién lanzada (ver HabilidadBase.margen_congelamiento_red).
+## El toque ya está bloqueado por Jugador.esta_bloqueado() (que
+## _dueño_muerto() consulta); esto es solo para que se VEA: sin indicio, tocar
+## otro slot en esa ventana se sentía como lag. Por eso vive aparte y solo
+## oscurece (ver _refrescar_visual).
 func _dueño_bloqueado_por_control() -> bool:
 	if not _slot_habilidades or not is_instance_valid(_slot_habilidades.jugador):
 		return false
@@ -499,14 +482,10 @@ func _process(delta: float) -> void:
 		_emitir_apunte()
 
 
-## OJO: el bus de eventos es global — dispara igual para réplicas de
-## jugadores AJENOS (visibles en pantalla, pero no el propio). Sin este
-## chequeo, un jugador remoto gastando SU energía o entrando en cooldown
-## bloqueaba (o desbloqueaba) el botón de ESTE jugador (bug reportado:
-## "cuando gasto toda la energía en un jugador, los demás jugadores no
-## pueden lanzar habilidades por falta de energía" — mismo patrón que ya
-## se había arreglado para slot_habilidades_local, ver el comentario de
-## Utils.jugador_local()).
+## OJO: el bus de eventos es global y dispara también para réplicas de
+## jugadores AJENOS. Sin este chequeo, otro jugador gastando SU energía o
+## entrando en cooldown bloqueaba o desbloqueaba el botón de ESTE jugador
+## (mismo criterio que Utils.jugador_local()).
 func _on_recarga_iniciada(entidad: Node, slot_idx: int, duracion: float) -> void:
 	if entidad == null or entidad != Utils.jugador_local():
 		return
@@ -572,10 +551,9 @@ func _disponer_nodos() -> void:
 func _refrescar_visual() -> void:
 	var color_base := color_activo if (_activo or _presionado) else color_reposo
 	var color_icono := color_icono_fase_activa if _fase_activa else _COLOR_ICONO_NORMAL
-	# Oscurecer fondo + ícono mientras el control está bloqueado (ver
-	# _dueño_bloqueado_por_control) — pedido del usuario: que se note a
-	# simple vista por qué un toque no hace nada en vez de sentirse como
-	# lag/mala señal.
+	# Oscurecer fondo e ícono mientras el control está bloqueado (ver
+	# _dueño_bloqueado_por_control), para que se note por qué un toque no hace
+	# nada.
 	if _bloqueado_por_control:
 		color_base = color_base.darkened(factor_oscurecido_bloqueo)
 		color_icono = color_icono.darkened(factor_oscurecido_bloqueo)

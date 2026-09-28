@@ -25,12 +25,10 @@ extends HabilidadBase
 ## para que un jugador viendo a otro usar esto también vea el chorro.
 
 @export_group("Cono")
-## Daño de un golpe COMPLETO (pasa por _calcular_dano, respeta dano_base_
-## min/max del recurso equipado) — el tick real solo aplica una FRACCIÓN de
-## esto, ver multiplicador_dano_tick. Repartir el daño total en varios
-## ticks (en vez de éste completo por tick) es lo que evita que un
-## lanzallamas encimado a un objetivo lo derrita en un tick — balance
-## pedido por el usuario tras probarlo.
+## Daño de un golpe COMPLETO (pasa por _calcular_dano, respeta dano_base_min/
+## max del recurso equipado); cada tick aplica solo una FRACCIÓN (ver
+## multiplicador_dano_tick). Repartir el daño en varios ticks evita que un
+## lanzallamas encima de un objetivo lo derrita en un tick.
 @export var dano_por_tick: float = 6.0
 ## Fracción de dano_por_tick que se aplica en cada tick real (0.2 = 20%).
 @export_range(0.05, 1.0, 0.05) var multiplicador_dano_tick := 0.2
@@ -52,10 +50,10 @@ var _canalizando := false
 var _direccion_canal := Vector2.RIGHT
 var _acumulador_tick := 0.0
 var _tiempo_canalizando := 0.0
-## true cuando el canal terminó SOLO (tiempo máximo o sin energía) con el
-## dedo todavía puesto: el "apunte" sigue llegando cada fotograma, y sin
-## este cerrojo, apenas venciera el cooldown el chorro rearrancaba solo sin
-## que el jugador lo pidiera (reportado). Se libera únicamente al SOLTAR.
+## true cuando el canal terminó SOLO (tiempo máximo o sin energía) con el dedo
+## todavía puesto: el "apunte" sigue llegando cada fotograma y, sin este
+## cerrojo, al vencer el cooldown el chorro rearrancaba solo. Se libera
+## únicamente al SOLTAR.
 var _esperando_soltar := false
 
 var _sig_apunte := ""
@@ -158,24 +156,18 @@ func _construir_forma_cono() -> Shape2D:
 	return forma
 
 
-## Puramente visual (ChorroVisual, ver assets/efectos/lanzallamas.png,
-## sprite del usuario en 4 frames) — no afecta el daño real, que sigue
-## siendo _construir_forma_cono()/Combate.golpear_area de arriba. El
-## parpadeo de los 4 frames lo maneja solo el AnimationPlayer hermano
-## (autoplay, en loop — ver el .tscn); acá solo hace falta prender/apagar
-## la visibilidad y seguir la posición/dirección del dueño, la animación
-## en sí corre sin que este script tenga que tocarla. Solo tiene sentido
-## dibujar algo donde de verdad hay pantalla: se chequea DisplayServer, no
-## la red, porque en un solo jugador (sin red) TAMBIÉN hace falta
-## mostrarlo.
+## Puramente visual (ChorroVisual, assets/efectos/lanzallamas.png, 4 frames):
+## no afecta el daño real, que es _construir_forma_cono() y
+## Combate.golpear_area. El parpadeo de los frames lo maneja el
+## AnimationPlayer hermano (autoplay en loop, ver el .tscn); acá solo se
+## prende o apaga y se sigue la posición y dirección del dueño. Se chequea
+## DisplayServer y no la red: sin red también hace falta mostrarlo.
 ##
 ## Se muestra por _canalizando (dueño local o servidor) O por
-## _mostrar_visual_remoto (espectador avisado por RPC — ver
+## _mostrar_visual_remoto (espectador avisado por RPC, ver
 ## _avisar_visual_a_espectadores/_recibir_inicio_visual_chorro_red): un
-## espectador nunca tiene _canalizando en true (nunca le llega ni
-## _on_apunte —_soy_quien_controla lo corta— ni _iniciar_canal_red —solo
-## corre en el servidor—), así que sin el aviso de red se quedaría sin ver
-## nada (reportado por el usuario, arreglado acá).
+## espectador nunca tiene _canalizando en true, así que sin ese aviso no
+## vería nada.
 func _actualizar_visual_chorro() -> void:
 	if not _chorro_visual or DisplayServer.get_name() == "headless":
 		return
@@ -274,14 +266,10 @@ func _detener_canal() -> void:
 		rpc_id(1, "_terminar_canal_red")
 	elif Utils.en_red() and multiplayer.is_server():
 		# Esto corrió con autoridad real (energía agotada o tiempo máximo,
-		# detectados ACÁ mismo en _process — no por un aviso del cliente):
-		# avisar a los espectadores Y al propio dueño remoto. Sin esto, un
-		# cliente puro nunca se entera de que el SERVIDOR cortó su canal
-		# por estas razones (nunca corre esa lógica él mismo, ver el gate
-		# de _process más abajo) — su propia predicción seguía
-		# "canalizando" (chorro animando) hasta que soltara el dedo a mano
-		# (reportado: "no detiene la animación cuando se acaba la energía
-		# o el tiempo, solo si se suelta antes").
+		# detectados acá en _process): avisar a los espectadores Y al propio
+		# dueño remoto. Un cliente puro nunca corre esta lógica (ver el gate
+		# de _process), así que sin el aviso su predicción seguiría animando
+		# el chorro hasta que soltara el dedo.
 		_avisar_fin_visual_a_espectadores()
 
 
@@ -296,14 +284,12 @@ func _aplicar_fin_canal_local() -> void:
 	# puesto: exigir soltar antes del próximo chorro. Si llegó por soltar,
 	# _on_soltar lo limpia justo después.
 	_esperando_soltar = true
-	# Soltar también el APUNTADO de la UI aunque el dedo siga puesto
-	# (pedido del usuario): el botón se desengancha del toque y emite
-	# cancelar — con eso el indicador de apunte y la zona de cancelación se
-	# esconden ya, en vez de quedarse "apuntando" un chorro que ya no
-	# existe. OJO: ese cancelar dispara _on_soltar (conectado a la señal),
-	# que re-entra acá (corta por _canalizando=false de arriba) y limpia
-	# _esperando_soltar — correcto: el toque quedó desenganchado, así que
-	# ya no llega ningún apunte que pudiera rearrancar nada.
+	# Soltar también el APUNTADO de la UI aunque el dedo siga puesto: el
+	# botón se desengancha del toque y emite cancelar, así el indicador de
+	# apunte y la zona de cancelación se esconden ya. OJO: ese cancelar
+	# dispara _on_soltar, que re-entra acá (corta por _canalizando=false) y
+	# limpia _esperando_soltar; es correcto, porque con el toque
+	# desenganchado ya no llega ningún apunte que pudiera rearrancar nada.
 	if is_inside_tree():
 		UIHabilidad.cancelar_apunte_de_slot(get_tree(), slot_index)
 	if is_instance_valid(entidad_dueña) and entidad_dueña.has_method("desbloquear_control"):
@@ -358,7 +344,7 @@ func _validar_remitente() -> bool:
 	return multiplayer.get_remote_sender_id() == entidad_dueña.peer_id_dueño
 
 
-# ── Réplica visual a espectadores (pedido del usuario) ────────────────────────
+# ── Réplica visual a espectadores ────────────────────────────────────────────
 
 ## Avisa a los peers cercanos (ver InteresEspacial, mismo patrón que
 ## Jugador._replicar_posicion_red/Enemigo._physics_process) que este
@@ -397,13 +383,11 @@ func _recibir_actualizacion_visual_chorro_red(direccion: Vector2) -> void:
 @rpc("authority", "reliable")
 func _recibir_fin_visual_chorro_red() -> void:
 	_mostrar_visual_remoto = false
-	# Si además SOY el dueño real de este canal, esto significa que el
-	# SERVIDOR lo cortó por su cuenta (energía agotada o tiempo máximo,
-	# ver _detener_canal()) sin que yo se lo pidiera — mi propia
-	# predicción (_canalizando) nunca se hubiera enterado sola, porque el
-	# consumo de energía real solo corre server-side (ver el gate en
-	# _process). Sin esto, mi chorro seguía "canalizando" en mi pantalla
-	# hasta soltar el dedo a mano (reportado).
+	# Si además SOY el dueño real de este canal, el SERVIDOR lo cortó por
+	# su cuenta (energía agotada o tiempo máximo, ver _detener_canal()): el
+	# consumo real solo corre en el servidor (ver el gate en _process), así
+	# que mi predicción no se enteraría sola y el chorro seguiría en mi
+	# pantalla hasta soltar el dedo.
 	if _canalizando and is_instance_valid(entidad_dueña) and ("peer_id_dueño" in entidad_dueña) \
 			and entidad_dueña.peer_id_dueño == multiplayer.get_unique_id():
 		_aplicar_fin_canal_local()

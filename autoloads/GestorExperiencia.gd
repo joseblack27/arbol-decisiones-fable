@@ -1,10 +1,8 @@
 extends Node
-## GestorExperiencia (autoload) — FACADE de compatibilidad, Fase 1 del plan
-## de migración a multijugador. El dato real ya NO vive acá: vive en
-## ExperienciaComponente, colgado de cada Jugador. Ver GestorInventario.gd
-## para la explicación completa del patrón (mismo criterio acá, incluido
-## por qué se carga con load() adentro de una función y no con preload/
-## tipado estático a nivel de clase).
+## GestorExperiencia (autoload): fachada de compatibilidad. El dato real vive
+## en ExperienciaComponente, colgado de cada Jugador. Mismo patrón que
+## GestorInventario.gd (ver ahí por qué se carga con load() dentro de una
+## función y no con preload ni tipado a nivel de clase).
 
 var _respaldo = null
 

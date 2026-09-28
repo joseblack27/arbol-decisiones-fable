@@ -1,36 +1,26 @@
 extends CharacterBody2D
 class_name Aldeano
-## NPC de fondo, puramente ambiental — deambula en un radio chico alrededor
-## de su posición de aparición dentro de la Ciudad (nunca cruza de nivel,
-## vive colgado directo del contenedor "NPCs" del propio NivelCiudad.tscn,
-## a diferencia de Lenador.gd/Cazador.gd) y, si el jugador le habla, se
-## detiene a conversar y retoma su recorrido al cerrarse el diálogo.
-## Pedido explícito del usuario: "quiero que la ciudad se vea un poco más
-## viva... aldeanos de fondo, que tenga un diálogo si les hablas y al
-## interactuar con ellos que se detengan para hablarte".
+## NPC de fondo, puramente ambiental: deambula en un radio chico alrededor de
+## donde apareció en la Ciudad (nunca cruza de nivel: vive en el contenedor
+## "NPCs" de NivelCiudad.tscn, a diferencia de Lenador.gd y Cazador.gd) y, si
+## el jugador le habla, se detiene a conversar y retoma al cerrarse el diálogo.
 ##
-## INMUNIDAD A COMBATE — mismo criterio que Lenador.gd/Cazador.gd: a
-## propósito NO extiende Enemigo.gd, sin VidaComponente, fuera de los
-## grupos "jugadores"/"enemigos".
+## INMUNIDAD A COMBATE, mismo criterio que Lenador.gd y Cazador.gd: NO extiende
+## Enemigo.gd, no tiene VidaComponente y no está en los grupos
+## "jugadores"/"enemigos".
 ##
-## DEAMBULAR reimplementado a mano (mismo cálculo que AccionDeambular.gd,
-## sin árbol de comportamiento — este NPC no tiene ArbolComportamiento):
-## elige un punto al azar dentro de radio_deambulacion de su posición de
-## aparición, movimiento.comandar_destino() hasta ahí (pathfinding real,
-## nunca sale de la malla de navegación — a diferencia de comandar_
-## direccion(), ver el bug real ya arreglado en AccionHuir.gd), espera un
-## rato, repite.
+## DEAMBULAR reimplementado a mano (mismo cálculo que AccionDeambular.gd; este
+## NPC no tiene ArbolComportamiento): un punto al azar dentro de
+## radio_deambulacion, movimiento.comandar_destino() hasta ahí (pathfinding
+## real, nunca sale de la malla, a diferencia de comandar_direccion()), una
+## espera, y de nuevo.
 ##
-## "SE DETIENEN PARA HABLARTE": la máquina de estados (quién puede mover al
-## aldeano) la decide el SERVIDOR, igual que cualquier otro NPC — pero
-## quién sabe "estoy hablando con este aldeano ahora mismo" es cada
-## CLIENTE (GestorUI.modo_actual es puramente local, ver GestorUI.gd). Por
-## eso el cliente le avisa al servidor por RPC cuándo empieza y cuándo
-## termina de hablar (_avisar_hablando), y el servidor cuenta cuántos
-## jugadores están "hablando" ahora mismo (_hablantes, mismo criterio de
-## contador que Npc.gd._cuerpos_dentro: puede haber más de uno a la vez,
-## no alcanza un booleano) — mientras ese contador sea > 0, la máquina de
-## estados se queda quieta en HABLANDO en vez de retomar el deambular.
+## "SE DETIENE PARA HABLARTE": la máquina de estados la decide el SERVIDOR,
+## pero quién está hablando con este aldeano lo sabe cada CLIENTE
+## (GestorUI.modo_actual es local). El cliente avisa por RPC cuándo empieza y
+## termina de hablar (_avisar_hablando), y el servidor cuenta cuántos jugadores
+## hablan a la vez (_hablantes, un contador como Npc.gd._cuerpos_dentro):
+## mientras sea > 0, se queda en HABLANDO.
 
 const CAPA_NPC_ERRANTE := 16  # misma capa que ya usa Lenador.gd/Cazador.gd.
 const _FOTOGRAMAS_KEEPALIVE_RED := 30

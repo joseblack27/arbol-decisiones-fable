@@ -36,14 +36,11 @@ extends Accion
 ## Multiplicador sobre componente_movimiento.velocidad_base — >1 para que
 ## la respuesta se sienta urgente, no un paseo.
 @export var multiplicador_velocidad: float = 1.3
-## Se rinde si pasa este tiempo sin acercarse por la RUTA — nunca por tiempo
-## total. Reportado en juego real (27 sep 2026): "no todas atienden al llamado
-## y deben llegar al fondo de la cámara de la reina, no solo a la entrada".
-## Antes se usaba MovimientoComponente.llego_al_destino(), que se da por
-## llegado a los 6s de intentarlo: en el Hormiguero las rutas por los túneles
-## miden 1.600-12.000 px (14-100s de caminata), así que TODAS las hormigas
-## abandonaban a los 6s donde estuvieran — a mitad de un pasillo, o en la
-## entrada de la cámara.
+## Se rinde si pasa este tiempo sin acercarse por la RUTA, nunca por tiempo
+## total: en el Hormiguero las rutas por los túneles miden 1.600-12.000 px
+## (14-100 s de caminata). Con MovimientoComponente.llego_al_destino(), que se
+## da por llegado a los 6 s, las hormigas de la llamada de la Reina
+## abandonaban a mitad de un pasillo o en la entrada de la cámara.
 @export var segundos_sin_progreso_para_rendirse: float = 3.0
 
 ## Cuánto tiene que bajar lo que falta de ruta para contar como avance.

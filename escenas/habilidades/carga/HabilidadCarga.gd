@@ -58,15 +58,12 @@ func _process(delta: float) -> void:
 				var nueva_dir := (_posicion_objetivo - (entidad_dueña as Node2D).global_position).normalized()
 				if nueva_dir.length() > 0.1:
 					_direccion_carga = nueva_dir
-					# Actualizar la dirección visible del enemigo. Hay que
-					# tocar LAS DOS: Enemigo._aplicar_presentacion prioriza
-					# "direccion_mirada" sobre "direccion", y mientras hay un
-					# ataque en curso AccionAtacar deja de refrescarla (corta
-					# antes). O sea que poner sólo "direccion" no se veía: el
-					# lobo se quedaba mirando hacia donde te vio por primera
-					# vez, aunque siguiera reapuntando la embestida hacia vos.
-					# Reportado: "se queda mirando hacia arriba y lanza el
-					# ataque hacia abajo".
+					# Actualizar la dirección visible del enemigo. Hay que tocar
+					# LAS DOS: Enemigo._aplicar_presentacion prioriza
+					# "direccion_mirada" sobre "direccion", y durante un ataque
+					# en curso AccionAtacar deja de refrescarla. Con solo
+					# "direccion", el lobo seguía mirando hacia donde vio al
+					# jugador por primera vez aunque reapuntara la embestida.
 					if "direccion" in entidad_dueña:
 						entidad_dueña.set("direccion", _direccion_carga)
 					if "direccion_mirada" in entidad_dueña:
@@ -89,12 +86,10 @@ func _physics_process(delta: float) -> void:
 	var entidad := entidad_dueña as CharacterBody2D
 	if not entidad:
 		return
-	# Un muerto no sigue embistiendo: este bucle mueve el cuerpo DIRECTO
-	# (ver comentario de la clase), sin pasar por MovimientoComponente —
-	# _on_muerte() apagando el árbol de comportamiento no lo frena, porque
-	# ya no tickea por ahí una vez activado. Sin este corte, un mob que
-	# muere a mitad de carga seguía deslizándose con la animación de
-	# muerte puesta (reportado con el Caballero Esqueleto).
+	# Un muerto no sigue embistiendo: este bucle mueve el cuerpo DIRECTO (ver
+	# el comentario de la clase), sin pasar por MovimientoComponente, y
+	# apagar el árbol en _on_muerte() no lo frena. Sin este corte, un mob que
+	# moría a mitad de carga seguía deslizándose.
 	if "_muerto" in entidad_dueña and entidad_dueña.get("_muerto"):
 		_terminar_carga()
 		return
@@ -165,22 +160,13 @@ func _physics_process(delta: float) -> void:
 # API pública
 # =============================================================================
 
-## Reportado por el usuario: "el Caballero embiste mirando a la derecha, de
-## vez en cuando" — intermitente, no se pudo reproducir con el objetivo fijo
-## (probado apuntando arriba y a la izquierda, a mano y con la IA real, sin
-## fallar ni una vez). La sospecha que SÍ explica un fallo ocasional: "direccion"
-## viene de SelectorHabilidades leyendo agente.direccion_mirada un instante
-## ANTES de que esta función corra — si "objetivo" cambió justo en el medio
-## (p. ej. por la nueva selección de objetivo entre varios jugadores, o un
-## golpe recién llegado reprioriza al atacante), ese valor podía llegar
-## desactualizado. Antes, sin un objetivo confiable, "direccion" en cero caía
-## directo a Vector2.RIGHT — el "mirando a la derecha" del reporte.
-##
-## Ahora la dirección se recalcula ACÁ, en el mismo instante en que la carga
-## arranca de verdad, directo desde la posición real del objetivo — no
-## depende de que el llamador la haya calculado bien un tick antes. El
-## parámetro "direccion" queda solo como último respaldo si no hay objetivo
-## válido en este instante (debería ser rarísimo, no el caso normal).
+## La dirección se recalcula ACÁ, en el instante en que la carga arranca,
+## desde la posición real del objetivo. "direccion" viene de
+## SelectorHabilidades, que lee agente.direccion_mirada un instante antes: si
+## el objetivo cambió justo en el medio (otra selección entre varios
+## jugadores, o un golpe que reprioriza al atacante), llegaba desactualizada,
+## y en cero caía a Vector2.RIGHT (embestía mirando a la derecha). El
+## parámetro queda solo de respaldo si no hay objetivo válido.
 func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	_timer_preparacion   = 0.0
 	_timer_seguridad     = 0.0

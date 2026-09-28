@@ -127,23 +127,18 @@ func obtener_vida_maxima() -> float:
 	return _salud_maxima
 
 
-## fuente_ataque (opcional): quién pega — si es del mismo equipo que quien
-## INVOCÓ este muro (_fuente), el golpe no hace nada (ver _bloqueado_por_
-## equipo). Sin fuente_ataque (null: daño ambiental sin atacante
-## identificable) no se bloquea nada, igual que antes.
+## fuente_ataque (opcional): quién pega. Si es del mismo equipo que quien
+## INVOCÓ este muro (_fuente), el golpe no hace nada (ver
+## _bloqueado_por_equipo). Sin fuente_ataque (daño ambiental) no se bloquea.
 ##
-## Gate de red (nuevo): a diferencia de VidaComponente, este muro se
-## invoca por PREDICCIÓN LOCAL en cada peer (ver HabilidadBase._disparar:
-## el dueño, el servidor Y cada espectador vía _reproducir_visual_red
-## corren _ejecutar() cada uno por su cuenta) — así que cada uno tenía su
-## PROPIA copia de _salud_actual, sin sincronizar nunca entre sí. Con
-## suficientes golpes de por medio (cada peer tirando su propio crítico al
-## azar), un mismo muro terminaba roto para un jugador y vivo para otro —
-## reportado por el usuario. Ahora la vida/destrucción real SOLO la decide
-## el servidor (o un jugador solo); en un cliente puro esto es no-op — el
-## dueño de la habilidad (ver HabilidadMuroJugador) es quien avisa por RPC
-## cuando el servidor de verdad lo rompe, para que todos destruyan su
-## propia copia local a la vez.
+## Gate de red: este muro se crea por PREDICCIÓN LOCAL en cada peer (ver
+## HabilidadBase._disparar: dueño, servidor y cada espectador corren
+## _ejecutar()), así que cada uno tiene su PROPIA _salud_actual. Con cada peer
+## tirando su propio crítico, un muro podía quedar roto para un jugador y vivo
+## para otro. La vida y la destrucción reales SOLO las decide el servidor (o
+## sin red); en un cliente puro esto no hace nada, y el dueño de la habilidad
+## (ver HabilidadMuroJugador) avisa por RPC cuando el servidor lo rompe, para
+## que todos destruyan su copia a la vez.
 func quitar_vida(cantidad: float, fuente_ataque: Node = null, _tipo: int = 2, _critico: bool = false) -> float:
 	if Utils.en_red() and not multiplayer.is_server():
 		return _salud_actual
@@ -157,22 +152,16 @@ func quitar_vida(cantidad: float, fuente_ataque: Node = null, _tipo: int = 2, _c
 	return maxf(0.0, _salud_actual)
 
 
-## Un proyectil con más "impacto" (penetración de armadura) que la defensa
-## del muro lo revienta de un solo golpe — quien lo golpeó no debe gastarse
-## en el intento: ver Proyectil._on_area_entrada, que al recibir true aquí
-## no se destruye a sí mismo y sigue de largo.
-## Devuelve true si el muro se rompió, false si lo absorbió sin más (en ese
-## caso el daño normal ya lo aplica quien llamó, vía quitar_vida()) o si el
-## golpe se bloqueó por ser del mismo equipo que quien invocó el muro.
+## Un proyectil con más "impacto" (penetración de armadura) que la defensa del
+## muro lo revienta de un golpe, y el proyectil no se gasta: ver
+## Proyectil._on_area_entrada, que al recibir true sigue de largo.
+## Devuelve true si el muro se rompió; false si lo absorbió (el daño normal lo
+## aplica quien llamó, vía quitar_vida()) o si el golpe se bloqueó por ser del
+## mismo equipo que quien lo invocó.
 ##
-## Mismo gate de red que quitar_vida() (ver ese comentario): en un cliente
-## puro esto SIEMPRE da false — el muro se ve como un obstáculo sólido
-## hasta que el servidor avisa lo contrario, nunca "adivinado" localmente.
-## Antes esto era la mitad del bug reportado: el proyectil seguía de largo
-## en la pantalla de un jugador (creyó que rompió el muro) pero chocaba en
-## la del otro (su copia local decidió lo contrario) — ahora TODOS los
-## clientes ven exactamente el mismo resultado (el proyectil se frena acá)
-## hasta que llegue el aviso real.
+## Mismo gate de red que quitar_vida(): en un cliente puro SIEMPRE da false.
+## El muro se ve sólido hasta que el servidor avisa lo contrario, así todos los
+## clientes ven lo mismo (el proyectil se frena) hasta el aviso real.
 func recibir_impacto(impacto: float, fuente_ataque: Node = null) -> bool:
 	if Utils.en_red() and not multiplayer.is_server():
 		return false
@@ -205,19 +194,14 @@ func _romper() -> void:
 	_al_terminar()
 
 
-## EfectoAreaBase._terminar() (duración agotada, ver ese archivo) no
-## emitía "muerte" — HabilidadMuroGuardian/HabilidadMuroJugador dependen
-## de esa señal para (a) borrar su entrada en el diccionario de muros
-## activos, (b) avisarle a los DEMÁS peers que lo destruyan (ver
-## _on_muro_muerte/_recibir_destruccion_muro_red ahí) y (c) que el
-## CONNECT_ONE_SHOT de esa conexión se desconecte solo antes de que la
-## piscina recicle esta MISMA instancia. Sin esto, un muro que se apagaba
-## solo (nadie lo rompió a tiempo) dejaba la conexión colgada para
-## siempre — el próximo muro reciclado de la piscina reventaba con
-## "Signal already connected" al intentar conectar de nuevo (bug real,
-## encontrado al hacer la IA del jefe más agresiva). El chequeo de
-## _salud_actual evita emitir dos veces si ya se rompió en combate justo
-## antes de que el timer de duración también dispare.
+## EfectoAreaBase._terminar() (duración agotada) no emitía "muerte", y
+## HabilidadMuroGuardian/HabilidadMuroJugador dependen de esa señal para (a)
+## borrar el muro de su diccionario de activos, (b) avisarles a los DEMÁS
+## peers que lo destruyan (ver _on_muro_muerte/_recibir_destruccion_muro_red)
+## y (c) que su CONNECT_ONE_SHOT se desconecte antes de que la piscina recicle
+## ESTA instancia (si no, el próximo muro reciclado revienta con "Signal
+## already connected"). El chequeo de _salud_actual evita emitir dos veces si
+## ya se rompió en combate justo antes.
 func _terminar() -> void:
 	if _salud_actual > 0.0:
 		muerte.emit(0.0)

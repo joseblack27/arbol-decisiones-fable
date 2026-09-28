@@ -6,12 +6,10 @@ extends HabilidadBase
 ## Sobreescrito por DatosHabilidad.aplicar_datos() al equipar.
 var daño: float          = 15.0
 var alcance_golpe: float = 48.0
-## Sin equivalente en DatosHabilidad — configurable manualmente. Subido de
-## 30 a 70 (pedido del usuario) junto con el freno de aproximación de
-## AccionAtacar/AccionPerseguir (ver distancia_minima_acercamiento): antes,
-## el mob caminaba hasta quedar pegado al jugador y el golpe (que se coloca
-## alcance_golpe px POR DELANTE del propio mob) terminaba pasándose de
-## largo de un radio chico casi siempre.
+## Sin equivalente en DatosHabilidad: se configura a mano. Va junto con el
+## freno de aproximación de AccionAtacar/AccionPerseguir (ver
+## distancia_minima_acercamiento): el golpe se coloca alcance_golpe px POR
+## DELANTE del mob, y con un radio chico se pasaba de largo del jugador.
 @export var radio_golpe: float    = 70.0
 @export var duracion_golpe: float = 0.15
 @export var escena_golpe: PackedScene = preload("res://escenas/habilidades/golpe_basico/GolpeBasico.tscn")
@@ -38,12 +36,10 @@ func _ejecutar(direccion: Vector2, _poder: float) -> void:
 	_mostrar_indicador_golpe(posicion)
 	_reproducir_sonido()
 
-## Feedback visual de la zona real de golpe — pedido del usuario ("colocales
-## un indicador de la zona de golpe"), mismo patrón ya usado por Sacudida/
-## Acumulación/Marca (ver IndicadorZonaEfecto): un flash puro, sin física,
-## en la posición y radio reales del golpe. No toca la animación de ataque
-## ni el timing (sigue siendo instantáneo como siempre) — es una capa
-## visual encima, nada más. HabilidadArañazo hereda esto y lo llama igual.
+## Feedback visual de la zona real de golpe, con el mismo patrón que
+## Sacudida, Acumulación y Marca (ver IndicadorZonaEfecto): un flash puro, sin
+## física, en la posición y el radio reales. No toca la animación ni el timing
+## (el golpe sigue siendo instantáneo). HabilidadArañazo lo hereda.
 func _mostrar_indicador_golpe(posicion: Vector2) -> void:
 	if not is_instance_valid(entidad_dueña):
 		return

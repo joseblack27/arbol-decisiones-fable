@@ -1,10 +1,8 @@
 extends Control
 class_name PanelMisiones
-## Antes leía de "lista_misiones" (@export nunca asignado en ningún lado —
-## el panel de detalle jamás llegaba a mostrarse en juego real). Ahora lee
-## el catálogo real (GestorMisiones.catalogo, las DEFINICIONES) cruzado con
-## el progreso real del jugador (MisionesComponente.progreso, por partida)
-## — mismo patrón "Gestor autoload + BusEventos + refrescar()" que
+## Lee el catálogo real (GestorMisiones.catalogo, las DEFINICIONES) cruzado
+## con el progreso del jugador (MisionesComponente.progreso, por partida),
+## con el mismo patrón "Gestor autoload + BusEventos + refrescar()" que
 ## PanelInventario.
 
 @onready var group_button := ButtonGroup.new()
@@ -29,8 +27,7 @@ class_name PanelMisiones
 @onready var abandon_button:     Button = $MarginContainer/HBox/PanelDetalleMision/MarginContainer/VBoxDetalle/ButtonBar/AbandonButton
 
 ## Con nodos propios (no ConfirmationDialog) para que respete el tema del
-## juego en vez del estilo nativo de ventana del sistema — pedido explícito
-## del usuario, quedaba desentonado con el resto de la interfaz.
+## juego en vez del estilo de ventana nativo del sistema.
 @onready var confirmar_abandonar: Control = $ConfirmarAbandonar
 @onready var confirmar_abandonar_mensaje: Label = $ConfirmarAbandonar/PanelCentro/Margin/VBox/Mensaje
 @onready var confirmar_abandonar_boton_si: Button = $ConfirmarAbandonar/PanelCentro/Margin/VBox/Botones/BotonConfirmar
@@ -100,8 +97,8 @@ func _on_button_clicked(mission_data: DatosMision):
 		show_mission(mission_data)
 
 
-## Solo pregunta — el abandono de verdad ocurre en _on_abandonar_confirmado,
-## si el jugador confirma. Pedido explícito: no abandonar de un solo toque.
+## Solo pregunta: el abandono ocurre en _on_abandonar_confirmado, si se
+## confirma. Nada de abandonar de un solo toque.
 func _on_abandon_pressed() -> void:
 	if _mision_actual == null:
 		return
@@ -159,10 +156,9 @@ func show_mission(mission: DatosMision) -> void:
 	mission_detail_panel.visible = true
 
 
-## Abandonar solo tiene sentido con la misión ya aceptada — pendiente o
-## completada no tienen nada que abandonar. Rastrear no tiene sentido con
-## la misión ya completada. Pedido explícito del usuario: estos botones se
-## OCULTAN (no solo se deshabilitan) cuando no aplican.
+## Abandonar solo tiene sentido con la misión aceptada (pendiente o completada
+## no tienen nada que abandonar); rastrear no tiene sentido con la misión
+## completada. Los botones que no aplican se OCULTAN, no solo se deshabilitan.
 func _actualizar_botones(mission: DatosMision) -> void:
 	var estado := _estado_efectivo(mission.id)
 	abandon_button.visible = estado == Enums.Mision.Estado.EN_PROGRESO

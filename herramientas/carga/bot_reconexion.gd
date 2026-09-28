@@ -1,10 +1,8 @@
 # =============================================================================
-# bot_reconexion.gd — conecta con un nombre FIJO (a diferencia de los demás
-# bots, que usan un nombre único por corrida), se desconecta, y vuelve a
-# conectar con el MISMO nombre — para reproducir "cargar una partida
-# existente" en vez de "cuenta nueva", que es la diferencia real frente al
-# reporte del usuario ("el jugador no sale" — su conexión SÍ abrió la base
-# de datos de partidas, a diferencia de una cuenta nueva).
+# bot_reconexion.gd — conecta con un nombre FIJO (los demás bots usan uno
+# único por corrida), se desconecta y vuelve a conectar con el MISMO nombre,
+# para reproducir "cargar una partida existente" en vez de "cuenta nueva" (el
+# camino que abre la base de datos de partidas).
 #   godot --headless --path . --script res://herramientas/carga/bot_reconexion.gd -- --ip=127.0.0.1 --nombre=X
 # =============================================================================
 extends SceneTree

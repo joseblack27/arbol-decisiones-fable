@@ -1,34 +1,21 @@
 extends Enemigo
 class_name HuevoHormiga
-## Huevo de hormiga: objeto ESTACIONARIO y destructible que la Reina deja
-## durante su Puesta de Huevos (ver HabilidadPuestaHuevos.gd). Extiende
-## Enemigo directo (no una hormiga real) para heredar gratis grupo
-## "enemigos" (los ataques del jugador ya lo reconocen como objetivo válido
-## sin nada especial), capas de colisión, VidaComponente y réplica en red —
-## sin IA, sin visión, sin movimiento: solo se queda ahí a esperar a que lo
-## rompan o a eclosionar.
+## Huevo de hormiga: objeto ESTACIONARIO y destructible que la Reina deja con
+## su Puesta de Huevos (ver HabilidadPuestaHuevos.gd). Extiende Enemigo
+## directo (no una hormiga) para heredar el grupo "enemigos" (los ataques del
+## jugador lo reconocen solos), las capas de colisión, VidaComponente y la
+## réplica en red; sin IA, visión ni movimiento: espera a que lo rompan o a
+## eclosionar.
 ##
-## Usa el sprite real `ant_larva_48x48_v4.png` (asignado a
-## mano en HuevoHormiga.tscn, ver Sprite2D.texture) — antes era una
-## textura placeholder generada por código (óvalo relleno), reemplazada
-## tras confirmarse en juego real que ni el contraste ni el tamaño del
-## placeholder alcanzaban para que se notara en medio de una pelea de
-## jefe. `_generar_textura_placeholder()` sigue acá como respaldo (ver
-## _ready(), que solo la usa si Sprite2D.texture llega sin asignar).
+## Usa el sprite real ant_larva_48x48_v4.png (asignado en HuevoHormiga.tscn).
+## _generar_textura_placeholder() queda como respaldo si Sprite2D.texture
+## llega sin asignar (ver _ready()).
 
 const _ANCHO := 22
 const _ALTO := 28
-## Reportado en juego real (20 sep 2026, tras ya haberle subido el
-## contraste): seguía sin verse NADA. Causa real -- no era contraste, era
-## tamaño: 22x28px es más chico que UN SOLO tile (32x32) y bastante menos
-## que una hormiga real en pantalla (guardián ~96x96px, sprite 64x64
-## escalado x1.5, ver EnemigoHormigaSoldado.tscn) -- en medio de una
-## pelea de jefe, con efectos y otras hormigas alrededor, un punto tan
-## chico (aunque pulse) es prácticamente imperceptible en un celular real.
-## Escala SOLO del placeholder generado acá -- si algún día se reemplaza
-## por arte real asignado a mano en el .tscn (ver comentario de clase),
-## ese sprite ya vendría con el tamaño que corresponda, sin necesidad de
-## este ajuste.
+## Escala del placeholder generado acá (solo si no hay sprite asignado): a
+## 22x28 px es más chico que un tile y se pierde en una pelea de jefe en el
+## celular. Un sprite real asignado en el .tscn ya viene con su tamaño.
 const _ESCALA_PLACEHOLDER := 2.2
 
 ## Duración del vuelo desde la Reina hasta el punto de aterrizaje -- ver
@@ -45,17 +32,12 @@ func _ready() -> void:
 
 
 ## Vuela desde donde nació (la Reina, ver HabilidadPuestaHuevos._ejecutar)
-## hasta "destino" y se queda ahí quieto -- pedido explícito del usuario
-## (21 sep 2026): "que la hormiga los lance como proyectiles hasta la
-## ubicación donde desea invocarlos, para tener por lo menos una visual
-## como habilidad" (antes aparecía de golpe en su posición final, sin
-## ningún indicio visual de que la habilidad hizo algo). NO desaparece al
-## llegar -- sigue siendo el mismo huevo de siempre, con su pulso y su
-## eclosión normales (ver _iniciar_pulso/_al_terminar_descanso). Solo se
-## llama del lado con autoridad real -- _ejecutar() ya está gateada a
-## servidor/sin red -- así que el vuelo se replica solo con el mismo
-## mecanismo genérico de posición de cualquier mob en movimiento (ver
-## Enemigo._physics_process), sin necesidad de un RPC propio.
+## hasta "destino" y se queda ahí, para que la habilidad tenga una visual de
+## lanzamiento en vez de aparecer de golpe. Al llegar sigue siendo el mismo
+## huevo, con su pulso y su eclosión (ver _iniciar_pulso/_al_terminar_descanso).
+## Solo se llama del lado con autoridad (_ejecutar() ya está limitada a
+## servidor o sin red), así que el vuelo se replica con el mecanismo normal de
+## posición de cualquier mob (ver Enemigo._physics_process), sin RPC propio.
 func lanzar_hacia(destino: Vector2, duracion: float = _DURACION_LANZAMIENTO) -> void:
 	var tween := create_tween()
 	tween.tween_property(self, "global_position", destino, duracion) \
@@ -75,12 +57,10 @@ func _generar_textura_placeholder() -> ImageTexture:
 			elif dist <= 0.85:
 				imagen.set_pixel(x, y, Color(0.15, 0.12, 0.08, 1.0))
 			elif dist <= 1.0:
-				# Aro amarillo bien saturado -- a diferencia del relleno/borde
-				# de arriba (que Enemigo._aplicar_datos() tiñe con datos.color,
-				# un cream/tan que se puede perder contra el piso de piedra),
-				# este aro no depende de esa multiplicación para notarse:
-				# reportado en juego real (19 sep 2026) que el huevo/larva no
-				# se veía nada durante la Puesta de Huevos de la Reina.
+				# Aro amarillo bien saturado: a diferencia del relleno y el borde, que
+				# Enemigo._aplicar_datos() tiñe con datos.color (un crema que se pierde
+				# contra el piso de piedra), este no depende de esa multiplicación
+				# para notarse.
 				imagen.set_pixel(x, y, Color(1.0, 0.9, 0.2, 1.0))
 	return ImageTexture.create_from_image(imagen)
 

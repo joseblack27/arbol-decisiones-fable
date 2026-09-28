@@ -1,43 +1,29 @@
 extends CharacterBody2D
 class_name Cazador
 ## NPC autónomo (sin control de jugador): sale de la Ciudad, camina hasta la
-## Pradera, caza a distancia la presa viva más cercana (combate REAL, no un
-## kill instantáneo — a diferencia del leñador con los árboles) y vuelve a
-## la Ciudad a descansar. Pedido explícito del usuario: "un npc cazador,
-## que caze ratones y deje los recursos en el mismo cofre del leñador...
-## combate real con el sistema existente, pero el cazador solo puede
-## disparar flechas cada 1 segundo y a distancia". Comparte el pool de
-## mobs de siempre (SpawnerMobs en la Pradera) — caza cualquiera que haya,
-## sin spawner dedicado (confirmado con el usuario). Presas válidas (ver
-## _presa_mas_cercana): Ratón, Lobo y Araña — pedido explícito del usuario
-## de agregar estos dos últimos a la lista de cacería original (solo
-## Ratón).
+## Pradera, caza a distancia la presa viva más cercana (combate REAL, no una
+## muerte instantánea como el leñador con los árboles) y vuelve a la Ciudad a
+## descansar. Dispara flechas cada 1 s. Caza del pool normal de mobs de la
+## Pradera (SpawnerMobs), sin spawner propio. Presas válidas: Ratón, Lobo y
+## Araña (ver _presa_mas_cercana).
 ##
-## Mismo patrón de NPC errante que Lenador.gd — ver ese archivo para el
-## porqué completo del diseño (única instancia, vive en GestorNiveles.
-## contenedor_errantes(), nunca se reparenta, cruza entre niveles como un
-## jugador real). Reusa ese mismo razonamiento tal cual acá, sin repetirlo.
+## Mismo patrón de NPC errante que Lenador.gd (ver ese archivo): una sola
+## instancia en GestorNiveles.contenedor_errantes(), nunca se reparenta, cruza
+## entre niveles como un jugador.
 ##
-## INMUNIDAD A COMBATE — mismo criterio que Lenador.gd (confirmado con el
-## usuario tras preguntarle): a propósito NO extiende Enemigo.gd, NO tiene
-## VidaComponente, NO pertenece a los grupos "jugadores"/"enemigos". Un
-## Ratón no le huye específicamente a él (su VisionComponente exige
-## grupos_objetivo=["jugadores"]) y ningún otro mob lo ataca — pero el daño
-## de sus flechas SÍ conecta igual, porque Combate.mismo_equipo() (que
-## decide si un Proyectil hace daño) nunca da true si ninguno de los dos
-## está en el mismo grupo (ver Proyectil._resolver_colision()).
+## INMUNIDAD A COMBATE, mismo criterio que Lenador.gd: NO extiende Enemigo.gd,
+## NO tiene VidaComponente y NO está en los grupos "jugadores"/"enemigos".
+## Ningún mob lo ataca, pero sus flechas SÍ dañan: Combate.mismo_equipo()
+## nunca da true si los dos no comparten grupo (ver
+## Proyectil._resolver_colision()).
 ##
-## BOTÍN — sin viaje físico al almacén: a diferencia de la madera (el
-## leñador la "carga" y tiene que caminar hasta AlmacenLenador para
-## soltarla), el botín de un Ratón cazado se deposita SOLO, al instante,
-## en cuanto muere — vía InventarioRedirectorAlmacen (hijo nombrado
-## "InventarioComponente", ver ese archivo) + ExperienciaComponenteNoOp
-## (hijo nombrado "ExperienciaComponente"): Enemigo._otorgar_item_al_
-## atacante()/_otorgar_xp() buscan esos nombres EXACTOS en _ultimo_atacante
-## (acá, el propio Cazador) por convención, sin que haga falta tocar
-## Enemigo.gd. El ciclo de ir-y-volver a Ciudad es solo por coherencia
-## visual con el leñador (confirmado con el usuario), no por necesidad de
-## entrega.
+## BOTÍN sin viaje al almacén: a diferencia de la madera, el botín de una presa
+## se deposita SOLO, al instante en que muere, vía InventarioRedirectorAlmacen
+## (hijo llamado "InventarioComponente") y ExperienciaComponenteNoOp (hijo
+## "ExperienciaComponente"): Enemigo._otorgar_item_al_atacante() y
+## _otorgar_xp() buscan esos nombres EXACTOS en _ultimo_atacante, sin tocar
+## Enemigo.gd. El ir y volver a la Ciudad es solo por coherencia visual con el
+## leñador.
 
 const CAPA_NPC_ERRANTE := 16  # misma capa que ya usa Lenador.gd.
 const MARGEN_LLEGADA := 16.0
@@ -56,11 +42,10 @@ const _ESCENA_PROYECTIL := preload("res://escenas/habilidades/flecha/ProyectilFl
 
 ## Rango de tiro (px) — mismo que usa el Arquero Esqueleto (FlechaArquero.tres).
 const _RANGO_DISPARO := 380.0
-## Pedido explícito del usuario: "solo puede disparar flechas cada 1 segundo".
+## Una flecha por segundo como mucho.
 const _COOLDOWN_DISPARO := 1.0
-## Pedido explícito del usuario: "la flecha debe hacer 10 de daño" — 10
-## flechazos para los 100 HP de Ratón/Lobo/Araña, las tres presas válidas
-## tienen la misma vida_maxima.
+## 10 flechazos para los 100 de vida de Ratón, Lobo o Araña (las tres presas
+## tienen la misma vida_maxima).
 @export var dano_flecha: float = 10.0
 
 enum Estado {
@@ -219,15 +204,12 @@ func _disparar_flecha() -> void:
 	var proy: Proyectil = GestorPiscinas.obtener(_ESCENA_PROYECTIL)
 	proy.global_position = global_position
 	proy.configurar(direccion, 1.0, dano_flecha, self, Enums.Habilidad.TipoDano.FISICO)
-	# _disparar_flecha() SOLO corre server-side (ver el guard de _ready()/
-	# _physics_process) — sin red, este mismo proceso es el que renderiza,
-	# así que lo de arriba ya alcanza. En red, el Proyectil de arriba vive
-	# SOLO en el árbol del servidor (headless, no se ve) — a diferencia de
-	# un mob, no pasa por ningún MultiplayerSpawner. Pedido del usuario:
-	# "no se ve la flecha del cazador" — mismo patrón que HabilidadBase.
-	# _reproducir_visual_red (ver ese archivo): cada cliente cerca recibe
-	# un aviso y arma SU PROPIO Proyectil puramente visual (daño=0: la
-	# muerte real ya la resolvió este de arriba, server-side).
+	# _disparar_flecha() SOLO corre en el servidor (ver _ready() y
+	# _physics_process). Sin red este mismo proceso renderiza; en red, el
+	# Proyectil de arriba vive solo en el servidor headless y no se ve. Igual
+	# que HabilidadBase._reproducir_visual_red, cada cliente cercano recibe un
+	# aviso y arma SU PROPIO Proyectil puramente visual (daño 0: la muerte
+	# real ya la resolvió el de arriba).
 	_pulso_disparo()
 	if Utils.en_red():
 		for peer_id in InteresEspacial.peers_cercanos(global_position):
@@ -235,11 +217,9 @@ func _disparar_flecha() -> void:
 			rpc_id(peer_id, "_reproducir_flecha_visual_red", direccion)
 
 
-## Pedido del usuario: "el cazador no se ve cuando lanza la flecha, debe
-## verse" — sin pose de disparo propia (el placeholder JugadorBase.png solo
-## tiene caminar/quieto, ver el comentario de la clase), este pulso corto
-## de escala es la señal visual mínima de "acabo de disparar" mientras no
-## haya arte/animación dedicada.
+## Señal visual mínima de "acabo de disparar": un pulso corto de escala,
+## mientras no haya pose de disparo propia (el placeholder JugadorBase.png solo
+## tiene caminar y quieto).
 func _pulso_disparo() -> void:
 	if not _sprite:
 		return
@@ -265,13 +245,10 @@ func _reproducir_flecha_visual_red(dir: Vector2) -> void:
 	proy.configurar(dir, 1.0, 0.0, self, Enums.Habilidad.TipoDano.FISICO)
 
 
-## Recorre el grupo "enemigos" y se queda con la presa viva más cercana —
-## mismo criterio que Lenador._arbol_mas_cercano(). Presas válidas: Ratón,
-## Lobo, Araña (pedido explícito del usuario: agregar estos dos últimos a
-## la lista original de solo Ratón) — Caballero/Arquero Esqueleto NO
-## cuentan como presa. No filtra por nivel: hoy solo la Pradera tiene
-## SpawnerMobs, así que el grupo ya contiene nada más que mobs de ahí
-## (simplificación aceptada, ver el plan).
+## Recorre el grupo "enemigos" y se queda con la presa viva más cercana (como
+## Lenador._arbol_mas_cercano()). Presas válidas: Ratón, Lobo y Araña; los
+## esqueletos no. No filtra por nivel: hoy solo la Pradera tiene SpawnerMobs
+## con presas.
 func _presa_mas_cercana() -> Enemigo:
 	var mejor: Enemigo = null
 	var mejor_distancia := INF
@@ -287,10 +264,9 @@ func _presa_mas_cercana() -> Enemigo:
 	return mejor
 
 
-## "Cruzar" = teletransportarse al punto de llegada del otro nivel — mismo
-## patrón que Lenador._cruzar_a_pradera()/_cruzar_a_ciudad(), ver esos
-## comentarios para el porqué completo (bug real del "leñador nunca
-## desaparece", ya resuelto ahí y reusado acá tal cual).
+## "Cruzar" = teletransportarse al punto de llegada del otro nivel, mismo
+## patrón que Lenador._cruzar_a_pradera()/_cruzar_a_ciudad() (ver ahí el porqué
+## del aviso de visibilidad).
 func _cruzar_a_pradera() -> void:
 	movimiento.detener()
 	visible = false

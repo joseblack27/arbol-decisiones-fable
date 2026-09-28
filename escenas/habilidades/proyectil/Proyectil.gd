@@ -13,13 +13,10 @@ extends Area2D
 
 var entidad_fuente: Node = null
 var tipo_dano: Enums.Habilidad.TipoDano = Enums.Habilidad.TipoDano.FISICO
-## Ícono de la HABILIDAD que disparó esto (DatosHabilidad.icono) — si el
-## efecto que se crea al impactar (ver _spawnear_efecto_impacto) tiene un
-## campo "icono_debuff", se le pisa con este. Antes cada efecto traía su
-## propio ícono hardcodeado en su .tscn (p. ej. EfectoVenenoFlecha con
-## icono_veneno_32x32.png), suelto de lo que en verdad se ve en el botón de
-## la habilidad — pedido del usuario: que el ícono de buff/debuff sea el
-## mismo que el de la habilidad, no uno aparte para "el proyectil".
+## Ícono de la HABILIDAD que disparó esto (DatosHabilidad.icono). Si el efecto
+## que se crea al impactar (ver _spawnear_efecto_impacto) tiene un campo
+## "icono_debuff", se le pisa con este, así el ícono del buff/debuff es el
+## mismo que el del botón de la habilidad.
 var icono_habilidad: Texture2D = null
 
 ## Daño a usar para el TICK de un efecto DoT que se cree al impactar (ver
@@ -58,13 +55,10 @@ func configurar(direccion: Vector2, poder: float, cantidad_daño: float, fuente:
 	daño            = cantidad_daño
 	entidad_fuente  = fuente
 	tipo_dano       = tipo
-	# El NODO RAÍZ ya no rota (antes: "rotation = _direccion.angle()") —
-	# solo el/los Sprite2D hijos, ver _rotar_sprites(). Con el sprite
-	# desplazado de su centro (offset vertical para que coincida mejor
-	# visualmente con el arte), rotar el nodo entero hacía girar TAMBIÉN
-	# ese desplazamiento alrededor del origen — al disparar hacia la
-	# izquierda, el sprite terminaba de cabeza/espejado en vez de solo
-	# "mirar" hacia el otro lado (reportado: "quedan volteados").
+	# El NODO RAÍZ no rota, solo el/los Sprite2D hijos (ver _rotar_sprites()):
+	# con el sprite desplazado de su centro, rotar el nodo entero también
+	# hacía girar ese desplazamiento, y hacia la izquierda el sprite quedaba
+	# volteado.
 	_rotar_sprites()
 	# Reinicio para reutilización desde la piscina (ver GestorPiscinas):
 	# este proyectil puede llegar aquí recién creado o reciclado de un
@@ -97,20 +91,14 @@ func _al_liberar_a_piscina() -> void:
 	set_deferred("monitoring", false)
 
 ## Barrido de la trayectoria de ESTE fotograma con la propia forma del
-## proyectil, no solo su posición final — antes se movía con un simple
-## "position += paso" y dejaba que Area2D detectara el overlap DESPUÉS de
-## moverse, chequeando solo dónde el proyectil TERMINÓ el fotograma, nunca
-## el camino recorrido. A velocidad_base=450px/s y 60 físicas/seg, cada
-## fotograma avanza ~7.5px — comparable al radio del proyectil (8px) y al
-## de los mobs (~12-14px) — así que a veces "saltaba por encima" de un
-## objetivo entero sin que ningún fotograma llegara a solaparlo (el golpe
-## que a veces no registraba), y otras veces un roce apenas de esquina caía
-## justo en el borde del overlap post-movimiento, un instante ambiguo que
-## podía aplicar el daño sin que el resto del código (_ya_impacto,
-## GestorPiscinas.liberar) llegara a resolverse limpio para ese mismo
-## contacto (el "hace daño pero no se destruye" reportado). cast_motion()
-## consulta la física directo con la forma real y el vector de movimiento
-## completo del fotograma — no puede saltarse nada en el medio.
+## proyectil, no solo su posición final. Moviéndose con "position += paso" y
+## dejando que el Area2D detecte el solape después, solo se chequeaba dónde
+## TERMINÓ el fotograma: a 450 px/s avanza ~7.5 px por fotograma, comparable
+## al radio del proyectil (8 px) y de los mobs (~12-14 px), así que a veces
+## saltaba por encima de un objetivo, y un roce de esquina en el borde del
+## solape podía dañar sin que _ya_impacto y GestorPiscinas.liberar se
+## resolvieran limpio (daño sin destruirse). cast_motion() consulta la física
+## con la forma real y el movimiento completo: no se saltea nada.
 func _physics_process(delta: float) -> void:
 	if _ya_impacto:
 		return
@@ -234,15 +222,11 @@ func _resolver_colision(objeto: Object) -> void:
 		return
 	if defensor == entidad_fuente:
 		return
-	# Quien disparó puede haber muerto y liberado su nodo ANTES de que este
-	# impacto llegara a resolverse — con Rebote, cada rebote es una
-	# oportunidad más para que eso pase, ya que el vuelo total dura muchos
-	# más fotogramas que un proyectil normal. is_instance_valid() lo
-	# detecta, "if entidad_fuente:" no (mismo criterio ya usado en
-	# EfectoDoT._aplicar_tick/AtributosComponente.calcular_pipeline: una
-	# referencia a un nodo liberado no es null). Reportado en juego real:
-	# "Invalid type... argument 1 (previously freed)" en Combate.
-	# mismo_equipo al resolver un rebote.
+	# Quien disparó puede haber muerto y liberado su nodo ANTES de que el
+	# impacto se resuelva (con Rebote el vuelo dura mucho más).
+	# is_instance_valid() lo detecta, "if entidad_fuente:" no: una referencia
+	# a un nodo liberado no es null (mismo criterio que
+	# EfectoDoT._aplicar_tick y AtributosComponente.calcular_pipeline).
 	var fuente_valida: Node = entidad_fuente if is_instance_valid(entidad_fuente) else null
 	if Combate.mismo_equipo(fuente_valida, defensor):
 		return

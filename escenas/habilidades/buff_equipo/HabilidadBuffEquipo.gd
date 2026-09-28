@@ -62,11 +62,9 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 		rpc_id(peer_id, "_recibir_buff_equipo_red", ids_aliados)
 
 
-## Círculo verde puramente visual (pedido del usuario: "para saber hasta
-## donde llegó", mismo criterio que el círculo blanco de GolpeBasico/
-## AreaEfecto) — no aplica nada de daño ni colisión, el bono real ya se
-## aplicó arriba. Se salta en headless (servidor dedicado): nadie lo va a
-## ver ahí, no vale la pena ni instanciarlo.
+## Círculo verde puramente visual, para ver hasta dónde llegó (como el círculo
+## blanco de GolpeBasico/AreaEfecto): no aplica daño ni colisión, el bono ya se
+## aplicó arriba. Se salta en headless (servidor dedicado), donde nadie lo ve.
 func _mostrar_circulo_area() -> void:
 	if DisplayServer.get_name() == "headless":
 		return

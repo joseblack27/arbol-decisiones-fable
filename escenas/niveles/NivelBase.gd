@@ -29,19 +29,15 @@ func _ready() -> void:
 
 ## Mapa de navegación PROPIO de este nivel, en vez del compartido del mundo.
 ##
-## Hace falta porque en el servidor conviven varios niveles a la vez, separados
-## por 100.000 px (ver GestorNiveles). Con un único mapa compartido, los mobs
-## de un nivel SIN malla propia —la Cueva no tiene— encontraban como "punto
-## navegable más cercano" la malla del OTRO nivel, a 98.000 px, y sus agentes
-## se iban caminando para allá en línea recta para siempre: detectaban al
-## jugador pero jamás se le acercaban. Reportado: "los mobs de la cueva se
-## quedaron quietos y solo reacciona la araña disparando de lejos" (la araña
-## ataca a distancia, así que era la única que parecía viva).
+## En el servidor conviven varios niveles separados por 100.000 px (ver
+## GestorNiveles). Con un mapa compartido, los mobs de un nivel sin malla
+## propia tomaban como "punto navegable más cercano" la malla de OTRO nivel y
+## se iban caminando para allá: detectaban al jugador pero nunca se le
+## acercaban.
 ##
-## Con un mapa por nivel, un nivel sin malla simplemente no tiene rutas y sus
-## mobs caen al respaldo de línea recta hacia el objetivo (ver
-## MovimientoComponente._avanzar_hacia_destino), que es como se comportaban
-## antes de que existieran varios niveles a la vez.
+## Con un mapa por nivel, un nivel sin malla no tiene rutas y sus mobs caen al
+## respaldo de línea recta hacia el objetivo (ver
+## MovimientoComponente._avanzar_hacia_destino).
 var _mapa_navegacion: RID
 
 func _crear_mapa_navegacion() -> void:

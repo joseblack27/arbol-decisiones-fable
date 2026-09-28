@@ -35,11 +35,9 @@ func _ready():
 	button_down.connect(_on_button_down)
 	button_up.connect(_on_button_up)
 	mouse_exited.connect(_on_mouse_exited)
-	# Gastar un punto en CUALQUIER habilidad/pasiva cambia el nivel de
-	# mejora mostrado acá — refrescar sin esperar a que se repueble la
-	# lista entera (antes esta fila se quedaba siempre en el mismo número,
-	# reportado por el usuario: "las habilidades activas no cambian el
-	# nivel en la lista").
+	# Gastar un punto en CUALQUIER habilidad o pasiva cambia el nivel de
+	# mejora que muestra esta fila: refrescarlo sin esperar a que se
+	# repueble la lista entera.
 	BusEventos.mejora_comprada.connect(func(_e, _t, _n): _actualizar_nivel())
 	# Equipar/desequipar CUALQUIER habilidad (esta u otra, si esta se movió
 	# de slot) cambia si ESTA fila debe mostrarse como "equipada" — pedido

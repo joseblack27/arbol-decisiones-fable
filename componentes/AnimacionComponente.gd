@@ -66,15 +66,12 @@ func establecer_condicion(param: String, valor: bool) -> void:
 	animation_tree.set(param, valor)
 
 
-## Fuerza que la máquina de estados viaje al estado indicado, sin depender
-## de que el estado ACTUAL tenga una arista de salida directa gateada por
-## la condición correspondiente — establecer_condicion() sola solo
-## funciona si existe esa arista desde donde el mob esté PARADO en ese
-## momento. Godot recorre el camino más corto por las aristas que sí
-## existan (con su propio crossfade), o salta directo si no hay ninguna
-## conexión. Reportado con el arquero: atacar mientras seguía en CAMINAR
-## (p. ej. recién saliendo de reposicionarse) lo dejaba pegado ahí para
-## siempre, porque el grafo solo tenía IDLE->ATACAR, no CAMINAR->ATACAR.
+## Fuerza que la máquina de estados viaje al estado indicado, aunque el estado
+## ACTUAL no tenga una arista de salida gateada por la condición
+## correspondiente (establecer_condicion() solo funciona si esa arista existe
+## desde donde está parado). Godot recorre el camino más corto por las aristas
+## que existan (con su crossfade), o salta directo si no hay ninguna. P. ej. el
+## arquero atacando desde CAMINAR, con un grafo que solo tiene IDLE->ATACAR.
 func viajar_a_estado(nombre: StringName) -> void:
 	if not animation_tree:
 		return

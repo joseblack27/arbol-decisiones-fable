@@ -2,52 +2,31 @@ extends CharacterBody2D
 class_name Lenador
 ## NPC autónomo (sin control de jugador): sale de la Ciudad, camina hasta la
 ## Pradera, corta el árbol disponible más cercano, vuelve a la Ciudad y
-## deposita la madera en el almacén compartido (ver GestorLenador.gd).
-## Pedido del usuario: "un npc leñador, que salga de la ciudad, hacia la
-## pradera para cortar arboles y vuelva a la ciudad y deje la madera en un
-## cofre... este npc no debe ser atacado por los mobs, ni tener colision
-## con sus habilidades".
+## deposita la madera en el almacén compartido (ver GestorLenador.gd). Los
+## mobs no lo atacan y las habilidades no chocan con él.
 ##
-## INMUNIDAD A COMBATE: a propósito NO extiende Enemigo.gd (que fuerza
-## add_to_group("enemigos") en su _ready()), NO tiene VidaComponente ni
-## ningún método quitar_vida() en ningún hijo, y NO pertenece a los grupos
-## "jugadores"/"enemigos". Eso solo ya lo vuelve invisible para
-## VisionComponente (aggro de mobs, exige grupo "jugadores"),
-## Combate.golpear_area() (melee/AoE de TODAS las habilidades, solo daña
-## VidaComponente o algo con quitar_vida()) y Proyectil._resolver_colision()
-## (mismo filtro) — confirmado por precedente real: escenas/npc/Npc.gd (el
-## comerciante) ya está construido exactamente así. La capa física propia
-## (CAPA_NPC_ERRANTE) es cinturón y tirantes, no la protección real.
+## INMUNIDAD A COMBATE: a propósito NO extiende Enemigo.gd (que lo metería en
+## el grupo "enemigos"), NO tiene VidaComponente ni quitar_vida() en ningún
+## hijo, y NO está en los grupos "jugadores"/"enemigos". Con eso ya es
+## invisible para VisionComponente (el aggro exige "jugadores"),
+## Combate.golpear_area() y Proyectil._resolver_colision() (solo dañan
+## VidaComponente o algo con quitar_vida()). Igual que escenas/npc/Npc.gd (el
+## comerciante). La capa física propia (CAPA_NPC_ERRANTE) es cinturón y
+## tirantes.
 ##
-## VIAJE ENTRE NIVELES — SEGUNDA VUELTA DE ESTE DISEÑO: la primera versión
-## usaba DOS instancias (una por nivel) coordinadas por una bandera
-## compartida. Bug real reportado ("el leñador no se mueve"): un jugador
-## conectado a UN SOLO nivel a la vez hace que GestorNiveles apague
-## (PROCESS_MODE_DISABLED) el otro nivel completo por falta de jugadores —
-## el leñador podía quedar congelado en el nivel que nadie estaba mirando,
-## y como ninguna instancia lograba terminar su tramo, la otra tampoco se
-## activaba nunca. Peor aún: reparentar entre los NPCs de cada nivel también
-## rompía la réplica en cualquier cliente que NO tuviera ese nivel cargado
-## (las RPC dirigidas a un nodo se resuelven por su RUTA en el árbol, y esa
-## ruta cambiaba con cada cruce).
-##
-## Solución (pedido explícito del usuario: "que el leñador use el mismo tp
-## que uso yo para moverme por los mapas"): UNA sola instancia, que vive
-## SIEMPRE colgada de GestorNiveles.contenedor_errantes() — un contenedor
-## fijo, hermano de "Jugadores", FUERA de cualquier nivel — exactamente
-## igual que un jugador real, que jamás se reparenta al cruzar un portal
-## (ver GestorNiveles: "los jugadores cuelgan de Jugadores, fuera de los
-## niveles"). "Cruzar" acá es solo cambiar global_position al punto de
-## llegada del otro lado (mismo criterio que
-## GestorNiveles._colocar_peer_en_aparicion) + avisarle a GestorNiveles en
-## qué nivel está ahora (fijar_nivel_de_entidad) para que la navegación siga
-## la malla correcta. Como la ruta del nodo en el árbol NUNCA cambia, las
-## RPC de réplica resuelven en cualquier cliente conectado, esté donde esté
-## — el mismo mecanismo que ya usa la réplica de otros jugadores.
-## Ciudad y Pradera además se mantienen SIEMPRE activas (ver
-## GestorNiveles.mantener_siempre_activo, llamado desde GestorLenador) —
-## pedido explícito del usuario, cinturón y tirantes sobre el rediseño de
-## arriba.
+## VIAJE ENTRE NIVELES: UNA sola instancia, colgada SIEMPRE de
+## GestorNiveles.contenedor_errantes() (un contenedor fijo, hermano de
+## "Jugadores" y fuera de cualquier nivel), igual que un jugador real, que
+## nunca se reparenta al cruzar un portal. "Cruzar" es cambiar global_position
+## al punto de llegada del otro lado (como
+## GestorNiveles._colocar_peer_en_aparicion) y avisarle a GestorNiveles en qué
+## nivel está (fijar_nivel_de_entidad) para que la navegación use la malla
+## correcta. Como su ruta en el árbol no cambia, las RPC de réplica resuelven
+## en cualquier cliente. (Dos instancias, una por nivel, no funcionaban: el
+## nivel sin jugadores se desactiva y la instancia de ahí quedaba congelada;
+## reparentar rompía las RPC en los clientes sin ese nivel cargado.)
+## Ciudad y Pradera además se mantienen siempre activas (ver
+## GestorNiveles.mantener_siempre_activo, llamado desde GestorLenador).
 
 const CAPA_NPC_ERRANTE := 16  # primer bit libre (1 mundo, 2 mob, 4 obstáculos, 8 jugador)
 const MARGEN_LLEGADA := 16.0
@@ -180,18 +159,13 @@ func _procesar_estado(delta: float) -> void:
 			var destino := _arbol_objetivo.area_interaccion.global_position \
 					if _arbol_objetivo.area_interaccion else _arbol_objetivo.global_position
 			movimiento.comandar_destino(destino)
-			# El margen de llegada acá es el radio de interacción REAL del
-			# árbol (mismo que usa el servidor para aceptar la recolección
-			# de un jugador real, ver ObjetoRecolectable._pedir_recolectar_
-			# red) Y movimiento.llego_al_destino() en vez de una comparación
-			# de distancia a secas — bug real reportado ("el leñador no se
-			# mueve", visto en juego): caminar hasta el CENTRO exacto del
-			# área de interacción apunta a un punto que puede quedar pegado
-			# al cuerpo sólido del tronco (no navegable), y el agente de
-			# navegación jamás termina de acercarse más de lo que la malla
-			# permite — sin llego_al_destino(), el leñador se quedaba
-			# caminando en el lugar para siempre esperando un margen
-			# imposible de alcanzar.
+			# El margen de llegada es el radio de interacción REAL del árbol (el
+			# mismo con que el servidor acepta la recolección de un jugador, ver
+			# ObjetoRecolectable._pedir_recolectar_red), y se usa
+			# movimiento.llego_al_destino() en vez de comparar distancias: el centro
+			# del área de interacción puede quedar pegado al tronco (no navegable) y
+			# el agente nunca se acerca tanto; sin esto el leñador se quedaba
+			# caminando en el lugar.
 			if movimiento.llego_al_destino(_arbol_objetivo.radio_interaccion_servidor):
 				movimiento.detener()
 				_estado = Estado.CORTANDO
@@ -230,23 +204,18 @@ func _procesar_estado(delta: float) -> void:
 			_estado = Estado.ESPERANDO_CASA
 
 
-## "Cruzar" = teletransportarse al punto de llegada del otro nivel (mismo
-## criterio que GestorNiveles._colocar_peer_en_aparicion con un jugador
-## real) + avisarle a GestorNiveles en qué nivel está ahora, para que
-## MovimientoComponente._usar_mapa_del_nivel() ligue el próximo
-## comandar_destino() a la malla correcta. Nunca se reparenta — sigue
-## colgado del mismo contenedor_errantes() de siempre.
+## "Cruzar" = teletransportarse al punto de llegada del otro nivel (como
+## GestorNiveles._colocar_peer_en_aparicion con un jugador) y avisarle a
+## GestorNiveles en qué nivel está, para que
+## MovimientoComponente._usar_mapa_del_nivel() use la malla correcta. Nunca se
+## reparenta.
 ##
-## rpc("_recibir_visibilidad_red", false) ANTES de saltar: bug real
-## reportado ("el leñador nunca desaparece... queda la instancia ahí en el
-## círculo del tp"). InteresEspacial.peers_cercanos() solo manda posición
-## nueva a quien está CERCA de la posición ACTUAL — un cliente parado en
-## Ciudad deja de recibir cualquier actualización en cuanto el leñador
-## cruza a Pradera (a 100.000 px, nunca "cerca"), así que su sprite se
-## queda dibujado para siempre en el último punto que sí vio. El broadcast
-## de "ocultarme" llega a TODOS sin importar la distancia, así que no deja
-## fantasma; _recibir_estado_red() se encarga de volver a mostrarlo apenas
-## alguien esté lo bastante cerca como para recibir posición de nuevo.
+## rpc("_recibir_visibilidad_red", false) ANTES de saltar: la posición solo
+## les llega a los peers CERCA de la posición actual, así que un cliente en la
+## Ciudad dejaría de recibir actualizaciones en cuanto el leñador cruza, y su
+## sprite quedaría dibujado en el último punto visto. El aviso de ocultarse va
+## a todos; _recibir_estado_red() lo vuelve a mostrar cuando alguien está lo
+## bastante cerca como para recibir posición.
 func _cruzar_a_pradera() -> void:
 	movimiento.detener()
 	# rpc() NO se llama a sí mismo del lado de quien lo emite — hay que

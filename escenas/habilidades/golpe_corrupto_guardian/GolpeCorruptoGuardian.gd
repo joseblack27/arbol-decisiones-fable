@@ -71,13 +71,10 @@ func _aplicar_daño() -> void:
 			objetivo = (col as VidaComponente).get_parent()
 		elif (col is Node) and (col as Node).has_method("quitar_vida"):
 			objetivo = col
-			# Preferir el VidaComponente real del objetivo si lo tiene, en vez
-			# de quedarse con "col" — la query puede devolver el CUERPO y el
-			# ÁREA del mismo objetivo en cualquier orden; si el cuerpo llega
-			# primero y "gana" acá, _corromper() (más abajo, solo corre si
-			# "vida is VidaComponente") nunca se disparaba aunque el daño sí
-			# conectara (bug real: el debuff de fase 3 fallaba según el
-			# orden, no según la moneda 50/50).
+			# Preferir el VidaComponente real del objetivo en vez de "col": la
+			# query puede devolver el CUERPO y el ÁREA del mismo objetivo en
+			# cualquier orden, y si ganaba el cuerpo, _corromper() (que exige
+			# "vida is VidaComponente") no se disparaba aunque el daño conectara.
 			var vida_real := (col as Node).get_node_or_null("VidaComponente")
 			vida = vida_real if vida_real is VidaComponente else col
 		else:

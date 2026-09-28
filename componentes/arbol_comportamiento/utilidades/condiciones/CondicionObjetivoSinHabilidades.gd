@@ -2,10 +2,8 @@
 # CondicionObjetivoSinHabilidades.gd  (Condición utilitaria)
 #
 # Éxito solo si el objetivo está a distancia melee Y NINGUNA de sus
-# habilidades equipadas está lista para usarse — pensado para que un jefe
-# "castigue" al jugador que se quedó pegado sin ninguna carta para responder
-# (pedido del usuario: "un ataque para cuando el jugador esté cerca y no
-# tenga habilidades disponible en el momento").
+# habilidades equipadas está lista: para que un jefe castigue al jugador que
+# se quedó pegado sin ninguna carta para responder.
 # =============================================================================
 class_name CondicionObjetivoSinHabilidades
 extends Condicion

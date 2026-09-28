@@ -1,15 +1,12 @@
 extends Enemigo
 class_name EnemigoHeraldoCorrupcion
-## Heraldo de la Corrupción — jefe de la rama "Corrupción" de la Mina (ver
-## el plan "Mina — Corrupción" en C:\Users\USER\.claude\plans\
-## cheeky-mixing-melody.md). Mirror EXACTO de EnemigoNucleoForja.gd/
-## EnemigoCorazonCristal.gd (ver esos archivos para el porqué completo de
-## cada decisión) — solo cambian los nombres de campos/habilidades por el
-## tema de corrupción/veneno. A diferencia de las otras 2 ramas, el kit
-## entero de fase 2-3 se reusa TAL CUAL de EnemigoGuardianQuebrado.gd (su
-## fase "Corrupción" ya es 100% temático: Golpe Corrupto aplica veneno/
-## lentitud de fábrica, Miedo empuja y aturde, Escudo Reflectante devuelve
-## el daño bloqueado) — ni siquiera hace falta reskinear esos 3 scripts.
+## Heraldo de la Corrupción: jefe de la rama "Corrupción" de la Mina. El mismo
+## esqueleto que EnemigoNucleoForja.gd y EnemigoCorazonCristal.gd (ver esos
+## archivos), con nombres de tema de corrupción y veneno. A diferencia de las
+## otras 2 ramas, el kit de fases 2 y 3 se reusa TAL CUAL de
+## EnemigoGuardianQuebrado.gd, cuya fase "Corrupción" ya encaja: Golpe
+## Corrupto aplica veneno y lentitud, Miedo empuja y aturde, Escudo
+## Reflectante devuelve el daño bloqueado.
 
 const _UMBRAL_FASE_2 := 0.75
 const _UMBRAL_FASE_3 := 0.50

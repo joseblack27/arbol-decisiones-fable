@@ -36,8 +36,8 @@ class_name EnemigoEsqueletoArquero
 @export var distancia_peligro: float = 120.0
 
 const _INTERVALO_DECISION := 5.0
-## Cuánto retrocede en el dash. 200 px a pedido del usuario (antes 400): con
-## el salto largo se despegaba demasiado y costaba volver a alcanzarlo.
+## Cuánto retrocede en el dash: con un salto más largo se despegaba demasiado
+## y costaba volver a alcanzarlo.
 const _DISTANCIA_RETIRADA := 200.0
 const _VELOCIDAD_RETIRADA := 350.0
 
@@ -103,10 +103,9 @@ func _decidir_reaccion(objetivo: Node2D) -> void:
 	if randf() < _PROBABILIDAD_CADENCIA_RAPIDA:
 		_habilidad_cadencia_rapida.activar()
 	else:
-		# Cada ventana de 5s es independiente de la anterior — si la vez
-		# pasada tocó cadencia rápida y esta vez toca retirada, no debe
-		# quedar la cadencia rápida pegada (pedido explícito: tras la
-		# retirada "sigue atacando normal hasta la próxima probabilidad").
+		# Cada ventana de 5 s es independiente de la anterior: si la vez pasada
+		# tocó cadencia rápida y ahora retirada, la cadencia no debe quedar
+		# pegada. Tras la retirada ataca normal hasta la próxima tirada.
 		_habilidad_cadencia_rapida.desactivar()
 		_iniciar_retirada(objetivo)
 

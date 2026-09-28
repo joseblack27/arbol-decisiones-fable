@@ -14,9 +14,8 @@ signal terminada
 
 @export var duracion_visible: float = 2.5
 @export var duracion_fundido: float = 0.4
-## Primer sonido del proyecto — ver GestorSonido. Volumen ya grabado bajito
-## a propósito (pedido del usuario), y encima pasa por el bus "SFX"
-## configurable desde Configuración (Utils.volumen_sfx).
+## Sonido de aparición (ver GestorSonido), grabado bajito a propósito. Pasa por
+## el bus "SFX", configurable desde Configuración (Utils.volumen_sfx).
 @export var sonido_aparicion: AudioStream = preload("res://assets/audio/sfx/loot_pickup.wav")
 
 @onready var _icono: TextureRect = $Margen/HBox/Icono

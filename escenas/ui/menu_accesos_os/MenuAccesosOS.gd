@@ -1,22 +1,19 @@
 extends PanelContainer
 class_name MenuAccesosOS
 ## Cuadrícula de accesos directos a secciones del panel OS (ver
-## OsPrincipal.gd) — pedido explícito del usuario: en vez de que el botón
-## "OS" abra directo el panel en su pestaña por defecto, abre ESTA
-## cuadrícula (máximo 4 columnas, anclada arriba a la derecha por debajo
-## del botón); tocar un ícono abre el panel OS directo en esa sección.
+## OsPrincipal.gd): el botón "OS" abre ESTA cuadrícula (máximo 4 columnas,
+## arriba a la derecha, debajo del botón) y tocar un ícono abre el panel OS
+## directo en esa sección.
 ##
-## Genérica a propósito: agregar una opción nueva más adelante es crear un
-## OpcionMenuOS.tres (ícono + nombre del método de OsPrincipal que abre esa
-## sección) y sumarlo al array "opciones" del inspector — este script no
-## sabe nada de inventario/mapa/habilidades en particular, solo arma un
-## botón por entrada y llama a su método por nombre.
+## Genérica: una opción nueva es un OpcionMenuOS.tres (ícono + nombre del
+## método de OsPrincipal que abre la sección) sumado al array "opciones" del
+## Inspector. Este script solo arma un botón por entrada y llama a su método
+## por nombre.
 
 const _MAX_COLUMNAS := 4
 const _TAMANO_BOTON := Vector2(48, 48)
-## Tamaño de fuente de la etiqueta bajo cada ícono — pedido explícito del
-## usuario: nada de tooltip (el juego es para celular, sin mouse que se
-## quede quieto encima para dispararlo), el texto va SIEMPRE visible.
+## Tamaño de fuente de la etiqueta bajo cada ícono. Sin tooltip (en el celular
+## no hay mouse que se quede encima): el texto va SIEMPRE visible.
 const _TAMANO_FUENTE_ETIQUETA := 9
 
 @export var opciones: Array[OpcionMenuOS] = []

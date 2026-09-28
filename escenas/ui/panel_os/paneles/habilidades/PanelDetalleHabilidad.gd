@@ -20,15 +20,12 @@ extends Panel
 ## Instancia única de IndicadorNivelMejora (ver ese script) — se crea la
 ## primera vez que hace falta y después solo se le actualiza tier/max_tier.
 var _indicador_puntos_mejora: Control = null
-## Filas de "solo tiene sentido si la habilidad ATACA" — se esconden como
-## grupo para categorías que no atacan (defensa/potenciador/control, ver
-## Enums.Habilidad.Categoria): mostraban "Daño: 0-0" en habilidades como
-## Gancho o Grito de Guerra, que no significa nada (reportado por el
-## usuario). HBoxEnfriamiento NO entra acá (aplica a cualquier categoría),
-## y HBoxRangoLanzamiento TAMPOCO (ver _fila_rango más abajo): el rango
-## también es relevante fuera de ATAQUE — Parpadeo (distancia del
-## teletransporte) y Gancho (alcance del enganche, categoría CONTROL) SÍ
-## tienen un rango real que mostrar aunque no ataquen.
+## Filas que solo tienen sentido si la habilidad ATACA: se esconden juntas
+## para las categorías que no atacan (defensa, potenciador, control; ver
+## Enums.Habilidad.Categoria), donde "Daño: 0-0" no significa nada.
+## HBoxEnfriamiento no entra (aplica a cualquier categoría), y
+## HBoxRangoLanzamiento TAMPOCO (ver _fila_rango): Parpadeo y Gancho tienen
+## un rango real aunque no ataquen.
 @onready var _filas_de_dano: Array[Control] = [
 	$MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoBase,
 	$MarginContainer/VBoxContainer/ScrollContainer/VBoxContainer/MargenEstadisticas/VBoxEstadisticas/HBoxDanoCalculado,
@@ -137,14 +134,11 @@ func show_skill(skill: DatosHabilidad) -> void:
 	var tier: int = mejoras.nivel_habilidad(skill.resource_path) if mejoras else 0
 	var nivel_mejora := 1 + tier
 
-	# "Nivel de personaje" es el requisito de catálogo (para EQUIPAR esta
-	# habilidad, ver DatosHabilidad.nivel) — "Nivel de mejora" es el nivel
-	# comprado con puntos (ver MejorasComponente/HabilidadBase.aplicar_
-	# nivel_mejora), progreso independiente del jugador — antes iban
-	# mezclados en una sola línea ("Nivel 1 — mejora 2/5") que confundía
-	# los dos conceptos (reportado por el usuario). La fila de mejora
-	# SIEMPRE queda visible, con o sin escalado, para no dejar un hueco de
-	# altura distinta según la habilidad.
+	# "Nivel de personaje" es el requisito para EQUIPAR la habilidad (ver
+	# DatosHabilidad.nivel); "Nivel de mejora" es el nivel comprado con
+	# puntos (ver MejorasComponente/HabilidadBase.aplicar_nivel_mejora). Van
+	# en filas separadas porque son conceptos distintos. La fila de mejora
+	# queda SIEMPRE visible, para no cambiar el alto según la habilidad.
 	_nivel_personaje_label.text = str(skill.level)
 	_fila_nivel_mejora.visible = true
 
@@ -177,16 +171,11 @@ func show_skill(skill: DatosHabilidad) -> void:
 	_fila_rango.visible = skill.range_meters > 0
 
 	# Estadísticas YA AJUSTADAS por el nivel de mejora comprado (ver
-	# EscaladoHabilidad.valor_para_campo) — antes este panel mostraba
-	# siempre los valores de FÁBRICA (nivel 1) sin importar cuánto se
-	# hubiera invertido en la habilidad (reportado: "no se ve afectado por
-	# la subida de nivel"). skill.escalado == null (habilidad no
-	# mejorable, o campo no configurado en ella) deja el valor base tal
-	# cual. RANGO/RECARGA se calculan en las mismas unidades que ya usa el
-	# panel (metros/segundos) — válido mientras el escalado de esos dos
-	# campos sea porcentual (invariante de unidad); una tabla exacta de
-	# valores para RANGO tendría que estar en metros para que esto siga
-	# siendo correcto.
+	# EscaladoHabilidad.valor_para_campo). skill.escalado == null (no
+	# mejorable, o campo sin configurar) deja el valor base. RANGO y RECARGA
+	# se calculan en las unidades del panel (metros y segundos): vale
+	# mientras su escalado sea porcentual; una tabla exacta para RANGO
+	# tendría que estar en metros.
 	var dano_min_mostrado := skill.damage_base_min
 	var dano_max_mostrado := skill.damage_base_max
 	var rango_mostrado := skill.range_meters
@@ -209,21 +198,16 @@ func show_skill(skill: DatosHabilidad) -> void:
 	var factor := 1.0
 
 	# Factor propio de la habilidad (p. ej. el lanzallamas solo aplica una
-	# FRACCIÓN de esto por tick, ver HabilidadLanzallamas.multiplicador_
-	# dano_tick — "decía 4-8 pero en realidad hace 1", reportado). Genérico
-	# a propósito: se lee del script de la escena por nombre de propiedad,
-	# así que cualquier habilidad futura con el mismo patrón se refleja acá
-	# sola, sin tener que tocar este panel de nuevo. instantiate() sin
-	# add_child no dispara _ready() — seguro leer y descartar.
-	# Valores de descripción para habilidades que NO atacan (Escudo,
-	# Curación, Grito de Guerra, Gancho, Inmovilizar): antes su magnitud y
-	# duración estaban escritas A MANO en el texto de "descripcion" —
-	# quedaban desincronizadas apenas alguien tocaba el export real sin
-	# acordarse de actualizar también el .tres (pedido del usuario: que
-	# salgan por parámetro, {valor1}/{duracion}, igual que {damage1} ya
-	# sale del daño real calculado, no de un número pegado en el texto).
-	# Mismo criterio "duck typing" que multiplicador_dano_tick de abajo:
-	# se lee por nombre de propiedad conocido, primero el que exista.
+	# FRACCIÓN por tick, ver HabilidadLanzallamas.multiplicador_dano_tick).
+	# Se lee del script de la escena por nombre de propiedad, así cualquier
+	# habilidad con el mismo patrón se refleja sola. instantiate() sin
+	# add_child no dispara _ready(): seguro leer y descartar.
+	# Valores de descripción de las habilidades que NO atacan (Escudo,
+	# Curación, Grito de Guerra, Gancho, Inmovilizar): {valor1}/{duracion}
+	# salen del export real, igual que {damage1} sale del daño calculado,
+	# para que el texto no se desincronice. Mismo duck typing que
+	# multiplicador_dano_tick: el primer nombre de propiedad conocido que
+	# exista.
 	var valores_descripcion := {}
 
 	if skill.escena:
@@ -271,9 +255,8 @@ func show_skill(skill: DatosHabilidad) -> void:
 		elif "bono_dano" in tmp:
 			valores_descripcion["valor1"] = "%d" % int(tmp.get("bono_dano"))
 		# HabilidadInvocacion: el daño del aliado invocado, no de la propia
-		# habilidad (categoria POTENCIADOR, así que las filas de Daño quedan
-		# escondidas — sin esto no había forma de ver cuánto pega el aliado,
-		# reportado por el usuario: "no puedo ver el daño que hace").
+		# habilidad (es POTENCIADOR, así que las filas de Daño están ocultas y
+		# no habría otra forma de verlo).
 		elif "dano_ataque" in tmp:
 			valores_descripcion["valor1"] = "%d" % int(tmp.get("dano_ataque"))
 		elif "reduccion" in tmp:

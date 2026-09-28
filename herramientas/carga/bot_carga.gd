@@ -1,14 +1,12 @@
 # =============================================================================
-# bot_carga.gd — Fase 4 del plan de escalado a MMO: simula UN jugador real
-# conectándose al servidor dedicado, moviéndose y atacando, para poder medir
-# capacidad bajo carga antes de invertir en interés espacial/sharding.
+# bot_carga.gd — simula UN jugador real conectándose al servidor dedicado,
+# moviéndose y atacando, para medir capacidad bajo carga.
 #
-# Reutiliza Mundo.tscn TAL CUAL (mismo camino de conexión, spawn y réplica
-# que un cliente real de verdad usa — no un simulador aparte que podría
-# generar tráfico distinto al real). Corre como proceso separado por bot
-# (así cada uno es una conexión ENet físicamente distinta, igual que
-# clientes reales en máquinas distintas) — ver herramientas/carga/
-# prueba_carga.sh, que lanza N de estos con --id=N --duracion=S.
+# Reutiliza Mundo.tscn TAL CUAL (el mismo camino de conexión, spawn y réplica
+# que un cliente real, no un simulador que podría generar otro tráfico). Cada
+# bot es un proceso aparte, así cada uno es una conexión ENet distinta, como
+# clientes en máquinas distintas; ver herramientas/carga/prueba_carga.sh, que
+# lanza N de estos con --id=N --duracion=S.
 #
 #   godot --headless --path . --script res://herramientas/carga/bot_carga.gd -- --id=3 --duracion=60
 # =============================================================================
@@ -41,10 +39,10 @@ var _direccion_actual := Vector2.ZERO
 const _TIMEOUT_SPAWN := 20.0
 var _tiempo_esperando_spawn: float = 0.0
 
-## Modo de verificación puntual de InteresEspacial (Fase 1): en vez de
-## simular una sesión normal, este bot se aleja 5000px apenas spawnea y se
-## queda quieto — para que otro bot con --observa confirme que deja de
-## recibir su posición real una vez fuera del radio de interés.
+## Modo de verificación de InteresEspacial: en vez de una sesión normal, este
+## bot se aleja 5000 px apenas aparece y se queda quieto, para que otro bot con
+## --observa confirme que deja de recibir su posición fuera del radio de
+## interés.
 var _teleporta_lejos := false
 var _ya_se_teleporto := false
 ## Modo observador: en vez de moverse, registra la posición X máxima que

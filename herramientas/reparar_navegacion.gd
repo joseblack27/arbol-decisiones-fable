@@ -3,11 +3,10 @@
 #
 # generar_capa_navegacion.gd y generar_nivel_hormiguero.gd pintaban la ficha
 # "Libre" como set_cell(celda, 0, (0, 0)): en tileset_colisiones.tres la
-# fuente 0 no existe (solo la 8, desde el primer commit del 10 jul 2026), y en
-# la fuente 8 el tile (0, 0) es un TRIÁNGULO de medio tile. Resultado (27-28
-# sep 2026): Cueva, Mina, Nido de la Araña y Santuario sin NINGUNA malla (los
-# mobs iban en línea recta contra las paredes), media Pradera sin malla, y el
-# Hormiguero con una malla de triángulos unidos solo por las esquinas.
+# fuente 0 no existe (solo la 8), y en la fuente 8 el tile (0, 0) es un
+# TRIÁNGULO de medio tile. Así quedaron niveles enteros sin malla (los mobs
+# iban en línea recta contra las paredes) y el Hormiguero con una malla de
+# triángulos unidos solo por las esquinas.
 #
 # Regla, la misma de los generadores: sobre terreno SIN colisión (piso), toda
 # celda con fuente inexistente o con el triángulo (0, 0) pasa a la ficha

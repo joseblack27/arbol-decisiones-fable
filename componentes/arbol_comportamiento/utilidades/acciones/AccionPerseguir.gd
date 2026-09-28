@@ -32,16 +32,13 @@ extends Accion
 ## que su velocidad base sin tocar velocidad_base en sí.
 @export var multiplicador_velocidad: float = 1.0
 ## Punto al que apunta mientras persigue (nunca el centro exacto del
-## objetivo) — mismo motivo y mismo valor que AccionAtacar.distancia_minima_
-## acercamiento (ver ese comentario largo para el porqué del valor exacto:
-## tiene que quedar bien por debajo de distancia_ataque, o el mob se traba a
-## mitad de camino por MovimientoComponente.MARGEN_DESTINO). Sin este freno,
-## un mob cuya habilidad tiene requiere_acercarse=false (ej. Arañazo de la
-## Araña) queda pegado al jugador porque quien lo trae hasta acá es esta
-## acción, no AccionAtacar.
-## Subido de 20 a 50 (pedido del usuario: "que no sea tan pegado"), mismo
-## valor que AccionAtacar — sigue bien por debajo de distancia_ataque (170,
-## o 180 en Araña/ArañaReina), ningún mob tiene ese margen ajustado.
+## objetivo), con el mismo valor y motivo que
+## AccionAtacar.distancia_minima_acercamiento: tiene que quedar bien por
+## debajo de distancia_ataque (170, o 180 en Araña y Araña Reina), o el mob se
+## traba a mitad de camino por MovimientoComponente.MARGEN_DESTINO. Sin este
+## freno, un mob cuya habilidad tiene requiere_acercarse=false (ej. el Arañazo
+## de la Araña) queda pegado al jugador, porque lo trae esta acción y no
+## AccionAtacar.
 @export var distancia_minima_acercamiento: float = 50.0
 
 var _ultima_vision: float = 0.0

@@ -1,10 +1,8 @@
 class_name HabilidadGolpeVampirico
 extends HabilidadBase
-## Golpe cuerpo a cuerpo en área alrededor de quien la usa — mismo AoE que
-## GolpeBasico/OndaChoque (antes golpeaba solo al enemigo más cercano dentro
-## de un alcance; cambiado por pedido del usuario a "que se lance encima del
-## jugador con un radio, como golpe básico"), conservando la ventaja de
-## curar un % del daño infligido (ver GolpeVampirico._aplicar_daño).
+## Golpe cuerpo a cuerpo en área alrededor de quien la usa (el mismo AoE que
+## GolpeBasico/OndaChoque, con radio), que cura un % del daño infligido (ver
+## GolpeVampirico._aplicar_daño).
 
 ## Sobreescrito por DatosHabilidad.aplicar_datos() SOLO si dano_base_min/max
 ## son > 0 ahí (ver _calcular_dano en HabilidadBase).

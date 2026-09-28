@@ -102,15 +102,12 @@ func _drop_data(_at_position, data) -> void:
 
 
 ## Reemplazo: el ítem de ESTA celda pasa a equipado en el EquipoSlot de
-## origen, y el que estaba puesto ahí vuelve al inventario general.
-## panel se resuelve ACÁ ARRIBA, antes de tocar nada — no después (bug real
-## encontrado esta misma sesión): GestorInventario.agregar_item(item) más
-## abajo dispara BusEventos.item_agregado, y si PanelInventario está
-## visible (siempre lo está: es el único panel desde el que se puede
-## arrastrar hasta acá) su handler reconstruye flow ENTERO — destruyendo
-## "self", que es un hijo de esa misma grilla — antes de que _obtener_
-## panel_inventario() llegara a correr. Resuelto así de temprano, "panel"
-## ya no depende de que "self" siga vivo para nada.
+## origen, y el que estaba puesto vuelve al inventario general.
+## "panel" se resuelve ACÁ ARRIBA, antes de tocar nada:
+## GestorInventario.agregar_item() más abajo dispara BusEventos.item_agregado,
+## y PanelInventario (siempre visible cuando se arrastra hasta acá)
+## reconstruye la grilla ENTERA, destruyendo "self" antes de que
+## _obtener_panel_inventario() llegara a correr.
 func _reemplazar_equipado(data) -> void:
 	var fuente: EquipoSlot = data
 	var item: DatosItem = fuente.item_data

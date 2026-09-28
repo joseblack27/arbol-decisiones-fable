@@ -48,9 +48,8 @@ func _ejecutar(_direccion: Vector2, _poder: float) -> void:
 	if origen == null:
 		return
 
-	# Feedback visual del radio real — pedido del usuario: sin esto, Sacudida
-	# aplicaba su efecto en silencio, sin nada en pantalla que confirmara
-	# dónde ni qué tan lejos llegaba (ver IndicadorZonaEfecto).
+	# Feedback visual del radio real: sin esto, Sacudida aplicaba su efecto
+	# sin nada que confirmara dónde ni hasta dónde (ver IndicadorZonaEfecto).
 	var indicador := IndicadorZonaEfecto.new()
 	indicador.radio = radio
 	indicador.color_relleno = Color(0.6, 0.8, 1.0, 0.35)

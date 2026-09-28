@@ -1,23 +1,17 @@
 extends Node
-## Chat global — Feature B del plan de escalado a MMO ("¿el chat debería ser
-## global o por proximidad?" → decisión del usuario: global. Un solo canal
-## "Mundo": todos los peers conectados lo ven, sin filtrar por distancia —
-## el tráfico de texto es bajo comparado con posición/estado de mobs, no
-## amerita el filtro que sí usa InteresEspacial para eso).
+## Chat global: un solo canal "Mundo" que ven todos los peers conectados, sin
+## filtrar por distancia (el tráfico de texto es bajo al lado de la posición y
+## el estado de los mobs).
 ##
-## Mismo patrón cliente-pide/servidor-valida-y-difunde que
-## MisionesComponente/TiendaComponente, con una diferencia: este autoload NO
-## cuelga de un Jugador puntual (no hay "dueño" fijo que comparar), así que
-## la identidad del remitente se resuelve en el servidor directo desde
-## multiplayer.get_remote_sender_id() — la conexión real, no falsificable
-## por el cliente — en vez de un peer_id_dueño guardado en un componente.
-## El NOMBRE tampoco viaja como parámetro del pedido: el servidor lo lee del
-## propio nodo Jugador (nombre_visible), así nadie puede mandar un mensaje
-## con el nombre de otro.
+## Mismo patrón cliente-pide / servidor-valida-y-difunde que
+## MisionesComponente/TiendaComponente, pero sin un Jugador "dueño": la
+## identidad del remitente se resuelve en el servidor desde
+## multiplayer.get_remote_sender_id() (la conexión real, no falsificable). El
+## NOMBRE tampoco viaja en el pedido: el servidor lo lee del propio nodo
+## Jugador (nombre_visible), así nadie manda mensajes con el nombre de otro.
 ##
-## Autoload de script plano (no de escena): es puro estado de runtime
-## (historial, cooldowns), sin ningún catálogo de recursos para armar a
-## mano en el Inspector — mismo criterio que GestorCuentas/InteresEspacial.
+## Autoload de script plano: puro estado de runtime (historial, cooldowns),
+## como GestorCuentas e InteresEspacial.
 
 signal mensaje_recibido(nombre: String, texto: String, es_sistema: bool)
 

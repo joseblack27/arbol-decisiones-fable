@@ -6,16 +6,11 @@ signal modo_cambiado(modo: int)
 
 var modo_actual: int = Modo.JUEGO
 
-## A qué modo volver al cerrar OS/DIALOGO — normalmente JUEGO, pero si el
-## chat ya estaba abierto (modo CHAT) antes de que OS/DIALOGO lo tapara, hay
-## que volver a CHAT, no a JUEGO. Sin esto, abrir el chat, después abrir y
-## cerrar el panel OS reactivaba el joystick de movimiento aunque el panel
-## de chat siguiera visible encima suyo — cerrar_os()/cerrar_dialogo()
-## forzaban JUEGO a ciegas, sin saber que venían de CHAT (reportado: "abro
-## el chat, abro y cierro OS, y el joystick que queda detrás del chat
-## recibe el click otra vez"). Se guarda al ABRIR (nunca se pisa con OS/
-## DIALOGO mismos, por si alguna vez se anidaran) y se restaura al CERRAR,
-## en vez de forzar JUEGO directo.
+## A qué modo volver al cerrar OS o DIALOGO: normalmente JUEGO, pero si el
+## chat ya estaba abierto (CHAT) antes de que lo taparan, hay que volver a
+## CHAT; si no, el joystick de atrás volvía a recibir los toques con el chat
+## todavía encima. Se guarda al ABRIR (nunca con OS/DIALOGO mismos, por si se
+## anidaran) y se restaura al CERRAR.
 var _modo_de_fondo: int = Modo.JUEGO
 
 func abrir_os() -> void:
@@ -50,14 +45,11 @@ func cerrar_dialogo() -> void:
 	modo_actual = _modo_de_fondo
 	modo_cambiado.emit(modo_actual)
 
-## Chat expandido (PanelChat) — sin esto, tocar el cuadro de texto/botón
-## Enviar del chat también le llegaba al joystick de atrás: ComponenteToque
-## escucha _input() global sin ningún filtro de qué UI está encima (ver ese
-## script), así que el único freno real del proyecto es este modo +
-## ControlJuego (desactiva el subárbol del joystick/slots de habilidad
-## mientras el modo no sea JUEGO) — mismo mecanismo que ya usan Diálogo/OS,
-## reportado por el usuario: "al abrir el chat, el joystick de atrás
-## también recibe el click".
+## Chat expandido (PanelChat). ComponenteToque escucha _input() global sin
+## filtrar qué UI está encima, así que el único freno es este modo +
+## ControlJuego (desactiva el joystick y los slots de habilidad mientras el
+## modo no sea JUEGO), como con Diálogo y OS. Sin esto, tocar el cuadro de
+## texto del chat también movía al jugador.
 func abrir_chat() -> void:
 	if modo_actual == Modo.CHAT:
 		return

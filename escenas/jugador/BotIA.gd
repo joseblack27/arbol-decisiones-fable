@@ -1,42 +1,28 @@
 extends Node
-## Cerebro simple para un Jugador manejado por IA en vez de input real —
-## pedido del usuario: probar el servidor con varias instancias de Godot
-## peleando solas, viendo bots recorrer el mapa y engancharse con mobs.
-## Prototipo simple a propósito, sin cola de metas todavía ("ir a mapa tal,
-## buscar tal mob, volver a ciudad" queda para más adelante si anda bien):
-## deambula por un radio alrededor de donde apareció; si detecta un enemigo
-## cerca, lo persigue manteniendo distancia_combate (ver _procesar_
-## perseguir) y ataca con alguna de sus habilidades EQUIPADAS al azar (ver
-## _usar_alguna_habilidad) hasta matarlo o perderlo de vista; al terminar ese
-## combate, sortea si sigue deambulando en este mapa o se va a otro cruzando
-## el portal más cercano (ver probabilidad_cambiar_mapa/_abandonar_objetivo)
-## — evita que se quede dando vueltas sin fin cuando no hay más mobs cerca.
-## Se agrega como hijo del propio Jugador SOLO cuando Utils.modo_bot está
-## prendido (ver Jugador._ready()) — nunca sobre la réplica de OTRO jugador.
+## Cerebro simple para un Jugador manejado por IA en vez de input real, para
+## probar el servidor con varias instancias peleando solas. Deambula alrededor
+## de donde apareció; si detecta un enemigo cerca, lo persigue manteniendo
+## distancia_combate (ver _procesar_perseguir) y ataca con alguna habilidad
+## EQUIPADA al azar (ver _usar_alguna_habilidad) hasta matarlo o perderlo de
+## vista; al terminar, sortea si sigue en este mapa o cruza el portal más
+## cercano (ver probabilidad_cambiar_mapa/_abandonar_objetivo), para no quedar
+## dando vueltas sin mobs cerca.
+## Se agrega como hijo del propio Jugador SOLO con Utils.modo_bot prendido
+## (ver Jugador._ready()), nunca sobre la réplica de OTRO jugador.
 ##
-## Detección por QUERY DE FÍSICA directa (no VisionComponente): ese
-## componente exige que el área detectada sea un VidaComponente "monitorable"
-## (ver VisionComponente._es_objetivo_valido), y el de los MOBS viene con
-## monitorable=false de fábrica en su .tscn (ver EnemigoLobo.tscn) — tiene
-## sentido para su uso real (los MOBS detectan al JUGADOR, nunca al revés),
-## pero deja a VisionComponente inservible para el caso inverso que necesita
-## este bot. En cambio, el CUERPO del mob (el CharacterBody2D) sí vive
-## siempre en collision_layer=Enemigo.CAPA_MOB (ver Enemigo._ready()) — una
-## consulta de forma contra esa capa detecta cualquier mob real sin tocar
-## nada del lado de los mobs.
+## Detección por QUERY DE FÍSICA directa, no por VisionComponente: ese exige
+## que el área detectada sea un VidaComponente "monitorable", y el de los mobs
+## viene con monitorable=false (los mobs detectan al jugador, nunca al revés).
+## El CUERPO del mob vive siempre en collision_layer=Enemigo.CAPA_MOB, así que
+## una consulta contra esa capa detecta cualquier mob sin tocarlos.
 ##
-## El movimiento va SIEMPRE por _joystick_movimiento() (nunca por
-## MovimientoComponente.comandar_destino() directo): en red, el destino real
-## lo decide el SERVIDOR vía RPC (ver ese método en Jugador.gd) —
-## comandar_destino() solo movería la copia LOCAL, que el servidor
-## terminaría pisando igual (mismo motivo por el que las habilidades van
-## por _activar_slot(), no por activar() directo sobre la habilidad).
+## El movimiento va SIEMPRE por _joystick_movimiento(), nunca por
+## MovimientoComponente.comandar_destino(): en red, la posición real la decide
+## el SERVIDOR con el input que le manda el cliente, y comandar_destino() solo
+## movería la copia local (igual que las habilidades van por _activar_slot()).
 ##
-## Sin tipar "_jugador" como Jugador a propósito: Jugador.gd no declara
-## class_name, así que el tipo estático más específico disponible sería
-## CharacterBody2D, que NO conoce _joystick_movimiento/_activar_slot —
-## Variant (sin tipo) deja que se resuelvan por duck typing en tiempo real,
-## igual que el resto del proyecto hace con este mismo nodo.
+## "_jugador" sin tipo a propósito: Jugador.gd no tiene class_name, y
+## CharacterBody2D no conoce _joystick_movimiento/_activar_slot.
 
 enum _Estado { DEAMBULAR, PERSEGUIR, VIAJAR }
 
@@ -45,12 +31,10 @@ enum _Estado { DEAMBULAR, PERSEGUIR, VIAJAR }
 ## Si el objetivo actual se aleja más que esto, se abandona en vez de
 ## perseguirlo sin fin (mismo criterio que AccionPerseguir.distancia_abandono).
 @export var radio_abandono: float = 500.0
-## Distancia que el bot intenta mantener con el objetivo mientras pelea —
-## pedido del usuario: "que no se ubicaran justo encima del mob, sino que
-## se mantengan como a 40px". Con tolerancia_distancia_combate de margen a
-## cada lado: sin ese margen, cualquier variación mínima (lag de red, el
-## propio mob empujándolo o persiguiéndolo de vuelta) dispararía
-## corrección constante de ida y vuelta en vez de quedarse quieto peleando.
+## Distancia que el bot intenta mantener con el objetivo mientras pelea, para
+## no quedar encima del mob. tolerancia_distancia_combate da margen a cada
+## lado: sin él, cualquier variación (lag, el mob empujando) causaría
+## correcciones constantes de ida y vuelta.
 @export var distancia_combate: float = 40.0
 @export var tolerancia_distancia_combate: float = 10.0
 @export var intervalo_ataque: float = 1.1
@@ -73,13 +57,11 @@ enum _Estado { DEAMBULAR, PERSEGUIR, VIAJAR }
 ## produciría cambios de mapa mientras aún podría haber un mob a la vista.
 @export_range(0.0, 1.0) var probabilidad_cambiar_mapa: float = 0.35
 ## Segundos sin avance mínimo mientras deambula o viaja a un portal antes de
-## darse por atascado (p. ej. pegado contra una pared cerca de un portal) —
-## pedido del usuario: "si no cambian de posición en 3 segundos mientras
-## caminan, significan que están atascados". Al disparar, se sortea un punto
-## nuevo VALIDADO contra la malla de navegación (ver _punto_navegable_
-## aleatorio), anclado a la posición ACTUAL en vez del origen de siempre: si
-## el problema es justo esa zona del mapa, seguir sorteando alrededor del
-## mismo origen podía volver a mandarlo justo ahí.
+## darse por atascado (p. ej. contra una pared cerca de un portal). Al
+## disparar, sortea un punto nuevo VALIDADO contra la malla (ver
+## _punto_navegable_aleatorio), alrededor de la posición ACTUAL y no del
+## origen: si el problema es esa zona, sortear alrededor del mismo origen
+## podía mandarlo de vuelta ahí.
 @export var umbral_atascado_segundos: float = 3.0
 ## Avance mínimo (px) en ese lapso para NO considerarse atascado.
 @export var distancia_minima_progreso_atascado: float = 15.0
@@ -295,14 +277,10 @@ func _elegir_destino_deambular() -> void:
 
 
 ## Punto al azar dentro de "radio" alrededor de "centro", VALIDADO contra la
-## malla de navegación del nivel actual (mismo criterio que
-## SpawnerMobs._punto_de_generacion_valido: prueba varios candidatos y se
-## queda con el punto transitable más cercano de uno que sí caiga sobre la
-## malla) — pedido del usuario: antes se elegía cualquier punto del círculo a
-## ciegas, y el bot terminaba caminando hacia terreno no transitable o hacia
-## el otro lado de una pared, quedando pegado contra ella sin poder llegar
-## nunca. Sin malla en el nivel (pruebas sueltas sin nivel real) cae al
-## comportamiento simple de siempre.
+## malla de navegación del nivel (como SpawnerMobs._punto_de_generacion_valido:
+## prueba varios candidatos y se queda con el punto transitable más cercano).
+## Elegido a ciegas, el bot caminaba hacia terreno no transitable o al otro
+## lado de una pared. Sin malla (pruebas sueltas) devuelve cualquier punto.
 func _punto_navegable_aleatorio(centro: Vector2, radio: float) -> Vector2:
 	var mapa := GestorNiveles.mapa_navegacion_de(_jugador)
 	if NavigationServer2D.map_get_regions(mapa).is_empty():
@@ -377,11 +355,9 @@ func _procesar_perseguir() -> void:
 		_usar_alguna_habilidad()
 
 
-## Junta los slots equipados que no estén en cooldown y elige uno al azar —
-## pedido del usuario: "que los bots pudieran usar más habilidades" en vez
-## de spamear siempre golpe_basico (slot 0). Las que requieren dirección
-## (proyectiles, golpes apuntados) se lanzan hacia el objetivo; el resto
-## (curación, escudo, buffs...) se activa tal cual, sin apuntar a nada.
+## Junta los slots equipados que no estén en cooldown y elige uno al azar, en
+## vez de usar siempre el slot 0. Las que requieren dirección se lanzan hacia
+## el objetivo; el resto (curación, escudo, buffs...) se activa tal cual.
 func _usar_alguna_habilidad() -> void:
 	var slots = _jugador.slot_habilidades
 	if slots == null:

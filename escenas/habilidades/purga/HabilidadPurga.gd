@@ -1,16 +1,14 @@
 class_name HabilidadPurga
 extends HabilidadBase
 ## Te libera al instante de todos los debuffs TEMPORALES que lleves pegados
-## (veneno, lentitud, y cualquier futuro que extienda EfectoTemporalPegado) y
-## te da unos segundos de inmunidad a que te apliquen uno nuevo. Self-buff
-## sin dirección, se usa como botón tap — mismo criterio que Camuflaje.
+## (veneno, lentitud y cualquiera que extienda EfectoTemporalPegado) y te da
+## unos segundos de inmunidad a uno nuevo. Auto-buff sin dirección, se usa
+## como botón, como Camuflaje.
 ##
-## A propósito NO toca efectos de ZONA (Inmovilizar, DoT, Marca — ver
-## EfectoAreaBase): esos no son un "estado que llevás encima", son mientras
-## estás parado en un área, y volverían a aplicarse solos apenas sigas ahí.
-## Tampoco toca ningún debuff de zona/mapa que se agregue más adelante,
-## salvo que ese efecto nuevo decida extender EfectoTemporalPegado a
-## propósito — la separación es intencional, pedida por el usuario.
+## A propósito NO toca efectos de ZONA (Inmovilizar, DoT, Marca; ver
+## EfectoAreaBase): no son un estado que llevás encima sino un área donde
+## estás parado, y volverían a aplicarse enseguida. Un debuff nuevo solo queda
+## cubierto si extiende EfectoTemporalPegado.
 
 @export_group("Purga")
 @export var duracion_inmunidad: float = 3.0
@@ -27,8 +25,8 @@ func _ready() -> void:
 	requiere_direccion = false
 
 
-## El ícono del buff de inmunidad tiene que ser el mismo que ves en el
-## botón — pedido del usuario, ver la nota igual en HabilidadCamuflaje.
+## El ícono del buff de inmunidad es el mismo del botón (ver la nota igual en
+## HabilidadCamuflaje).
 func aplicar_datos(d: DatosHabilidad) -> void:
 	super.aplicar_datos(d)
 	if d.icono:
