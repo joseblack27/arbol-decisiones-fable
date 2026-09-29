@@ -131,7 +131,9 @@ func _esperar_malla() -> bool:
 
 ## Pared de fichas-silueta cruzando el eje X entre el lobo y su destino, unas
 ## celdas por encima y por debajo del origen (perpendicular al trayecto
-## directo), para forzar un rodeo.
+## directo), para forzar un rodeo. La malla del nivel se hornea desde la capa
+## (ver NivelBase._hornear_malla_con_margen), así que después de pintar hay que
+## pedirle que se vuelva a hornear.
 func _pintar_pared() -> void:
 	var tam := _navegacion.tile_set.tile_size.x
 	var origen_celda := _navegacion.local_to_map(_navegacion.to_local(_ORIGEN_LOBO))
@@ -141,10 +143,11 @@ func _pintar_pared() -> void:
 	_centro_pared = _navegacion.to_global(
 		_navegacion.map_to_local(Vector2i(x_pared, origen_celda.y))
 	)
+	current_scene.rehornear_navegacion()
 
 
-## set_cell() no toca la malla en el acto: NavigationServer re-sincroniza la
-## capa unas físicas después. Se espera a que el centro de la pared DEJE de ser
+## La malla nueva no entra en el acto: NavigationServer la sincroniza unas
+## físicas después. Se espera a que el centro de la pared DEJE de ser
 ## transitable — preguntárselo a la malla es más honesto que contar fotogramas,
 ## que es justo lo que volvía intermitentes a estas pruebas.
 func _esperar_pared() -> bool:

@@ -37,6 +37,10 @@ const _INTENTOS_MAXIMOS := 8
 ## Distancia (px) máxima entre un punto candidato y el punto transitable más
 ## cercano de la malla de navegación para considerarlo "sobre" la malla.
 const _TOLERANCIA_NAVEGACION := 6.0
+## Lo mismo para un mob que ya anda por el nivel (ver
+## _revisar_mobs_fuera_de_limites): uno apoyado contra una pared queda hasta
+## MovimientoComponente.MARGEN_MALLA afuera de la malla sin haberse salido.
+const _TOLERANCIA_FUERA_DE_LIMITES := _TOLERANCIA_NAVEGACION + MovimientoComponente.MARGEN_MALLA
 ## Distancia (px) mínima entre un punto candidato y cualquier jugador: sin
 ## esto, un radio de spawn grande podía generar mobs justo ENCIMA del
 ## jugador (incluida su zona de aparición al entrar al nivel), que lo
@@ -201,7 +205,7 @@ func _punto_de_generacion_valido() -> Variant:
 
 
 ## Elimina (no reposiciona) a cualquier mob de _vivos que haya quedado más
-## lejos de _TOLERANCIA_NAVEGACION de la malla DOS revisiones seguidas —
+## lejos de _TOLERANCIA_FUERA_DE_LIMITES de la malla DOS revisiones seguidas —
 ## más simple y sin riesgo de "moverlo" a otro punto igual de inválido.
 ## Saca a "mob" de _vivos acá mismo, SIN esperar a que tree_exiting dispare
 ## _al_salir_mob (queue_free() es diferido al final del fotograma) — así
@@ -211,8 +215,8 @@ func _punto_de_generacion_valido() -> Variant:
 ## muerte de combate, es descartar un estado anómalo.
 ##
 ## Exige DOS revisiones seguidas fuera de la malla (separadas por
-## _INTERVALO_REVISION_LIMITES) antes de borrar: _TOLERANCIA_NAVEGACION
-## (6 px) es ajustada para un mob en movimiento (corta esquinas, se desvía
+## _INTERVALO_REVISION_LIMITES) antes de borrar: la tolerancia es ajustada
+## para un mob en movimiento (corta esquinas, se desvía
 ## por evasión), que puede quedar un instante unos px afuera sin estar
 ## atascado, y con una sola revisión se borraban mobs sanos. Uno de verdad
 ## atascado sigue afuera en la revisión siguiente.
@@ -231,7 +235,7 @@ func _revisar_mobs_fuera_de_limites() -> void:
 			continue
 		var posicion: Vector2 = (mob as Node2D).global_position
 		var mas_cercano: Vector2 = NavigationServer2D.map_get_closest_point(mapa, posicion)
-		if posicion.distance_to(mas_cercano) > _TOLERANCIA_NAVEGACION:
+		if posicion.distance_to(mas_cercano) > _TOLERANCIA_FUERA_DE_LIMITES:
 			fuera_esta_vez.append(mob)
 			if _sospechosos_fuera_de_limites.has(mob):
 				_vivos.erase(mob)

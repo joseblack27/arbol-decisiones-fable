@@ -33,6 +33,15 @@ class_name MovimientoComponente
 ## para pathfinding, solo para el aspecto visual y su propia colisión física).
 const MASCARA_NAVEGACION := 2
 
+## Distancia (px) que la malla de los niveles deja libre contra las paredes
+## (ver NivelBase._hornear_malla_con_margen): una ruta por el borde de la malla
+## ya pasa a esta distancia de la pared en vez de rozarla. Es el radio típico
+## de un mob; los más grandes se separan del resto con _punto_ruta_con_holgura.
+## Todo lo que pregunta "¿este punto está dentro del mapa?" contra la malla
+## tiene que sumarlo a su tolerancia: un cuerpo pegado a una pared queda hasta
+## esta distancia afuera de la malla sin haberse salido de nada.
+const MARGEN_MALLA := 10.0
+
 ## Contador de efectos de inmovilización activos. Mientras sea > 0 el movimiento se bloquea.
 var _contador_inmovilizacion: int = 0
 
@@ -63,26 +72,29 @@ func _ready() -> void:
 		_ajustar_distancia_punto_ruta()
 
 
-## Margen (px) por encima del radio del cuerpo con el que un punto intermedio
-## de la ruta se da por pasado — ver _ajustar_distancia_punto_ruta().
+## Margen (px) por encima de lo que el cuerpo sobresale de la malla con el que
+## un punto intermedio de la ruta se da por pasado; ver
+## _ajustar_distancia_punto_ruta().
 const _MARGEN_PUNTO_RUTA := 6.0
 
-## La malla de navegación llega hasta el borde de las paredes, así que en cada
-## esquina de túnel la ruta pasa por el vértice MISMO de la pared. El cuerpo
-## nunca se acerca a ese punto más que su propio radio: con
-## path_desired_distance <= radio, el agente jamás lo daba por pasado y el mob
-## se quedaba empujando contra la esquina.
+## En cada esquina de túnel la ruta pasa por un vértice de la malla, que queda a
+## MARGEN_MALLA de la pared. Un cuerpo de radio mayor no se acerca a ese punto
+## más que lo que le sobra (radio - MARGEN_MALLA): con path_desired_distance por
+## debajo de eso, el agente jamás lo daba por pasado y el mob se quedaba
+## empujando contra la esquina. Para los que caben en el margen alcanza el
+## valor configurado; agrandarlo de más les hace dar por pasada la esquina antes
+## de doblarla y encarar el tramo siguiente a través de la pared.
 func _ajustar_distancia_punto_ruta() -> void:
 	if agente_navegacion == null or jugador == null:
 		return
-	agente_navegacion.path_desired_distance = maxf(
-		agente_navegacion.path_desired_distance, _radio_cuerpo() + _MARGEN_PUNTO_RUTA)
+	agente_navegacion.path_desired_distance = maxf(agente_navegacion.path_desired_distance,
+		_radio_cuerpo() - MARGEN_MALLA + _MARGEN_PUNTO_RUTA)
 
 
-## La malla llega hasta el filo de las paredes, así que la ruta corre PEGADA a
-## ellas: en un tramo a lo largo de una pared, el centro del cuerpo tendría que
-## ir por la pared misma y el mob se quedaba empujando contra ella. Se apunta a
-## un punto separado de las paredes por el radio del cuerpo; la dirección
+## La malla deja MARGEN_MALLA libres contra las paredes; un cuerpo más grande
+## que eso, siguiendo una ruta a lo largo de una pared, igual la roza y se
+## quedaba empujando contra ella. Se apunta a un punto separado de las paredes
+## por lo que al cuerpo le sobra; la dirección
 ## "hacia adentro" sale de la propia malla, probando en 8 direcciones qué puntos
 ## alrededor siguen siendo transitables. El punto final de la ruta no se toca
 ## (es el destino pedido). Se calcula una vez por punto y no por fotograma: con
@@ -98,8 +110,10 @@ func _punto_ruta_con_holgura(punto: Vector2) -> Vector2:
 	var ruta := agente_navegacion.get_current_navigation_path()
 	if ruta.is_empty() or punto == ruta[ruta.size() - 1]:
 		return punto
+	var holgura := _radio_cuerpo() + 2.0 - MARGEN_MALLA
+	if holgura <= 0.0:
+		return punto
 	var mapa := agente_navegacion.get_navigation_map()
-	var holgura := _radio_cuerpo() + 2.0
 	var hacia_adentro := Vector2.ZERO
 	for i in 8:
 		var sentido := Vector2.RIGHT.rotated(i * TAU / 8.0)
@@ -379,10 +393,10 @@ func aplicar_empuje(direccion: Vector2, fuerza: float, duracion: float) -> void:
 
 
 ## Margen (px) antes de considerar que el cuerpo realmente "se salió" del
-## área navegable — un punto interior normal da distancia ~0 contra su
-## propia malla, así que cualquier valor bien por encima de eso es señal
-## real de fuga, no ruido de la consulta.
-const MARGEN_FUERA_DE_MAPA := 6.0
+## área navegable. MARGEN_MALLA porque la malla no llega hasta la pared: un
+## cuerpo apoyado contra ella queda hasta esa distancia afuera sin haberse
+## fugado. Los 6 px de encima son ruido de la consulta.
+const MARGEN_FUERA_DE_MAPA := MARGEN_MALLA + 6.0
 
 ## Red de seguridad contra fugas del mapa: la colisión física del borde (tiles
 ## diagonales en las esquinas del contorno) puede tener puntos delgados que una
