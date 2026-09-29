@@ -13,6 +13,9 @@ var abierta: bool = false
 
 
 func _ready() -> void:
+	# Abre y cierra: no es un obstáculo fijo para la malla de navegación (ver
+	# HorneadorNavegacion._agregar_obstaculos).
+	add_to_group(&"obstaculos_moviles")
 	_aplicar_estado()
 
 

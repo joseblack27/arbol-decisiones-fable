@@ -42,6 +42,9 @@ var _aliados_vistos := 0
 var _aliados_despachados := 0
 ## Invocar a los 4s + 15s de vida del aliado + margen para que llegue la baja.
 const _SEGUNDOS_CICLO_ALIADO := 24.0
+## Vida del aliado (invocacion.tres) + margen para que llegue su baja: al verlo
+## aparecer, la corrida dura al menos esto más.
+const _SEGUNDOS_HASTA_BAJA_ALIADO := 19.0
 
 
 func _init() -> void:
@@ -123,6 +126,9 @@ func _al_entrar(nodo: Node) -> void:
 		if nodo.get_class() == "CharacterBody2D" and String(nodo.name).begins_with("AliadoInvocado"):
 			_aliados_vistos += 1
 			print("[BOT-REPLICADOR] alta: %s" % nodo.name)
+			# Si apareció tarde (el jugador estuvo muerto o bloqueado), esperar
+			# igual a que se desvanezca.
+			_duracion = maxf(_duracion, _SEGUNDOS_HASTA_BAJA_ALIADO)
 
 
 func _al_salir(nodo: Node) -> void:
@@ -142,6 +148,12 @@ func _invocar_periodicamente(delta: float) -> void:
 		slots.equipar(0, load("res://recursos/habilidades/invocacion.tres"))
 		_invocacion_equipada = true
 	if not _invocacion_equipada or _tiempo_en_nivel < _proxima_invocacion:
+		return
+	# Como la UI real (Jugador._activar_slot): recién llegado a un nivel o
+	# muerto, el servidor rechaza la habilidad, pero activar() directo igual
+	# gastaba acá la recarga de 20 s y el aliado aparecía cuando la corrida ya
+	# terminaba (pasó entrando al Camino, que tarda en cargar).
+	if _jugador.esta_bloqueado():
 		return
 	_proxima_invocacion = _tiempo_en_nivel + 20.0
 	var hab = slots.obtener(0)

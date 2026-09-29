@@ -51,83 +51,57 @@ func _crear_mapa_navegacion() -> void:
 			(nodo as TileMapLayer).set_navigation_map(_mapa_navegacion)
 		elif nodo is NavigationRegion2D:
 			(nodo as NavigationRegion2D).set_navigation_map(_mapa_navegacion)
-	var capa := get_node_or_null("Navegacion") as TileMapLayer
-	if capa != null and capa.navigation_enabled:
-		_preparar_malla_con_margen(capa)
+	_preparar_malla_horneada()
 
 
 # =============================================================================
-# MALLA CON MARGEN: la capa Navegacion se pinta celda por celda, y la malla que
-# arma el TileMapLayer llega hasta el filo de las paredes, así que las rutas
-# las rozan. En vez de usarla tal cual, se hornea una malla a partir de las
-# mismas celdas achicada en MovimientoComponente.MARGEN_MALLA (el radio típico
-# de un mob): una ruta por el borde ya pasa separada de la pared.
+# MALLA HORNEADA: la malla que arman la capa Navegacion (pintada celda por
+# celda) o la región del Camino tal cual no coincide con la física: llega
+# hasta el filo de las paredes y no sabe nada de la capa Colision ni de los
+# árboles y rocas. En su lugar se hornea una malla que resta esa colisión, deja
+# MovimientoComponente.MARGEN_MALLA libres contra todo y descarta lo que quedó
+# aislado (ver HorneadorNavegacion.gd).
 #
-# Se hornea una vez, en todos los peers, al cargar el nivel (de 7 a 60 ms
-# según el nivel). La capa queda con la navegación apagada: su malla sin
-# margen competiría con esta.
+# Se hornea una vez, en todos los peers, al cargar el nivel. La capa o región
+# original queda apagada: su malla competiría con esta.
 # =============================================================================
-var _region_con_margen: NavigationRegion2D
+const _HorneadorNavegacion := preload("res://escenas/niveles/HorneadorNavegacion.gd")
 
-func _preparar_malla_con_margen(capa: TileMapLayer) -> void:
-	capa.navigation_enabled = false
+var _region_con_margen: NavigationRegion2D
+var _origen_navegacion: Node
+
+func _preparar_malla_horneada() -> void:
+	var origen := get_node_or_null("Navegacion")
+	var capas_navegacion := 0
+	if origen is TileMapLayer and (origen as TileMapLayer).navigation_enabled:
+		var capa := origen as TileMapLayer
+		capa.navigation_enabled = false
+		if capa.tile_set != null and capa.tile_set.get_navigation_layers_count() > 0:
+			capas_navegacion = capa.tile_set.get_navigation_layer_layers(0)
+	elif origen is NavigationRegion2D and (origen as NavigationRegion2D).enabled:
+		var region := origen as NavigationRegion2D
+		region.enabled = false
+		capas_navegacion = region.navigation_layers
+	else:
+		return
+	_origen_navegacion = origen
 	_region_con_margen = NavigationRegion2D.new()
 	_region_con_margen.name = "NavegacionConMargen"
-	if capa.tile_set != null and capa.tile_set.get_navigation_layers_count() > 0:
-		_region_con_margen.navigation_layers = capa.tile_set.get_navigation_layer_layers(0)
+	if capas_navegacion != 0:
+		_region_con_margen.navigation_layers = capas_navegacion
 	add_child(_region_con_margen)
 	_region_con_margen.set_navigation_map(_mapa_navegacion)
-	_hornear_malla_con_margen(capa)
+	rehornear_navegacion()
 
 
-## Si algo pinta la capa Navegacion en tiempo de ejecución (hoy solo pruebas),
-## la malla no se entera sola: pintar celdas no emite "changed" en esta
-## versión de Godot. Hay que pedirle que se vuelva a hornear.
+## Vuelve a hornear desde la capa o región original. Hace falta si algo pinta
+## la capa Navegacion en tiempo de ejecución (hoy solo pruebas): pintar celdas
+## no emite "changed" en esta versión de Godot, así que la malla no se entera
+## sola.
 func rehornear_navegacion() -> void:
-	var capa := get_node_or_null("Navegacion") as TileMapLayer
-	if capa != null and is_instance_valid(_region_con_margen):
-		_hornear_malla_con_margen(capa)
-
-
-## Cada celda aporta su polígono de navegación (el de la ficha, en general el
-## cuadrado entero) como contorno transitable; el horneado los une y los achica
-## en agent_radius.
-func _hornear_malla_con_margen(capa: TileMapLayer) -> void:
-	var fuente := NavigationMeshSourceGeometryData2D.new()
-	for celda in capa.get_used_cells():
-		var datos := capa.get_cell_tile_data(celda)
-		if datos == null:
-			continue
-		var poligono := datos.get_navigation_polygon(0)
-		if poligono == null:
-			continue
-		var centro := capa.map_to_local(celda)
-		for contorno in _contornos_de(poligono):
-			var puntos := PackedVector2Array()
-			for p in contorno:
-				puntos.append(_region_con_margen.to_local(capa.to_global(centro + p)))
-			fuente.add_traversable_outline(puntos)
-	var malla := NavigationPolygon.new()
-	malla.agent_radius = MovimientoComponente.MARGEN_MALLA
-	NavigationServer2D.bake_from_source_geometry_data(malla, fuente)
-	_region_con_margen.navigation_polygon = malla
-
-
-## Los polígonos de las fichas pueden traer contornos o solo los polígonos ya
-## horneados (vértices + índices); cualquiera de los dos sirve de contorno.
-func _contornos_de(poligono: NavigationPolygon) -> Array[PackedVector2Array]:
-	var contornos: Array[PackedVector2Array] = []
-	for i in poligono.get_outline_count():
-		contornos.append(poligono.get_outline(i))
-	if not contornos.is_empty():
-		return contornos
-	var vertices := poligono.get_vertices()
-	for i in poligono.get_polygon_count():
-		var contorno := PackedVector2Array()
-		for indice in poligono.get_polygon(i):
-			contorno.append(vertices[indice])
-		contornos.append(contorno)
-	return contornos
+	if is_instance_valid(_origen_navegacion) and is_instance_valid(_region_con_margen):
+		_region_con_margen.navigation_polygon = _HorneadorNavegacion.hornear(
+			self, _origen_navegacion, _region_con_margen)
 
 
 ## El mapa de navegación de este nivel. Todo lo que navegue DENTRO del nivel
