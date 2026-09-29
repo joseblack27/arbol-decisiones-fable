@@ -17,6 +17,7 @@ extends SceneTree
 
 var _f := 0
 var _jugador: Node
+var _iconos: Node2D
 var _icono := PlaceholderTexture2D.new()
 
 var _sin_debuffs_ok := false
@@ -33,7 +34,7 @@ func _process(_d: float) -> bool:
 		3:
 			# Sin ningún debuff todavía: no tiene que fallar ni mostrar nada
 			# (BuffsComponente ni existe aún).
-			_sin_debuffs_ok = _jugador._buffs_activos_estado.is_empty()
+			_sin_debuffs_ok = _iconos._buffs_activos.is_empty()
 			print("Sin debuffs, no hay nada que mostrar (esperado true): %s" % _sin_debuffs_ok)
 
 			# Se pega un aturdimiento real (mismo camino que Sacudida).
@@ -42,11 +43,11 @@ func _process(_d: float) -> bool:
 			efecto.duracion = 5.0
 			efecto.icono_debuff = _icono
 			_jugador.add_child(efecto)
-		# _INTERVALO_REINTENTO_BUFFS_ESTADO = 0.5s -> de sobra a los 40 fotogramas.
+		# IconosEstadoJugador._INTERVALO_REINTENTO_BUFFS = 0.5s -> de sobra a los 40 fotogramas.
 		40:
-			_detecta_debuff_ok = "aturdido" in _jugador._buffs_activos_estado
+			_detecta_debuff_ok = "aturdido" in _iconos._buffs_activos
 			print("Detecta el debuff nuevo (esperado true): %s (%s)" % [
-				_detecta_debuff_ok, _jugador._buffs_activos_estado])
+				_detecta_debuff_ok, _iconos._buffs_activos])
 
 			# Un segundo debuff (lentitud) — tiene que mostrar los DOS.
 			var lentitud = (load("res://escenas/efectos/EfectoLentitud.gd") as GDScript).new()
@@ -55,10 +56,10 @@ func _process(_d: float) -> bool:
 			lentitud.icono_debuff = _icono
 			_jugador.add_child(lentitud)
 		42:
-			_muestra_los_dos_ok = "aturdido" in _jugador._buffs_activos_estado \
-				and "lentitud" in _jugador._buffs_activos_estado
+			_muestra_los_dos_ok = "aturdido" in _iconos._buffs_activos \
+				and "lentitud" in _iconos._buffs_activos
 			print("Muestra los dos debuffs a la vez (esperado true): %s (%s)" % [
-				_muestra_los_dos_ok, _jugador._buffs_activos_estado])
+				_muestra_los_dos_ok, _iconos._buffs_activos])
 
 			# El nodo de íconos tiene que quedar arriba del BORDE SUPERIOR real
 			# del sprite (no un número fijo a ojo) — mismo criterio que
@@ -66,9 +67,9 @@ func _process(_d: float) -> bool:
 			var sprite: Sprite2D = _jugador.sprite
 			var alto_frame: float = (sprite.texture.get_height() / float(sprite.vframes)) * sprite.scale.y
 			var borde_superior_sprite: float = sprite.position.y - alto_frame / 2.0
-			_queda_encima_del_sprite_ok = _jugador._nodo_iconos_estado.position.y < borde_superior_sprite
+			_queda_encima_del_sprite_ok = _iconos.position.y < borde_superior_sprite
 			print("Los íconos quedan arriba del sprite (Y=%.1f, borde del sprite=%.1f, esperado Y < borde): %s" % [
-				_jugador._nodo_iconos_estado.position.y, borde_superior_sprite, _queda_encima_del_sprite_ok])
+				_iconos.position.y, borde_superior_sprite, _queda_encima_del_sprite_ok])
 			return _informar()
 	return false
 
@@ -77,6 +78,7 @@ func _montar() -> void:
 	_jugador = (load("res://escenas/jugador/Jugador.tscn") as PackedScene).instantiate()
 	root.add_child(_jugador)
 	current_scene = _jugador
+	_iconos = _jugador.get_node("IconosEstadoJugador")
 
 
 func _informar() -> bool:

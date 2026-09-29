@@ -6,7 +6,7 @@
 # id_unico) a la vez: uno viejo/fantasma que los mobs siguen atacando, y el
 # nuevo que de verdad controla el jugador.
 #
-# Verifica la lógica de detección de Jugador._buscar_fantasma_de_la_misma_
+# Verifica la lógica de detección de IdentidadJugador._buscar_fantasma_de_la_misma_
 # identidad() (llamada desde _registrar_identidad_red apenas se confirma la
 # identidad real, ver ese archivo):
 #   1. Dos Jugador con el MISMO id_unico y distinto peer_id_dueño -> se
@@ -51,7 +51,7 @@ func _montar() -> void:
 
 
 func _probar_solo() -> void:
-	var fantasma = _jugador_a.call("_buscar_fantasma_de_la_misma_identidad")
+	var fantasma = _jugador_a.get_node("IdentidadJugador")._buscar_fantasma_de_la_misma_identidad()
 	_no_se_detecta_a_si_mismo = fantasma == null
 
 
@@ -62,13 +62,13 @@ func _probar_mismo_id() -> void:
 	_jugador_b.id_unico = "cuenta-1"
 	_jugador_b.peer_id_dueño = 200
 
-	var fantasma = _jugador_b.call("_buscar_fantasma_de_la_misma_identidad")
+	var fantasma = _jugador_b.get_node("IdentidadJugador")._buscar_fantasma_de_la_misma_identidad()
 	_detecta_mismo_id_distinto_peer = fantasma == _jugador_a
 
 
 func _probar_id_distinto() -> void:
 	_jugador_b.id_unico = "cuenta-2"
-	var fantasma = _jugador_b.call("_buscar_fantasma_de_la_misma_identidad")
+	var fantasma = _jugador_b.get_node("IdentidadJugador")._buscar_fantasma_de_la_misma_identidad()
 	_no_falso_positivo_id_distinto = fantasma == null
 
 

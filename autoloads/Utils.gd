@@ -130,7 +130,7 @@ func id_jugador_local() -> String:
 		return _id_jugador_local_cache
 	# Lo mismo con JUGADORES REALES sin PIN: dos ventanas en la misma PC con la
 	# misma identidad se expulsan entre sí en bucle (ver
-	# Jugador._expulsar_fantasma_de_la_misma_identidad). A diferencia de los
+	# IdentidadJugador._expulsar_fantasma_de_la_misma_identidad). A diferencia de los
 	# bots, acá el progreso importa: cada ventana adicional reclama su PROPIO
 	# archivo numerado y lo mantiene vivo con un heartbeat mientras dure el
 	# proceso, así cada una tiene una cuenta real y estable.

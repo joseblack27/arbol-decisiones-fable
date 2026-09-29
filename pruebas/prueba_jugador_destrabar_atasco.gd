@@ -5,8 +5,8 @@
 # bug-parpadeo-rayo-vs-forma-real), insistir mucho con Carga/Parpadeo
 # contra la MISMA esquina todavía podía dejar al jugador incrustado en
 # geometría del mapa -- un caso límite geométrico cada vez más raro pero
-# no eliminado del todo. Se agregaron DOS redes de seguridad genéricas en
-# Jugador.gd:
+# no eliminado del todo. Se agregaron DOS redes de seguridad genéricas (hoy en
+# DestrabeJugador.gd, hijo del jugador):
 #   1. _esta_incrustado_en_pared() + _intentar_destrabar(): si el cuerpo
 #      queda REALMENTE incrustado (no solo en contacto), se reubica solo
 #      en el punto libre más cercano.
@@ -32,6 +32,7 @@ extends SceneTree
 
 var _f := 0
 var _jugador
+var _destrabe
 var _muro: StaticBody2D
 var _muros_caja: Array[StaticBody2D] = []
 const _RADIO_JUGADOR := 10.0  # CircleShape2D_8vwo7 (Jugador.tscn), default de Godot.
@@ -80,6 +81,7 @@ func _montar() -> void:
 	# habilidades ya estén resueltos (ver memoria del proyecto).
 	_jugador = (load("res://escenas/jugador/Jugador.tscn") as PackedScene).instantiate()
 	escena.add_child(_jugador)
+	_destrabe = _jugador.get_node("DestrabeJugador")
 
 	# Un solo muro grande a la derecha, borde izquierdo en x=100.
 	_muro = StaticBody2D.new()
@@ -123,30 +125,30 @@ func _probar_contacto_normal_no_dispara() -> void:
 	# normal (como pararse contra una pared a propósito), NO debería
 	# contar como "incrustado".
 	_jugador.global_position = Vector2(100.0 - _RADIO_JUGADOR, 0)
-	_no_incrustado_al_solo_tocar_ok = not _jugador._esta_incrustado_en_pared()
+	_no_incrustado_al_solo_tocar_ok = not _destrabe._esta_incrustado_en_pared()
 	print("Tocar la pared de refilón, sin penetrar, NO cuenta como incrustado (esperado true): %s" % \
 		_no_incrustado_al_solo_tocar_ok)
 
 
 func _probar_solape_real_se_detecta() -> void:
-	# 5px adentro del muro (más que _ATASCO_MARGEN_ACHIQUE=3) -- solape real.
+	# 5px adentro del muro (más que _MARGEN_ACHIQUE=3) -- solape real.
 	_jugador.global_position = Vector2(100.0 - _RADIO_JUGADOR + 5.0, 0)
-	_si_incrustado_con_solape_real_ok = _jugador._esta_incrustado_en_pared()
+	_si_incrustado_con_solape_real_ok = _destrabe._esta_incrustado_en_pared()
 	print("5px adentro de la pared SÍ cuenta como incrustado (esperado true): %s" % \
 		_si_incrustado_con_solape_real_ok)
 
 
 func _probar_umbral_y_reubicacion() -> void:
 	# Reusa la posición incrustada del chequeo anterior.
-	_jugador._tiempo_incrustado_atasco = 0.0
-	_jugador._verificar_atasco_y_destrabar(0.01)
+	_destrabe._tiempo_incrustado = 0.0
+	_destrabe.verificar(0.01)
 	_no_dispara_antes_del_umbral_ok = _jugador.global_position.x < 100.0
 	print("Un solo fotograma incrustado todavía no dispara la reubicación (esperado true): %s" % \
 		_no_dispara_antes_del_umbral_ok)
 
 	# Forzar que ya pasó el umbral sostenido, sin esperar el tiempo real.
-	_jugador._tiempo_incrustado_atasco = 999.0
-	_jugador._verificar_atasco_y_destrabar(0.01)
+	_destrabe._tiempo_incrustado = 999.0
+	_destrabe.verificar(0.01)
 	var pos_final = _jugador.global_position
 	var punto_mas_cercano := Vector2(clampf(pos_final.x, 100.0, 300.0), clampf(pos_final.y, -100.0, 100.0))
 	var se_solapa: bool = pos_final.distance_to(punto_mas_cercano) < _RADIO_JUGADOR
@@ -162,9 +164,9 @@ func _probar_umbral_y_reubicacion() -> void:
 func _probar_fuerza_movimiento_en_direccion() -> void:
 	_jugador.global_position = _POS_CAMPO_ABIERTO
 	_jugador.direccion = Vector2.RIGHT
-	_jugador._posicion_referencia_sin_avanzar = _POS_CAMPO_ABIERTO
-	_jugador._tiempo_sin_avanzar_atasco = 999.0
-	_jugador._verificar_atasco_y_destrabar(0.01)
+	_destrabe._posicion_referencia_sin_avanzar = _POS_CAMPO_ABIERTO
+	_destrabe._tiempo_sin_avanzar = 999.0
+	_destrabe.verificar(0.01)
 	var avance = _jugador.global_position.distance_to(_POS_CAMPO_ABIERTO)
 	_fuerza_movimiento_en_direccion_ok = avance > 40.0
 	print("Sin nada bloqueando, se fuerza el movimiento en la dirección pedida (esperado true, avanzó %.1fpx): %s" % [
@@ -179,9 +181,9 @@ func _probar_inmovilizado_no_dispara() -> void:
 	_jugador.global_position = _POS_INMOVILIZADO
 	_jugador.direccion = Vector2.RIGHT
 	_jugador.componente_movimiento._contador_inmovilizacion = 1
-	_jugador._posicion_referencia_sin_avanzar = _POS_INMOVILIZADO
-	_jugador._tiempo_sin_avanzar_atasco = 999.0
-	_jugador._verificar_atasco_y_destrabar(0.01)
+	_destrabe._posicion_referencia_sin_avanzar = _POS_INMOVILIZADO
+	_destrabe._tiempo_sin_avanzar = 999.0
+	_destrabe.verificar(0.01)
 	var avance = _jugador.global_position.distance_to(_POS_INMOVILIZADO)
 	_inmovilizado_no_dispara_ok = avance < 1.0
 	print("Inmovilizado a propósito (Cepo/aturdido) NO dispara nada (esperado true, avanzó %.1fpx): %s" % [
@@ -197,9 +199,9 @@ func _probar_inmovilizado_no_dispara() -> void:
 func _probar_cae_a_destrabar_si_direccion_bloqueada() -> void:
 	_jugador.global_position = _POS_CAJA
 	_jugador.direccion = Vector2.RIGHT  # Derecho contra la pared derecha de la caja.
-	_jugador._posicion_referencia_sin_avanzar = _POS_CAJA
-	_jugador._tiempo_sin_avanzar_atasco = 999.0
-	_jugador._verificar_atasco_y_destrabar(0.01)
+	_destrabe._posicion_referencia_sin_avanzar = _POS_CAJA
+	_destrabe._tiempo_sin_avanzar = 999.0
+	_destrabe.verificar(0.01)
 	var pos_final = _jugador.global_position
 	var se_solapa := false
 	for muro in _muros_caja:

@@ -3,7 +3,7 @@
 # Bug reportado: "se sobreescriben y se reinician cada rato" con 2 ventanas
 # de Godot en la misma máquina — antes, sin PIN, las dos terminaban leyendo
 # el MISMO user://id_jugador.txt (mismo id_unico), y el servidor expulsaba
-# a la vieja apenas la nueva se conectaba (Jugador._expulsar_fantasma_de_
+# a la vieja apenas la nueva se conectaba (IdentidadJugador._expulsar_fantasma_de_
 # la_misma_identidad), que reintentaba sola y expulsaba a la nueva a su
 # vez — bucle infinito.
 #

@@ -1,8 +1,19 @@
 ## Jugador.gd
-## Controlador principal del jugador. Su única responsabilidad es orquestar el flujo de datos y eventos entre los componentes.
-## Toda la lógica de física y el estado de los componentes deben estar referenciados y configurados desde el Inspector de Godot.
+## Controlador principal del jugador: orquesta el flujo de datos y eventos entre
+## sus componentes. Los que están en Jugador.tscn se referencian desde el
+## Inspector; tres más los crea _ready() por código, en todos los peers:
+##   DestrabeJugador: la red de seguridad contra quedar trabado en paredes.
+##   IconosEstadoJugador: la fila de íconos de estado sobre la cabeza.
+##   IdentidadJugador: id_unico, nombre, cuenta con PIN y expulsión del fantasma.
+## Acá quedan el movimiento en red (input del dueño, predicción y
+## reconciliación, réplica de posición), la muerte/reaparición y la activación
+## de habilidades, que comparten el mismo estado (direccion, _muerto, bloqueos).
 
 extends CharacterBody2D
+
+const _DestrabeJugador := preload("res://escenas/jugador/DestrabeJugador.gd")
+const _IconosEstadoJugador := preload("res://escenas/jugador/IconosEstadoJugador.gd")
+const _IdentidadJugador := preload("res://escenas/jugador/IdentidadJugador.gd")
 
 # --- Referencias de componentes (se asignan en el Inspector) ---
 @export var componente_vida: VidaComponente # Componente de vida.
@@ -25,7 +36,9 @@ var direccion_mirada: Vector2 = Vector2.ZERO
 @onready var componente_animacion: AnimacionComponente = $AnimacionComponente
 @onready var componente_energia: EnergiaComponente = $EnergiaComponente
 @onready var _etiqueta_nombre: Label = $EtiquetaNombre
-@onready var _forma_colision: CollisionShape2D = $CollisionShape2D
+
+var _destrabe: Node
+var _identidad: Node
 
 var _ultima_direccion: Vector2 = Vector2.RIGHT
 ## Posición del fotograma anterior — SOLO para inferir "caminando" en la
@@ -54,29 +67,6 @@ var _muerto := false
 ## físicos, así que sin colisión dejan de detectarlo y atacarlo solos).
 var _capa_colision_original: int = 0
 var _mascara_colision_original: int = 0
-
-@export_group("Íconos de estado")
-## Fila de íconos de estado (veneno, lentitud, aturdido...) ENCIMA del
-## jugador, visible para cualquiera que lo mire (réplicas incluidas): el
-## aturdimiento se nota sin tener que mirar BarraBuffs en la esquina. Mismo
-## criterio visual que Enemigo._dibujar_iconos_estado_mob.
-@export var tamano_icono_estado: float = 16.0
-@export var separacion_iconos_estado: float = 3.0
-## Separación entre el borde superior REAL del sprite y la fila de íconos. El
-## borde se calcula (ver _altura_iconos_estado) en vez de fijar un Y a ojo, que
-## queda mal apenas cambia la escala del sprite. Mismo criterio que
-## Enemigo.margen_iconos_estado; lo vigila prueba_iconos_estado_jugador.
-@export var margen_iconos_estado: float = 4.0
-const _COLOR_CONTORNO_ICONOS_ESTADO := Color(0.0, 0.0, 0.0, 0.9)
-
-var _nodo_iconos_estado: Node2D = null
-## BuffsComponente recién se crea con el PRIMER debuff (ver EfectoVeneno/
-## EfectoAturdir._anotar_icono), así que se reintenta encontrarlo (mismo
-## criterio que Enemigo.gd y BarraBuffs.gd).
-var _buffs_estado: BuffsComponente = null
-var _buffs_activos_estado: Array[String] = []
-const _INTERVALO_REINTENTO_BUFFS_ESTADO := 0.5
-var _acumulador_reintento_buffs_estado := 0.0
 
 ## En red real (ENet, no el OfflineMultiplayerPeer por defecto; ver
 ## Utils.en_red()) el nombre del nodo ES el peer id dueño, que asigna quien lo
@@ -110,38 +100,6 @@ var id_unico: String = ""
 ## llegado. El servidor la mantiene igual a global_position (ver
 ## _physics_process).
 var _posicion_replicada: Vector2 = Vector2.ZERO
-## Red de seguridad contra quedar trabado en la geometría del mapa (p. ej.
-## insistiendo con Parpadeo o Carga contra la misma esquina). Dispara solo si
-## el CUERPO está de verdad incrustado en la pared, chequeado con una versión
-## achicada de la propia forma (ver _esta_incrustado_en_pared): "no avanza
-## aunque quiera moverse" no alcanza, porque eso también es alguien empujando
-## una pared a propósito.
-##
-## Solo corre donde vive la posición autoritativa (servidor o sin red): el
-## cliente dueño solo predice, y "destrabarlo" ahí lo pisaría la próxima
-## reconciliación.
-var _tiempo_incrustado_atasco: float = 0.0
-const _ATASCO_TIEMPO_UMBRAL := 0.5
-## Cuánto se achica la forma real al chequear solape -- un contacto normal
-## contra una pared (tocando, sin penetrar) no debe contar como atascado.
-const _ATASCO_MARGEN_ACHIQUE := 3.0
-## Segunda red, más paciente, para cuando no llega a haber solape real pero el
-## jugador igual no avanza (move_and_slide resolviendo ~0 contra una esquina
-## rara): si pide moverse, no está inmovilizado a propósito (Cepo, aturdido;
-## ver componente_movimiento._contador_inmovilizacion) y casi no se movió en
-## 2 s, se fuerza el movimiento en la dirección pedida
-## (_intentar_forzar_movimiento) y, si no hay camino, se lo reubica en el hueco
-## libre más cercano (_intentar_destrabar). Umbral más largo que el de arriba
-## porque la señal es menos certera; a alguien parado contra una pared normal
-## como mucho le toca un empujón chico.
-var _tiempo_sin_avanzar_atasco: float = 0.0
-var _posicion_referencia_sin_avanzar: Vector2 = Vector2.ZERO
-const _ATASCO_SIN_AVANZAR_TIEMPO_UMBRAL := 2.0
-const _ATASCO_SIN_AVANZAR_DISTANCIA_UMBRAL := 15.0
-## Distancia que se intenta "forzar" en la dirección pedida antes de
-## rendirse y buscar cualquier hueco libre cercano (ver
-## _intentar_forzar_movimiento).
-const _ATASCO_DISTANCIA_FORZAR := 48.0
 ## Qué tan rápido el cliente alcanza la posición replicada (más alto = más
 ## "pegado" a la red pero más notorio el salto; más bajo = más suave pero
 ## más "elástico"). 1/seg ≈ alcanza el 63% de la distancia cada segundo.
@@ -236,6 +194,8 @@ func _ready():
 	# (ver muro.tscn, EfectoDoT.tscn, EfectoInmovilizar.tscn).
 	_capa_colision_original    = collision_layer
 	_mascara_colision_original = collision_mask
+	_destrabe = _agregar_componente(_DestrabeJugador, "DestrabeJugador")
+	_identidad = _agregar_componente(_IdentidadJugador, "IdentidadJugador")
 	if Utils.en_red():
 		var nombre_str := String(name)
 		peer_id_dueño = int(nombre_str) if nombre_str.is_valid_int() else -1
@@ -246,13 +206,11 @@ func _ready():
 		if camara:
 			camara.enabled = (peer_id_dueño == multiplayer.get_unique_id())
 			resetear_camara()
-		# El dueño registra su nombre (para mostrar, se replica a todos —
-		# ver _enter_tree) y su identidad única (solo para el servidor,
-		# nunca se muestra ni se replica — ver id_unico). Ninguno de los dos
-		# lo puede saber el servidor solo: ambos viven en el cliente.
+		# El dueño registra su nombre (para mostrar, se replica a todos; ver
+		# _enter_tree) y su identidad única (solo para el servidor, nunca se
+		# muestra ni se replica; ver id_unico).
 		if peer_id_dueño == multiplayer.get_unique_id():
-			nombre_visible = Utils.nombre_jugador_local()
-			rpc_id(1, "_registrar_identidad_red", Utils.id_jugador_local(), nombre_visible, Utils.pin_conexion)
+			_identidad.enviar_al_servidor()
 	else:
 		nombre_visible = Utils.nombre_jugador_local()
 		id_unico = Utils.id_jugador_local()
@@ -300,14 +258,20 @@ func _ready():
 				SeñalManager.conectar("slot_%d_activar" % i, self, "_on_slot_%d_activar" % i)
 				SeñalManager.conectar("slot_%d_lanzar"  % i, self, "_on_slot_%d_lanzar"  % i)
 
-	# Corre para CUALQUIER jugador (dueño local y réplicas): igual que el
-	# nombre de un mob, es visible para cualquiera que lo mire, no solo el
-	# dueño (ver _crear_iconos_estado).
-	_crear_iconos_estado()
+	# Para CUALQUIER jugador (dueño local y réplicas): igual que el nombre de un
+	# mob, es visible para cualquiera que lo mire, no solo el dueño.
+	_agregar_componente(_IconosEstadoJugador, "IconosEstadoJugador")
 
 	# Los bonos de atributos del equipo se recalculan en
 	# EquipoComponente.actualizar(), no acá por BusEventos.equipo_cambiado: ese
 	# bus es global y en el servidor no sabía a qué jugador recalcular.
+
+
+func _agregar_componente(script: GDScript, nombre: String) -> Node:
+	var componente: Node = script.new()
+	componente.name = nombre
+	add_child(componente)
+	return componente
 
 
 ## Contador de bloqueos de control (ráfaga en curso, etc.): mientras sea
@@ -350,64 +314,6 @@ func congelar_disparo_pendiente() -> void:
 
 func descongelar_disparo_pendiente() -> void:
 	_congelamientos_disparo = maxi(0, _congelamientos_disparo - 1)
-
-
-## Solo reintenta encontrar BuffsComponente (ver _intentar_conectar_buffs_
-## estado) — se crea recién con el primer debuff, no siempre existe todavía
-## cuando el jugador arranca. Mismo criterio que Enemigo.gd/BarraBuffs.gd.
-func _process(delta: float) -> void:
-	if _buffs_estado != null or _nodo_iconos_estado == null:
-		return
-	_acumulador_reintento_buffs_estado += delta
-	if _acumulador_reintento_buffs_estado >= _INTERVALO_REINTENTO_BUFFS_ESTADO:
-		_acumulador_reintento_buffs_estado = 0.0
-		_intentar_conectar_buffs_estado()
-
-
-func _crear_iconos_estado() -> void:
-	_nodo_iconos_estado = Node2D.new()
-	_nodo_iconos_estado.name = "IconosEstadoJugador"
-	_nodo_iconos_estado.position = Vector2(0.0, _altura_iconos_estado())
-	add_child(_nodo_iconos_estado)
-	_nodo_iconos_estado.draw.connect(_dibujar_iconos_estado)
-	_intentar_conectar_buffs_estado()
-
-
-## Y local (negativo = arriba) donde se apoya la fila de íconos, contra el
-## borde superior REAL del sprite — mismo criterio que
-## Enemigo._altura_iconos_estado(), ver el comentario de
-## margen_iconos_estado para el porqué de calcularlo en vez de fijarlo.
-func _altura_iconos_estado() -> float:
-	if not sprite or not sprite.texture or sprite.vframes <= 0:
-		return -(margen_iconos_estado + tamano_icono_estado)
-	var alto_frame := (sprite.texture.get_height() / float(sprite.vframes)) * sprite.scale.y
-	var borde_superior_sprite := sprite.position.y - alto_frame / 2.0
-	return borde_superior_sprite - margen_iconos_estado - tamano_icono_estado
-
-
-func _intentar_conectar_buffs_estado() -> void:
-	if _buffs_estado != null:
-		return
-	var comp := get_node_or_null("BuffsComponente") as BuffsComponente
-	if comp == null:
-		return
-	_buffs_estado = comp
-	_buffs_estado.buff_agregado.connect(_al_cambiar_buffs_estado)
-	_buffs_estado.buff_quitado.connect(_al_cambiar_buffs_estado)
-	_al_cambiar_buffs_estado("")
-
-
-## Se relee la lista completa en vez de agregar/quitar un id puntual —
-## mismo criterio que Enemigo._al_cambiar_buffs_estado.
-func _al_cambiar_buffs_estado(_id: String) -> void:
-	_buffs_activos_estado = _buffs_estado.activos()
-	if _nodo_iconos_estado:
-		_nodo_iconos_estado.queue_redraw()
-
-
-func _dibujar_iconos_estado() -> void:
-	Utils.dibujar_iconos_estado(_nodo_iconos_estado, _buffs_estado, _buffs_activos_estado,
-		tamano_icono_estado, separacion_iconos_estado, _COLOR_CONTORNO_ICONOS_ESTADO)
 
 
 ## Rectificador del joystick: compara el estado REAL del joystick
@@ -461,97 +367,20 @@ func _joystick_movimiento(_direccion: Vector2):
 	direccion = _direccion
 
 
-## SERVIDOR: el dueño registra su identidad (id_unico, la clave de guardado;
-## ver GestorGuardado) y su nombre para mostrar. "any_peer", pero solo se
-## acepta del dueño real. id_unico se queda en el servidor; nombre_visible se
-## replica por el Sync (ver _enter_tree).
+## SERVIDOR: el dueño registra su identidad y su nombre (ver IdentidadJugador).
+## "any_peer", pero solo se acepta del dueño real.
 @rpc("any_peer", "reliable")
 func _registrar_identidad_red(id: String, nombre: String, pin: String = "") -> void:
-	if not Utils.pedido_del_dueño(self):
-		return
-	var id_limpio := id.strip_edges()
-	var nombre_limpio := nombre.strip_edges().substr(0, 24)
-	if nombre_limpio != "":
-		nombre_visible = nombre_limpio
-	# Con PIN, la identidad real la resuelve la CUENTA (nombre+PIN), no el
-	# dispositivo: así el progreso sigue al nombre aunque cambie de celular
-	# (ver GestorCuentas.resolver_cuenta). Sin PIN, comportamiento clásico:
-	# el id del dispositivo tal cual.
-	if pin.strip_edges() != "" and nombre_limpio != "":
-		var id_cuenta: String = GestorCuentas.resolver_cuenta(nombre_limpio, pin.strip_edges(), id_limpio)
-		if id_cuenta == "":
-			# PIN incorrecto: avisar al dueño y desconectarlo — jugar con la
-			# identidad "equivocada" (la del dispositivo) sería peor, porque
-			# creería estar en su cuenta y estaría escribiendo otra partida.
-			rpc_id(peer_id_dueño, "_rechazar_cuenta_red", "PIN incorrecto para '%s'." % nombre_limpio)
-			var peer := multiplayer.multiplayer_peer
-			if peer is ENetMultiplayerPeer:
-				# Timer real, no call_deferred(): eso solo pospone al mismo fotograma y
-				# ENet no llega a transmitir el RPC reliable antes del corte (el cliente no
-				# recibía el aviso y reintentaba con el mismo PIN malo para siempre).
-				get_tree().create_timer(0.3).timeout.connect(
-					(peer as ENetMultiplayerPeer).disconnect_peer.bind(peer_id_dueño, false)
-				)
-			return
-		id_unico = id_cuenta
-		_expulsar_fantasma_de_la_misma_identidad()
-		GestorGrupos.registrar_conectado(peer_id_dueño, nombre_visible, id_unico)
-		return
-	if id_limpio != "":
-		id_unico = id_limpio
-		_expulsar_fantasma_de_la_misma_identidad()
-		GestorGrupos.registrar_conectado(peer_id_dueño, nombre_visible, id_unico)
+	if Utils.pedido_del_dueño(self):
+		_identidad.registrar(id, nombre, pin)
 
 
-## SERVIDOR: si ya existe otro Jugador con la MISMA identidad (mismo id_unico,
-## otro peer_id_dueño), es una conexión vieja que ENet todavía no detectó como
-## muerta (p. ej. el cliente reintentó conectarse solo tras reiniciarse el
-## servidor). Los mobs seguirían atacando a ese fantasma mientras el jugador de
-## verdad queda libre de aggro.
-##
-## Se lo desconecta apenas se confirma la identidad, antes de cargar la
-## partida; ServidorDedicado._al_desconectar hace toda la limpieza.
-func _expulsar_fantasma_de_la_misma_identidad() -> void:
-	var fantasma := _buscar_fantasma_de_la_misma_identidad()
-	if fantasma == null:
-		return
-	var peer := multiplayer.multiplayer_peer
-	if peer is ENetMultiplayerPeer and fantasma.peer_id_dueño >= 0:
-		# Timer real, ni corte sincrónico ni call_deferred(): esto corre dentro del
-		# RPC de OTRO peer, y cortar ya deja a ENet a medio actualizar varios
-		# fotogramas; cualquier paquete al fantasma en ese lapso revienta con "Unable
-		# to send packet... max channels: 0".
-		var id_a_expulsar: int = fantasma.peer_id_dueño
-		get_tree().create_timer(0.3).timeout.connect(
-			(peer as ENetMultiplayerPeer).disconnect_peer.bind(id_a_expulsar, false)
-		)
-
-
-## Separado de _expulsar_fantasma_de_la_misma_identidad() para poder probar
-## la lógica de detección (la parte propensa a errores: encontrar al
-## fantasma correcto, sin falsos positivos entre jugadores distintos ni
-## falsos negativos consigo mismo) sin necesitar un ENetMultiplayerPeer real
-## — ver pruebas/prueba_expulsar_fantasma_identidad.gd.
-func _buscar_fantasma_de_la_misma_identidad() -> Node:
-	for otro in get_tree().get_nodes_in_group("jugadores"):
-		if otro == self or not ("id_unico" in otro) or not ("peer_id_dueño" in otro):
-			continue
-		if otro.id_unico == id_unico and otro.peer_id_dueño != peer_id_dueño:
-			return otro
-	return null
-
-
-## CLIENTE (dueño): el servidor rechazó la cuenta (PIN incorrecto). Solo anota
-## el motivo: el disconnect_peer() que llega justo después dispara
-## server_disconnected, y Mundo._al_perder_conexion() decide qué mostrar. Si
-## esto también cambiara de escena, correría una carrera contra ese evento y
-## normalmente la perdería (reconectando con el mismo PIN malo para siempre).
+## CLIENTE dueño: el servidor rechazó la cuenta (PIN incorrecto).
 @rpc("authority", "reliable")
 func _rechazar_cuenta_red(motivo: String) -> void:
 	if Utils.en_red() and peer_id_dueño != multiplayer.get_unique_id():
 		return
-	GestorLogRed.registrar("Cuenta rechazada: %s" % motivo)
-	Utils.error_conexion = motivo
+	_identidad.anotar_rechazo(motivo)
 
 
 func _soy_dueño_cliente_red() -> bool:
@@ -679,7 +508,7 @@ func _physics_process(delta: float) -> void:
 	# Delegamos la aplicación de física al componente de movimiento.
 	if componente_movimiento:
 		componente_movimiento.physics_process(delta, direccion)
-	_verificar_atasco_y_destrabar(delta)
+	_destrabe.verificar(delta)
 	# El servidor (o el único jugador, sin red) es quien manda la posición
 	# real — mantener esto sincronizado es lo que efectivamente se replica.
 	_posicion_replicada = global_position
@@ -688,118 +517,6 @@ func _physics_process(delta: float) -> void:
 
 	if Utils.en_red() and multiplayer.is_server():
 		_replicar_posicion_red()
-
-
-## Si el cuerpo está incrustado en la geometría (ver _esta_incrustado_en_pared)
-## durante _ATASCO_TIEMPO_UMBRAL segundos SEGUIDOS, se lo reubica (ver
-## _tiempo_incrustado_atasco). Pedir tiempo sostenido evita reaccionar a un
-## solape de un solo fotograma, p. ej. justo después de un teletransporte.
-func _verificar_atasco_y_destrabar(delta: float) -> void:
-	if _esta_incrustado_en_pared():
-		_tiempo_incrustado_atasco += delta
-		if _tiempo_incrustado_atasco >= _ATASCO_TIEMPO_UMBRAL:
-			_tiempo_incrustado_atasco = 0.0
-			_intentar_destrabar()
-			_posicion_referencia_sin_avanzar = global_position
-			_tiempo_sin_avanzar_atasco = 0.0
-			return
-	else:
-		_tiempo_incrustado_atasco = 0.0
-
-	_verificar_sin_avanzar_y_forzar(delta)
-
-
-## Segunda red (ver comentario grande de _tiempo_sin_avanzar_atasco): sin
-## solape real, pero tampoco avanza aunque quiera moverse y no está bajo
-## un estado que lo inmovilice a propósito.
-func _verificar_sin_avanzar_y_forzar(delta: float) -> void:
-	var inmovilizado := componente_movimiento != null and componente_movimiento._contador_inmovilizacion > 0
-	if direccion.length() < 0.1 or inmovilizado:
-		_tiempo_sin_avanzar_atasco = 0.0
-		_posicion_referencia_sin_avanzar = global_position
-		return
-	if global_position.distance_to(_posicion_referencia_sin_avanzar) > _ATASCO_SIN_AVANZAR_DISTANCIA_UMBRAL:
-		_tiempo_sin_avanzar_atasco = 0.0
-		_posicion_referencia_sin_avanzar = global_position
-		return
-	_tiempo_sin_avanzar_atasco += delta
-	if _tiempo_sin_avanzar_atasco < _ATASCO_SIN_AVANZAR_TIEMPO_UMBRAL:
-		return
-	_tiempo_sin_avanzar_atasco = 0.0
-	if not _intentar_forzar_movimiento():
-		_intentar_destrabar()
-	_posicion_referencia_sin_avanzar = global_position
-
-
-## Barre la forma real (mismo criterio que HabilidadParpadeo._recortar_
-## por_obstaculos, ver ese comentario) hasta _ATASCO_DISTANCIA_FORZAR en
-## la dirección que el jugador está pidiendo -- si encuentra aunque sea
-## un poco de camino libre de verdad, lo empuja hasta ahí ("forzar el
-## movimiento" en la dirección pedida, en vez de mandarlo a cualquier
-## lado). Devuelve false si no encontró nada mejor que quedarse quieto,
-## para que el llamador caiga al último recurso (_intentar_destrabar).
-func _intentar_forzar_movimiento() -> bool:
-	if not _forma_colision or not _forma_colision.shape:
-		return false
-	var espacio := get_world_2d().direct_space_state
-	var query := PhysicsShapeQueryParameters2D.new()
-	query.shape = _forma_colision.shape
-	query.transform = Transform2D(0.0, global_position)
-	query.motion = direccion.normalized() * _ATASCO_DISTANCIA_FORZAR
-	query.collision_mask = 1  # Capa "mundo".
-	query.exclude = [self]
-	var fracciones := espacio.cast_motion(query)
-	var fraccion_segura: float = fracciones[0] if fracciones.size() > 0 else 0.0
-	var avance := query.motion * fraccion_segura
-	if avance.length() < 8.0:
-		return false
-	global_position += avance
-	velocity = Vector2.ZERO
-	return true
-
-
-## true solo si la forma real del jugador, ACHICADA en _ATASCO_MARGEN_
-## ACHIQUE, se solapa con la capa "mundo" -- tocar una pared de refilón
-## (contacto normal, sin penetrar) da false a propósito, ver comentario
-## grande de _tiempo_incrustado_atasco.
-func _esta_incrustado_en_pared() -> bool:
-	if not _forma_colision or not _forma_colision.shape:
-		return false
-	var forma_achicada: Shape2D = _forma_colision.shape.duplicate()
-	if forma_achicada is CircleShape2D:
-		(forma_achicada as CircleShape2D).radius = maxf(1.0, (forma_achicada as CircleShape2D).radius - _ATASCO_MARGEN_ACHIQUE)
-	var espacio := get_world_2d().direct_space_state
-	var query := PhysicsShapeQueryParameters2D.new()
-	query.shape = forma_achicada
-	query.transform = Transform2D(0.0, global_position)
-	query.collision_mask = 1  # Capa "mundo" -- mismo criterio que HabilidadParpadeo.capa_obstaculos.
-	query.exclude = [self]
-	return not espacio.intersect_shape(query, 1).is_empty()
-
-
-## Busca en anillos crecientes alrededor de la posición actual el primer
-## punto donde la forma real del jugador (ver _forma_colision) no se
-## solape con nada de la capa 1 (mundo/paredes), y teletransporta ahí.
-## Nunca busca hacia adentro (radio 0) porque si está atascado, "acá
-## mismo" ya está mal -- el primer anillo probado es el más chico posible.
-func _intentar_destrabar() -> void:
-	if not _forma_colision or not _forma_colision.shape:
-		return
-	var espacio := get_world_2d().direct_space_state
-	var query := PhysicsShapeQueryParameters2D.new()
-	query.shape = _forma_colision.shape
-	query.collision_mask = 1  # Capa "mundo" -- mismo criterio que HabilidadParpadeo.capa_obstaculos.
-	query.exclude = [self]
-	var origen := global_position
-	var radios: Array[float] = [16.0, 32.0, 48.0, 64.0, 96.0, 128.0]
-	for radio in radios:
-		for angulo_deg in range(0, 360, 30):
-			var candidato: Vector2 = origen + Vector2.RIGHT.rotated(deg_to_rad(angulo_deg)) * radio
-			query.transform = Transform2D(0.0, candidato)
-			if espacio.intersect_shape(query, 1).is_empty():
-				global_position = candidato
-				velocity = Vector2.ZERO
-				return
 
 
 ## Único punto que aplica la animación de caminar/idle según la dirección
