@@ -84,13 +84,11 @@ var _tiempo_para_revisar_sueño: float = 0.0
 ## a la otra.
 var _dormido_por_distancia: bool = false
 
-## INSTRUMENTACIÓN TEMPORAL: microsegundos acumulados evaluando árboles de
-## comportamiento (actualizar() de TODOS los mobs) desde el último reporte de
-## ServidorDedicado._reportar_capacidad(), que lo lee y lo resetea cada
-## _INTERVALO_REPORTE. Separa cuánto del costo sostenido en combate es evaluar
-## árboles, contra el resto (p. ej. el aviso RPC de cada habilidad, ver
-## HabilidadBase._disparar). static: un contador ÚNICO para todas las
-## instancias; sumarlos a mano en cada reporte costaría más que la medición.
+## MEDICIÓN DE CARGA: microsegundos acumulados evaluando árboles de
+## comportamiento (actualizar() de TODOS los mobs) desde el último reporte
+## "[CARGA]" (ServidorDedicado._reportar_capacidad, que lo lee y lo vuelve a
+## cero). static: un contador ÚNICO para todas las instancias; sumarlos a mano
+## en cada reporte costaría más que la medición.
 static var us_acumulados_todos_los_arboles: int = 0
 
 ## Emitida al final de cada tick con el estado resultante del árbol.

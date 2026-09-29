@@ -1,7 +1,6 @@
 extends Node2D
 ## Servidor dedicado headless del juego real — pensado para correr SOLO
-## dentro de Docker (ver prototipos/red/Dockerfile, apunta acá en vez de al
-## prototipo de juguete). Autoritativo: instancia un Jugador.tscn real por
+## dentro de Docker (ver docker/Dockerfile). Autoritativo: instancia un Jugador.tscn real por
 ## cada peer que se conecta, carga el nivel real (los mobs ya son
 ## conscientes de red desde antes — ver SpawnerMobs.gd) y reparte el
 ## combate/botín/XP exactamente igual que en un solo jugador.
@@ -75,29 +74,49 @@ func _ready() -> void:
 	# recibía RPCs de mobs que nunca había creado (miles de "Requested node was
 	# not found" hasta perder la conexión).
 	GestorNiveles.preparar_servidor(nivel_inicial)
-	_iniciar_instrumentacion()
+	_iniciar_medicion_carga()
 
 
 # =============================================================================
-# INSTRUMENTACIÓN: capacidad del servidor bajo carga. Imprime cada
-# _INTERVALO_REPORTE segundos una línea "[CARGA] ..." fácil de filtrar desde
-# el arnés de bots (herramientas/prueba_carga.sh) o desde los logs de Docker.
+# MEDICIÓN DE CARGA: capacidad del servidor. Imprime cada tanto una línea
+# "[CARGA] ..." fácil de filtrar desde el arnés de bots
+# (herramientas/carga/prueba_carga.sh) o desde los logs de Docker
+# (docker compose logs servidor | grep CARGA).
 #
-# Solo sirve durante una medición: en producción normal, una línea cada 5 s
-# las 24 horas es ruido en los logs del contenedor. Para apagarla, poner esta
-# constante en false y reconstruir la imagen.
+# El intervalo sale de la variable de entorno CARGA_INTERVALO (segundos; 0 la
+# apaga): se cambia en el docker-compose ("environment:") y alcanza con
+# recrear el contenedor, sin reconstruir la imagen. Sin la variable, cada
+# _INTERVALO_REPORTE_POR_DEFECTO segundos.
 # =============================================================================
-const _INSTRUMENTACION_ACTIVA := true
-const _INTERVALO_REPORTE := 5.0
+const _INTERVALO_REPORTE_POR_DEFECTO := 5.0
+const _VARIABLE_INTERVALO_REPORTE := "CARGA_INTERVALO"
+var _ultimo_reporte_us := 0
 
-func _iniciar_instrumentacion() -> void:
-	if not _INSTRUMENTACION_ACTIVA:
+func _iniciar_medicion_carga() -> void:
+	var intervalo := intervalo_reporte_desde(OS.get_environment(_VARIABLE_INTERVALO_REPORTE))
+	if intervalo <= 0.0:
+		print("[CARGA] reporte apagado (%s=0)." % _VARIABLE_INTERVALO_REPORTE)
 		return
+	_ultimo_reporte_us = Time.get_ticks_usec()
 	var timer := Timer.new()
-	timer.wait_time = _INTERVALO_REPORTE
+	timer.wait_time = intervalo
 	timer.autostart = true
 	timer.timeout.connect(_reportar_capacidad)
 	add_child(timer)
+
+
+## Intervalo del reporte a partir del valor de CARGA_INTERVALO: vacío (sin
+## variable) = el de siempre; 0 o negativo = apagado; algo que no es un número
+## = el de siempre, con aviso (mejor seguir midiendo que apagarlo por un typo).
+static func intervalo_reporte_desde(valor: String) -> float:
+	var limpio := valor.strip_edges()
+	if limpio == "":
+		return _INTERVALO_REPORTE_POR_DEFECTO
+	if not limpio.is_valid_float():
+		push_warning("%s='%s' no es un número; se usa %.0f s." % [
+			_VARIABLE_INTERVALO_REPORTE, valor, _INTERVALO_REPORTE_POR_DEFECTO])
+		return _INTERVALO_REPORTE_POR_DEFECTO
+	return maxf(0.0, limpio.to_float())
 
 
 func _reportar_capacidad() -> void:
@@ -113,25 +132,22 @@ func _reportar_capacidad() -> void:
 	var ms_fisica := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 	var mem_mb := Performance.get_monitor(Performance.MEMORY_STATIC) / 1048576.0
 	var fps := Engine.get_frames_per_second()
-	# INSTRUMENTACIÓN TEMPORAL (ver ArbolComportamiento.us_acumulados_todos_
-	# los_arboles): ms de árbol de comportamiento por segundo real, para
-	# compararlo contra proceso*fps (≈ ms de trabajo idle por segundo real)
-	# y saber qué fracción del costo sostenido en combate es evaluar el
-	# árbol de cada mob contra el resto (el aviso RPC de cada habilidad).
-	var ms_arboles_por_seg := (ArbolComportamiento.us_acumulados_todos_los_arboles / 1000.0) / _INTERVALO_REPORTE
+	# Costo acumulado desde el reporte anterior, en ms por segundo REAL (el
+	# lapso medido, no el wait_time: bajo carga el Timer puede dispararse tarde).
+	# Se comparan contra proceso*fps (≈ ms de trabajo por segundo) para saber
+	# qué fracción del costo sostenido en combate es cada cosa:
+	#   arboles: evaluar el árbol de comportamiento de cada mob (10 Hz).
+	#   habilidades: _ejecutar() de cualquier habilidad, de mob o de jugador
+	#     (las del jugador llegan por RPC, fuera del temporizado del árbol).
+	#   replicacion: peers_cercanos + rpc_id del estado de cada mob (60 Hz).
+	var ahora_us := Time.get_ticks_usec()
+	var segundos := maxf(0.001, (ahora_us - _ultimo_reporte_us) / 1000000.0)
+	_ultimo_reporte_us = ahora_us
+	var ms_arboles_por_seg := ArbolComportamiento.us_acumulados_todos_los_arboles / 1000.0 / segundos
 	ArbolComportamiento.us_acumulados_todos_los_arboles = 0
-	# INSTRUMENTACIÓN TEMPORAL (ver HabilidadBase.us_acumulados_ejecutar_
-	# habilidades): ms/s de _ejecutar() de CUALQUIER habilidad disparada
-	# (mob o jugador) — separado de "arboles" porque el disparo de un
-	# jugador llega por RPC (_activar_red), fuera del temporizado del árbol.
-	var ms_habilidades_por_seg := (HabilidadBase.us_acumulados_ejecutar_habilidades / 1000.0) / _INTERVALO_REPORTE
+	var ms_habilidades_por_seg := HabilidadBase.us_acumulados_ejecutar_habilidades / 1000.0 / segundos
 	HabilidadBase.us_acumulados_ejecutar_habilidades = 0
-	# INSTRUMENTACIÓN TEMPORAL (ver Enemigo.us_acumulados_replicacion_estado):
-	# ms/s del bloque de replicación de estado (peers_cercanos + rpc_id de
-	# _recibir_estado_red) de todos los mobs — corre a 60Hz por mob, a
-	# diferencia del árbol (10Hz), y arboles+habilidades juntas solo cubrían
-	# ~15-18% del pico de proceso= medido en combate real.
-	var ms_replicacion_por_seg := (Enemigo.us_acumulados_replicacion_estado / 1000.0) / _INTERVALO_REPORTE
+	var ms_replicacion_por_seg := Enemigo.us_acumulados_replicacion_estado / 1000.0 / segundos
 	Enemigo.us_acumulados_replicacion_estado = 0
 	print("[CARGA] peers=%d mobs=%d nodos=%d mem=%.1fMB proceso=%.2fms fisica=%.2fms fps=%d arboles=%.2fms/s habilidades=%.2fms/s replicacion=%.2fms/s" % [
 		peers, mobs, nodos, mem_mb, ms_proceso, ms_fisica, fps, ms_arboles_por_seg, ms_habilidades_por_seg, ms_replicacion_por_seg])

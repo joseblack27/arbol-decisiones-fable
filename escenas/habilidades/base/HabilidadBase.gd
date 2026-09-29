@@ -69,11 +69,10 @@ var _dano_max: int = 0
 ## dueño, nunca a sí misma) — nadie más debería escribir esto a mano.
 var multiplicador_recarga: float = 1.0
 
-## INSTRUMENTACIÓN TEMPORAL (ver ArbolComportamiento.us_acumulados_todos_los_
-## arboles y ServidorDedicado._reportar_capacidad): microsegundos acumulados
-## dentro de _ejecutar() de CUALQUIER habilidad desde el último reporte. Va
-## aparte de "arboles=" porque las de jugador llegan por el RPC _activar_red(),
-## fuera de ese temporizado.
+## MEDICIÓN DE CARGA (ver ServidorDedicado._reportar_capacidad): microsegundos
+## acumulados dentro de _ejecutar() de CUALQUIER habilidad desde el último
+## reporte. Va aparte de "arboles=" porque las de jugador llegan por el RPC
+## _activar_red(), fuera de ese temporizado.
 static var us_acumulados_ejecutar_habilidades: int = 0
 
 ## Factor de velocidad (0..1, como MovimientoComponente.agregar_lentitud)

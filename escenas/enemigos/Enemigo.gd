@@ -170,8 +170,7 @@ var _peers_relevantes_anterior: Array[int] = []
 ## este keepalive el cliente quedaría desincronizado para siempre.
 const _FOTOGRAMAS_KEEPALIVE_RED := 30
 
-## INSTRUMENTACIÓN TEMPORAL (ver ArbolComportamiento.us_acumulados_todos_los_
-## arboles y HabilidadBase.us_acumulados_ejecutar_habilidades): microsegundos
+## MEDICIÓN DE CARGA (ver ServidorDedicado._reportar_capacidad): microsegundos
 ## acumulados en la replicación de estado (peers_cercanos() + rpc_id de
 ## _recibir_estado_red) de TODOS los mobs desde el último reporte. Corre 60
 ## veces por segundo por cada mob vivo.

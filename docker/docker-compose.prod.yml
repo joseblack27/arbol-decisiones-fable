@@ -4,6 +4,11 @@ services:
     ports:
       - "8920:8920/udp"
     restart: unless-stopped
+    # Reporte "[CARGA]" del servidor (ver ServidorDedicado._reportar_capacidad):
+    # cada 5 s por defecto. CARGA_INTERVALO lo cambia (segundos; 0 lo apaga);
+    # alcanza con "docker compose up -d", sin reconstruir la imagen.
+    # environment:
+    #   - CARGA_INTERVALO=0
     # Bind mount a un Persistent Disk aparte del disco de arranque de la VM
     # (montado en /mnt/datos_partidas, ver el disco "datos-partidas-disk") —
     # antes esto era un volumen de Docker con nombre, que sí sobrevive un

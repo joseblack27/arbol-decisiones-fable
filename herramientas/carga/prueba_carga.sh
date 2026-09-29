@@ -4,7 +4,7 @@
 # dedicado real, conecta N bots (cada uno un proceso Godot separado, una
 # conexión ENet físicamente distinta — no simulados dentro de un solo
 # proceso) que se mueven y atacan, y al terminar imprime la serie temporal
-# "[CARGA] ..." que el propio servidor fue logueando cada 5s
+# "[CARGA] ..." que el propio servidor fue logueando (cada 5 s por defecto)
 # (ver ServidorDedicado._reportar_capacidad).
 #
 # Uso:
@@ -13,6 +13,9 @@
 # Ejemplos:
 #   ./herramientas/carga/prueba_carga.sh 10          # 10 bots, 60s, puerto 8925
 #   ./herramientas/carga/prueba_carga.sh 50 120       # 50 bots, 120s
+#
+# El intervalo del reporte se cambia con CARGA_INTERVALO (segundos), que el
+# servidor hereda de este proceso: CARGA_INTERVALO=2 ./prueba_carga.sh 10
 #
 # Usa un PUERTO APARTE (8925 por defecto) para no chocar con un servidor
 # Docker que ya esté corriendo en 8920 — así se puede medir sin tocar la
